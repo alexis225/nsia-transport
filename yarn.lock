@@ -3362,6 +3362,11 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
+qs-esm@^7.0.3:
+  version "7.0.3"
+  resolved "https://registry.yarnpkg.com/qs-esm/-/qs-esm-7.0.3.tgz#0d5c0f3a719090ece3ee426b766706e294e67bc3"
+  integrity sha512-8jbjCR0PPbqoQcv83C2K/zvVeytRPwPpt3WPDbq51qyLAxcWGtXVRjSe6GHtLCoVbg9+NEFkv7GyUxqjcDIJzw==
+
 qs@^6.15.0:
   version "6.15.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.15.0.tgz#db8fd5d1b1d2d6b5b33adaf87429805f1909e7b3"
@@ -4104,6 +4109,13 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+ziggy-js@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/ziggy-js/-/ziggy-js-2.6.2.tgz#d8a934c691ae70436812e0e1f3797145b2cdbe31"
+  integrity sha512-41xc9wRvv5Olh8pZjKSaL5vDAjw4BfTDMFoeLwRpDGc2B+uqcdwIKd81EHs6uwpqahdRrU7uMab0xWj0hBSDjg==
+  dependencies:
+    qs-esm "^7.0.3"
 
 "zod-validation-error@^3.5.0 || ^4.0.0":
   version "4.0.2"

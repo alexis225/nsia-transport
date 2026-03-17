@@ -4,8 +4,11 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -15,42 +18,28 @@ use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configureAuthentication(); // ← US-001
     }
 
-    /**
-     * Configure Fortify actions.
-     */
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
     }
 
-    /**
-     * Configure Fortify views.
-     */
     private function configureViews(): void
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister' => Features::enabled(Features::registration()),
-            'status' => $request->session()->get('status'),
+            'canRegister'      => Features::enabled(Features::registration()),
+            'status'           => $request->session()->get('status'),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
@@ -67,15 +56,10 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::registerView(fn () => Inertia::render('auth/register'));
-
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
-
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
     }
 
-    /**
-     * Configure rate limiting.
-     */
     private function configureRateLimiting(): void
     {
         RateLimiter::for('two-factor', function (Request $request) {
@@ -83,9 +67,80 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
-
+            $throttleKey = Str::transliterate(
+                Str::lower($request->input(Fortify::username())) . '|' . $request->ip()
+            );
             return Limit::perMinute(5)->by($throttleKey);
         });
+    }
+
+    // ── US-001 : Authentification personnalisée ───────────────
+    private function configureAuthentication(): void
+    {
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::where('email', $request->email)->first();
+
+            if (! $user) {
+                $this->auditLog($request, null, 'login_failed', ['email' => $request->email]);
+                return null;
+            }
+
+            // Compte désactivé
+            if (! $user->is_active) {
+                $this->auditLog($request, $user->id, 'login_blocked');
+                return null;
+            }
+
+            // Compte verrouillé temporairement
+            if ($user->locked_until && $user->locked_until->isFuture()) {
+                $this->auditLog($request, $user->id, 'login_locked');
+                return null;
+            }
+
+            // Mauvais mot de passe
+            if (! Hash::check($request->password, $user->password)) {
+                $user->increment('failed_login_attempts');
+
+                if ($user->failed_login_attempts >= 5) {
+                    $user->update(['locked_until' => now()->addMinutes(10)]);
+                }
+
+                $this->auditLog($request, $user->id, 'login_failed', [
+                    'attempts' => $user->failed_login_attempts,
+                ]);
+
+                return null;
+            }
+
+            // ── Succès ────────────────────────────────────────
+            $user->update([
+                'failed_login_attempts' => 0,
+                'locked_until'          => null,
+                'last_login_at'         => now(),
+                'last_login_ip'         => $request->ip(),
+            ]);
+
+            $this->auditLog($request, $user->id, 'login_success');
+
+            return $user;
+        });
+    }
+
+    private function auditLog(
+        Request $request,
+        ?string $userId,
+        string  $action,
+        array   $metadata = [],
+    ): void {
+        AuditLog::create([
+            'tenant_id'      => null,
+            'user_id'        => $userId,
+            'action'         => $action,
+            'auditable_type' => 'auth',
+            'auditable_id'   => $userId ?? 'anonymous',
+            'ip_address'     => $request->ip(),
+            'user_agent'     => $request->userAgent(),
+            'new_data'       => $metadata ?: null,
+        ]);
     }
 }

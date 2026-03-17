@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Event;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -25,7 +28,11 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('Super Admin') ? true : null;
+            return $user->hasRole('super_admin') ? true : null;
+        });
+        
+        Event::listen(SocialiteWasCalled::class, function (SocialiteWasCalled $event) {
+            $event->extendSocialite('microsoft', MicrosoftExtendSocialite::class);
         });
     }
 
