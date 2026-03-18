@@ -69,7 +69,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // ── 2. ADMIN FILIALE ──────────────────────────────────
         $adminFiliale = Role::firstOrCreate(['name' => 'admin_filiale', 'guard_name' => 'web']);
         $adminFiliale->syncPermissions([
-            'users.view', 'users.create', 'users.edit', 'users.block', 'users.unblock',
+            'users.view', 'users.create', 'users.edit', 'users.block',
             'brokers.view', 'brokers.create', 'brokers.edit', 'brokers.delete',
             'referential.view',
             'contracts.view', 'contracts.create', 'contracts.edit',

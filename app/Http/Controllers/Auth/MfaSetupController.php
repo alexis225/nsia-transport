@@ -94,7 +94,6 @@ class MfaSetupController extends Controller
             'tenant_id'      => $request->user()->tenant_id,
             'user_id'        => $request->user()->id,
             'action'         => $action,
-            'auditable_type' => 'user',
             'auditable_id'   => $request->user()->id,
             'ip_address'     => $request->ip(),
             'user_agent'     => $request->userAgent(),

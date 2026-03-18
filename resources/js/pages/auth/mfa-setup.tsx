@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Shield, ShieldCheck, ShieldOff, RefreshCw, Copy, Check, AlertCircle, Eye, EyeOff, KeyRound } from 'lucide-react';
+import {
+    Shield, ShieldCheck, ShieldOff, RefreshCw,
+    Copy, Check, AlertCircle, Eye, EyeOff,
+    KeyRound, Loader2, ChevronRight
+} from 'lucide-react';
 
-interface MfaSetupProps {
+interface Props {
     mfaEnabled:    boolean;
     mfaPending:    boolean;
     qrCodeSvg:     string | null;
@@ -11,22 +15,14 @@ interface MfaSetupProps {
     status?:       string;
 }
 
-export default function MfaSetup({
-    mfaEnabled,
-    mfaPending,
-    qrCodeSvg,
-    secretKey,
-    recoveryCodes,
-    status,
-}: MfaSetupProps) {
-    const [copied, setCopied]             = useState(false);
-    const [showCodes, setShowCodes]       = useState(false);
+export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey, recoveryCodes, status }: Props) {
+    const [copied, setCopied]       = useState(false);
+    const [showCodes, setShowCodes] = useState(false);
+    const [step, setStep]           = useState<'idle'|'pending'|'done'>(
+        mfaEnabled ? 'done' : mfaPending ? 'pending' : 'idle'
+    );
 
-    // Formulaire confirmation code TOTP (Fortify)
     const confirmForm = useForm({ code: '' });
-
-    // Formulaire désactivation (Fortify — nécessite confirmation mot de passe)
-    const disableForm = useForm({});
 
     const copySecret = () => {
         if (secretKey) {
@@ -36,289 +32,213 @@ export default function MfaSetup({
         }
     };
 
-    const handleEnable = () => {
-        router.post(route('mfa.enable'));
-    };
-
+    const handleEnable = () => router.post(route('mfa.enable'));
     const handleDisable = () => {
-        if (confirm('Désactiver l\'authentification à deux facteurs ?')) {
-            router.delete(route('mfa.disable'));
-        }
+        if (confirm('Désactiver l\'authentification à deux facteurs ?')) router.delete(route('mfa.disable'));
     };
-
     const handleConfirm = (e: React.FormEvent) => {
         e.preventDefault();
-        // Fortify expose POST /user/confirmed-two-factor-authentication
-        confirmForm.post(route('two-factor.confirm'), {
-            onSuccess: () => confirmForm.reset(),
-        });
+        confirmForm.post(route('two-factor.confirm'), { onSuccess: () => confirmForm.reset() });
     };
-
     const handleRegenerate = () => {
-        if (confirm('Regénérer les codes de récupération ? Les anciens seront invalidés.')) {
-            router.post(route('mfa.recovery-codes.regenerate'));
-        }
+        if (confirm('Regénérer les codes ? Les anciens seront invalidés.')) router.post(route('mfa.recovery-codes.regenerate'));
     };
 
     return (
         <>
             <Head title="Configuration MFA — NSIA Transport" />
-
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
-                * { box-sizing: border-box; margin: 0; padding: 0; }
-                body { font-family: 'DM Sans', sans-serif; background: #F7F5F0; }
+                @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+                *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+                body{font-family:'DM Sans',sans-serif;background:#f1f5f9;min-height:100vh;}
 
-                .setup-root { max-width: 600px; margin: 0 auto; padding: 40px 24px; }
-                .setup-title {
-                    font-size: 22px; font-weight: 500; color: #1A2744;
-                    margin-bottom: 4px;
-                }
-                .setup-sub { font-size: 13px; color: #888; font-weight: 300; margin-bottom: 32px; }
+                .page{max-width:680px;margin:0 auto;padding:40px 24px;}
+                .page-header{margin-bottom:32px;}
+                .page-title{font-size:26px;font-weight:600;color:#1e293b;margin-bottom:4px;}
+                .page-sub{font-size:13px;color:#64748b;font-weight:300;}
 
-                .status-msg {
-                    background: #EFF7F0; border: 1px solid #B8DFB9;
-                    border-radius: 8px; padding: 10px 14px;
-                    font-size: 13px; color: #2D7A31; margin-bottom: 20px;
-                }
+                .status-ok{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;font-size:13px;color:#15803d;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
 
-                .card {
-                    background: #fff; border: 1.5px solid #E2DDD6;
-                    border-radius: 12px; padding: 24px; margin-bottom: 16px;
-                }
-                .card-header {
-                    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
-                }
-                .card-icon {
-                    width: 40px; height: 40px; border-radius: 10px;
-                    display: flex; align-items: center; justify-content: center;
-                    flex-shrink: 0;
-                }
-                .card-icon.blue { background: #EEF2FF; }
-                .card-icon.green { background: #ECFDF5; }
-                .card-icon.red { background: #FEF2F2; }
-                .card-title { font-size: 15px; font-weight: 500; color: #1A2744; }
-                .card-desc { font-size: 12px; color: #888; font-weight: 300; margin-top: 2px; }
+                /* Cards */
+                .card{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:16px;}
+                .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+                .card-title-row{display:flex;align-items:center;gap:12px;}
+                .card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+                .icon-blue{background:#eff6ff;}
+                .icon-green{background:#f0fdf4;}
+                .icon-red{background:#fef2f2;}
+                .card-title{font-size:15px;font-weight:500;color:#1e293b;}
+                .card-desc{font-size:12px;color:#94a3b8;margin-top:2px;}
 
-                .badge {
-                    display: inline-flex; align-items: center; gap: 5px;
-                    padding: 4px 10px; border-radius: 20px;
-                    font-size: 11px; font-weight: 500;
-                }
-                .badge.active { background: #ECFDF5; color: #065F46; }
-                .badge.inactive { background: #F9FAFB; color: #6B7280; border: 1px solid #E5E7EB; }
+                /* Badge statut */
+                .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;}
+                .badge-active{background:#dcfce7;color:#15803d;}
+                .badge-inactive{background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;}
 
-                .qr-wrap {
-                    display: flex; flex-direction: column; align-items: center;
-                    gap: 16px; padding: 16px 0;
-                }
-                .qr-box {
-                    background: #fff; border: 1.5px solid #E2DDD6;
-                    border-radius: 10px; padding: 16px;
-                }
-                .secret-row {
-                    display: flex; align-items: center; gap: 8px;
-                    background: #F7F5F0; border: 1px solid #E2DDD6;
-                    border-radius: 8px; padding: 10px 14px;
-                    font-family: monospace; font-size: 14px;
-                    color: #1A2744; letter-spacing: 0.1em;
-                    width: 100%;
-                }
-                .secret-key { flex: 1; word-break: break-all; }
-                .copy-btn {
-                    background: none; border: none; cursor: pointer;
-                    color: #C29D5A; padding: 2px; flex-shrink: 0;
-                    transition: color 0.2s;
-                }
-                .copy-btn:hover { color: #A6833D; }
+                /* Étapes */
+                .steps{margin:16px 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
+                .step{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#475569;line-height:1.5;}
+                .step-num{width:22px;height:22px;border-radius:50%;background:#1e3a8a;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
 
-                .confirm-form { display: flex; gap: 8px; margin-top: 16px; }
-                .confirm-input {
-                    flex: 1; padding: 10px 12px;
-                    font-size: 16px; font-weight: 500;
-                    font-family: 'DM Sans', sans-serif;
-                    letter-spacing: 0.2em; text-align: center;
-                    color: #1A2744; background: #FAFAF8;
-                    border: 1.5px solid #E2DDD6; border-radius: 8px;
-                    outline: none; transition: border-color 0.2s;
-                }
-                .confirm-input:focus { border-color: #1A2744; }
-                .confirm-input.error { border-color: #D94040; }
+                /* QR */
+                .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:16px 0;}
+                .qr-box{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;}
+                .secret-row{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 14px;width:100%;}
+                .secret-key{flex:1;font-family:monospace;font-size:13px;color:#1e3a8a;letter-spacing:.1em;word-break:break-all;}
+                .copy-btn{background:none;border:none;cursor:pointer;color:#3b4fd8;padding:2px;flex-shrink:0;transition:color .2s;}
+                .copy-btn:hover{color:#1e3a8a;}
 
-                .field-error {
-                    display: flex; align-items: center; gap: 5px;
-                    margin-top: 6px; font-size: 12px; color: #D94040;
-                }
+                /* Confirm form */
+                .confirm-wrap{margin-top:20px;}
+                .confirm-label{font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:block;}
+                .confirm-form{display:flex;gap:8px;}
+                .confirm-input{flex:1;padding:12px;font-size:22px;font-weight:600;font-family:'DM Sans',sans-serif;letter-spacing:.25em;text-align:center;color:#1e3a8a;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;outline:none;transition:border-color .2s,box-shadow .2s;}
+                .confirm-input:focus{border-color:#3b4fd8;box-shadow:0 0 0 3px rgba(59,79,216,.08);}
+                .confirm-input.has-error{border-color:#ef4444;}
+                .field-error{display:flex;align-items:center;gap:4px;font-size:12px;color:#ef4444;margin-top:5px;}
 
-                .btn { padding: 10px 18px; border-radius: 8px; font-size: 13px;
-                       font-weight: 500; font-family: 'DM Sans', sans-serif;
-                       cursor: pointer; border: none; transition: all 0.2s;
-                       display: inline-flex; align-items: center; gap: 6px;
-                }
-                .btn-primary { background: #1A2744; color: #fff; }
-                .btn-primary:hover { background: #253660; }
-                .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-                .btn-danger { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
-                .btn-danger:hover { background: #FEE2E2; }
-                .btn-secondary { background: #F7F5F0; color: #444; border: 1px solid #E2DDD6; }
-                .btn-secondary:hover { background: #EDE8E1; }
+                /* Boutons */
+                .btn{padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+                .btn-primary{background:#1e3a8a;color:#fff;}
+                .btn-primary:hover{background:#1e40af;}
+                .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+                .btn-danger{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;}
+                .btn-danger:hover{background:#fee2e2;}
+                .btn-secondary{background:#f8fafc;color:#475569;border:1px solid #e2e8f0;}
+                .btn-secondary:hover{background:#f1f5f9;}
 
-                .codes-grid {
-                    display: grid; grid-template-columns: 1fr 1fr;
-                    gap: 8px; margin-top: 12px;
-                }
-                .code-item {
-                    font-family: monospace; font-size: 13px;
-                    background: #F7F5F0; border: 1px solid #E2DDD6;
-                    border-radius: 6px; padding: 8px 12px;
-                    color: #1A2744; letter-spacing: 0.08em;
-                    text-align: center;
-                }
+                /* Codes grille */
+                .codes-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+                .code-item{font-family:monospace;font-size:13px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 14px;color:#1e3a8a;letter-spacing:.08em;text-align:center;}
 
-                .steps { margin: 12px 0; padding: 0; list-style: none; }
-                .step {
-                    display: flex; gap: 10px; align-items: flex-start;
-                    font-size: 13px; color: #555; line-height: 1.5;
-                    padding: 6px 0;
-                }
-                .step-num {
-                    width: 20px; height: 20px; border-radius: 50%;
-                    background: #1A2744; color: #fff;
-                    font-size: 11px; font-weight: 500;
-                    display: flex; align-items: center; justify-content: center;
-                    flex-shrink: 0; margin-top: 1px;
-                }
+                @keyframes spin{to{transform:rotate(360deg);}}
             `}</style>
 
-            <div className="setup-root">
-                <h1 className="setup-title">Authentification à deux facteurs</h1>
-                <p className="setup-sub">Renforcez la sécurité de votre compte avec Google Authenticator.</p>
+            <div className="page">
+                <div className="page-header">
+                    <h1 className="page-title">Authentification à deux facteurs</h1>
+                    <p className="page-sub">Renforcez la sécurité de votre compte avec Google Authenticator.</p>
+                </div>
 
-                {status && <div className="status-msg">{status}</div>}
+                {status && (
+                    <div className="status-ok">
+                        <ShieldCheck size={16}/> {status}
+                    </div>
+                )}
 
-                {/* ── État actuel ── */}
+                {/* ── Card statut ── */}
                 <div className="card">
                     <div className="card-header">
-                        <div className={`card-icon ${mfaEnabled ? 'green' : 'blue'}`}>
-                            {mfaEnabled
-                                ? <ShieldCheck size={20} color="#059669" />
-                                : <Shield size={20} color="#4F46E5" />
-                            }
-                        </div>
-                        <div>
-                            <div className="card-title">
-                                Statut MFA &nbsp;
-                                <span className={`badge ${mfaEnabled ? 'active' : 'inactive'}`}>
-                                    {mfaEnabled ? '✓ Activé' : 'Désactivé'}
-                                </span>
-                            </div>
-                            <div className="card-desc">
+                        <div className="card-title-row">
+                            <div className={`card-icon ${mfaEnabled ? 'icon-green' : 'icon-blue'}`}>
                                 {mfaEnabled
-                                    ? 'Votre compte est protégé par une vérification en deux étapes.'
-                                    : 'Activez le MFA pour sécuriser votre connexion.'}
+                                    ? <ShieldCheck size={20} color="#16a34a"/>
+                                    : <Shield size={20} color="#3b82f6"/>
+                                }
+                            </div>
+                            <div>
+                                <div className="card-title">
+                                    Statut &nbsp;
+                                    <span className={`badge ${mfaEnabled ? 'badge-active' : 'badge-inactive'}`}>
+                                        {mfaEnabled ? '✓ Activé' : 'Désactivé'}
+                                    </span>
+                                </div>
+                                <div className="card-desc">
+                                    {mfaEnabled
+                                        ? 'Votre compte est protégé par la double authentification.'
+                                        : 'Activez le MFA pour sécuriser vos connexions.'}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* ── Non activé → bouton activer ── */}
+                    {/* Idle → bouton activer */}
                     {!mfaEnabled && !mfaPending && (
                         <button className="btn btn-primary" onClick={handleEnable}>
-                            <Shield size={15} />
-                            Activer le MFA
+                            <Shield size={15}/> Activer le MFA
                         </button>
                     )}
 
-                    {/* ── En attente de confirmation ── */}
+                    {/* Pending → QR + confirmation */}
                     {mfaPending && qrCodeSvg && (
                         <>
                             <ol className="steps">
-                                <li className="step">
-                                    <div className="step-num">1</div>
-                                    Installez <strong>Google Authenticator</strong> sur votre téléphone.
-                                </li>
-                                <li className="step">
-                                    <div className="step-num">2</div>
-                                    Scannez le QR code ou entrez la clé manuellement.
-                                </li>
-                                <li className="step">
-                                    <div className="step-num">3</div>
-                                    Entrez le code à 6 chiffres pour confirmer l'activation.
-                                </li>
+                                <li className="step"><div className="step-num">1</div> Installez <strong>Google Authenticator</strong> sur votre téléphone.</li>
+                                <li className="step"><div className="step-num">2</div> Scannez le QR code ci-dessous ou entrez la clé manuellement.</li>
+                                <li className="step"><div className="step-num">3</div> Entrez le code à <strong>6 chiffres</strong> pour confirmer l'activation.</li>
                             </ol>
 
                             <div className="qr-wrap">
-                                <div
-                                    className="qr-box"
-                                    dangerouslySetInnerHTML={{ __html: qrCodeSvg }}
-                                />
+                                <div className="qr-box" dangerouslySetInnerHTML={{ __html: qrCodeSvg }}/>
                                 {secretKey && (
                                     <div className="secret-row">
                                         <span className="secret-key">{secretKey}</span>
                                         <button className="copy-btn" onClick={copySecret} title="Copier">
-                                            {copied ? <Check size={15} color="#059669" /> : <Copy size={15} />}
+                                            {copied ? <Check size={15} color="#16a34a"/> : <Copy size={15}/>}
                                         </button>
                                     </div>
                                 )}
                             </div>
 
-                            <form onSubmit={handleConfirm} className="confirm-form">
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    maxLength={6}
-                                    value={confirmForm.data.code}
-                                    onChange={e => confirmForm.setData('code', e.target.value.replace(/\D/g, ''))}
-                                    placeholder="000000"
-                                    className={`confirm-input ${confirmForm.errors.code ? 'error' : ''}`}
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={confirmForm.processing || confirmForm.data.code.length !== 6}
-                                    className="btn btn-primary"
-                                >
-                                    Confirmer
-                                </button>
-                            </form>
-                            {confirmForm.errors.code && (
-                                <div className="field-error">
-                                    <AlertCircle size={12} /> {confirmForm.errors.code}
-                                </div>
-                            )}
+                            <div className="confirm-wrap">
+                                <span className="confirm-label">Code de confirmation</span>
+                                <form onSubmit={handleConfirm} className="confirm-form">
+                                    <input
+                                        type="text" inputMode="numeric" maxLength={6}
+                                        value={confirmForm.data.code}
+                                        onChange={e => confirmForm.setData('code', e.target.value.replace(/\D/g, ''))}
+                                        placeholder="000000"
+                                        className={`confirm-input${confirmForm.errors.code ? ' has-error' : ''}`}
+                                    />
+                                    <button type="submit"
+                                            disabled={confirmForm.processing || confirmForm.data.code.length !== 6}
+                                            className="btn btn-primary">
+                                        {confirmForm.processing
+                                            ? <Loader2 size={15} style={{animation:'spin 1s linear infinite'}}/>
+                                            : <ChevronRight size={15}/>
+                                        }
+                                        Confirmer
+                                    </button>
+                                </form>
+                                {confirmForm.errors.code && (
+                                    <p className="field-error"><AlertCircle size={12}/> {confirmForm.errors.code}</p>
+                                )}
+                            </div>
                         </>
                     )}
 
-                    {/* ── Activé → bouton désactiver ── */}
+                    {/* Activé → désactiver */}
                     {mfaEnabled && (
                         <button className="btn btn-danger" onClick={handleDisable}>
-                            <ShieldOff size={15} />
-                            Désactiver le MFA
+                            <ShieldOff size={15}/> Désactiver le MFA
                         </button>
                     )}
                 </div>
 
-                {/* ── Codes de récupération ── */}
+                {/* ── Card codes de récupération ── */}
                 {mfaEnabled && (
                     <div className="card">
                         <div className="card-header">
-                            <div className="card-icon blue">
-                                <KeyRound size={20} color="#4F46E5" />
-                            </div>
-                            <div>
-                                <div className="card-title">Codes de récupération</div>
-                                <div className="card-desc">
-                                    Conservez ces codes en lieu sûr — à usage unique si vous perdez votre téléphone.
+                            <div className="card-title-row">
+                                <div className="card-icon icon-blue">
+                                    <KeyRound size={20} color="#3b82f6"/>
+                                </div>
+                                <div>
+                                    <div className="card-title">Codes de récupération</div>
+                                    <div className="card-desc">8 codes à usage unique — conservez-les en lieu sûr.</div>
                                 </div>
                             </div>
                         </div>
 
-                        <button
-                            className="btn btn-secondary"
-                            style={{ marginBottom: 12 }}
-                            onClick={() => setShowCodes(s => !s)}
-                        >
-                            {showCodes ? <EyeOff size={14} /> : <Eye size={14} />}
-                            {showCodes ? 'Masquer' : 'Afficher les codes'}
-                        </button>
+                        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                            <button className="btn btn-secondary" onClick={() => setShowCodes(s => !s)}>
+                                {showCodes ? <EyeOff size={14}/> : <Eye size={14}/>}
+                                {showCodes ? 'Masquer' : 'Afficher les codes'}
+                            </button>
+                            <button className="btn btn-secondary" onClick={handleRegenerate}>
+                                <RefreshCw size={14}/> Regénérer
+                            </button>
+                        </div>
 
                         {showCodes && (
                             <div className="codes-grid">
@@ -327,15 +247,6 @@ export default function MfaSetup({
                                 ))}
                             </div>
                         )}
-
-                        <button
-                            className="btn btn-secondary"
-                            style={{ marginTop: 12 }}
-                            onClick={handleRegenerate}
-                        >
-                            <RefreshCw size={14} />
-                            Regénérer les codes
-                        </button>
                     </div>
                 )}
             </div>

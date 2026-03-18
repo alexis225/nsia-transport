@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Eye, EyeOff, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
 interface LoginProps {
     status?: string;
@@ -9,361 +9,277 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword = true }: LoginProps) {
     const [showPassword, setShowPassword] = useState(false);
-    const [mounted, setMounted] = useState(false);
+    const [mounted, setMounted]           = useState(false);
 
     useEffect(() => setMounted(true), []);
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
+        email:    '',
         password: '',
         remember: false,
     });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('login') as string, { onFinish: () => reset('password') });
+        post(route('login'), { onFinish: () => reset('password') });
     };
 
     const handleOAuth = (provider: 'google' | 'microsoft') => {
-        window.location.href = route(`/auth/${provider}/redirect`, { provider }) as string;
+        window.location.href = route('auth.social.redirect', { provider });
     };
 
     return (
         <>
             <Head title="Connexion — NSIA Transport" />
 
-            {/* Google Fonts */}
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
-                * { box-sizing: border-box; margin: 0; padding: 0; }
-                body { font-family: 'DM Sans', sans-serif; }
+                @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+                *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+                html, body { height: 100%; font-family: 'DM Sans', sans-serif; }
 
-                .login-root {
-                    min-height: 100vh;
+                .root {
                     display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    background: #F7F5F0;
+                    grid-template-columns: 45% 55%;
+                    min-height: 100vh;
                 }
 
                 /* ── Panneau gauche ── */
-                .panel-left {
+                .left {
                     position: relative;
-                    background: #1A2744;
-                    overflow: hidden;
+                    background: linear-gradient(160deg, #1a3a8f 0%, #1e2fa0 30%, #2d1b8e 65%, #3b1fa8 100%);
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
-                    padding: 56px 52px;
+                    padding: 36px 44px 48px;
+                    overflow: hidden;
                 }
-                .panel-left-bg {
+
+                /* Courbe décorative droite */
+                .left::after {
+                    content: '';
                     position: absolute;
-                    inset: 0;
-                    background:
-                        radial-gradient(ellipse 80% 60% at 20% 110%, rgba(194,157,90,0.18) 0%, transparent 60%),
-                        radial-gradient(ellipse 60% 40% at 90% -10%, rgba(255,255,255,0.04) 0%, transparent 50%);
-                }
-                .panel-left-lines {
-                    position: absolute;
-                    inset: 0;
-                    background-image:
-                        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-                    background-size: 48px 48px;
-                }
-                .panel-left-deco {
-                    position: absolute;
-                    bottom: -80px;
-                    right: -80px;
-                    width: 360px;
-                    height: 360px;
+                    top: -10%;
+                    right: -60px;
+                    width: 140px;
+                    height: 120%;
+                    background: rgba(255,255,255,0.06);
                     border-radius: 50%;
-                    border: 1px solid rgba(194,157,90,0.15);
                 }
-                .panel-left-deco2 {
+
+                /* Cercles décoratifs */
+                .deco-circle-1 {
                     position: absolute;
-                    bottom: -40px;
-                    right: -40px;
-                    width: 240px;
-                    height: 240px;
+                    top: -80px; right: -80px;
+                    width: 300px; height: 300px;
                     border-radius: 50%;
-                    border: 1px solid rgba(194,157,90,0.1);
+                    background: rgba(255,255,255,0.04);
                 }
-                .panel-brand {
+                .deco-circle-2 {
+                    position: absolute;
+                    bottom: -60px; left: -60px;
+                    width: 240px; height: 240px;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.04);
+                }
+
+                .left-brand {
                     position: relative;
                     z-index: 1;
-                }
-                .panel-brand-logo {
                     display: flex;
                     align-items: center;
-                    gap: 12px;
-                    margin-bottom: 48px;
+                    gap: 10px;
                 }
-                .panel-brand-icon {
-                    width: 44px;
-                    height: 44px;
-                    background: rgba(194,157,90,0.15);
-                    border: 1px solid rgba(194,157,90,0.3);
-                    border-radius: 10px;
+                .brand-icon {
+                    width: 36px; height: 36px;
+                }
+                .brand-name {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #fff;
+                    letter-spacing: 0.01em;
+                }
+                .brand-name span { font-weight: 300; opacity: 0.85; }
+
+                /* Illustration SVG centrale */
+                .illustration {
+                    position: relative;
+                    z-index: 1;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    flex: 1;
+                    padding: 20px 0;
                 }
-                .panel-brand-name {
-                    font-family: 'Cormorant Garamond', serif;
-                    font-size: 22px;
-                    font-weight: 600;
-                    color: #fff;
-                    letter-spacing: 0.04em;
-                }
-                .panel-brand-name span {
-                    color: #C29D5A;
-                }
-                .panel-headline {
-                    font-family: 'Cormorant Garamond', serif;
-                    font-size: 48px;
-                    font-weight: 500;
-                    color: #fff;
-                    line-height: 1.15;
-                    letter-spacing: -0.01em;
-                    margin-bottom: 20px;
-                }
-                .panel-headline em {
-                    font-style: italic;
-                    color: #C29D5A;
-                }
-                .panel-sub {
-                    font-size: 14px;
-                    font-weight: 300;
-                    color: rgba(255,255,255,0.5);
-                    line-height: 1.7;
-                    max-width: 320px;
-                }
-                .panel-stats {
+
+                .left-text {
                     position: relative;
                     z-index: 1;
-                    display: flex;
-                    gap: 40px;
                 }
-                .stat-item {}
-                .stat-number {
-                    font-family: 'Cormorant Garamond', serif;
-                    font-size: 32px;
+                .left-title {
+                    font-size: 28px;
                     font-weight: 600;
-                    color: #C29D5A;
-                    letter-spacing: -0.02em;
+                    color: #fff;
+                    line-height: 1.3;
+                    margin-bottom: 10px;
+                    max-width: 320px;
                 }
-                .stat-label {
-                    font-size: 11px;
-                    font-weight: 400;
-                    color: rgba(255,255,255,0.35);
-                    text-transform: uppercase;
-                    letter-spacing: 0.12em;
-                    margin-top: 2px;
+                .left-sub {
+                    font-size: 14px;
+                    font-weight: 300;
+                    color: rgba(255,255,255,0.6);
+                    line-height: 1.6;
                 }
 
                 /* ── Panneau droit ── */
-                .panel-right {
+                .right {
+                    background: #f1f5f9;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    padding: 48px;
-                    background: #F7F5F0;
+                    padding: 48px 32px;
                 }
-                .form-card {
+                .form-box {
                     width: 100%;
                     max-width: 400px;
                     opacity: 0;
-                    transform: translateY(16px);
-                    transition: opacity 0.6s ease, transform 0.6s ease;
+                    transform: translateY(12px);
+                    transition: opacity 0.5s ease, transform 0.5s ease;
                 }
-                .form-card.visible {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+                .form-box.visible { opacity: 1; transform: translateY(0); }
+
                 .form-title {
-                    font-family: 'Cormorant Garamond', serif;
-                    font-size: 32px;
-                    font-weight: 500;
-                    color: #1A2744;
-                    margin-bottom: 6px;
-                    letter-spacing: -0.01em;
-                }
-                .form-subtitle {
-                    font-size: 13px;
-                    color: #8A8A8A;
-                    margin-bottom: 36px;
-                    font-weight: 300;
+                    font-size: 28px;
+                    font-weight: 600;
+                    color: #1e293b;
+                    margin-bottom: 32px;
                 }
 
-                /* Status */
-                .status-msg {
-                    background: #EFF7F0;
-                    border: 1px solid #B8DFB9;
-                    border-radius: 8px;
-                    padding: 12px 14px;
-                    font-size: 13px;
-                    color: #2D7A31;
-                    margin-bottom: 20px;
+                .status-ok {
+                    background: #f0fdf4; border: 1px solid #bbf7d0;
+                    border-radius: 8px; padding: 10px 14px;
+                    font-size: 13px; color: #15803d; margin-bottom: 20px;
                 }
 
-                /* Field */
-                .field { margin-bottom: 20px; }
-                .field-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 7px;
-                }
-                .field-label {
-                    font-size: 11px;
-                    font-weight: 500;
-                    color: #555;
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                }
-                .field-link {
-                    font-size: 12px;
-                    color: #C29D5A;
-                    text-decoration: none;
-                    transition: color 0.2s;
-                }
-                .field-link:hover { color: #A6833D; }
-                .input-wrap { position: relative; }
+                /* Champs */
+                .field { margin-bottom: 16px; }
                 .field-input {
                     width: 100%;
-                    padding: 12px 14px;
+                    padding: 13px 16px;
                     font-size: 14px;
                     font-family: 'DM Sans', sans-serif;
-                    color: #1A2744;
+                    color: #1e293b;
                     background: #fff;
-                    border: 1.5px solid #E2DDD6;
-                    border-radius: 8px;
+                    border: 1.5px solid #e2e8f0;
+                    border-radius: 10px;
                     outline: none;
                     transition: border-color 0.2s, box-shadow 0.2s;
                 }
+                .field-input::placeholder { color: #94a3b8; }
                 .field-input:focus {
-                    border-color: #1A2744;
-                    box-shadow: 0 0 0 3px rgba(26,39,68,0.06);
+                    border-color: #3b4fd8;
+                    box-shadow: 0 0 0 3px rgba(59,79,216,0.08);
                 }
-                .field-input.error {
-                    border-color: #D94040;
-                    background: #FFF8F8;
-                }
-                .field-input:disabled { opacity: 0.6; cursor: not-allowed; }
-                .field-input-pr { padding-right: 44px; }
+                .field-input.has-error { border-color: #ef4444; background: #fff8f8; }
+                .field-input:disabled { opacity: 0.6; }
+                .pw-wrap { position: relative; }
+                .pw-wrap .field-input { padding-right: 44px; }
                 .pw-toggle {
-                    position: absolute;
-                    right: 12px;
-                    top: 50%;
+                    position: absolute; right: 13px; top: 50%;
                     transform: translateY(-50%);
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    color: #AAA;
-                    padding: 4px;
-                    display: flex;
+                    background: none; border: none; cursor: pointer;
+                    color: #94a3b8; padding: 4px;
                     transition: color 0.2s;
                 }
-                .pw-toggle:hover { color: #555; }
+                .pw-toggle:hover { color: #475569; }
                 .field-error {
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    margin-top: 6px;
-                    font-size: 12px;
-                    color: #D94040;
+                    display: flex; align-items: center; gap: 4px;
+                    font-size: 12px; color: #ef4444; margin-top: 5px;
                 }
 
-                /* Remember */
+                /* Ligne remember + forgot */
                 .remember-row {
                     display: flex;
                     align-items: center;
-                    gap: 9px;
+                    justify-content: space-between;
                     margin-bottom: 24px;
-                    cursor: pointer;
+                    margin-top: 4px;
                 }
-                .remember-box {
-                    width: 16px;
-                    height: 16px;
-                    border: 1.5px solid #D0C9BE;
-                    border-radius: 4px;
-                    background: #fff;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.15s;
-                    flex-shrink: 0;
-                }
-                .remember-box.checked {
-                    background: #1A2744;
-                    border-color: #1A2744;
-                }
-                .remember-text {
-                    font-size: 13px;
-                    color: #777;
-                    font-weight: 300;
+                .remember-label {
+                    display: flex; align-items: center; gap: 8px;
+                    cursor: pointer; font-size: 13px; color: #64748b;
                     user-select: none;
                 }
+                .checkbox {
+                    width: 16px; height: 16px;
+                    border: 1.5px solid #cbd5e1;
+                    border-radius: 4px; background: #fff;
+                    display: flex; align-items: center; justify-content: center;
+                    flex-shrink: 0; transition: all 0.15s;
+                }
+                .checkbox.checked {
+                    background: #3b4fd8; border-color: #3b4fd8;
+                }
+                .forgot-link {
+                    font-size: 13px; color: #64748b;
+                    text-decoration: none; transition: color 0.2s;
+                }
+                .forgot-link:hover { color: #3b4fd8; }
 
-                /* Bouton principal */
-                .btn-primary {
+                /* Bouton login */
+                .btn-login {
                     width: 100%;
-                    padding: 13px 20px;
-                    background: #1A2744;
+                    padding: 13px;
+                    background: #1e3a8a;
                     color: #fff;
                     font-family: 'DM Sans', sans-serif;
                     font-size: 14px;
                     font-weight: 500;
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 10px;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     gap: 8px;
-                    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-                    margin-bottom: 24px;
+                    transition: background 0.2s, box-shadow 0.2s;
+                    margin-bottom: 12px;
                     letter-spacing: 0.01em;
                 }
-                .btn-primary:hover:not(:disabled) {
-                    background: #253660;
-                    box-shadow: 0 4px 16px rgba(26,39,68,0.2);
+                .btn-login:hover:not(:disabled) {
+                    background: #1e40af;
+                    box-shadow: 0 4px 16px rgba(30,58,138,0.3);
                 }
-                .btn-primary:active:not(:disabled) { transform: scale(0.99); }
-                .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+                .btn-login:disabled { opacity: 0.65; cursor: not-allowed; }
 
-                /* Séparateur */
+                /* Séparateur OAuth */
                 .divider {
-                    display: flex;
-                    align-items: center;
-                    gap: 14px;
-                    margin-bottom: 20px;
+                    display: flex; align-items: center; gap: 12px;
+                    margin: 16px 0;
                 }
-                .divider-line { flex: 1; height: 1px; background: #E2DDD6; }
-                .divider-text { font-size: 11px; color: #BBB; text-transform: uppercase; letter-spacing: 0.1em; }
+                .divider-line { flex: 1; height: 1px; background: #e2e8f0; }
+                .divider-text { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
 
                 /* Boutons OAuth */
                 .btn-oauth {
                     width: 100%;
                     padding: 11px 16px;
                     background: #fff;
-                    color: #333;
+                    color: #475569;
                     font-family: 'DM Sans', sans-serif;
                     font-size: 13px;
-                    font-weight: 400;
-                    border: 1.5px solid #E2DDD6;
-                    border-radius: 8px;
+                    border: 1.5px solid #e2e8f0;
+                    border-radius: 10px;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
                     transition: border-color 0.2s, box-shadow 0.2s;
-                    margin-bottom: 10px;
+                    margin-bottom: 8px;
                 }
                 .btn-oauth:last-child { margin-bottom: 0; }
                 .btn-oauth:hover:not(:disabled) {
-                    border-color: #C8C0B4;
+                    border-color: #cbd5e1;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
                 }
                 .btn-oauth:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -371,126 +287,134 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                 /* Footer */
                 .form-footer {
                     margin-top: 28px;
-                    padding-top: 20px;
-                    border-top: 1px solid #EDE8E1;
                     text-align: center;
-                    font-size: 11px;
-                    color: #C0BAB0;
-                    letter-spacing: 0.04em;
+                    font-size: 12px;
+                    color: #94a3b8;
                 }
 
-                /* Responsive */
+                @keyframes spin { to { transform: rotate(360deg); } }
+
                 @media (max-width: 768px) {
-                    .login-root { grid-template-columns: 1fr; }
-                    .panel-left { display: none; }
-                    .panel-right { padding: 32px 24px; }
+                    .root { grid-template-columns: 1fr; }
+                    .left { display: none; }
                 }
             `}</style>
 
-            <div className="login-root">
+            <div className="root">
 
-                {/* ── Panneau gauche décoratif ── */}
-                <div className="panel-left">
-                    <div className="panel-left-bg" />
-                    <div className="panel-left-lines" />
-                    <div className="panel-left-deco" />
-                    <div className="panel-left-deco2" />
+                {/* ── Panneau gauche ── */}
+                <div className="left">
+                    <div className="deco-circle-1" />
+                    <div className="deco-circle-2" />
 
-                    <div className="panel-brand">
-                        <div className="panel-brand-logo">
-                            <div className="panel-brand-icon">
-                                {/* Icône bouclier SVG */}
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                    <path d="M12 2L4 6V12C4 16.4 7.4 20.5 12 22C16.6 20.5 20 16.4 20 12V6L12 2Z"
-                                          stroke="#C29D5A" strokeWidth="1.5" strokeLinejoin="round"/>
-                                    <path d="M9 12L11 14L15 10" stroke="#C29D5A" strokeWidth="1.5"
-                                          strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                            </div>
-                            <div className="panel-brand-name">
-                                NSIA <span>Transport</span>
-                            </div>
-                        </div>
-
-                        <h1 className="panel-headline">
-                            Émission de certificats&nbsp;
-                            <em>d'assurance</em>
-                        </h1>
-                        <p className="text-white">
-                            Plateforme unifiée de gestion, validation et archivage des certificats transport
-                            pour les 12 filiales NSIA.
-                        </p>
+                    {/* Logo */}
+                    <div className="left-brand">
+                        <svg className="brand-icon" viewBox="0 0 36 36" fill="none">
+                            <rect width="36" height="36" rx="8" fill="rgba(255,255,255,0.12)"/>
+                            <path d="M18 8L10 13V20C10 24.4 13.4 28.5 18 30C22.6 28.5 26 24.4 26 20V13L18 8Z"
+                                  stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
+                            <path d="M14 20L17 23L22 17" stroke="white" strokeWidth="1.5"
+                                  strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="brand-name">NSIA <span>TRANSPORT</span></span>
                     </div>
 
-                    <div className="panel-stats">
-                        <div className="stat-item">
-                            <div className="stat-number">12</div>
-                            <div className="stat-label">Filiales</div>
-                        </div>
-                        <div className="stat-item">
-                            <div className="stat-number">6</div>
-                            <div className="stat-label">Rôles</div>
-                        </div>
-                        <div className="stat-item">
-                            <div className="stat-number">ISO</div>
-                            <div className="stat-label">Certifié</div>
-                        </div>
+                    {/* Illustration */}
+                    <div className="illustration">
+                        <svg width="320" height="260" viewBox="0 0 320 260" fill="none">
+                            {/* Bureau */}
+                            <rect x="60" y="160" width="200" height="10" rx="5" fill="rgba(255,255,255,0.15)"/>
+                            <rect x="80" y="170" width="8" height="40" rx="4" fill="rgba(255,255,255,0.1)"/>
+                            <rect x="232" y="170" width="8" height="40" rx="4" fill="rgba(255,255,255,0.1)"/>
+
+                            {/* Écran */}
+                            <rect x="100" y="80" width="120" height="85" rx="8" fill="rgba(255,255,255,0.18)"/>
+                            <rect x="108" y="88" width="104" height="65" rx="4" fill="rgba(255,255,255,0.1)"/>
+
+                            {/* Contenu écran — lignes */}
+                            <rect x="116" y="96" width="50" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
+                            <rect x="116" y="106" width="70" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+                            <rect x="116" y="114" width="60" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+                            <rect x="116" y="122" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.15)"/>
+
+                            {/* Pied écran */}
+                            <rect x="152" y="165" width="16" height="6" rx="3" fill="rgba(255,255,255,0.12)"/>
+                            <rect x="140" y="171" width="40" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+
+                            {/* Personnage — corps */}
+                            <ellipse cx="220" cy="185" rx="18" ry="10" fill="rgba(255,255,255,0.08)"/>
+                            <rect x="210" y="145" width="20" height="42" rx="10" fill="rgba(255,255,255,0.2)"/>
+                            {/* Tête */}
+                            <circle cx="220" cy="135" r="14" fill="rgba(255,255,255,0.25)"/>
+                            {/* Bras vers l'écran */}
+                            <path d="M210 160 Q180 150 165 140" stroke="rgba(255,255,255,0.2)" strokeWidth="8" strokeLinecap="round"/>
+
+                            {/* Plante déco */}
+                            <rect x="68" y="145" width="8" height="18" rx="4" fill="rgba(255,255,255,0.12)"/>
+                            <ellipse cx="72" cy="140" rx="10" ry="8" fill="rgba(255,255,255,0.15)"/>
+                            <ellipse cx="66" cy="144" rx="7" ry="5" fill="rgba(255,255,255,0.12)"/>
+                            <ellipse cx="78" cy="144" rx="7" ry="5" fill="rgba(255,255,255,0.12)"/>
+
+                            {/* Points déco */}
+                            <circle cx="260" cy="60" r="3" fill="rgba(255,255,255,0.2)"/>
+                            <circle cx="275" cy="75" r="2" fill="rgba(255,255,255,0.15)"/>
+                            <circle cx="55"  cy="100" r="2" fill="rgba(255,255,255,0.15)"/>
+                            <circle cx="45"  cy="120" r="3" fill="rgba(255,255,255,0.1)"/>
+                        </svg>
+                    </div>
+
+                    {/* Texte bas */}
+                    <div className="left-text">
+                        <h2 className='text-white text-3xl font-bold mb-4'>
+                            Quelques clics pour accéder<br/> à votre espace.
+                        </h2>
+                        <p className="left-sub">
+                            Gérez l'émission et la validation des certificats de
+                            transport pour les 12 filiales du Pôle Assurances.
+                        </p>
                     </div>
                 </div>
 
-                {/* ── Panneau droit — formulaire ── */}
-                <div className="panel-right">
-                    <div className={`form-card ${mounted ? 'visible' : ''}`}>
+                {/* ── Panneau droit ── */}
+                <div className="right">
+                    <div className={`form-box ${mounted ? 'visible' : ''}`}>
 
-                        <h2 className="form-title">Connexion</h2>
-                        <p className="form-subtitle">Accédez à votre espace de travail</p>
+                        <h1 className="form-title">Sign In</h1>
 
-                        {status && <div className="status-msg">{status}</div>}
+                        {status && <div className="status-ok">{status}</div>}
 
                         <form onSubmit={submit}>
 
                             {/* Email */}
                             <div className="field">
-                                <div className="field-header">
-                                    <label className="field-label">Adresse email</label>
-                                </div>
                                 <input
                                     type="email"
                                     value={data.email}
                                     onChange={e => setData('email', e.target.value)}
                                     autoComplete="email"
                                     autoFocus
-                                    placeholder="prenom.nom@nsia.com"
+                                    placeholder="Adresse email"
                                     disabled={processing}
-                                    className={`field-input ${errors.email ? 'error' : ''}`}
+                                    className={`field-input${errors.email ? ' has-error' : ''}`}
                                 />
                                 {errors.email && (
-                                    <div className="field-error">
-                                        <AlertCircle size={12} />
-                                        {errors.email}
-                                    </div>
+                                    <p className="field-error">
+                                        <AlertCircle size={12} /> {errors.email}
+                                    </p>
                                 )}
                             </div>
 
                             {/* Mot de passe */}
                             <div className="field">
-                                <div className="field-header">
-                                    <label className="field-label">Mot de passe</label>
-                                    {canResetPassword && (
-                                        <Link href={route('password.request')} className="field-link">
-                                            Mot de passe oublié ?
-                                        </Link>
-                                    )}
-                                </div>
-                                <div className="input-wrap">
+                                <div className="pw-wrap">
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={data.password}
                                         onChange={e => setData('password', e.target.value)}
                                         autoComplete="current-password"
-                                        placeholder="••••••••"
+                                        placeholder="Mot de passe"
                                         disabled={processing}
-                                        className={`field-input field-input-pr ${errors.password ? 'error' : ''}`}
+                                        className={`field-input${errors.password ? ' has-error' : ''}`}
                                     />
                                     <button type="button" className="pw-toggle"
                                             onClick={() => setShowPassword(s => !s)}>
@@ -498,51 +422,49 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                                     </button>
                                 </div>
                                 {errors.password && (
-                                    <div className="field-error">
-                                        <AlertCircle size={12} />
-                                        {errors.password}
-                                    </div>
+                                    <p className="field-error">
+                                        <AlertCircle size={12} /> {errors.password}
+                                    </p>
                                 )}
                             </div>
 
-                            {/* Se souvenir */}
-                            <label className="remember-row"
-                                   onClick={() => setData('remember', !data.remember)}>
-                                <div className={`remember-box ${data.remember ? 'checked' : ''}`}>
-                                    {data.remember && (
-                                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                            <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white"
-                                                  strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        </svg>
-                                    )}
-                                </div>
-                                <span className="remember-text">Se souvenir de moi</span>
-                            </label>
-
-                            {/* Bouton */}
-                            <button type="submit" disabled={processing} className="btn-primary">
-                                {processing ? (
-                                    <>
-                                        <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                                        Connexion en cours…
-                                    </>
-                                ) : (
-                                    <>
-                                        Se connecter
-                                        <ArrowRight size={16} />
-                                    </>
+                            {/* Remember + Forgot */}
+                            <div className="remember-row">
+                                <label className="remember-label"
+                                       onClick={() => setData('remember', !data.remember)}>
+                                    <div className={`checkbox${data.remember ? ' checked' : ''}`}>
+                                        {data.remember && (
+                                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                                <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white"
+                                                      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                        )}
+                                    </div>
+                                    Se souvenir de moi
+                                </label>
+                                {canResetPassword && (
+                                    <Link href={route('password.request')} className="forgot-link">
+                                        Mot de passe oublié?
+                                    </Link>
                                 )}
+                            </div>
+
+                            {/* Bouton login */}
+                            <button type="submit" disabled={processing} className="btn-login">
+                                {processing
+                                    ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Connexion…</>
+                                    : 'Login'
+                                }
                             </button>
                         </form>
 
-                        {/* Séparateur */}
+                        {/* OAuth */}
                         <div className="divider">
                             <div className="divider-line" />
                             <span className="divider-text">ou</span>
                             <div className="divider-line" />
                         </div>
 
-                        {/* OAuth Google */}
                         <button type="button" className="btn-oauth" disabled={processing}
                                 onClick={() => handleOAuth('google')}>
                             <svg width="16" height="16" viewBox="0 0 24 24">
@@ -554,7 +476,6 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                             Continuer avec Google
                         </button>
 
-                        {/* OAuth Microsoft */}
                         <button type="button" className="btn-oauth" disabled={processing}
                                 onClick={() => handleOAuth('microsoft')}>
                             <svg width="16" height="16" viewBox="0 0 23 23">
@@ -566,17 +487,12 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                             Continuer avec Microsoft
                         </button>
 
-                        {/* Footer */}
                         <div className="form-footer">
                             © {new Date().getFullYear()} NSIA Holding Assurances — Confidentiel
                         </div>
                     </div>
                 </div>
             </div>
-
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-            `}</style>
         </>
     );
 }

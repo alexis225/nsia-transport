@@ -19,6 +19,7 @@ class User extends Authenticatable
     use SoftDeletes;
     use TwoFactorAuthenticatable;
 
+
     // ── UUID ──────────────────────────────────────────────
     protected $keyType   = 'string';
     public $incrementing = false;
@@ -50,6 +51,7 @@ class User extends Authenticatable
             'password_changed_at' => 'datetime',
             'last_login_at'       => 'datetime',
             'blocked_at'          => 'datetime',
+            'blocked_by'          => 'string',
             'locked_until'        => 'datetime',
             'password'            => 'hashed',
             'is_active'           => 'boolean',

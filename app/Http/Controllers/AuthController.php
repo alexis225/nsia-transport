@@ -125,7 +125,7 @@ class AuthController extends Controller
 
         $this->auditLog($request, $user->id, 'login_success');
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     // ── Logout ───────────────────────────────────────────────

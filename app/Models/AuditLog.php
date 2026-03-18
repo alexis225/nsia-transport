@@ -34,6 +34,7 @@ class AuditLog extends Model
         'user_agent',
         'request_id',
         'severity',
+        'auditable_type',
         'metadata',
         'created_at',
     ];

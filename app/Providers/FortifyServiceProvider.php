@@ -25,7 +25,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
-        $this->configureAuthentication(); // ← US-001
+        $this->configureAuthentication();
     }
 
     private function configureActions(): void
@@ -133,14 +133,14 @@ class FortifyServiceProvider extends ServiceProvider
         array   $metadata = [],
     ): void {
         AuditLog::create([
-            'tenant_id'      => null,
-            'user_id'        => $userId,
-            'action'         => $action,
-            'auditable_type' => 'auth',
-            'auditable_id'   => $userId ?? 'anonymous',
-            'ip_address'     => $request->ip(),
-            'user_agent'     => $request->userAgent(),
-            'new_data'       => $metadata ?: null,
+            'tenant_id'   => null,
+            'user_id'     => $userId,
+            'action'      => $action,
+            'entity_type' => 'auth',
+            'entity_id'   => $userId ?? 'anonymous',
+            'ip_address'  => $request->ip(),
+            'user_agent'  => $request->userAgent(),
+            'new_values'  => $metadata ?: null,
         ]);
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Event;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
+use Inertia\Inertia;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -34,6 +35,21 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(SocialiteWasCalled::class, function (SocialiteWasCalled $event) {
             $event->extendSocialite('microsoft', MicrosoftExtendSocialite::class);
         });
+
+        // Vider le cache Spatie à chaque requête (dev uniquement)
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        Inertia::share([
+            'auth' => fn () => auth()->user() ? [
+                'user' => array_merge(auth()->user()->toArray(), [
+                    'permissions' => auth()->user()->getAllPermissions()->pluck('name'),
+                    'roles'       => auth()->user()->getRoleNames(),
+                    'tenant'      => auth()->user()->tenant?->only(['id', 'name', 'code']),
+                                            'avatar_path' => auth()->user()->avatar_path
+                            ? asset('storage/' . auth()->user()->avatar_path)
+                            : null,
+                ]),
+            ] : null,
+        ]);
     }
 
     /**
