@@ -10,15 +10,6 @@ use Illuminate\Http\Response;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-/**
- * ============================================================
- * AuditLogController — US-006
- * ============================================================
- * Liste, détail, export CSV et purge des audit logs.
- * Super Admin : tous les logs.
- * Admin Filiale : logs de sa filiale uniquement.
- * ============================================================
- */
 class AuditLogController extends Controller
 {
     // ── Liste ────────────────────────────────────────────────
