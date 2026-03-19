@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Award, BarChart2, Briefcase, Building2,
+    ClipboardList,
     FileText, LayoutDashboard, Settings, Shield, Users,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
@@ -9,6 +10,7 @@ import {
     Sidebar, SidebarContent, SidebarFooter,
     SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
 } from '@/components/ui/sidebar';
+import { Children } from 'react';
 
 export function AppSidebar() {
     const { auth } = usePage<{
@@ -111,6 +113,12 @@ export function AppSidebar() {
         //         ...(can('reports.contracts')         ? [{ title: 'Contrats',           href: route('admin.reports.contracts') }]    : []),
         //     ],
         // }] : []),
+
+        ...(can('audit_logs.view') ? [{
+            title: 'Audit Logs',
+            href:  route('admin.audit-logs.index'),
+            icon:  ClipboardList, 
+        }] : []),
 
         // ── Paramètres ─────────────────────────────────────────
         {

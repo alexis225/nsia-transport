@@ -56,6 +56,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'api.access', 'api.webhooks',
             // Profil
             'profile.view', 'profile.edit', 'profile.mfa',
+            'audit_logs.view',
+            'audit_logs.export',
         ];
 
         foreach ($permissions as $perm) {

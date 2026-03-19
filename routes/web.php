@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
@@ -34,6 +35,22 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
         ->name('profile.avatar.update');
     Route::delete('/settings/avatar', [ProfileController::class, 'removeAvatar'])
         ->name('profile.avatar.remove');
+
+    Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])
+        ->middleware('permission:audit_logs.view')
+        ->name('admin.audit-logs.index');
+
+    Route::get('/admin/audit-logs/export', [AuditLogController::class, 'export'])
+        ->middleware('permission:audit_logs.export')
+        ->name('admin.audit-logs.export');
+
+    Route::delete('/admin/audit-logs/purge', [AuditLogController::class, 'purge'])
+        ->middleware('role:super_admin')
+        ->name('admin.audit-logs.purge');
+
+    Route::get('/admin/audit-logs/{auditLog}', [AuditLogController::class, 'show'])
+        ->middleware('permission:audit_logs.view')
+        ->name('admin.audit-logs.show');
 
     // ── Module Admin ─────────────────────────────────────────
     Route::prefix('admin')->group(function () {
