@@ -30,15 +30,9 @@ class Tenant extends Model
         return TenantFactory::new();
     }
 
-    // public function definition(): array
-    // {
-    //     return [
-    //         // 'id' => Str::uuid(),  ← supprimer, HasUuids s'en charge
-    //         'name'                      => 'NSIA ' . fake()->country(),
-    //         'code'                      => strtoupper(fake()->unique()->lexify('??')),
-    //         'is_active'                 => true,
-    //         'settings'                  => json_encode([]),
-    //         'subscription_limit_config' => json_encode(['nn300_limit' => 1000000]),
-    //     ];
-    // }
+
+    public function users(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(User::class);
+    }
 }

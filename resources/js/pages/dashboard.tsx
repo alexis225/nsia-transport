@@ -1,11 +1,11 @@
 import { Head } from '@inertiajs/react';
 import { Award, BarChart2, FileText, TrendingDown, TrendingUp, Users, RefreshCw, ArrowRight } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
+
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard() },
+    { title: 'Dashboard', href: route('admin.dashboard') },
 ];
 
 // ── Types ─────────────────────────────────────────────────────
