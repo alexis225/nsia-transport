@@ -58,6 +58,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'profile.view', 'profile.edit', 'profile.mfa',
             'audit_logs.view',
             'audit_logs.export',
+            'brokers.view', 'brokers.create', 'brokers.edit', 'brokers.delete'
         ];
 
         foreach ($permissions as $perm) {

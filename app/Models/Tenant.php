@@ -35,4 +35,10 @@ class Tenant extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    // app/Models/Tenant.php
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 }

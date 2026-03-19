@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BrokerController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
@@ -91,7 +92,37 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
         Route::patch('/users/{user}/unblock', [UserController::class, 'unblock'])
             ->middleware('permission:users.unblock')
             ->name('admin.users.unblock');
-
+                    Route::get('/brokers', [BrokerController::class, 'index'])
+            ->middleware('permission:brokers.view')
+            ->name('admin.brokers.index');
+ 
+        Route::get('/brokers/create', [BrokerController::class, 'create'])
+            ->middleware('permission:brokers.create')
+            ->name('admin.brokers.create');
+ 
+        Route::post('/brokers', [BrokerController::class, 'store'])
+            ->middleware('permission:brokers.create')
+            ->name('admin.brokers.store');
+ 
+        Route::get('/brokers/{broker}', [BrokerController::class, 'show'])
+            ->middleware('permission:brokers.view')
+            ->name('admin.brokers.show');
+ 
+        Route::get('/brokers/{broker}/edit', [BrokerController::class, 'edit'])
+            ->middleware('permission:brokers.edit')
+            ->name('admin.brokers.edit');
+ 
+        Route::put('/brokers/{broker}', [BrokerController::class, 'update'])
+            ->middleware('permission:brokers.edit')
+            ->name('admin.brokers.update');
+ 
+        Route::delete('/brokers/{broker}', [BrokerController::class, 'destroy'])
+            ->middleware('permission:brokers.delete')
+            ->name('admin.brokers.destroy');
+ 
+        Route::patch('/brokers/{broker}/toggle', [BrokerController::class, 'toggle'])
+            ->middleware('permission:brokers.edit')
+            ->name('admin.brokers.toggle');
         // ── Rôles & Permissions — US-003 ─────────────────────
         Route::middleware('role:super_admin')->group(function () {
 

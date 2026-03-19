@@ -67,16 +67,16 @@ export function AppSidebar() {
             ],
         }] : []),
 
-        // // ── Courtiers — US-010 ─────────────────────────────────
-        // ...(can('brokers.view') ? [{
-        //     title: 'Courtiers',
-        //     href:  route('admin.brokers.index'),
-        //     icon:  Briefcase,
-        //     children: [
-        //         { title: 'Liste',    href: route('admin.brokers.index') },
-        //         ...(can('brokers.create') ? [{ title: 'Nouveau', href: route('admin.brokers.create') }] : []),
-        //     ],
-        // }] : []),
+        //  Courtiers — US-010 ─────────────────────────────────
+        ...(can('brokers.view') ? [{
+            title: 'Courtiers',
+            href:  route('admin.brokers.index'),
+            icon:  Briefcase,
+            children: [
+                { title: 'Liste',    href: route('admin.brokers.index') },
+                ...(can('brokers.create') ? [{ title: 'Nouveau', href: route('admin.brokers.create') }] : []),
+            ],
+        }] : []),
 
         // // ── Contrats — US-014 ──────────────────────────────────
         // ...(can('contracts.view') ? [{
