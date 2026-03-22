@@ -17,6 +17,7 @@ class Tenant extends Model
     protected $fillable = [
         'id', 'name', 'code', 'country_code','currency_code','is_active',
         'settings', 'subscription_limit_config',
+        'logo_path',
     ];
 
     protected $casts = [

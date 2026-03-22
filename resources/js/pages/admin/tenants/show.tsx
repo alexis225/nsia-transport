@@ -8,6 +8,7 @@ interface Tenant {
     id: string; name: string; code: string; country_code: string;
     currency: string; locale: string; timezone: string;
     is_active: boolean; users_count: number; created_at: string;
+    logo_path: string | null;
     subscription_limit_config: { nn300_limit: number };
 }
 interface User {
@@ -71,7 +72,7 @@ export default function TenantShow({ tenant, users }: Props) {
 
                     {/* Hero */}
                     <div className="ts-hero">
-                        <div className="ts-flag">{FLAG[tenant.code] ?? '🏢'}</div>
+                        <div className="ts-flag">{tenant.logo_path ? <img src={`/storage/${tenant.logo_path}`} alt={tenant.name} style={{ width:"100%", height:"100%", objectFit:"contain", padding:4 }}/> : (FLAG[tenant.code] ?? "🏢")}</div>
                         <div className="ts-hero-info">
                             <div className="ts-hero-name">{tenant.name}</div>
                             <div className="ts-hero-sub">{tenant.code} · {tenant.currency} · {tenant.timezone}</div>

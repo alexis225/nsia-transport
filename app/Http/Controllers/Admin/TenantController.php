@@ -57,19 +57,28 @@ class TenantController extends Controller
             'name'         => ['required', 'string', 'max:150'],
             'code'         => ['required', 'string', 'max:10', 'unique:tenants,code', 'regex:/^[A-Z]{2,10}$/'],
             'country_code' => ['required', 'string', 'size:2'],
-            'currency'     => ['required', 'string', 'size:3'],
+            'currency_code'     => ['required', 'string', 'size:3'],
             'locale'       => ['required', 'string', 'in:fr,en'],
             'timezone'     => ['required', 'string', 'max:50'],
             'is_active'    => ['boolean'],
+            'logo'         => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
             'settings'                  => ['nullable', 'array'],
             'subscription_limit_config' => ['nullable', 'array'],
         ], [
             'code.regex'  => 'Le code doit être en majuscules (ex: CI, SN, CM).',
             'code.unique' => 'Ce code est déjà utilisé par une autre filiale.',
+            'logo.mimes'  => 'Formats acceptés : JPG, PNG, WebP, SVG.',
+            'logo.max'    => 'La taille maximale du logo est de 2 Mo.',
         ]);
 
+        // Upload logo si fourni
+        $logoPath = null;
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('logos/tenants', 'public');
+        }
         $tenant = Tenant::create([
             ...$validated,
+            'logo_path'                 => $logoPath,
             'settings'                  => $validated['settings'] ?? [],
             'subscription_limit_config' => $validated['subscription_limit_config'] ?? ['nn300_limit' => 0],
             'is_active'                 => $validated['is_active'] ?? true,
@@ -86,7 +95,7 @@ class TenantController extends Controller
             'new_values'  => ['name' => $tenant->name, 'code' => $tenant->code],
         ]);
 
-        return redirect()->route('admin.tenants')
+        return redirect()->route('admin.tenants.index')
             ->with('status', "Filiale {$tenant->name} créée avec succès.");
     }
 
@@ -94,7 +103,6 @@ class TenantController extends Controller
     public function show(Tenant $tenant): Response
     {
         $tenant->loadCount('users');
-
         $users = $tenant->users()
             ->with('roles')
             ->orderBy('created_at', 'desc')
@@ -144,7 +152,7 @@ class TenantController extends Controller
             'new_values'  => $tenant->only(['name', 'code', 'is_active']),
         ]);
 
-        return redirect()->route('admin.tenants')
+        return redirect()->route('admin.tenants.index')
             ->with('status', "Filiale {$tenant->name} mise à jour.");
     }
 
@@ -172,5 +180,49 @@ class TenantController extends Controller
         return Inertia::render('admin/tenants/config', [
             'tenant' => $tenant,
         ]);
+    }
+
+        // ── Upload logo filiale ──────────────────────────────────
+    public function updateLogo(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $request->validate([
+            'logo' => ['required', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
+        ], [
+            'logo.required' => 'Veuillez sélectionner une image.',
+            'logo.mimes'    => 'Formats acceptés : JPG, PNG, WebP, SVG.',
+            'logo.max'      => 'La taille maximale est de 2 Mo.',
+        ]);
+ 
+        // Supprimer l'ancien logo
+        if ($tenant->logo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($tenant->logo_path)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($tenant->logo_path);
+        }
+ 
+        $path = $request->file('logo')->store("logos/tenants", 'public');
+        $tenant->update(['logo_path' => $path]);
+ 
+        AuditLog::create([
+            'tenant_id'   => null,
+            'user_id'     => $request->user()->id,
+            'action'      => 'tenant_logo_updated',
+            'entity_type' => 'tenant',
+            'entity_id'   => $tenant->id,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => $request->userAgent(),
+        ]);
+ 
+        return back()->with('status', "Logo de {$tenant->name} mis à jour.");
+    }
+ 
+    // ── Supprimer logo filiale ───────────────────────────────
+    public function removeLogo(Request $request, Tenant $tenant): RedirectResponse
+    {
+        if ($tenant->logo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($tenant->logo_path)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($tenant->logo_path);
+        }
+ 
+        $tenant->update(['logo_path' => null]);
+ 
+        return back()->with('status', "Logo supprimé.");
     }
 }

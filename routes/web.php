@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
+use App\Http\Controllers\Admin\ReferenceController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
@@ -12,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 
 // ── Accueil → login ──────────────────────────────────────────
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('admin.dashboard');
+    }
     return redirect()->route('login');
 })->name('home');
 
@@ -126,6 +130,8 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
         // ── Rôles & Permissions — US-003 ─────────────────────
         Route::middleware('role:super_admin')->group(function () {
 
+            Route::post('/tenants/{tenant}/logo',   [TenantController::class, 'updateLogo'])->name('admin.tenants.logo.update');
+            Route::delete('/tenants/{tenant}/logo', [TenantController::class, 'removeLogo'])->name('admin.tenants.logo.remove');
             Route::get('/roles', [RoleController::class, 'index'])
                 ->name('admin.roles.index');
 
@@ -160,13 +166,14 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
             Route::get('/tenants/{tenant}/edit', [TenantController::class, 'edit'])
                 ->name('admin.tenants.edit');
 
-            Route::put('/tenants/{tenant}', [TenantController::class, 'update'])
-                ->name('admin.tenants.update');
-
-            Route::patch('/tenants/{tenant}/toggle', [TenantController::class, 'toggleActive'])
-                ->name('admin.tenants.toggle');
-            Route::get('/tenants/{tenant}/config', [TenantController::class, 'config'])
-    ->name('admin.tenants.config');
+            Route::put('/tenants/{tenant}', [TenantController::class, 'update'])->name('admin.tenants.update');
+            Route::patch('/tenants/{tenant}/toggle', [TenantController::class, 'toggleActive'])->name('admin.tenants.toggle');
+            Route::get('/tenants/{tenant}/config', [TenantController::class, 'config'])->name('admin.tenants.config');
+            //-─ Référentiels — US-010 ─────────────────────────────
+            Route::get('/reference', [ReferenceController::class, 'index'])->name('admin.reference.index');
+            Route::post('/reference/{tab}',[ReferenceController::class, 'store'])->name('admin.reference.store');
+            Route::put('/reference/{tab}/{id}',[ReferenceController::class, 'update'])->name('admin.reference.update');
+            Route::patch('/reference/{tab}/{id}/toggle',     [ReferenceController::class, 'toggle'])->name('admin.reference.toggle');
         });
     });
 });

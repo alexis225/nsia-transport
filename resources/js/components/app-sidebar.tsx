@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Award, BarChart2, Briefcase, Building2,
     ClipboardList,
+    Database,
     FileText, LayoutDashboard, Settings, Shield, Users,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
@@ -77,7 +78,11 @@ export function AppSidebar() {
                 ...(can('brokers.create') ? [{ title: 'Nouveau', href: route('admin.brokers.create') }] : []),
             ],
         }] : []),
-
+        ...(isSA() ? [{
+            title: 'Références',
+            href:  '/admin/reference',
+            icon:  Database, // import depuis lucide-react
+        }] : []),
         // // ── Contrats — US-014 ──────────────────────────────────
         // ...(can('contracts.view') ? [{
         //     title: 'Contrats',

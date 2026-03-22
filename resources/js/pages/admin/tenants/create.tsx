@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import type { BreadcrumbItem } from '@/types';
-import { Building2, Check } from 'lucide-react';
+import { Building2, Check, Camera } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Filiales', href: '/admin/tenants' },
@@ -21,20 +22,44 @@ const TIMEZONES = [
 const CURRENCIES = ['XOF','XAF','GNF','MGA','NGN','EUR','USD'];
 
 export default function TenantCreate() {
-    const { data, setData, post, processing, errors } = useForm({
+    const fileRef                       = useRef<HTMLInputElement>(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+    // useForm avec forceFormData pour supporter le fichier
+    const { data, setData, post, processing, errors } = useForm<{
+        name:                     string;
+        code:                     string;
+        country_code:             string;
+        currency_code:                 string;
+        locale:                   string;
+        timezone:                 string;
+        is_active:                boolean;
+        logo:                     File | null;
+        subscription_limit_config: { nn300_limit: number };
+    }>({
         name:         '',
         code:         '',
         country_code: '',
-        currency:     'XOF',
+        currency_code:     'XOF',
         locale:       'fr',
         timezone:     'Africa/Abidjan',
         is_active:    true,
+        logo:         null,
         subscription_limit_config: { nn300_limit: 0 },
     });
 
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setData('logo', file);
+        setLogoPreview(URL.createObjectURL(file));
+    };
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('admin.tenants.store'));
+        post(route('admin.tenants.store'), {
+            forceFormData: true,
+        });
     };
 
     return (
@@ -44,7 +69,7 @@ export default function TenantCreate() {
                 .tc-wrap{width:100%;max-width:760px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .tc-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
                 .tc-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.05);}
-                .tc-hero-ico{width:52px;height:52px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;}
+                .tc-hero-ico{width:52px;height:52px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;overflow:hidden;}
                 .tc-hero-info{position:relative;z-index:1;}
                 .tc-hero-title{font-size:16px;font-weight:600;color:#fff;margin-bottom:2px;}
                 .tc-hero-sub{font-size:12px;color:rgba(255,255,255,0.5);}
@@ -57,10 +82,19 @@ export default function TenantCreate() {
                 .tc-label{font-size:10.5px !important;font-weight:600 !important;text-transform:uppercase !important;letter-spacing:.08em !important;color:#64748b !important;}
                 .tc-select{width:100%;height:44px;padding:0 12px;font-size:13px;font-family:inherit;color:#1e293b;background:#fff;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;cursor:pointer;}
                 .tc-select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.08);}
-                .tc-toggle{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;cursor:pointer;transition:border-color .15s;}
-                .tc-toggle:hover{border-color:#cbd5e1;}
-                .tc-toggle-box{width:40px;height:22px;border-radius:11px;transition:background .2s;position:relative;flex-shrink:0;}
+                .tc-toggle{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;cursor:pointer;}
+                .tc-toggle-box{width:40px;height:22px;border-radius:11px;position:relative;flex-shrink:0;transition:background .2s;}
                 .tc-toggle-thumb{width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:3px;transition:left .2s;}
+
+                /* Logo */
+                .logo-zone{display:flex;align-items:center;gap:16px;}
+                .logo-preview{width:80px;height:80px;border-radius:12px;border:1.5px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;transition:border-color .15s;}
+                .logo-preview:hover{border-color:#94a3b8;}
+                .logo-preview img{width:100%;height:100%;object-fit:contain;padding:4px;}
+                .logo-upload-btn{padding:8px 14px;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:9px;font-size:12px;color:#475569;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
+                .logo-upload-btn:hover{background:#f1f5f9;border-color:#94a3b8;color:#1e293b;}
+                .logo-hint{font-size:11px;color:#94a3b8;margin-top:4px;}
+                .logo-selected{font-size:11px;color:#16a34a;margin-top:4px;display:flex;align-items:center;gap:4px;}
             `}</style>
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
@@ -68,8 +102,11 @@ export default function TenantCreate() {
 
                     {/* Hero */}
                     <div className="tc-hero">
-                        <div className="tc-hero-ico">
-                            <Building2 size={22} color="rgba(255,255,255,0.8)"/>
+                        <div className="tc-hero-ico" onClick={() => fileRef.current?.click()} title="Cliquez pour ajouter un logo">
+                            {logoPreview
+                                ? <img src={logoPreview} alt="" style={{ width:'100%', height:'100%', objectFit:'contain', padding:4 }}/>
+                                : <Building2 size={22} color="rgba(255,255,255,0.8)"/>
+                            }
                         </div>
                         <div className="tc-hero-info">
                             <div className="tc-hero-title">Nouvelle filiale</div>
@@ -77,31 +114,59 @@ export default function TenantCreate() {
                         </div>
                     </div>
 
-                    {/* Formulaire */}
-                    <div className="tc-card">
-                        <div className="tc-card-hdr">
-                            <div className="tc-card-ttl">Informations de la filiale</div>
-                            <div className="tc-card-sub">Tous les champs marqués * sont obligatoires</div>
-                        </div>
-                        <div className="tc-card-body">
-                            <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                    <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-                                {/* Nom */}
+                        {/* ── Logo ── */}
+                        <div className="tc-card">
+                            <div className="tc-card-hdr">
+                                <div className="tc-card-ttl">Logo de la filiale</div>
+                                <div className="tc-card-sub">Optionnel · JPG, PNG, WebP ou SVG · Max 2 Mo</div>
+                            </div>
+                            <div className="tc-card-body">
+                                <div className="logo-zone">
+                                    <div className="logo-preview" onClick={() => fileRef.current?.click()}>
+                                        {logoPreview
+                                            ? <img src={logoPreview} alt="Logo"/>
+                                            : <Building2 size={24} color="#cbd5e1"/>
+                                        }
+                                    </div>
+                                    <div>
+                                        <input ref={fileRef} type="file"
+                                               accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                                               style={{ display:'none' }} onChange={handleLogoChange}/>
+                                        <button type="button" className="logo-upload-btn" onClick={() => fileRef.current?.click()}>
+                                            <Camera size={13}/> Choisir un logo
+                                        </button>
+                                        {data.logo
+                                            ? <div className="logo-selected"><Check size={11}/>{(data.logo as File).name}</div>
+                                            : <div className="logo-hint">Format JPG, PNG, WebP ou SVG · Max 2 Mo</div>
+                                        }
+                                    </div>
+                                </div>
+                                <InputError message={errors.logo}/>
+                            </div>
+                        </div>
+
+                        {/* ── Informations ── */}
+                        <div className="tc-card">
+                            <div className="tc-card-hdr">
+                                <div className="tc-card-ttl">Informations de la filiale</div>
+                                <div className="tc-card-sub">Tous les champs marqués * sont obligatoires</div>
+                            </div>
+                            <div className="tc-card-body">
+
                                 <div className="grid gap-2">
                                     <Label className="tc-label">Nom de la filiale *</Label>
-                                    <Input className="h-11"
-                                           value={data.name}
+                                    <Input className="h-11" value={data.name}
                                            onChange={e => setData('name', e.target.value)}
                                            placeholder="ex: NSIA Côte d'Ivoire"/>
                                     <InputError message={errors.name}/>
                                 </div>
 
-                                {/* Code + Pays */}
                                 <div className="form-grid">
                                     <div className="grid gap-2">
                                         <Label className="tc-label">Code *</Label>
-                                        <Input className="h-11"
-                                               value={data.code}
+                                        <Input className="h-11" value={data.code}
                                                onChange={e => setData('code', e.target.value.toUpperCase())}
                                                placeholder="ex: CI" maxLength={10}
                                                style={{ fontFamily:'monospace', letterSpacing:'.1em' }}/>
@@ -109,8 +174,7 @@ export default function TenantCreate() {
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="tc-label">Code pays (ISO 2) *</Label>
-                                        <Input className="h-11"
-                                               value={data.country_code}
+                                        <Input className="h-11" value={data.country_code}
                                                onChange={e => setData('country_code', e.target.value.toUpperCase())}
                                                placeholder="ex: CI" maxLength={2}
                                                style={{ fontFamily:'monospace', letterSpacing:'.1em' }}/>
@@ -118,15 +182,13 @@ export default function TenantCreate() {
                                     </div>
                                 </div>
 
-                                {/* Devise + Locale */}
                                 <div className="form-grid">
                                     <div className="grid gap-2">
                                         <Label className="tc-label">Devise *</Label>
-                                        <select className="tc-select" value={data.currency}
-                                                onChange={e => setData('currency', e.target.value)}>
+                                        <select className="tc-select" value={data.currency_code}
+                                                onChange={e => setData('currency_code', e.target.value)}>
                                             {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                                         </select>
-                                        <InputError message={errors.currency}/>
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="tc-label">Langue *</Label>
@@ -135,31 +197,25 @@ export default function TenantCreate() {
                                             <option value="fr">Français</option>
                                             <option value="en">English</option>
                                         </select>
-                                        <InputError message={errors.locale}/>
                                     </div>
                                 </div>
 
-                                {/* Fuseau horaire */}
                                 <div className="grid gap-2">
                                     <Label className="tc-label">Fuseau horaire *</Label>
                                     <select className="tc-select" value={data.timezone}
                                             onChange={e => setData('timezone', e.target.value)}>
                                         {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
                                     </select>
-                                    <InputError message={errors.timezone}/>
                                 </div>
 
-                                {/* Plafond NN300 */}
                                 <div className="grid gap-2">
                                     <Label className="tc-label">Plafond NN300 (XOF)</Label>
                                     <Input className="h-11" type="number" min={0}
                                            value={data.subscription_limit_config.nn300_limit}
                                            onChange={e => setData('subscription_limit_config', { nn300_limit: Number(e.target.value) })}
                                            placeholder="0"/>
-                                    <InputError message={errors['subscription_limit_config.nn300_limit']}/>
                                 </div>
 
-                                {/* Statut */}
                                 <div>
                                     <Label className="tc-label" style={{ marginBottom:8, display:'block' }}>Statut</Label>
                                     <div className="tc-toggle" onClick={() => setData('is_active', !data.is_active)}>
@@ -171,13 +227,12 @@ export default function TenantCreate() {
                                                 {data.is_active ? 'Filiale active' : 'Filiale inactive'}
                                             </div>
                                             <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>
-                                                {data.is_active ? 'Les utilisateurs peuvent se connecter' : 'Accès bloqué pour tous les utilisateurs'}
+                                                {data.is_active ? 'Les utilisateurs peuvent se connecter' : 'Accès bloqué'}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Actions */}
                                 <div style={{ display:'flex', gap:8, paddingTop:4, borderTop:'1px solid #f8fafc', marginTop:4 }}>
                                     <Button type="submit" disabled={processing}
                                             className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
@@ -187,10 +242,10 @@ export default function TenantCreate() {
                                         Annuler
                                     </Button>
                                 </div>
-                            </form>
+                            </div>
                         </div>
-                    </div>
 
+                    </form>
                 </div>
             </div>
         </AppLayout>

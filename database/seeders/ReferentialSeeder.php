@@ -48,6 +48,7 @@ class ReferentialSeeder extends Seeder
             ['code' => 'ML', 'name_fr' => 'Mali',                   'name_en' => 'Mali',             'region' => 'Afrique de l\'Ouest'],
             ['code' => 'BF', 'name_fr' => 'Burkina Faso',           'name_en' => 'Burkina Faso',     'region' => 'Afrique de l\'Ouest'],
             ['code' => 'GN', 'name_fr' => 'Guinée',                 'name_en' => 'Guinea',           'region' => 'Afrique de l\'Ouest'],
+            ['code' => 'GW', 'name_fr' => 'Guinée-Bissau',          'name_en' => 'Guinea-Bissau',    'region' => 'Afrique de l\'Ouest'],
             ['code' => 'TG', 'name_fr' => 'Togo',                   'name_en' => 'Togo',             'region' => 'Afrique de l\'Ouest'],
             ['code' => 'BJ', 'name_fr' => 'Bénin',                  'name_en' => 'Benin',            'region' => 'Afrique de l\'Ouest'],
             ['code' => 'CM', 'name_fr' => 'Cameroun',               'name_en' => 'Cameroon',         'region' => 'Afrique Centrale'],
@@ -76,9 +77,7 @@ class ReferentialSeeder extends Seeder
             ['code' => 'ZA', 'name_fr' => 'Afrique du Sud',         'name_en' => 'South Africa',     'region' => 'Afrique Australe'],
             ['code' => 'NG', 'name_fr' => 'Nigéria',                'name_en' => 'Nigeria',          'region' => 'Afrique de l\'Ouest'],
             ['code' => 'GH', 'name_fr' => 'Ghana',                  'name_en' => 'Ghana',            'region' => 'Afrique de l\'Ouest'],
-            ['code' => 'AE', 'name_fr' => 'Émirats Arabes Unis',    'name_en' => 'United Arab Emirates','region' => 'Moyen-Orient'],
-            ['code' => 'TR', 'name_fr' => 'Turquie',                'name_en' => 'Turkey',           'region' => 'Europe/Asie'],
-            ['code' => 'SG', 'name_fr' => 'Singapour',              'name_en' => 'Singapore',        'region' => 'Asie du Sud-Est'],
+
         ];
 
         foreach ($countries as $country) {
@@ -132,7 +131,7 @@ class ReferentialSeeder extends Seeder
 
         $incoterms = [
             // ── Tous modes ────────────────────────────────────
-            ['code' => 'EXW', 'name' => 'Ex Works',                      'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur met les marchandises à disposition dans ses locaux."],
+            ['code' => 'EXW', 'name' => 'Ex Works',                       'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur met les marchandises à disposition dans ses locaux."],
             ['code' => 'FCA', 'name' => 'Free Carrier',                   'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur livre les marchandises au transporteur désigné par l'acheteur."],
             ['code' => 'CPT', 'name' => 'Carriage Paid To',               'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur paie le transport jusqu'au lieu de destination."],
             ['code' => 'CIP', 'name' => 'Carriage and Insurance Paid To', 'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur paie le transport et l'assurance jusqu'à destination."],
