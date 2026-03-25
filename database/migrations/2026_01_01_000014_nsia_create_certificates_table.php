@@ -2,21 +2,18 @@
 
 /**
  * ============================================================
- * MIGRATION 16 — certificates
- * TABLE CENTRALE — partitionnée par année (RANGE created_at)
+ * MIGRATION — certificates
+ * ============================================================
+ * Certificats d'assurance transport émis par NSIA.
+ * Chaque certificat est lié à un contrat (insurance_contracts)
+ * et à un modèle de template (certificate_templates).
  *
- * ⚠️  Doit être créée via SQL raw : Laravel Blueprint
- *     ne supporte pas le PARTITION BY natif PostgreSQL.
- *
- * Partitions créées automatiquement :
- *   certificates_2024, certificates_2025, certificates_2026
- *
- * Un Artisan Command crée la partition de l'année suivante
- * chaque 1er décembre (voir CreateYearlyPartitions.php).
+ * Workflow : DRAFT → SUBMITTED → ISSUED → CANCELLED
  * ============================================================
  */
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -24,167 +21,128 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // ── Création de la table partitionnée ────────────────
-        DB::statement("
-            CREATE TABLE IF NOT EXISTS certificates (
-                id                       UUID         NOT NULL DEFAULT gen_random_uuid(),
-                tenant_id                UUID         NOT NULL REFERENCES tenants(id),
-                contract_id              UUID         NOT NULL REFERENCES insurance_contracts(id),
-                broker_id                UUID         REFERENCES brokers(id),
-                template_id              UUID         REFERENCES certificate_templates(id),
+        Schema::create('certificates', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
-                -- Numérotation (sans collision via certificate_sequences)
-                certificate_number       VARCHAR(100) NOT NULL,
-                sequence_number          BIGINT       NOT NULL,
+            // ── Liens principaux ──────────────────────────────
+            $table->foreignUuid('tenant_id')
+                  ->constrained('tenants');
 
-                -- Type
-                type                     VARCHAR(30)  NOT NULL DEFAULT 'ORIGINAL'
-                                         CHECK (type IN ('ORIGINAL','DUPLICATE','ENDORSEMENT','CANCELLATION')),
-                parent_id                UUID,   -- référence duplicata / avenant (pas de FK cross-partition)
+            $table->foreignUuid('contract_id')
+                  ->constrained('insurance_contracts')
+                  ->cascadeOnDelete();
 
-                -- Expéditeur
-                shipper_name             VARCHAR(255) NOT NULL,
-                shipper_address          TEXT,
-                shipper_country          CHAR(2)      REFERENCES countries(code),
+            $table->foreignUuid('template_id')
+                  ->nullable()
+                  ->constrained('certificate_templates')
+                  ->nullOnDelete();
 
-                -- Destinataire
-                consignee_name           VARCHAR(255) NOT NULL,
-                consignee_address        TEXT,
-                consignee_country        CHAR(2)      REFERENCES countries(code),
+            // ── Numérotation ──────────────────────────────────
+            $table->string('certificate_number', 50)->unique(); // ex: N°041260
+            $table->string('policy_number', 100);               // dénormalisé depuis contrat
 
-                -- Transport
-                transport_mode_id        SMALLINT     REFERENCES transport_modes(id),
-                vessel_name              VARCHAR(255),
-                voyage_number            VARCHAR(100),
-                bill_of_lading           VARCHAR(255),
-                flight_number            VARCHAR(50),
-                container_number         VARCHAR(100),
+            // ── Assuré ────────────────────────────────────────
+            $table->string('insured_name', 200);
+            $table->text('insured_ref')->nullable();             // références assuré
 
-                -- Itinéraire
-                loading_port             VARCHAR(255) NOT NULL,
-                discharge_port           VARCHAR(255) NOT NULL,
-                place_of_delivery        VARCHAR(255),
-                departure_date           DATE,
-                arrival_date             DATE,
+            // ── Voyage ────────────────────────────────────────
+            $table->date('voyage_date');                         // date d'expédition
+            $table->string('voyage_from', 150);                  // lieu de départ
+            $table->string('voyage_to', 150);                    // lieu de destination
+            $table->string('voyage_via', 150)->nullable();       // via / transit
 
-                -- Marchandise
-                merchandise_description  TEXT         NOT NULL,
-                merchandise_category_id  UUID         REFERENCES merchandise_categories(id),
-                packing_type             VARCHAR(100),
-                quantity                 NUMERIC(15,3),
-                quantity_unit            VARCHAR(30),
-                gross_weight             NUMERIC(15,3),
-                weight_unit              VARCHAR(10)  DEFAULT 'KG',
-                marks_and_numbers        TEXT,
+            // Mode de transport principal
+            $table->string('transport_type', 20)->nullable();    // SEA | AIR | ROAD | RAIL
+            $table->string('vessel_name', 150)->nullable();      // nom navire S/S
+            $table->string('flight_number', 50)->nullable();     // numéro de vol
+            $table->string('voyage_mode', 50)->nullable();       // CONTAINER | GROUPAGE | CONVENTIONNEL | BOUT_EN_BOUT
 
-                -- Financier
-                currency_code            CHAR(3)      NOT NULL REFERENCES currencies(code),
-                insured_value            NUMERIC(20,2) NOT NULL,
-                premium_amount           NUMERIC(20,2),
-                incoterm_code            VARCHAR(5)   REFERENCES incoterms(code),
-                invoice_number           VARCHAR(100),
-                invoice_amount           NUMERIC(20,2),
-                invoice_currency         CHAR(3)      REFERENCES currencies(code),
+            // ── Détails expédition ────────────────────────────
+            // Tableau JSON des lignes de marchandises
+            // [{
+            //   "marks": "NSIA-001",
+            //   "package_numbers": "1 à 10",
+            //   "package_count": 10,
+            //   "weight": "500 kg",
+            //   "nature": "Électronique",
+            //   "packaging": "Cartons",
+            //   "insured_value": 5000000
+            // }]
+            $table->json('expedition_items')->default('[]');
 
-                -- Garantie
-                coverage_type            VARCHAR(50),
-                clauses                  JSONB        DEFAULT '[]',
-                special_conditions       TEXT,
+            // ── Valeurs financières ───────────────────────────
+            $table->char('currency_code', 3);
+            $table->decimal('insured_value', 20, 2);             // valeur d'assurance en chiffres
+            $table->text('insured_value_letters')->nullable();   // valeur en lettres
+            $table->string('guarantee_mode', 100)->nullable();   // mode de garantie
 
-                -- Authenticité
-                qr_code_data             TEXT,           -- URL encodée dans le QR
-                qr_code_path             TEXT,           -- chemin S3 image QR
-                digital_signature        TEXT,           -- token HMAC-SHA256
-                seal_path                TEXT,           -- cachet filiale S3
+            // ── Décompte de prime (JSON flexible) ────────────
+            // Reprend la structure prime_breakdown_lines du template
+            // [{
+            //   "key": "ro", "label": "R.O./C.F.A",
+            //   "rate": 0.5, "amount": 25000
+            // }]
+            $table->json('prime_breakdown')->nullable();
+            $table->decimal('prime_total', 20, 2)->nullable();   // prime totale calculée
 
-                -- PDF
-                pdf_path                 TEXT,
-                pdf_generated_at         TIMESTAMPTZ,
+            // ── Taux de change ────────────────────────────────
+            $table->char('exchange_currency', 3)->nullable();    // devise de cotation
+            $table->decimal('exchange_rate', 12, 6)->nullable(); // cours (Togo : unité monétaire + cours)
 
-                -- Plateforme étatique (GUCE, GUOT, ORBUS...)
-                state_platform_ref       VARCHAR(255),
-                state_platform_issued_at TIMESTAMPTZ,
+            // ── Statut & Workflow ─────────────────────────────
+            $table->string('status', 30)->default('DRAFT');
+            // DRAFT | SUBMITTED | ISSUED | CANCELLED
 
-                -- Workflow
-                status                   VARCHAR(30)  NOT NULL DEFAULT 'DRAFT'
-                                         CHECK (status IN (
-                                             'DRAFT','SUBMITTED','PENDING_APPROVAL',
-                                             'APPROVED','ISSUED','CANCELLED','EXPIRED'
-                                         )),
-                issued_at                TIMESTAMPTZ,
-                cancelled_at             TIMESTAMPTZ,
-                cancellation_reason      TEXT,
-                expiry_date              DATE,
+            $table->timestamp('submitted_at')->nullable();
+            $table->timestamp('issued_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->text('cancellation_reason')->nullable();
 
-                -- Méta
-                notes                    TEXT,
-                metadata                 JSONB        DEFAULT '{}',
+            // ── Validation ────────────────────────────────────
+            $table->foreignUuid('issued_by')->nullable()
+                  ->constrained('users')->nullOnDelete();
+            $table->foreignUuid('submitted_by')->nullable()
+                  ->constrained('users')->nullOnDelete();
+            $table->text('validation_notes')->nullable();
 
-                created_by               UUID         REFERENCES users(id),
-                updated_by               UUID         REFERENCES users(id),
-                created_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-                updated_at               TIMESTAMPTZ           DEFAULT NOW(),
-                deleted_at               TIMESTAMPTZ,
+            // ── PDF ───────────────────────────────────────────
+            $table->string('pdf_path', 255)->nullable();         // chemin storage
+            $table->timestamp('pdf_generated_at')->nullable();
 
-                PRIMARY KEY (id, created_at)   -- clé composite requise pour PARTITION BY RANGE
-            ) PARTITION BY RANGE (created_at)
-        ");
+            // ── Méta ──────────────────────────────────────────
+            $table->foreignUuid('created_by')->nullable()
+                  ->constrained('users')->nullOnDelete();
+            $table->timestamps();
+            $table->softDeletes();
 
-        // ── Partitions annuelles ─────────────────────────────
-        $currentYear = (int) date('Y');
-        foreach (range(2024, $currentYear + 1) as $year) {
-            $next = $year + 1;
-            DB::statement("
-                CREATE TABLE IF NOT EXISTS certificates_{$year}
-                PARTITION OF certificates
-                FOR VALUES FROM ('{$year}-01-01') TO ('{$next}-01-01')
-            ");
-        }
+            // Index
+            $table->index(['tenant_id', 'status']);
+            $table->index(['contract_id']);
+            $table->index(['voyage_date']);
+        });
 
-        // ── Index sur la table partitionnée ──────────────────
-        // (PostgreSQL propage automatiquement aux partitions)
-        //
-        // ⚠️  RÈGLE POSTGRESQL PARTITIONNEMENT :
-        // Toute contrainte UNIQUE doit inclure la colonne de partition (created_at).
-        // On utilise donc (tenant_id, certificate_number, created_at) pour l'unicité.
-        // L'unicité "pure" sur certificate_number est garantie applicativement
-        // via CertificateNumberService (SELECT FOR UPDATE sur certificate_sequences).
-        DB::statement('CREATE UNIQUE INDEX idx_cert_number_tenant  ON certificates(tenant_id, certificate_number, created_at)');
-        DB::statement('CREATE INDEX idx_cert_tenant_status         ON certificates(tenant_id, status, created_at DESC)');
-        DB::statement('CREATE INDEX idx_cert_contract              ON certificates(contract_id, created_at DESC)');
-        DB::statement('CREATE INDEX idx_cert_broker                ON certificates(broker_id, created_at DESC)');
-        DB::statement('CREATE INDEX idx_cert_bl                    ON certificates(bill_of_lading) WHERE bill_of_lading IS NOT NULL');
-        DB::statement('CREATE INDEX idx_cert_signature             ON certificates(digital_signature) WHERE digital_signature IS NOT NULL');
+        // Contraintes CHECK
+        DB::statement("ALTER TABLE certificates ADD CONSTRAINT cert_status_check
+            CHECK (status IN ('DRAFT','SUBMITTED','ISSUED','CANCELLED'))");
 
-        // ── Index GIN full-text (recherche < 500 ms) ─────────
-        DB::statement("
-            CREATE INDEX idx_cert_fulltext ON certificates
-            USING GIN (
-                to_tsvector('french',
-                    coalesce(certificate_number,'')    || ' ' ||
-                    coalesce(shipper_name,'')           || ' ' ||
-                    coalesce(consignee_name,'')         || ' ' ||
-                    coalesce(merchandise_description,'')|| ' ' ||
-                    coalesce(bill_of_lading,'')         || ' ' ||
-                    coalesce(invoice_number,'')
-                )
-            )
-        ");
+        DB::statement("ALTER TABLE certificates ADD CONSTRAINT cert_transport_check
+            CHECK (transport_type IS NULL OR transport_type IN ('SEA','AIR','ROAD','RAIL','MULTIMODAL'))");
 
-        // ── Row-Level Security (défense en profondeur) ───────
-        DB::statement('ALTER TABLE certificates ENABLE ROW LEVEL SECURITY');
+        // Index partiels PostgreSQL
+        DB::statement("CREATE INDEX idx_cert_issued
+            ON certificates(tenant_id, issued_at DESC)
+            WHERE status = 'ISSUED'");
 
-        DB::statement("
-            CREATE POLICY cert_tenant_isolation ON certificates
-            USING (
-                tenant_id = current_setting('app.current_tenant_id', true)::uuid
-                OR current_setting('app.current_tenant_id', true) = ''
-            )
-        ");
+        DB::statement("CREATE INDEX idx_cert_pending
+            ON certificates(tenant_id, submitted_at DESC)
+            WHERE status = 'SUBMITTED'");
+
+        DB::statement("CREATE INDEX idx_cert_number
+            ON certificates(certificate_number)");
     }
 
     public function down(): void
     {
-        DB::statement('DROP TABLE IF EXISTS certificates CASCADE');
+        Schema::dropIfExists('certificates');
     }
 };

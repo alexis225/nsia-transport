@@ -3,161 +3,62 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * ============================================================
+ * Certificate Model — US-016/017/018
+ * ============================================================
+ * Table : certificates
+ * Statuts : DRAFT | SUBMITTED | ISSUED | CANCELLED
+ * ============================================================
+ */
 class Certificate extends Model
 {
-    use HasUuids;
-    use SoftDeletes;
+    use HasUuids, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'tenant_id',
-        'contract_id',
-        'broker_id',
-        'template_id',
-        'certificate_number',
-        'sequence_number',
-        'type',
-        'parent_id',
-        'shipper_name',
-        'shipper_address',
-        'shipper_country',
-        'consignee_name',
-        'consignee_address',
-        'consignee_country',
-        'transport_mode_id',
-        'vessel_name',
-        'voyage_number',
-        'bill_of_lading',
-        'flight_number',
-        'container_number',
-        'loading_port',
-        'discharge_port',
-        'place_of_delivery',
-        'departure_date',
-        'arrival_date',
-        'merchandise_description',
-        'merchandise_category_id',
-        'packing_type',
-        'quantity',
-        'quantity_unit',
-        'gross_weight',
-        'weight_unit',
-        'marks_and_numbers',
-        'currency_code',
-        'insured_value',
-        'premium_amount',
-        'incoterm_code',
-        'invoice_number',
-        'invoice_amount',
-        'invoice_currency',
-        'coverage_type',
-        'clauses',
-        'special_conditions',
-        'qr_code_data',
-        'qr_code_path',
-        'digital_signature',
-        'seal_path',
-        'pdf_path',
-        'pdf_generated_at',
-        'state_platform_ref',
-        'state_platform_issued_at',
-        'status',
-        'issued_at',
-        'cancelled_at',
-        'cancellation_reason',
-        'expiry_date',
-        'notes',
-        'metadata',
-        'created_by',
-        'updated_by',
+        'tenant_id', 'contract_id', 'template_id',
+        'certificate_number', 'policy_number',
+        'insured_name', 'insured_ref',
+        'voyage_date', 'voyage_from', 'voyage_to', 'voyage_via',
+        'transport_type', 'vessel_name', 'flight_number', 'voyage_mode',
+        'expedition_items',
+        'currency_code', 'insured_value', 'insured_value_letters',
+        'guarantee_mode', 'prime_breakdown', 'prime_total',
+        'exchange_currency', 'exchange_rate',
+        'status', 'submitted_at', 'issued_at', 'cancelled_at',
+        'cancellation_reason', 'issued_by', 'submitted_by', 'validation_notes',
+        'pdf_path', 'pdf_generated_at', 'created_by',
     ];
 
-    protected $hidden = [
-        'digital_signature',
+    protected $casts = [
+        'voyage_date'       => 'date',
+        'submitted_at'      => 'datetime',
+        'issued_at'         => 'datetime',
+        'cancelled_at'      => 'datetime',
+        'pdf_generated_at'  => 'datetime',
+        'expedition_items'  => 'array',
+        'prime_breakdown'   => 'array',
+        'insured_value'     => 'decimal:2',
+        'prime_total'       => 'decimal:2',
+        'exchange_rate'     => 'decimal:6',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'departure_date'           => 'date',
-            'arrival_date'             => 'date',
-            'expiry_date'              => 'date',
-            'insured_value'            => 'decimal:2',
-            'premium_amount'           => 'decimal:2',
-            'invoice_amount'           => 'decimal:2',
-            'quantity'                 => 'decimal:3',
-            'gross_weight'             => 'decimal:3',
-            'clauses'                  => 'array',
-            'metadata'                 => 'array',
-            'pdf_generated_at'         => 'datetime',
-            'state_platform_issued_at' => 'datetime',
-            'issued_at'                => 'datetime',
-            'cancelled_at'             => 'datetime',
-        ];
-    }
+    // ── Constantes ────────────────────────────────────────────
+    const STATUS_DRAFT     = 'DRAFT';
+    const STATUS_SUBMITTED = 'SUBMITTED';
+    const STATUS_ISSUED    = 'ISSUED';
+    const STATUS_CANCELLED = 'CANCELLED';
 
-    // ── Constantes ───────────────────────────────────────────
-    const TYPE_ORIGINAL     = 'ORIGINAL';
-    const TYPE_DUPLICATE    = 'DUPLICATE';
-    const TYPE_ENDORSEMENT  = 'ENDORSEMENT';
-    const TYPE_CANCELLATION = 'CANCELLATION';
-
-    const STATUS_DRAFT            = 'DRAFT';
-    const STATUS_SUBMITTED        = 'SUBMITTED';
-    const STATUS_PENDING_APPROVAL = 'PENDING_APPROVAL';
-    const STATUS_APPROVED         = 'APPROVED';
-    const STATUS_ISSUED           = 'ISSUED';
-    const STATUS_CANCELLED        = 'CANCELLED';
-    const STATUS_EXPIRED          = 'EXPIRED';
-
-    // ── Helpers métier ───────────────────────────────────────
-    public function isIssued(): bool
-    {
-        return $this->status === self::STATUS_ISSUED;
-    }
-
-    public function isCancellable(): bool
-    {
-        return in_array($this->status, [
-            self::STATUS_ISSUED,
-            self::STATUS_APPROVED,
-        ]);
-    }
-
-    public function hasPdf(): bool
-    {
-        return ! is_null($this->pdf_path);
-    }
-
-    // ── Scopes ───────────────────────────────────────────────
-    public function scopeIssued($query)
-    {
-        return $query->where('status', self::STATUS_ISSUED);
-    }
-
-    public function scopeOfTenant($query, string $tenantId)
-    {
-        return $query->where('tenant_id', $tenantId);
-    }
-
-    public function scopeSearch($query, string $term)
-    {
-        return $query->whereRaw(
-            "to_tsvector('french',
-                coalesce(certificate_number,'') || ' ' ||
-                coalesce(shipper_name,'') || ' ' ||
-                coalesce(consignee_name,'') || ' ' ||
-                coalesce(merchandise_description,'') || ' ' ||
-                coalesce(bill_of_lading,'') || ' ' ||
-                coalesce(invoice_number,'')
-            ) @@ plainto_tsquery('french', ?)",
-            [$term]
-        );
-    }
+    const TRANSPORT_SEA       = 'SEA';
+    const TRANSPORT_AIR       = 'AIR';
+    const TRANSPORT_ROAD      = 'ROAD';
+    const TRANSPORT_RAIL      = 'RAIL';
+    const TRANSPORT_MULTIMODAL= 'MULTIMODAL';
 
     // ── Relations ────────────────────────────────────────────
     public function tenant(): BelongsTo
@@ -170,73 +71,54 @@ class Certificate extends Model
         return $this->belongsTo(InsuranceContract::class, 'contract_id');
     }
 
-    public function broker(): BelongsTo
-    {
-        return $this->belongsTo(Broker::class);
-    }
-
     public function template(): BelongsTo
     {
         return $this->belongsTo(CertificateTemplate::class, 'template_id');
     }
 
-    public function transportMode(): BelongsTo
+    public function issuedBy(): BelongsTo
     {
-        return $this->belongsTo(TransportMode::class);
+        return $this->belongsTo(User::class, 'issued_by');
     }
 
-    public function merchandiseCategory(): BelongsTo
+    public function submittedBy(): BelongsTo
     {
-        return $this->belongsTo(MerchandiseCategory::class, 'merchandise_category_id');
+        return $this->belongsTo(User::class, 'submitted_by');
     }
 
-    public function currency(): BelongsTo
-    {
-        return $this->belongsTo(Currency::class, 'currency_code', 'code');
-    }
-
-    public function incoterm(): BelongsTo
-    {
-        return $this->belongsTo(Incoterm::class, 'incoterm_code', 'code');
-    }
-
-    public function shipperCountry(): BelongsTo
-    {
-        return $this->belongsTo(Country::class, 'shipper_country', 'code');
-    }
-
-    public function consigneeCountry(): BelongsTo
-    {
-        return $this->belongsTo(Country::class, 'consignee_country', 'code');
-    }
-
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(Certificate::class, 'parent_id');
-    }
-
-    public function duplicates(): HasMany
-    {
-        return $this->hasMany(Certificate::class, 'parent_id');
-    }
-
-    public function history(): HasMany
-    {
-        return $this->hasMany(CertificateHistory::class, 'certificate_id');
-    }
-
-    public function commissionTransaction(): HasMany
-    {
-        return $this->hasMany(CommissionTransaction::class, 'certificate_id');
-    }
-
-    public function createdByUser(): BelongsTo
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updatedByUser(): BelongsTo
+    // ── Scopes ───────────────────────────────────────────────
+    public function scopeIssued($query)    { return $query->where('status', self::STATUS_ISSUED); }
+    public function scopePending($query)   { return $query->where('status', self::STATUS_SUBMITTED); }
+    public function scopeForTenant($query, string $tenantId) { return $query->where('tenant_id', $tenantId); }
+
+    // ── Helpers ───────────────────────────────────────────────
+    public function isDraft(): bool     { return $this->status === self::STATUS_DRAFT; }
+    public function isSubmitted(): bool { return $this->status === self::STATUS_SUBMITTED; }
+    public function isIssued(): bool    { return $this->status === self::STATUS_ISSUED; }
+    public function isCancelled(): bool { return $this->status === self::STATUS_CANCELLED; }
+    public function hasPdf(): bool      { return ! empty($this->pdf_path); }
+
+    /**
+     * Calcule le total du décompte de prime
+     */
+    public function computePrimeTotal(): float
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        if (empty($this->prime_breakdown)) return 0;
+        return collect($this->prime_breakdown)->sum('amount');
+    }
+
+    /**
+     * Génère le N° certificat depuis le template
+     */
+    public static function generateNumber(CertificateTemplate $template): string
+    {
+        $template->increment('last_number');
+        $num = str_pad($template->last_number, $template->number_padding, '0', STR_PAD_LEFT);
+        return ($template->number_prefix ?? 'N°') . $num;
     }
 }

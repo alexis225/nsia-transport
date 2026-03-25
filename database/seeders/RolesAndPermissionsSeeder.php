@@ -60,7 +60,22 @@ class RolesAndPermissionsSeeder extends Seeder
             'audit_logs.export',
             'brokers.view', 'brokers.create', 'brokers.edit', 'brokers.delete',
             'contracts.view', 'contracts.create', 'contracts.edit',
-            'contracts.delete', 'contracts.validate'
+            'contracts.delete', 'contracts.validate',
+            // ── Certificats ───────────────────────────────────
+            'certificates.view',
+            'certificates.create',  // créer + soumettre
+            'certificates.validate',// émettre / rejeter (US-018)
+            'certificates.cancel',  // annuler
+            // ── Audit Logs ────────────────────────────────────
+            'audit_logs.view',
+            'audit_logs.export',
+                        // ── Rapports ──────────────────────────────────────
+            'reports.view',
+            'reports.dashboard_filiale',
+            'reports.dashboard_dtag',
+            'reports.certificates',
+            'reports.contracts',
+            'reports.export',
             
         ];
 

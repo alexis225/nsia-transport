@@ -113,17 +113,17 @@ export function AppSidebar() {
             ],
         }] : []),
 
-        // // ── Certificats — US-017 ───────────────────────────────
-        // ...(can('certificates.view') ? [{
-        //     title: 'Certificats',
-        //     href:  route('admin.certificates.index'),
-        //     icon:  Award,
-        //     children: [
-        //         { title: 'Liste',      href: route('admin.certificates.index') },
-        //         ...(can('certificates.create')   ? [{ title: 'Nouveau',    href: route('admin.certificates.create') }]           : []),
-        //         ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.certificates.index') + '?status=submitted' }] : []),
-        //     ],
-        // }] : []),
+        // ── Certificats — US-017 ───────────────────────────────
+        ...(can('certificates.view') ? [{
+            title: 'Certificats',
+            href:  route('admin.certificates.index'),
+            icon:  Award,
+            children: [
+                { title: 'Liste',      href: route('admin.certificates.index') },
+                ...(can('certificates.create')   ? [{ title: 'Nouveau',    href: route('admin.certificates.create') }]           : []),
+                ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.certificates.index') + '?status=submitted' }] : []),
+            ],
+        }] : []),
 
         // // ── Rapports — US-043 ──────────────────────────────────
         // ...(can('reports.view') ? [{

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
+use App\Http\Controllers\Admin\CertificateController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
 use App\Http\Controllers\Admin\InsuranceContractController;
 use App\Http\Controllers\Admin\ReferenceController;
@@ -26,6 +27,8 @@ use Illuminate\Support\Facades\Mail;
 
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
+
+    
     // Dashboard
     Route::inertia('admin/dashboard', 'dashboard')->name('admin.dashboard');
     // ── MFA Setup — US-002 ───────────────────────────────────
@@ -73,40 +76,66 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
 
     Route::patch('/contracts/{contract}/cancel',[InsuranceContractController::class, 'cancel'])->middleware('permission:contracts.edit')->name('admin.contracts.cancel');
     // ── Module Admin ─────────────────────────────────────────
-    Route::prefix('admin')->group(function () {
-    // ── Utilisateurs — US-007/008/004 ────────────────────
-        Route::get('/users', [UserController::class, 'index'])->middleware('permission:users.view')->name('admin.users.index');
+        Route::prefix('admin')->group(function () {
+            // Télécharger le PDF
+            Route::get('/certificates/{certificate}/pdf/download',[CertificateController::class, 'downloadPdf'])->middleware('permission:certificates.view')->name('admin.certificates.pdf.download');
+            // Afficher le PDF dans le navigateur
+            Route::get('/certificates/{certificate}/pdf/stream',[CertificateController::class, 'streamPdf'])->middleware('permission:certificates.view')->name('admin.certificates.pdf.stream');
+            // Regénérer le PDF (force regeneration)
+            Route::post('/certificates/{certificate}/pdf/generate',[CertificateController::class, 'generatePdf'])->middleware('permission:certificates.validate')->name('admin.certificates.pdf.generate');
+            Route::get('/certificates',[CertificateController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificates.index');
+            // ── US-016 : Soumission ───────────────────────────────
+            Route::get('/certificates/create',[CertificateController::class, 'create'])->middleware('permission:certificates.create')->name('admin.certificates.create');
+            Route::get('/certificates/{certificate}',[CertificateController::class, 'show'])->middleware('permission:certificates.view')->name('admin.certificates.show');
 
-        Route::get('/users/create', [UserController::class, 'create'])->middleware('permission:users.create')->name('admin.users.create');
+            Route::delete('/certificates/{certificate}',[CertificateController::class, 'destroy'])->middleware('permission:certificates.create')->name('admin.certificates.destroy');
+            Route::post('/certificates',[CertificateController::class, 'store'])->middleware('permission:certificates.create')->name('admin.certificates.store');
 
-        Route::post('/users', [UserController::class, 'store'])->middleware('permission:users.create')->name('admin.users.store');
+            Route::get('/certificates/{certificate}/edit',[CertificateController::class, 'edit'])->middleware('permission:certificates.create')->name('admin.certificates.edit');
 
-        Route::get('/users/{user}', [UserController::class, 'show'])->middleware('permission:users.view')->name('admin.users.show');
+            Route::put('/certificates/{certificate}',[CertificateController::class, 'update'])->middleware('permission:certificates.create')->name('admin.certificates.update');
 
-        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->middleware('permission:users.edit')->name('admin.users.edit');
+            Route::patch('/certificates/{certificate}/submit',[CertificateController::class, 'submit'])->middleware('permission:certificates.create')->name('admin.certificates.submit');
+        
+            // ── US-018 : Validation ───────────────────────────────
+            Route::patch('/certificates/{certificate}/issue',[CertificateController::class, 'issue'])->middleware('permission:certificates.validate')->name('admin.certificates.issue');
 
-        Route::put('/users/{user}', [UserController::class, 'update'])->middleware('permission:users.edit')->name('admin.users.update');
+            Route::patch('/certificates/{certificate}/reject',[CertificateController::class, 'reject'])->middleware('permission:certificates.validate')->name('admin.certificates.reject');
 
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete')->name('admin.users.destroy');
+            Route::patch('/certificates/{certificate}/cancel',[CertificateController::class, 'cancel'])->middleware('permission:certificates.cancel')->name('admin.certificates.cancel');
+        // ── Utilisateurs — US-007/008/004 ────────────────────
+            Route::get('/users', [UserController::class, 'index'])->middleware('permission:users.view')->name('admin.users.index');
 
-        Route::patch('/users/{user}/block', [UserController::class, 'block'])->middleware('permission:users.block')->name('admin.users.block');
+            Route::get('/users/create', [UserController::class, 'create'])->middleware('permission:users.create')->name('admin.users.create');
 
-        Route::patch('/users/{user}/unblock', [UserController::class, 'unblock'])->middleware('permission:users.unblock')->name('admin.users.unblock');
-        Route::get('/brokers', [BrokerController::class, 'index'])->middleware('permission:brokers.view')->name('admin.brokers.index');
-    
-        Route::get('/brokers/create', [BrokerController::class, 'create'])->middleware('permission:brokers.create')->name('admin.brokers.create');
+            Route::post('/users', [UserController::class, 'store'])->middleware('permission:users.create')->name('admin.users.store');
 
-        Route::post('/brokers', [BrokerController::class, 'store'])->middleware('permission:brokers.create')->name('admin.brokers.store');
+            Route::get('/users/{user}', [UserController::class, 'show'])->middleware('permission:users.view')->name('admin.users.show');
 
-        Route::get('/brokers/{broker}', [BrokerController::class, 'show'])->middleware('permission:brokers.view')->name('admin.brokers.show');
+            Route::get('/users/{user}/edit', [UserController::class, 'edit'])->middleware('permission:users.edit')->name('admin.users.edit');
 
-        Route::get('/brokers/{broker}/edit', [BrokerController::class, 'edit'])->middleware('permission:brokers.edit')->name('admin.brokers.edit');
-    
-        Route::put('/brokers/{broker}', [BrokerController::class, 'update'])->middleware('permission:brokers.edit')->name('admin.brokers.update');
+            Route::put('/users/{user}', [UserController::class, 'update'])->middleware('permission:users.edit')->name('admin.users.update');
 
-        Route::delete('/brokers/{broker}', [BrokerController::class, 'destroy'])->middleware('permission:brokers.delete')->name('admin.brokers.destroy');
+            Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete')->name('admin.users.destroy');
 
-        Route::patch('/brokers/{broker}/toggle', [BrokerController::class, 'toggle'])->middleware('permission:brokers.edit')->name('admin.brokers.toggle');
+            Route::patch('/users/{user}/block', [UserController::class, 'block'])->middleware('permission:users.block')->name('admin.users.block');
+
+            Route::patch('/users/{user}/unblock', [UserController::class, 'unblock'])->middleware('permission:users.unblock')->name('admin.users.unblock');
+            Route::get('/brokers', [BrokerController::class, 'index'])->middleware('permission:brokers.view')->name('admin.brokers.index');
+        
+            Route::get('/brokers/create', [BrokerController::class, 'create'])->middleware('permission:brokers.create')->name('admin.brokers.create');
+
+            Route::post('/brokers', [BrokerController::class, 'store'])->middleware('permission:brokers.create')->name('admin.brokers.store');
+
+            Route::get('/brokers/{broker}', [BrokerController::class, 'show'])->middleware('permission:brokers.view')->name('admin.brokers.show');
+
+            Route::get('/brokers/{broker}/edit', [BrokerController::class, 'edit'])->middleware('permission:brokers.edit')->name('admin.brokers.edit');
+        
+            Route::put('/brokers/{broker}', [BrokerController::class, 'update'])->middleware('permission:brokers.edit')->name('admin.brokers.update');
+
+            Route::delete('/brokers/{broker}', [BrokerController::class, 'destroy'])->middleware('permission:brokers.delete')->name('admin.brokers.destroy');
+
+            Route::patch('/brokers/{broker}/toggle', [BrokerController::class, 'toggle'])->middleware('permission:brokers.edit')->name('admin.brokers.toggle');
         // ── Rôles & Permissions — US-003 ─────────────────────
         Route::middleware('role:super_admin')->group(function () {
 
