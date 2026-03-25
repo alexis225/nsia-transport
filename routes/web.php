@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\MfaSetupController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Public\CertificateVerifyController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,13 +23,13 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-
-use Illuminate\Support\Facades\Mail;
+// ── Route publique de vérification (sans auth) ────────────────
+Route::get('/verify/{token}', [CertificateVerifyController::class, 'show'])
+    ->name('certificate.verify')
+    ->where('token', '[a-zA-Z0-9]+');
 
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
-
-    
     // Dashboard
     Route::inertia('admin/dashboard', 'dashboard')->name('admin.dashboard');
     // ── MFA Setup — US-002 ───────────────────────────────────
@@ -77,6 +78,8 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     Route::patch('/contracts/{contract}/cancel',[InsuranceContractController::class, 'cancel'])->middleware('permission:contracts.edit')->name('admin.contracts.cancel');
     // ── Module Admin ─────────────────────────────────────────
         Route::prefix('admin')->group(function () {
+                // Regénérer le QR token (invalide l'ancien)
+            Route::post('/certificates/{certificate}/qr/regenerate',[CertificateController::class, 'regenerateQr'])->middleware('permission:certificates.validate')->name('admin.certificates.qr.regenerate');
             // Télécharger le PDF
             Route::get('/certificates/{certificate}/pdf/download',[CertificateController::class, 'downloadPdf'])->middleware('permission:certificates.view')->name('admin.certificates.pdf.download');
             // Afficher le PDF dans le navigateur

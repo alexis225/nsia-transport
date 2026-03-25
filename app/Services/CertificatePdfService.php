@@ -50,7 +50,7 @@ class CertificatePdfService
             ->setPaper('a4', 'portrait')
             ->setOptions([
                 'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled'      => false,
+                'isRemoteEnabled'      => true,
                 'defaultFont'          => 'DejaVu Sans',
                 'dpi'                  => 150,
                 'defaultPaperSize'     => 'a4',

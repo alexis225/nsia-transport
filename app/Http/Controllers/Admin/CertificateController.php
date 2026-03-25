@@ -8,6 +8,7 @@ use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\InsuranceContract;
 use App\Services\CertificatePdfService;
+use App\Services\CertificateQrService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -433,5 +434,22 @@ class CertificateController extends Controller
         $this->log($certificate, $request, 'certificate.pdf_generated', ['path' => $path]);
     
         return back()->with('status', 'PDF regénéré avec succès.');
+    }
+
+    // ── Regénérer le QR token ─────────────────────────────────────
+    public function regenerateQr(Request $request,Certificate $certificate,CertificateQrService $qrService): RedirectResponse {
+        $this->authorizeTenant($certificate->tenant_id);
+        abort_if($certificate->status !== Certificate::STATUS_ISSUED, 422,
+            'Le QR code n\'est disponible que pour les certificats émis.');
+        // Invalider l'ancien token et en générer un nouveau
+        $certificate->update(['qr_token' => null]);
+        $qrService->ensureToken($certificate);
+    
+        // Regénérer le PDF avec le nouveau QR
+        app(CertificatePdfService::class)->generate($certificate);
+    
+        $this->log($certificate, $request, 'certificate.qr_regenerated', [], 'WARNING');
+    
+        return back()->with('status', 'QR code regénéré. Le PDF a été mis à jour.');
     }
 }
