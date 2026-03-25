@@ -103,15 +103,15 @@ export function AppSidebar() {
             ],
         }] : []),
         // // ── Contrats — US-014 ──────────────────────────────────
-        // ...(can('contracts.view') ? [{
-        //     title: 'Contrats',
-        //     href:  route('admin.contracts.index'),
-        //     icon:  FileText,
-        //     children: [
-        //         { title: 'Liste',    href: route('admin.contracts.index') },
-        //         ...(can('contracts.create') ? [{ title: 'Nouveau', href: route('admin.contracts.create') }] : []),
-        //     ],
-        // }] : []),
+        ...(can('contracts.view') ? [{
+            title: 'Contrats',
+            href:  route('admin.contracts.index'),
+            icon:  FileText,
+            children: [
+                { title: 'Liste',    href: route('admin.contracts.index') },
+                ...(can('contracts.create') ? [{ title: 'Nouveau', href: route('admin.contracts.create') }] : []),
+            ],
+        }] : []),
 
         // // ── Certificats — US-017 ───────────────────────────────
         // ...(can('certificates.view') ? [{
