@@ -3,6 +3,7 @@ import {
     Award, BarChart2, Briefcase, Building2,
     ClipboardList,
     Database,
+    FileBadge,
     FileText, LayoutDashboard, Settings, Shield, Users,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
@@ -82,6 +83,24 @@ export function AppSidebar() {
             title: 'Références',
             href:  '/admin/reference',
             icon:  Database, // import depuis lucide-react
+                children: [
+                    { title: 'Pays',          href: '/admin/reference?tab=countries' },
+                    { title: 'Devises',       href: '/admin/reference?tab=currencies' },
+                    { title: 'Incoterms',     href: '/admin/reference?tab=incoterms' },
+                    { title: 'Transports',    href: '/admin/reference?tab=transport_modes' },
+                    { title: 'Marchandises',  href: '/admin/reference?tab=merchandise_categories' },
+                ],
+        }] : []),
+
+                // ── Modèles de certificats — US-013 ────────────────────
+        ...(isSA() ? [{
+            title: 'Modèles certificats',
+            href:  route('admin.certificate-templates.index'),
+            icon:  FileBadge,
+            children: [
+                { title: 'Liste',    href: route('admin.certificate-templates.index') },
+                { title: 'Nouveau',  href: route('admin.certificate-templates.create') },
+            ],
         }] : []),
         // // ── Contrats — US-014 ──────────────────────────────────
         // ...(can('contracts.view') ? [{

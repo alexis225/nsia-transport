@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
+use App\Http\Controllers\Admin\CertificateTemplateController;
 use App\Http\Controllers\Admin\ReferenceController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TenantController;
@@ -18,6 +19,22 @@ Route::get('/', function () {
     }
     return redirect()->route('login');
 })->name('home');
+
+
+use Illuminate\Support\Facades\Mail;
+
+Route::get('/mail-test', function () {
+    try {
+        Mail::raw('Test SMTP LWS depuis Laravel (route /mail-test)', function ($message) {
+            $message->to('jean-louis.goueguy@groupensia.com')
+                    ->from('noreply@nsiaholdingassurances.com', 'NSIA Holding Assurances')
+                    ->subject('Test SMTP - LWS');
+        });
+        return 'Mail envoyé ✅ (vérifie la boîte et le spam).';
+    } catch (\Throwable $e) {
+        return 'Erreur ❌ : ' . $e->getMessage();
+    }
+});
 
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
@@ -174,6 +191,23 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
             Route::post('/reference/{tab}',[ReferenceController::class, 'store'])->name('admin.reference.store');
             Route::put('/reference/{tab}/{id}',[ReferenceController::class, 'update'])->name('admin.reference.update');
             Route::patch('/reference/{tab}/{id}/toggle',     [ReferenceController::class, 'toggle'])->name('admin.reference.toggle');
+            //Certifcate templates
+            Route::get('/certificate-templates',[CertificateTemplateController::class, 'index'])->name('admin.certificate-templates.index');
+ 
+            Route::get('/certificate-templates/create',[CertificateTemplateController::class, 'create'])->name('admin.certificate-templates.create');
+ 
+            Route::post('/certificate-templates',[CertificateTemplateController::class, 'store'])->name('admin.certificate-templates.store');
+ 
+            Route::get('/certificate-templates/{certificateTemplate}',[CertificateTemplateController::class, 'show'])->name('admin.certificate-templates.show');
+ 
+            Route::get('/certificate-templates/{certificateTemplate}/edit',[CertificateTemplateController::class, 'edit'])->name('admin.certificate-templates.edit');
+ 
+            Route::put('/certificate-templates/{certificateTemplate}',[CertificateTemplateController::class, 'update'])->name('admin.certificate-templates.update');
+ 
+            Route::delete('/certificate-templates/{certificateTemplate}',[CertificateTemplateController::class, 'destroy'])->name('admin.certificate-templates.destroy');
+ 
+            Route::post('/certificate-templates/{certificateTemplate}/logo',[CertificateTemplateController::class, 'updateLogo'])->name('admin.certificate-templates.logo');
+            Route::delete('/certificate-templates/{certificateTemplate}/logo',[CertificateTemplateController::class, 'removeLogo'])->name('admin.certificate-templates.logo.remove');
         });
     });
 });

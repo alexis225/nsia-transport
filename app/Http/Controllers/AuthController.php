@@ -158,7 +158,7 @@ class AuthController extends Controller
             'user_id'        => $userId,
             'action'         => $action,
             'auditable_type' => 'auth',
-            'auditable_id'   => $userId ?? 'anonymous',
+            'auditable_id'   => $userId ?? null,
             'ip_address'     => $request->ip(),
             'user_agent'     => $request->userAgent(),
             'new_data'       => $metadata ?: null,

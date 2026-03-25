@@ -137,7 +137,7 @@ class FortifyServiceProvider extends ServiceProvider
             'user_id'     => $userId,
             'action'      => $action,
             'entity_type' => 'auth',
-            'entity_id'   => $userId ?? 'anonymous',
+            'entity_id'   => $userId ?? null,
             'ip_address'  => $request->ip(),
             'user_agent'  => $request->userAgent(),
             'new_values'  => $metadata ?: null,

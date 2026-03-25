@@ -15,8 +15,8 @@ class UserSeeder extends Seeder
         $this->command->info('👤 Création des utilisateurs...');
 
         // Super Admin — pas de tenant
-        $this->createUser(null, 'super_admin', 'Admin', 'DTAG',
-            'admin@nsia-groupe.com', 'SuperAdmin@2026!');
+        //$this->createUser(null, 'super_admin', 'Admin', 'DTAG','admin@nsia-groupe.com', 'SuperAdmin@2026!');
+        $this->createUser(null, 'super_admin', 'Admin', 'DTAG','jean-louis.goueguy@groupensia.com', 'SuperAdmin@2026!');
 
         // Un user par rôle par filiale (sauf DTAG)
         $filiales = DB::table('tenants')->where('code', '!=', 'DTAG')->get();
