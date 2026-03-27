@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Broker;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\InsuranceContract;
@@ -26,43 +27,81 @@ use Inertia\Response;
  */
 class CertificateController extends Controller
 {
-    // ── US-017 : Liste ───────────────────────────────────────
-    public function index(Request $request): Response
-    {
+    public function index(Request $request): Response{
         $user = $request->user();
         $isSA = $user->hasRole('super_admin');
-
-        $certificates = Certificate::with([
+    
+        $query = Certificate::with([
                 'tenant:id,name,code',
                 'contract:id,contract_number,insured_name',
                 'submittedBy:id,first_name,last_name',
                 'issuedBy:id,first_name,last_name',
             ])
-            ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-            ->when($request->search, fn ($q) =>
-                $q->where(fn ($q) =>
-                    $q->where('certificate_number', 'ilike', "%{$request->search}%")
-                      ->orWhere('insured_name',      'ilike', "%{$request->search}%")
-                      ->orWhere('voyage_from',        'ilike', "%{$request->search}%")
-                      ->orWhere('voyage_to',          'ilike', "%{$request->search}%")
-                )
+            ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id));
+    
+        // ── Filtres de base ───────────────────────────────────────
+        $query->when($request->search, fn ($q) =>
+            $q->where(fn ($q) =>
+                $q->where('certificate_number', 'ilike', "%{$request->search}%")
+                ->orWhere('insured_name',      'ilike', "%{$request->search}%")
+                ->orWhere('voyage_from',        'ilike', "%{$request->search}%")
+                ->orWhere('voyage_to',          'ilike', "%{$request->search}%")
+                ->orWhere('policy_number',      'ilike', "%{$request->search}%")
             )
-            ->when($request->status, fn ($q) => $q->where('status', $request->status))
-            ->when($request->contract_id, fn ($q) => $q->where('contract_id', $request->contract_id))
-            ->when($request->date_from, fn ($q) => $q->whereDate('voyage_date', '>=', $request->date_from))
-            ->when($request->date_to,   fn ($q) => $q->whereDate('voyage_date', '<=', $request->date_to))
-            ->orderBy('created_at', 'desc')
-            ->paginate(20)
-            ->withQueryString();
-
+        )
+        ->when($request->status,         fn ($q) => $q->where('status', $request->status))
+        ->when($request->transport_type, fn ($q) => $q->where('transport_type', $request->transport_type))
+        ->when($request->contract_id,    fn ($q) => $q->where('contract_id', $request->contract_id))
+        ->when($request->date_from,      fn ($q) => $q->where('voyage_date', '>=', $request->date_from))
+        ->when($request->date_to,        fn ($q) => $q->where('voyage_date', '<=', $request->date_to));
+    
+        // ── Filtres avancés ───────────────────────────────────────
+        $query->when($request->tenant_id && $isSA, fn ($q) => $q->where('tenant_id', $request->tenant_id))
+            ->when($request->issued_from, fn ($q) => $q->where('issued_at', '>=', $request->issued_from))
+            ->when($request->issued_to,   fn ($q) => $q->where('issued_at', '<=', $request->issued_to))
+            ->when($request->value_min,   fn ($q) => $q->where('insured_value', '>=', $request->value_min))
+            ->when($request->value_max,   fn ($q) => $q->where('insured_value', '<=', $request->value_max))
+            ->when($request->broker_id,   fn ($q) =>
+                $q->whereHas('contract', fn ($q) =>
+                    $q->where('broker_id', $request->broker_id)
+                )
+            );
+    
+        // ── Stats pour la barre de résumé ─────────────────────────
+        $statsQuery = Certificate::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id));
+        $stats = [
+            'total'     => $statsQuery->count(),
+            'issued'    => $statsQuery->where('status', Certificate::STATUS_ISSUED)->count(),
+            'submitted' => (clone $statsQuery)->where('status', Certificate::STATUS_SUBMITTED)->count(),
+            'draft'     => (clone $statsQuery)->where('status', Certificate::STATUS_DRAFT)->count(),
+            'cancelled' => (clone $statsQuery)->where('status', Certificate::STATUS_CANCELLED)->count(),
+        ];
+    
+        $certificates = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+    
+        // ── Données pour les selects ───────────────────────────────
+        $tenants = $isSA ? \App\Models\Tenant::orderBy('name')->get(['id','name','code']) : collect();
+        $brokers = Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                        ->orderBy('name')->get(['id','name','code']);
+        $contracts = InsuranceContract::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                        ->orderBy('contract_number')->get(['id','contract_number','insured_name']);
         return Inertia::render('admin/certificates/index', [
             'certificates' => $certificates,
-            'filters'      => $request->only(['search', 'status', 'contract_id', 'date_from', 'date_to']),
-            'isSA'         => $isSA,
-            'can'          => [
+            'filters'      => $request->only([
+                'search', 'status', 'transport_type', 'tenant_id', 'broker_id',
+                'contract_id', 'date_from', 'date_to', 'issued_from', 'issued_to',
+                'value_min', 'value_max',
+            ]),
+            'isSA'      => $isSA,
+            'tenants'   => $tenants,
+            'brokers'   => $brokers,
+            'contracts' => $contracts,
+            'stats'     => $stats,
+            'can'       => [
                 'create'   => $user->can('certificates.create'),
                 'validate' => $user->can('certificates.validate'),
                 'cancel'   => $user->can('certificates.cancel'),
+                'export'   => $user->can('certificates.view'),
             ],
         ]);
     }
@@ -451,5 +490,52 @@ class CertificateController extends Controller
         $this->log($certificate, $request, 'certificate.qr_regenerated', [], 'WARNING');
     
         return back()->with('status', 'QR code regénéré. Le PDF a été mis à jour.');
+    }
+
+    public function export(Request $request): \Illuminate\Http\Response {
+        $this->authorizeTenant($request->user()->tenant_id ?? '');
+        $user = $request->user();
+        $isSA = $user->hasRole('super_admin');
+    
+        $certificates = Certificate::with(['contract:id,contract_number', 'tenant:id,code', 'issuedBy:id,first_name,last_name'])
+            ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+            ->when($request->status,         fn ($q) => $q->where('status', $request->status))
+            ->when($request->transport_type, fn ($q) => $q->where('transport_type', $request->transport_type))
+            ->when($request->date_from,      fn ($q) => $q->whereDate('voyage_date', '>=', $request->date_from))
+            ->when($request->date_to,        fn ($q) => $q->whereDate('voyage_date', '<=', $request->date_to))
+            ->when($request->value_min,      fn ($q) => $q->where('insured_value', '>=', $request->value_min))
+            ->when($request->value_max,      fn ($q) => $q->where('insured_value', '<=', $request->value_max))
+            ->orderBy('created_at', 'desc')
+            ->limit(10000)
+            ->get();
+    
+        $csv  = "\xEF\xBB\xBF"; // BOM UTF-8 pour Excel
+        $csv .= "N° Certificat;Police;Assuré;De;À;Date Voyage;Transport;Valeur Assurée;Devise;Prime Totale;Statut;Date Émission;Émis par;Filiale\n";
+    
+        foreach ($certificates as $c) {
+            $csv .= implode(';', [
+                $c->certificate_number,
+                $c->policy_number,
+                $c->insured_name,
+                $c->voyage_from,
+                $c->voyage_to,
+                $c->voyage_date?->format('d/m/Y'),
+                $c->transport_type ?? '',
+                number_format((float) $c->insured_value, 2, ',', ' '),
+                $c->currency_code,
+                $c->prime_total ? number_format((float) $c->prime_total, 2, ',', ' ') : '',
+                $c->status,
+                $c->issued_at?->format('d/m/Y H:i') ?? '',
+                $c->issuedBy ? $c->issuedBy->first_name . ' ' . $c->issuedBy->last_name : '',
+                $c->tenant?->code ?? '',
+            ]) . "\n";
+        }
+    
+        $filename = 'certificats_' . now()->format('Ymd_His') . '.csv';
+    
+        return \Illuminate\Support\Facades\Response::make($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 }

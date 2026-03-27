@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
 use App\Http\Controllers\Admin\CertificateController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InsuranceContractController;
 use App\Http\Controllers\Admin\ReferenceController;
 use App\Http\Controllers\Admin\RoleController;
@@ -32,6 +33,7 @@ Route::get('/verify/{token}', [CertificateVerifyController::class, 'show'])
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     // Dashboard
     Route::inertia('admin/dashboard', 'dashboard')->name('admin.dashboard');
+    Route::get('/dashboard/pending',[DashboardController::class, 'pending'])->middleware('permission:certificates.validate')->name('admin.dashboard.pending');
     // ── MFA Setup — US-002 ───────────────────────────────────
     Route::get('/user/mfa-setup', [MfaSetupController::class, 'show'])->name('user.mfa-setup');
     Route::post('/user/mfa-setup/enable', [MfaSetupController::class, 'enable'])->name('mfa.enable');
@@ -78,7 +80,9 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     Route::patch('/contracts/{contract}/cancel',[InsuranceContractController::class, 'cancel'])->middleware('permission:contracts.edit')->name('admin.contracts.cancel');
     // ── Module Admin ─────────────────────────────────────────
         Route::prefix('admin')->group(function () {
-                // Regénérer le QR token (invalide l'ancien)
+           
+            Route::get('/certificates/export',[CertificateController::class, 'export'])->middleware('permission:certificates.view')->name('admin.certificates.export');
+            // Regénérer le QR token (invalide l'ancien)
             Route::post('/certificates/{certificate}/qr/regenerate',[CertificateController::class, 'regenerateQr'])->middleware('permission:certificates.validate')->name('admin.certificates.qr.regenerate');
             // Télécharger le PDF
             Route::get('/certificates/{certificate}/pdf/download',[CertificateController::class, 'downloadPdf'])->middleware('permission:certificates.view')->name('admin.certificates.pdf.download');

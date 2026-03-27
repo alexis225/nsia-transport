@@ -567,34 +567,72 @@
             </div>
         </div>
 
-        {{-- Bas de page : signatures + décompte prime --}}
+        {{-- Bas de page : QR + signatures + décompte prime --}}
         <div class="bottom-wrap">
-            {{-- Signatures --}}
+            {{-- Colonne gauche : QR + signatures --}}
             <div class="bottom-left">
+
+                {{-- QR Code --}}
+                @if($qrBase64 && $verifyUrl)
+                <div style="display: table; width: 100%; margin-bottom: 5pt; border: 0.7pt solid #94a3b8; padding: 5pt;">
+                    <div style="display: table-cell; width: 30mm; vertical-align: middle; text-align: center;">
+                        <img src="{{ $qrBase64 }}" style="width: 80pt; height: 80pt;" alt="QR"/>
+                        <div style="font-size: 6pt; color: #64748b; margin-top: 2pt; word-break: break-all;">
+                            {{ $verifyUrl }}
+                        </div>
+                    </div>
+                    <div style="display: table-cell; vertical-align: middle; padding-left: 6pt; border-left: 0.5pt solid #e2e8f0;">
+                        <div style="font-size: 7pt; font-weight: 700; color: #1e3a8a; margin-bottom: 3pt; text-transform: uppercase;">
+                            Vérification d'authenticité
+                        </div>
+                        <div style="font-size: 7pt; color: #475569; line-height: 1.5;">
+                            Scannez ce QR code pour<br/>
+                            vérifier l'authenticité de<br/>
+                            ce certificat en ligne.
+                        </div>
+                        <div style="margin-top: 4pt; font-size: 6.5pt; color: #94a3b8; font-style: italic;">
+                            N° {{ $certificate->certificate_number }}
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Signature Assuré --}}
                 <div class="sign-box">
                     <div class="sign-label">
-                        {{ $template?->is_bilingual ? 'Cachet et signature de l\'Assuré / Commercial stamp and signature of the Insured' : 'CACHET COMMERCIAL ET SIGNATURE DE L\'ASSURE' }}
+                        {{ $template?->is_bilingual
+                            ? 'Cachet et signature de l\'Assuré / Commercial stamp and signature of the Insured'
+                            : 'CACHET COMMERCIAL ET SIGNATURE DE L\'ASSURE' }}
                     </div>
                     @if($certificate->guarantee_mode)
-                        <div style="margin-top: 8pt; font-size: 8pt;">
+                        <div style="margin-top: 5pt; font-size: 8pt;">
                             MODE DE GARANTIE : <strong>{{ $certificate->guarantee_mode }}</strong>
                         </div>
                     @endif
                 </div>
+
+                {{-- Signature Assureur + cachet --}}
                 <div class="sign-box">
                     <div class="sign-label">
-                        {{ $template?->is_bilingual ? 'Signature et cachet de l\'Assureur / Signature and stamp of the Insurer' : 'CACHET COMMERCIAL ET SIGNATURE DE L\'ASSUREUR' }}
+                        {{ $template?->is_bilingual
+                            ? 'Signature et cachet de l\'Assureur / Signature and stamp of the Insurer'
+                            : 'CACHET COMMERCIAL ET SIGNATURE DE L\'ASSUREUR' }}
                     </div>
                     @if($certificate->issuedBy)
-                        <div style="margin-top: 5pt; font-size: 7.5pt; color: #64748b; text-align: center;">
+                        <div style="margin-top: 4pt; font-size: 7.5pt; color: #64748b; text-align: center;">
                             Émis par {{ $certificate->issuedBy->first_name }} {{ $certificate->issuedBy->last_name }}<br/>
                             le {{ $certificate->issued_at?->format('d/m/Y à H:i') }}
                         </div>
                     @endif
+                    <div style="margin-top: 6pt; border: 0.5pt dashed #d1d5db; height: 20pt;">
+                        <span style="font-size: 6.5pt; color: #d1d5db; text-transform: uppercase; letter-spacing: .1em;">
+                            Cachet {{ $certificate->tenant?->name }}
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            {{-- Décompte de prime --}}
+            {{-- Colonne droite : décompte de prime --}}
             <div class="bottom-right">
                 @if(!empty($certificate->prime_breakdown))
                     <div class="prime-box">

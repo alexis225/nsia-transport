@@ -120,8 +120,8 @@ export function AppSidebar() {
             icon:  Award,
             children: [
                 { title: 'Liste',      href: route('admin.certificates.index') },
-                ...(can('certificates.create')   ? [{ title: 'Nouveau',    href: route('admin.certificates.create') }]           : []),
-                ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.certificates.index') + '?status=submitted' }] : []),
+                ...(can('certificates.create')   ? [{ title: 'Nouveau',    href: route('admin.certificates.create') }] : []),
+                ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.dashboard.pending')}] : []),
             ],
         }] : []),
 
