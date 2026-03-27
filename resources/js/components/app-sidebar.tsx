@@ -109,6 +109,7 @@ export function AppSidebar() {
             icon:  FileText,
             children: [
                 { title: 'Liste',    href: route('admin.contracts.index') },
+                { title: 'Plafonds NN300', href: route('admin.contracts.limits') },
                 ...(can('contracts.create') ? [{ title: 'Nouveau', href: route('admin.contracts.create') }] : []),
             ],
         }] : []),

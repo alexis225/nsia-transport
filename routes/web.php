@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
 use App\Http\Controllers\Admin\CertificateController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
+use App\Http\Controllers\Admin\ContractLimitController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InsuranceContractController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -50,6 +51,10 @@ Route::middleware(['auth'])->prefix('admin/notifications')->group(function () {
 });
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
+            // Page tableau de bord plafonds multi-contrats
+    Route::get('/contracts/limits',[ContractLimitController::class, 'index'])->middleware('permission:contracts.view')->name('admin.contracts.limits');
+        // API polling — état plafond d'un contrat
+    Route::get('/contracts/{contract}/limit-status',[ContractLimitController::class, 'status'])->middleware('permission:contracts.view')->name('admin.contracts.limit-status');
     // Dashboard
     Route::inertia('admin/dashboard', 'dashboard')->name('admin.dashboard');
     Route::get('/dashboard/pending',[DashboardController::class, 'pending'])->middleware('permission:certificates.validate')->name('admin.dashboard.pending');
