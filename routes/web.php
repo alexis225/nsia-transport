@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CertificateController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InsuranceContractController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\ReferenceController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TenantController;
@@ -29,6 +30,24 @@ Route::get('/verify/{token}', [CertificateVerifyController::class, 'show'])
     ->name('certificate.verify')
     ->where('token', '[a-zA-Z0-9]+');
 
+
+Route::middleware(['auth'])->prefix('admin/notifications')->group(function () {
+    // Liste + compteur non lus (polled toutes les 30s)
+    Route::get('/', [NotificationController::class, 'index'])
+        ->name('admin.notifications.index');
+ 
+    // Marquer toutes comme lues
+    Route::patch('/read-all', [NotificationController::class, 'markAllRead'])
+        ->name('admin.notifications.read-all');
+ 
+    // Marquer une comme lue
+    Route::patch('/{id}/read', [NotificationController::class, 'markRead'])
+        ->name('admin.notifications.read');
+ 
+    // Supprimer une notification
+    Route::delete('/{id}', [NotificationController::class, 'destroy'])
+        ->name('admin.notifications.destroy');
+});
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     // Dashboard
