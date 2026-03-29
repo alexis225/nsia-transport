@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -33,6 +34,9 @@ class Certificate extends Model
         'status', 'submitted_at', 'issued_at', 'cancelled_at',
         'cancellation_reason', 'issued_by', 'submitted_by', 'validation_notes',
         'pdf_path', 'pdf_generated_at', 'created_by',
+        // Duplicata — US-032
+        'parent_id', 'document_type', 'duplicate_count',
+        'reissued_at', 'reissued_by', 'reissue_reason',
     ];
 
     protected $casts = [
@@ -46,6 +50,7 @@ class Certificate extends Model
         'insured_value'     => 'decimal:2',
         'prime_total'       => 'decimal:2',
         'exchange_rate'     => 'decimal:6',
+        'reissued_at'       => 'datetime',
     ];
 
     // ── Constantes ────────────────────────────────────────────
@@ -59,6 +64,8 @@ class Certificate extends Model
     const TRANSPORT_ROAD      = 'ROAD';
     const TRANSPORT_RAIL      = 'RAIL';
     const TRANSPORT_MULTIMODAL= 'MULTIMODAL';
+    const DOC_TYPE_ORIGINAL  = 'original';
+    const DOC_TYPE_DUPLICATA = 'duplicata';
 
     // ── Relations ────────────────────────────────────────────
     public function tenant(): BelongsTo
@@ -91,6 +98,22 @@ class Certificate extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+        // ── Relations duplicata — US-032 ──────────────────────────
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Certificate::class, 'parent_id');
+    }
+ 
+    public function duplicates(): HasMany
+    {
+        return $this->hasMany(Certificate::class, 'parent_id');
+    }
+ 
+    public function reissuedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reissued_by');
+    }
+
     // ── Scopes ───────────────────────────────────────────────
     public function scopeIssued($query)    { return $query->where('status', self::STATUS_ISSUED); }
     public function scopePending($query)   { return $query->where('status', self::STATUS_SUBMITTED); }
@@ -102,7 +125,18 @@ class Certificate extends Model
     public function isIssued(): bool    { return $this->status === self::STATUS_ISSUED; }
     public function isCancelled(): bool { return $this->status === self::STATUS_CANCELLED; }
     public function hasPdf(): bool      { return ! empty($this->pdf_path); }
+    public function isDuplicate(): bool { return $this->document_type === self::DOC_TYPE_DUPLICATA; }
+    public function isOriginal(): bool  { return $this->document_type === self::DOC_TYPE_ORIGINAL; }
 
+    /**
+    * Numéro du duplicata : ex: N°041260-D1
+    */
+    public function getDuplicateNumber(int $index = 1): string
+    {
+        $base = $this->isOriginal() ? $this->certificate_number : $this->parent?->certificate_number;
+        return ($base ?? $this->certificate_number) . '-D' . $index;
+    }
+ 
     /**
      * Calcule le total du décompte de prime
      */

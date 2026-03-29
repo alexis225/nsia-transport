@@ -8,6 +8,7 @@ use App\Models\Broker;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\InsuranceContract;
+use App\Models\Notification;
 use App\Services\CertificatePdfService;
 use App\Services\CertificateQrService;
 use Illuminate\Http\RedirectResponse;
@@ -537,5 +538,97 @@ class CertificateController extends Controller
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
+    }
+
+
+    public function duplicate(Request $request, Certificate $certificate): RedirectResponse{
+        $this->authorizeTenant($certificate->tenant_id);
+    
+        // Seul un certificat ISSUED peut être dupliqué
+        abort_if(! $certificate->isIssued(), 422,
+            'Seul un certificat émis peut faire l\'objet d\'un duplicata.');
+    
+        $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+    
+        // Incrémenter le compteur sur l'original
+        $original = $certificate->isOriginal() ? $certificate : $certificate->parent;
+        $original->increment('duplicate_count');
+        $dupIndex = $original->duplicate_count;
+    
+        // Créer le duplicata en copiant toutes les données
+        $duplicate = Certificate::create([
+            // Données copiées de l'original
+            'tenant_id'              => $original->tenant_id,
+            'contract_id'            => $original->contract_id,
+            'template_id'            => $original->template_id,
+            'policy_number'          => $original->policy_number,
+            'insured_name'           => $original->insured_name,
+            'insured_ref'            => $original->insured_ref,
+            'voyage_date'            => $original->voyage_date,
+            'voyage_from'            => $original->voyage_from,
+            'voyage_to'              => $original->voyage_to,
+            'voyage_via'             => $original->voyage_via,
+            'transport_type'         => $original->transport_type,
+            'vessel_name'            => $original->vessel_name,
+            'flight_number'          => $original->flight_number,
+            'voyage_mode'            => $original->voyage_mode,
+            'expedition_items'       => $original->expedition_items,
+            'currency_code'          => $original->currency_code,
+            'insured_value'          => $original->insured_value,
+            'insured_value_letters'  => $original->insured_value_letters,
+            'guarantee_mode'         => $original->guarantee_mode,
+            'prime_breakdown'        => $original->prime_breakdown,
+            'prime_total'            => $original->prime_total,
+            'exchange_currency'      => $original->exchange_currency,
+            'exchange_rate'          => $original->exchange_rate,
+    
+            // Numéro avec suffixe -D
+            'certificate_number'     => $original->getDuplicateNumber($dupIndex),
+    
+            // Statut : directement ISSUED
+            'status'                 => Certificate::STATUS_ISSUED,
+            'issued_at'              => $original->issued_at,
+            'issued_by'              => $original->issued_by,
+            'submitted_by'           => $original->submitted_by,
+            'validation_notes'       => $original->validation_notes,
+    
+            // Métadonnées duplicata
+            'parent_id'              => $original->id,
+            'document_type'          => Certificate::DOC_TYPE_DUPLICATA,
+            'reissued_at'            => now(),
+            'reissued_by'            => $request->user()->id,
+            'reissue_reason'         => $request->reason,
+            'created_by'             => $request->user()->id,
+        ]);
+    
+        // Générer le PDF avec filigrane DUPLICATA
+        app(CertificatePdfService::class)->generate($duplicate);
+    
+        // Notification
+        $creator = \App\Models\User::find($original->created_by);
+        if ($creator && $creator->id !== $request->user()->id) {
+            Notification::notify(
+                $creator,
+                'CertificateDuplicated',
+                'Duplicata émis',
+                "Duplicata {$duplicate->certificate_number} créé",
+                [
+                    'icon'  => 'copy',
+                    'color' => 'info',
+                    'url'   => route('admin.certificates.show', $duplicate),
+                ]
+            );
+        }
+    
+        $this->log($duplicate, $request, 'certificate.duplicated', [
+            'original_id'     => $original->id,
+            'original_number' => $original->certificate_number,
+            'reason'          => $request->reason,
+        ]);
+    
+        return redirect()->route('admin.certificates.show', $duplicate)
+            ->with('status', "Duplicata {$duplicate->certificate_number} créé avec succès.");
     }
 }

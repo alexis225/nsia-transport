@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -7,7 +7,7 @@ import {
     ArrowLeft, Edit2, Award, Send, CheckCircle,
     XCircle, StopCircle, X, FileText,
     Ship, Plane, Truck, MapPin, DollarSign,
-    AlertCircle, Printer,
+    AlertCircle, Printer, QrCode, ExternalLink, Download, Copy,
 } from 'lucide-react';
 
 interface ExpeditionItem {
@@ -30,7 +30,12 @@ interface Certificate {
     exchange_currency: string | null; exchange_rate: string | null;
     validation_notes: string | null; cancellation_reason: string | null;
     submitted_at: string | null; issued_at: string | null; cancelled_at: string | null;
-    pdf_path: string | null; created_at: string;
+    pdf_path: string | null; qr_token: string | null; created_at: string;
+    document_type: string; parent_id: string | null; duplicate_count: number;
+    reissued_at: string | null; reissue_reason: string | null;
+    parent: { certificate_number: string } | null;
+    duplicates: { id: string; certificate_number: string; reissued_at: string | null }[];
+    reissued_by: { first_name: string; last_name: string } | null;
     tenant: { id: string; name: string; code: string } | null;
     contract: { id: string; contract_number: string; insured_name: string } | null;
     template: { name: string; is_bilingual: boolean } | null;
@@ -173,9 +178,35 @@ export default function CertificateShow({ certificate, can }: Props) {
                             </div>
                         </div>
                         <div style={{ position:'relative', zIndex:1, display:'flex', gap:8 }}>
-                            <Button variant="outline" onClick={() => window.print()} className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
-                                <Printer size={13}/> Imprimer
-                            </Button>
+                            <div style={{ display:'flex', gap:8 }}>
+                                <Button variant="outline" onClick={() => window.print()} className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
+                                    <Printer size={13}/> Imprimer
+                                </Button>
+                                {certificate.status === 'ISSUED' && (
+                                    <>
+                                        <a href={route('admin.certificates.pdf.download', { certificate: certificate.id })} target="_blank">
+                                            <Button variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
+                                                <Download size={13}/> PDF
+                                            </Button>
+                                        </a>
+                                        {certificate.qr_token && (
+                                            <a href={`/verify/${certificate.qr_token}`} target="_blank">
+                                                <Button variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
+                                                    <QrCode size={13}/> Vérifier
+                                                </Button>
+                                            </a>
+                                        )}
+                                        {/* Bouton Duplicata — US-032 */}
+                                        {certificate.document_type === 'original' && (
+                                            <Button variant="outline"
+                                                    onClick={() => setModal('duplicate')}
+                                                    className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
+                                                <Copy size={13}/> Duplicata
+                                            </Button>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                             {can.edit && certificate.status === 'DRAFT' && (
                                 <Link href={route('admin.certificates.edit', { certificate: certificate.id })}>
                                     <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
@@ -192,6 +223,11 @@ export default function CertificateShow({ certificate, can }: Props) {
                             <span style={{ width:8, height:8, borderRadius:'50%', background: ss.dot }}/>
                             {ss.label}
                             {certificate.issued_at && <span style={{ fontSize:11, color:'#94a3b8' }}>émis le {fmtDt(certificate.issued_at)}</span>}
+                            {certificate.document_type === 'duplicata' && (
+                                <span style={{ background:'rgba(255,255,255,0.15)', color:'#fff', borderRadius:6, fontSize:10, padding:'2px 8px', fontWeight:700, letterSpacing:'.08em', border:'1px solid rgba(255,255,255,0.3)' }}>
+                                    DUPLICATA
+                                </span>
+                            )}
                         </div>
                         <div style={{ display:'flex', gap:8 }}>
                             {certificate.status === 'DRAFT' && can.edit && (
@@ -389,6 +425,92 @@ export default function CertificateShow({ certificate, can }: Props) {
                         </div>
                     )}
 
+                    {/* QR Code — certificat émis */}
+                    {certificate.status === 'ISSUED' && certificate.qr_token && (
+                        <div className="cs-card">
+                            <div className="cs-card-hdr">
+                                <div className="cs-card-ico" style={{ background:'#f0fdf4' }}><QrCode size={15} color="#16a34a"/></div>
+                                <span className="cs-card-ttl">QR code de vérification</span>
+                            </div>
+                            <div className="cs-card-body">
+                                <div style={{ display:'flex', alignItems:'center', gap:20 }}>
+                                    <img
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.origin + '/verify/' + certificate.qr_token)}`}
+                                        alt="QR Code"
+                                        style={{ width:100, height:100, border:'1px solid #e2e8f0', borderRadius:8 }}
+                                    />
+                                    <div>
+                                        <div style={{ fontSize:12, color:'#64748b', marginBottom:6 }}>
+                                            Scannez ce QR code pour vérifier l'authenticité du certificat.
+                                        </div>
+                                        <a href={`/verify/${certificate.qr_token}`} target="_blank"
+                                           style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'#1d4ed8', textDecoration:'none' }}>
+                                            <ExternalLink size={12}/> Ouvrir la page de vérification
+                                        </a>
+                                        <div style={{ marginTop:8, fontFamily:'monospace', fontSize:10, color:'#94a3b8', wordBreak:'break-all' }}>
+                                            {window.location.origin}/verify/{certificate.qr_token}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Info duplicata — US-032 */}
+                    {certificate.document_type === 'duplicata' && (
+                        <div className="cs-card" style={{ borderColor:'#bfdbfe' }}>
+                            <div className="cs-card-hdr">
+                                <div className="cs-card-ico" style={{ background:'#eff6ff' }}><Copy size={15} color="#3b82f6"/></div>
+                                <span className="cs-card-ttl">Informations duplicata</span>
+                            </div>
+                            <div className="cs-card-body">
+                                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                                    <div>
+                                        <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>Certificat original</div>
+                                        <div style={{ fontSize:13, fontWeight:600, fontFamily:'monospace', color:'#1e293b' }}>
+                                            {certificate.parent?.certificate_number ?? '—'}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>Date de réédition</div>
+                                        <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>
+                                            {certificate.reissued_at ? fmtDt(certificate.reissued_at) : '—'}
+                                        </div>
+                                    </div>
+                                    {certificate.reissue_reason && (
+                                        <div style={{ gridColumn:'1/-1' }}>
+                                            <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>Motif</div>
+                                            <div style={{ fontSize:12, color:'#475569' }}>{certificate.reissue_reason}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Liste duplicatas émis (si original) */}
+                    {certificate.document_type === 'original' && certificate.duplicates?.length > 0 && (
+                        <div className="cs-card">
+                            <div className="cs-card-hdr">
+                                <div className="cs-card-ico" style={{ background:'#eff6ff' }}><Copy size={15} color="#3b82f6"/></div>
+                                <span className="cs-card-ttl">Duplicatas émis ({certificate.duplicate_count})</span>
+                            </div>
+                            <div className="cs-card-body">
+                                {certificate.duplicates.map(d => (
+                                    <div key={d.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'5px 0', borderBottom:'1px solid #f8fafc' }}>
+                                        <a href={route('admin.certificates.show', { certificate: d.id })}
+                                           style={{ fontFamily:'monospace', fontSize:12, fontWeight:600, color:'#1d4ed8', textDecoration:'none' }}>
+                                            {d.certificate_number}
+                                        </a>
+                                        <span style={{ fontSize:11, color:'#94a3b8' }}>
+                                            {d.reissued_at ? fmtDt(d.reissued_at) : '—'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Méta */}
                     <div style={{ fontSize:11, color:'#94a3b8', display:'flex', gap:16, flexWrap:'wrap', padding:'4px 0' }}>
                         {certificate.created_by && <span>Créé par {certificate.created_by.first_name} {certificate.created_by.last_name}</span>}
@@ -403,6 +525,52 @@ export default function CertificateShow({ certificate, can }: Props) {
             {modal === 'issue'  && <ActionModal title="Émettre le certificat" icon={CheckCircle} color="#15803d" actionLabel="Émettre"   requireReason={false} onConfirm={(n: string) => action('admin.certificates.issue', { notes: n })} onClose={() => setModal(null)}/>}
             {modal === 'reject' && <ActionModal title="Rejeter le certificat"  icon={XCircle}    color="#dc2626" actionLabel="Rejeter"   onConfirm={(r: string) => action('admin.certificates.reject',  { reason: r })} onClose={() => setModal(null)}/>}
             {modal === 'cancel' && <ActionModal title="Annuler le certificat"  icon={StopCircle}  color="#dc2626" actionLabel="Annuler"   onConfirm={(r: string) => action('admin.certificates.cancel',  { reason: r })} onClose={() => setModal(null)}/>}
+        {/* Modal Duplicata — US-032 */}
+            {modal === 'duplicate' && (
+                <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+                    <div style={{ background:'#fff', borderRadius:14, width:'100%', maxWidth:440, border:'1.5px solid #e2e8f0', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
+                        <div style={{ padding:'16px 20px', borderBottom:'1px solid #f1f5f9', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                                <div style={{ width:34, height:34, borderRadius:8, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                    <Copy size={16} color="#3b82f6"/>
+                                </div>
+                                <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Émettre un duplicata</p>
+                            </div>
+                            <button onClick={() => setModal(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
+                        </div>
+                        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
+                            <div style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#1d4ed8' }}>
+                                Un duplicata sera créé avec le numéro <strong>{certificate.certificate_number}-D{(certificate.duplicate_count ?? 0) + 1}</strong> et la mention DUPLICATA sur le PDF.
+                            </div>
+                            <div>
+                                <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>Motif *</label>
+                                <DuplicateForm certificateId={certificate.id} onCancel={() => setModal(null)}/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AppLayout>
+    );
+}
+
+// Formulaire interne pour le duplicata
+function DuplicateForm({ certificateId, onCancel }: { certificateId: string; onCancel: () => void }) {
+    const { data, setData, post, processing, errors } = useForm({ reason: '' });
+    return (
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            <textarea value={data.reason} onChange={e => setData('reason', e.target.value)} rows={3}
+                      style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', resize:'vertical', boxSizing:'border-box' }}
+                      placeholder="Précisez le motif (perte, détérioration…)"/>
+            {errors.reason && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.reason}</p>}
+            <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                <button onClick={onCancel} style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e2e8f0', background:'none', cursor:'pointer', fontSize:12 }}>Annuler</button>
+                <button disabled={processing || !data.reason.trim()}
+                        onClick={() => post(route('admin.certificates.duplicate', { certificate: certificateId }))}
+                        style={{ padding:'7px 14px', borderRadius:8, border:'none', background:'#1e3a8a', color:'#fff', cursor:'pointer', fontSize:12, opacity: processing || !data.reason.trim() ? .5 : 1 }}>
+                    {processing ? 'Génération…' : 'Émettre le duplicata'}
+                </button>
+            </div>
+        </div>
     );
 }

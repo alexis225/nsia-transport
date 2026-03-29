@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
 import {
     ArrowLeft, Edit2, FileText, Calendar, Shield,
-    Briefcase, DollarSign, TrendingUp,
+    Building2, Briefcase, DollarSign, TrendingUp,
     CheckCircle, XCircle, PauseCircle, StopCircle,
     PlayCircle, Send, X, AlertCircle, Tag,
 } from 'lucide-react';
@@ -183,15 +183,23 @@ export default function ContractShow({ contract, can }: Props) {
                                 )}
                             </div>
                         </div>
-                        {can.edit && contract.status === 'DRAFT' && (
-                            <div style={{ position:'relative', zIndex:1 }}>
+                        <div style={{ position:'relative', zIndex:1, display:'flex', gap:8 }}>
+                            {/* Bouton Avenants — visible si contrat actif */}
+                            {contract.status === 'ACTIVE' && (
+                                <Link href={route('admin.contracts.amendments.index', { contract: contract.id })}>
+                                    <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
+                                        <FileText size={13}/> Avenants
+                                    </Button>
+                                </Link>
+                            )}
+                            {can.edit && contract.status === 'DRAFT' && (
                                 <Link href={route('admin.contracts.edit', { contract: contract.id })}>
                                     <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
                                         <Edit2 size={13}/> Modifier
                                     </Button>
                                 </Link>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
 
                     {/* Workflow */}

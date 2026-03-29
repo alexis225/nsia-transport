@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
 use App\Http\Controllers\Admin\CertificateController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
+use App\Http\Controllers\Admin\ContractAmendmentController;
 use App\Http\Controllers\Admin\ContractLimitController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InsuranceContractController;
@@ -14,7 +15,7 @@ use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\MfaSetupController;
 use App\Http\Controllers\Auth\SocialAuthController;
-use App\Http\Controllers\Public\CertificateVerifyController;
+use App\Http\Controllers\Admin\CertificateVerifyController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,33 +28,34 @@ Route::get('/', function () {
 })->name('home');
 
 // ── Route publique de vérification (sans auth) ────────────────
-Route::get('/verify/{token}', [CertificateVerifyController::class, 'show'])
-    ->name('certificate.verify')
-    ->where('token', '[a-zA-Z0-9]+');
-
+Route::get('/verify/{token}', [CertificateVerifyController::class, 'show'])->name('certificate.verify')->where('token', '[a-zA-Z0-9]+');
 
 Route::middleware(['auth'])->prefix('admin/notifications')->group(function () {
     // Liste + compteur non lus (polled toutes les 30s)
-    Route::get('/', [NotificationController::class, 'index'])
-        ->name('admin.notifications.index');
- 
+    Route::get('/', [NotificationController::class, 'index'])->name('admin.notifications.index');
     // Marquer toutes comme lues
-    Route::patch('/read-all', [NotificationController::class, 'markAllRead'])
-        ->name('admin.notifications.read-all');
- 
+    Route::patch('/read-all', [NotificationController::class, 'markAllRead'])->name('admin.notifications.read-all');
     // Marquer une comme lue
-    Route::patch('/{id}/read', [NotificationController::class, 'markRead'])
-        ->name('admin.notifications.read');
- 
+    Route::patch('/{id}/read', [NotificationController::class, 'markRead'])->name('admin.notifications.read');
     // Supprimer une notification
-    Route::delete('/{id}', [NotificationController::class, 'destroy'])
-        ->name('admin.notifications.destroy');
+    Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('admin.notifications.destroy');
 });
+
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
-            // Page tableau de bord plafonds multi-contrats
+    Route::prefix('admin/contracts/{contract}/amendments')->name('admin.contracts.amendments.')->group(function () {
+        Route::get('/',[ContractAmendmentController::class, 'index'])->middleware('permission:contracts.view')->name('index');
+        Route::get('/create',[ContractAmendmentController::class, 'create'])->middleware('permission:contracts.edit')->name('create');
+        Route::post('/',[ContractAmendmentController::class, 'store'])->middleware('permission:contracts.edit')->name('store');
+        Route::get('/{amendment}',[ContractAmendmentController::class, 'show'])->middleware('permission:contracts.view')->name('show');
+        Route::patch('/{amendment}/submit',[ContractAmendmentController::class, 'submit'])->middleware('permission:contracts.edit')->name('submit');
+        Route::patch('/{amendment}/approve',[ContractAmendmentController::class, 'approve'])->middleware('permission:contracts.validate')->name('approve');
+        Route::patch('/{amendment}/reject',[ContractAmendmentController::class, 'reject'])->middleware('permission:contracts.validate')->name('reject');
+    });
+  
+    // Page tableau de bord plafonds multi-contrats
     Route::get('/contracts/limits',[ContractLimitController::class, 'index'])->middleware('permission:contracts.view')->name('admin.contracts.limits');
-        // API polling — état plafond d'un contrat
+    // API polling — état plafond d'un contrat
     Route::get('/contracts/{contract}/limit-status',[ContractLimitController::class, 'status'])->middleware('permission:contracts.view')->name('admin.contracts.limit-status');
     // Dashboard
     Route::inertia('admin/dashboard', 'dashboard')->name('admin.dashboard');
@@ -63,7 +65,6 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     Route::post('/user/mfa-setup/enable', [MfaSetupController::class, 'enable'])->name('mfa.enable');
     Route::delete('/user/mfa-setup/disable', [MfaSetupController::class, 'disable'])->name('mfa.disable');
     Route::post('/user/mfa-setup/recovery-codes', [MfaSetupController::class, 'regenerateRecoveryCodes'])->name('mfa.recovery-codes.regenerate');
-
     // ── Avatar — US-009 ──────────────────────────────────────
     Route::post('/settings/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
     Route::delete('/settings/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
@@ -117,6 +118,9 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
             Route::get('/certificates',[CertificateController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificates.index');
             // ── US-016 : Soumission ───────────────────────────────
             Route::get('/certificates/create',[CertificateController::class, 'create'])->middleware('permission:certificates.create')->name('admin.certificates.create');
+
+            Route::post('/certificates/{certificate}/duplicate',[CertificateController::class, 'duplicate'])->middleware('permission:certificates.create')->name('admin.certificates.duplicate');
+ 
             Route::get('/certificates/{certificate}',[CertificateController::class, 'show'])->middleware('permission:certificates.view')->name('admin.certificates.show');
 
             Route::delete('/certificates/{certificate}',[CertificateController::class, 'destroy'])->middleware('permission:certificates.create')->name('admin.certificates.destroy');

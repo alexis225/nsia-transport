@@ -29,7 +29,7 @@
             position: relative;
         }
 
-        /* ── Filigrane ORIGINAL ASSURE ── */
+        /* ── Filigrane ORIGINAL / DUPLICATA ── */
         .watermark {
             position: fixed;
             top: 50%;
@@ -42,6 +42,9 @@
             z-index: 0;
             letter-spacing: 0.1em;
             pointer-events: none;
+        }
+        .watermark-duplicata {
+            color: rgba(220, 38, 38, 0.08);
         }
 
         /* Filigrane latéral (ordres d'assurance) */
@@ -93,6 +96,17 @@
             color: #1e3a8a;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+        }
+        .duplicata-banner {
+            display: inline-block;
+            background: #dc2626;
+            color: #fff;
+            font-size: 9pt;
+            font-weight: 700;
+            padding: 2pt 10pt;
+            letter-spacing: 0.2em;
+            border-radius: 2pt;
+            margin-top: 4pt;
         }
         .cert-subtitle { font-size: 8pt; color: #64748b; margin-top: 2pt; }
         .cert-obligation { font-size: 7.5pt; color: #64748b; margin-top: 3pt; }
@@ -334,7 +348,10 @@
 
             <div class="header-title">
                 @if($template?->type === 'certificat_assurance')
-                    <div class="cert-title">CERTIFICAT D'ASSURANCE</div>
+                    @if($certificate->document_type === 'duplicata')
+                <div class="duplicata-banner">DUPLICATA</div>
+                @endif
+                <div class="cert-title">CERTIFICAT D'ASSURANCE</div>
                     @if($template->is_bilingual)
                         <div class="cert-subtitle">CERTIFICATE OF INSURANCE</div>
                     @endif

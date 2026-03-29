@@ -37,6 +37,24 @@ return new class extends Migration
                   ->constrained('certificate_templates')
                   ->nullOnDelete();
 
+            // ── Duplicata — US-032 ────────────────────────────
+           $table->uuid('parent_id')->nullable();
+            // Type : original | duplicata
+            $table->string('document_type', 20)->default('original')->after('parent_id');
+            // original | duplicata
+            // Compteur de duplicatas émis
+            $table->unsignedSmallInteger('duplicate_count')->default(0)->after('document_type');
+            // Date de réédition
+            $table->timestamp('reissued_at')->nullable()->after('duplicate_count');
+            // Qui a demandé le duplicata
+            $table->foreignUuid('reissued_by')
+                  ->nullable()
+                  ->constrained('users')
+                  ->nullOnDelete()
+                  ->after('reissued_at');
+ 
+            // Motif de réédition
+            $table->text('reissue_reason')->nullable()->after('reissued_by');
             // ── Numérotation ──────────────────────────────────
             $table->string('certificate_number', 50)->unique(); // ex: N°041260
             $table->string('policy_number', 100);               // dénormalisé depuis contrat
@@ -108,7 +126,11 @@ return new class extends Migration
             // ── PDF ───────────────────────────────────────────
             $table->string('pdf_path', 255)->nullable();         // chemin storage
             $table->timestamp('pdf_generated_at')->nullable();
-
+            // ── QR Code — US-021 ──────────────────────────────
+            $table->string('qr_token', 64)->nullable()->unique();
+            $table->string('issuer_stamp', 255)->nullable();
+            $table->unsignedInteger('verification_count')->default(0);
+            $table->timestamp('last_verified_at')->nullable();
             // ── Méta ──────────────────────────────────────────
             $table->foreignUuid('created_by')->nullable()
                   ->constrained('users')->nullOnDelete();
@@ -119,6 +141,7 @@ return new class extends Migration
             $table->index(['tenant_id', 'status']);
             $table->index(['contract_id']);
             $table->index(['voyage_date']);
+            $table->index(['parent_id']);
         });
 
         // Contraintes CHECK
@@ -128,6 +151,8 @@ return new class extends Migration
         DB::statement("ALTER TABLE certificates ADD CONSTRAINT cert_transport_check
             CHECK (transport_type IS NULL OR transport_type IN ('SEA','AIR','ROAD','RAIL','MULTIMODAL'))");
 
+        DB::statement("ALTER TABLE certificates ADD CONSTRAINT cert_doc_type_check
+            CHECK (document_type IN ('original','duplicata'))");
         // Index partiels PostgreSQL
         DB::statement("CREATE INDEX idx_cert_issued
             ON certificates(tenant_id, issued_at DESC)
@@ -139,10 +164,26 @@ return new class extends Migration
 
         DB::statement("CREATE INDEX idx_cert_number
             ON certificates(certificate_number)");
+            
+        DB::statement("CREATE INDEX idx_cert_qr_token
+            ON certificates(qr_token)
+            WHERE qr_token IS NOT NULL");
+
+        DB::statement("CREATE INDEX idx_cert_duplicata
+            ON certificates(parent_id)
+            WHERE document_type = 'duplicata'");
+        
+        // ── FK auto-référentielle (après création de la table) ─
+        Schema::table('certificates', function (Blueprint $table) {
+            $table->foreign('parent_id')->references('id')->on('certificates')->nullOnDelete();
+        });
     }
 
     public function down(): void
     {
+        Schema::table('certificates', function (Blueprint $table) {
+            $table->dropForeign(['parent_id']);
+        });
         Schema::dropIfExists('certificates');
     }
 };
