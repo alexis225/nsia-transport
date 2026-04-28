@@ -33,7 +33,13 @@ class DatabaseSeeder extends Seeder
             TenantSeeder::class,             // 1. filiales
             ReferentialSeeder::class,        // 2. référentiels
             RolesAndPermissionsSeeder::class, // 3. rôles & permissions
-            UserSeeder::class,               // 4. utilisateurs
+            UserSeeder::class,        // 4. utilisateurs
+            CertificateTemplateSeeder::class,       // 5. templates de certificat
+            ApprovalWorkflowSeeder::class,    // 6. workflow d'approbation NN300
+            // 1 workflow NN300 par filiale :
+            //   Seuil  : 15% de la valeur du contrat (paramétrable)
+            //   Étape 1 : admin_filiale (48h ouvrables)
+            //   Étape 2 : super_admin   (48h ouvrables)
         ]);
 
         $this->command->info('');

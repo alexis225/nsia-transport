@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ApprovalWorkflowController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
 use App\Http\Controllers\Admin\CertificateController;
@@ -53,6 +54,13 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
         Route::patch('/{amendment}/reject',[ContractAmendmentController::class, 'reject'])->middleware('permission:contracts.validate')->name('reject');
     });
   
+    Route::prefix('admin/approvals')->name('admin.approvals.')->group(function () {
+        Route::get('/',[ApprovalWorkflowController::class, 'index'])->name('index');
+        Route::get('/{workflow}',[ApprovalWorkflowController::class, 'show'])->name('show');
+        Route::patch('/{workflow}/approve',[ApprovalWorkflowController::class, 'approve'])->name('approve');
+        Route::patch('/{workflow}/reject',[ApprovalWorkflowController::class, 'reject'])->name('reject');
+    });
+
     // Page tableau de bord plafonds multi-contrats
     Route::get('/contracts/limits',[ContractLimitController::class, 'index'])->middleware('permission:contracts.view')->name('admin.contracts.limits');
     // API polling — état plafond d'un contrat

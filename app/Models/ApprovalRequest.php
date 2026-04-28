@@ -10,85 +10,79 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ApprovalRequest extends Model
 {
     use HasUuids;
-
+ 
     protected $fillable = [
-        'tenant_id',
-        'entity_type',
-        'entity_id',
-        'workflow_id',
-        'current_step',
-        'total_steps',
-        'status',
-        'requested_by',
-        'resolved_by',
-        'resolved_at',
-        'due_date',
-        'notes',
+        'tenant_id', 'entity_type', 'entity_id',
+        'workflow_id', 'current_step', 'total_steps',
+        'status', 'requested_by', 'resolved_by',
+        'resolved_at', 'due_date', 'notes',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'current_step' => 'integer',
-            'total_steps'  => 'integer',
-            'resolved_at'  => 'datetime',
-            'due_date'     => 'datetime',
-        ];
-    }
-
-    // ── Constantes ───────────────────────────────────────────
+ 
+    protected $casts = [
+        'resolved_at' => 'datetime',
+        'due_date'    => 'datetime',
+    ];
+ 
     const STATUS_PENDING   = 'PENDING';
     const STATUS_APPROVED  = 'APPROVED';
     const STATUS_REJECTED  = 'REJECTED';
     const STATUS_CANCELLED = 'CANCELLED';
-
-    // ── Helpers ──────────────────────────────────────────────
-    public function isPending(): bool
+ 
+    // ── Relations ─────────────────────────────────────────────
+    public function workflowConfig(): BelongsTo
     {
-        return $this->status === self::STATUS_PENDING;
+        return $this->belongsTo(ApprovalWorkflowConfig::class, 'workflow_id');
     }
-
-    public function isOverdue(): bool
+ 
+    public function requestedBy(): BelongsTo
     {
-        return $this->isPending()
-            && $this->due_date
-            && $this->due_date->isPast();
+        return $this->belongsTo(User::class, 'requested_by');
     }
-
-    // ── Scopes ───────────────────────────────────────────────
-    public function scopePending($query)
+ 
+    public function resolvedBy(): BelongsTo
     {
-        return $query->where('status', self::STATUS_PENDING);
+        return $this->belongsTo(User::class, 'resolved_by');
     }
-
-    public function scopeForEntity($query, string $type, string $id)
+ 
+    public function decisions(): HasMany
     {
-        return $query->where('entity_type', $type)->where('entity_id', $id);
+        return $this->hasMany(ApprovalDecision::class, 'request_id');
     }
-
-    // ── Relations ────────────────────────────────────────────
+ 
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
-
-    public function workflow(): BelongsTo
+ 
+    // ── Résoudre l'entité dynamiquement ─────────────────────
+    public function certificate(): ?Certificate
     {
-        return $this->belongsTo(ApprovalWorkflow::class, 'workflow_id');
+        if ($this->entity_type !== 'CERTIFICATE') return null;
+        return Certificate::find($this->entity_id);
     }
-
-    public function requestedByUser(): BelongsTo
+ 
+    // ── Helpers ───────────────────────────────────────────────
+    public function isPending(): bool  { return $this->status === self::STATUS_PENDING; }
+    public function isApproved(): bool { return $this->status === self::STATUS_APPROVED; }
+    public function isRejected(): bool { return $this->status === self::STATUS_REJECTED; }
+    public function isLastStep(): bool { return $this->current_step >= $this->total_steps; }
+    public function isOverdue(): bool  { return $this->due_date && now()->isAfter($this->due_date); }
+ 
+    /**
+     * Calcule la date d'expiration : now + timeout_hours ouvrables (lun-ven)
+     */
+    public static function computeDueDate(\Carbon\Carbon $from, int $timeoutHours = 48): \Carbon\Carbon
     {
-        return $this->belongsTo(User::class, 'requested_by');
-    }
-
-    public function resolvedByUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'resolved_by');
-    }
-
-    public function decisions(): HasMany
-    {
-        return $this->hasMany(ApprovalDecision::class, 'request_id');
+        $remaining = $timeoutHours;
+        $current   = $from->copy();
+ 
+        while ($remaining > 0) {
+            $current->addHour();
+            if ($current->isWeekday()) {
+                $remaining--;
+            }
+        }
+ 
+        return $current;
     }
 }

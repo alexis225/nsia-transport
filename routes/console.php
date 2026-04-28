@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 
 
 Schedule::command('nsia:check-contracts')->dailyAt('08:00');
+Schedule::command('nsia:check-escalades')->hourly();

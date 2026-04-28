@@ -1,10 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    Award, BarChart2, Briefcase, Building2,
-    ClipboardList,
-    Database,
-    FileBadge,
-    FileText, LayoutDashboard, Settings, Shield, Users,
+    Award, Briefcase, Building2,
+    ClipboardList, Database, FileBadge,
+    FileText, LayoutDashboard, Settings,
+    Shield, Users, TrendingUp,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -12,7 +11,6 @@ import {
     Sidebar, SidebarContent, SidebarFooter,
     SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { Children } from 'react';
 
 export function AppSidebar() {
     const { auth } = usePage<{
@@ -24,6 +22,9 @@ export function AppSidebar() {
 
     const isSA = () => (auth?.user?.roles ?? [])
         .some((r: any) => (typeof r === 'string' ? r : r.name) === 'super_admin');
+
+    const isAdminFiliale = () => (auth?.user?.roles ?? [])
+        .some((r: any) => (typeof r === 'string' ? r : r.name) === 'admin_filiale');
 
     const mainNavItems = [
         // ── Dashboard ──────────────────────────────────────────
@@ -41,12 +42,11 @@ export function AppSidebar() {
             children: [
                 { title: 'Liste',    href: route('admin.users.index') },
                 ...(can('users.block')  ? [{ title: 'Bloqués', href: route('admin.users.index') + '?status=blocked' }] : []),
-                ...(can('users.create') ? [{ title: 'Nouveau', href: route('admin.users.create') }]         : []),
+                ...(can('users.create') ? [{ title: 'Nouveau', href: route('admin.users.create') }] : []),
             ],
         }] : []),
 
         // ── Rôles & Permissions — US-003 ───────────────────────
-        // FIX : "Rôles" et "Permissions" avaient le même href → clés dupliquées
         ...(isSA() ? [{
             title: 'Rôles & Permissions',
             href:  route('admin.roles.index'),
@@ -58,57 +58,59 @@ export function AppSidebar() {
         }] : []),
 
         // ── Filiales — US-011 ──────────────────────────────────
-        // FIX : route('admin.tenants.index') n'existe pas → /admin/tenants
         ...(isSA() ? [{
             title: 'Filiales',
             href:  route('admin.tenants.index'),
             icon:  Building2,
             children: [
-                { title: 'Liste',          href: route('admin.tenants.index') },
-                { title: 'Nouvelle',       href: route('admin.tenants.create') },
+                { title: 'Liste',    href: route('admin.tenants.index') },
+                { title: 'Nouvelle', href: route('admin.tenants.create') },
             ],
         }] : []),
 
-        //  Courtiers — US-010 ─────────────────────────────────
+        // ── Courtiers — US-010 ────────────────────────────────
         ...(can('brokers.view') ? [{
             title: 'Courtiers',
             href:  route('admin.brokers.index'),
             icon:  Briefcase,
             children: [
-                { title: 'Liste',    href: route('admin.brokers.index') },
+                { title: 'Liste',   href: route('admin.brokers.index') },
                 ...(can('brokers.create') ? [{ title: 'Nouveau', href: route('admin.brokers.create') }] : []),
             ],
         }] : []),
+
+        // ── Références ─────────────────────────────────────────
         ...(isSA() ? [{
             title: 'Références',
             href:  '/admin/reference',
-            icon:  Database, // import depuis lucide-react
-                children: [
-                    { title: 'Pays',          href: '/admin/reference?tab=countries' },
-                    { title: 'Devises',       href: '/admin/reference?tab=currencies' },
-                    { title: 'Incoterms',     href: '/admin/reference?tab=incoterms' },
-                    { title: 'Transports',    href: '/admin/reference?tab=transport_modes' },
-                    { title: 'Marchandises',  href: '/admin/reference?tab=merchandise_categories' },
-                ],
+            icon:  Database,
+            children: [
+                { title: 'Pays',         href: '/admin/reference?tab=countries' },
+                { title: 'Devises',      href: '/admin/reference?tab=currencies' },
+                { title: 'Incoterms',    href: '/admin/reference?tab=incoterms' },
+                { title: 'Transports',   href: '/admin/reference?tab=transport_modes' },
+                { title: 'Marchandises', href: '/admin/reference?tab=merchandise_categories' },
+            ],
         }] : []),
 
-                // ── Modèles de certificats — US-013 ────────────────────
+        // ── Modèles de certificats — US-013 ────────────────────
         ...(isSA() ? [{
             title: 'Modèles certificats',
             href:  route('admin.certificate-templates.index'),
             icon:  FileBadge,
             children: [
-                { title: 'Liste',    href: route('admin.certificate-templates.index') },
-                { title: 'Nouveau',  href: route('admin.certificate-templates.create') },
+                { title: 'Liste',   href: route('admin.certificate-templates.index') },
+                { title: 'Nouveau', href: route('admin.certificate-templates.create') },
             ],
         }] : []),
-        // // ── Contrats — US-014 ──────────────────────────────────
+
+        // ── Contrats — US-014 ──────────────────────────────────
         ...(can('contracts.view') ? [{
             title: 'Contrats',
             href:  route('admin.contracts.index'),
             icon:  FileText,
             children: [
-                { title: 'Liste',    href: route('admin.contracts.index') },
+                { title: 'Liste',          href: route('admin.contracts.index') },
                 { title: 'Plafonds NN300', href: route('admin.contracts.limits') },
                 ...(can('contracts.create') ? [{ title: 'Nouveau', href: route('admin.contracts.create') }] : []),
             ],
@@ -120,13 +122,20 @@ export function AppSidebar() {
             href:  route('admin.certificates.index'),
             icon:  Award,
             children: [
-                { title: 'Liste',      href: route('admin.certificates.index') },
+                { title: 'Liste',   href: route('admin.certificates.index') },
                 ...(can('certificates.create')   ? [{ title: 'Nouveau',    href: route('admin.certificates.create') }] : []),
-                ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.dashboard.pending')}] : []),
+                ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.dashboard.pending') }]   : []),
             ],
         }] : []),
 
-        // // ── Rapports — US-043 ──────────────────────────────────
+        // ── Escalades NN300 — US-035 ───────────────────────────
+        // Visible uniquement par admin_filiale et super_admin
+        ...(isSA() || isAdminFiliale() ? [{
+            title: 'Escalades NN300',
+            href:  route('admin.approvals.index'),
+            icon:  TrendingUp,
+        }] : []),
+
         // ...(can('reports.view') ? [{
         //     title: 'Rapports',
         //     href:  route('admin.reports.index'),
@@ -138,11 +147,11 @@ export function AppSidebar() {
         //         ...(can('reports.contracts')         ? [{ title: 'Contrats',           href: route('admin.reports.contracts') }]    : []),
         //     ],
         // }] : []),
-
+        // ── Audit Logs ─────────────────────────────────────────
         ...(can('audit_logs.view') ? [{
             title: 'Audit Logs',
             href:  route('admin.audit-logs.index'),
-            icon:  ClipboardList, 
+            icon:  ClipboardList,
         }] : []),
 
         // ── Paramètres ─────────────────────────────────────────
