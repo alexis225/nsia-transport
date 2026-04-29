@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
-
+use Illuminate\Support\Facades\Http;
 class SocialAuthController extends Controller
 {
     private const ALLOWED_PROVIDERS = ['google', 'microsoft'];
@@ -19,50 +19,90 @@ class SocialAuthController extends Controller
     // ── Redirection vers le provider OAuth ───────────────────
     public function redirect(string $provider): RedirectResponse
     {
-        $this->validateProvider($provider);
+        $clientId = env('MICROSOFT_CLIENT_ID');
+        $redirectUri = urlencode(env('MICROSOFT_REDIRECT_URI'));
+        $scope = urlencode('User.Read');
 
-        return Socialite::driver($provider)->redirect();
+        $url = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize" .
+            "?client_id={$clientId}" .
+            "&response_type=code" .
+            "&redirect_uri={$redirectUri}" .
+            "&response_mode=query" .
+            "&scope={$scope}";
+
+        return redirect()->away($url);
     }
 
     // ── Callback OAuth ───────────────────────────────────────
     public function callback(Request $request, string $provider): RedirectResponse
     {
-        $this->validateProvider($provider);
 
         try {
-            $socialUser = Socialite::driver($provider)->user();
+            $code = $request->query('code');
+            if (!$code) {
+                return redirect('/')->with('error', 'Authorization code not returned.');
+            }
+
+            $tokenResponse = Http::withOptions([
+                'verify' => false
+            ])->asForm()->post("https://login.microsoftonline.com/common/oauth2/v2.0/token", [
+                'client_id' => env('MICROSOFT_CLIENT_ID'),
+                'scope' => 'User.Read',
+                'code' => $code,
+                'redirect_uri' => env('MICROSOFT_REDIRECT_URI'),
+                'grant_type' => 'authorization_code',
+                'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+            ]);
+
+            if ($tokenResponse->failed()) {
+                return redirect('/')->with('error', 'Failed to get token from Microsoft.');
+            }
+
+            $tokenData = $tokenResponse->json();
+        
+            $idToken = $tokenData['access_token'];
+            $userInfo = $this->decodeJwt($idToken);
+            //dd($userInfo, $tokenResponse->json()["access_token"]);
         } catch (\Exception $e) {
             return redirect()->route('login')
                 ->withErrors(['email' => 'Authentification OAuth échouée. Veuillez réessayer.']);
         }
-
-        if (! $socialUser->getEmail()) {
+        $email = $userInfo['upn'];
+        if (!  $email) {
             return redirect()->route('login')
                 ->withErrors(['email' => 'Aucun email fourni par le provider OAuth.']);
         }
-
+        
+        $allowedDomains = explode(',', env('MICROSOFT_ALLOWED_DOMAINS', ''));
+        if (!empty(array_filter($allowedDomains))) {
+            $domain = substr(strrchr($email, "@"), 1);
+            if (!in_array($domain, $allowedDomains)) {
+                return redirect('/')->with('error', 'Votre domaine email n\'est pas autorisé.');
+            }
+        }
+        
         // ── Trouver ou créer l'utilisateur ───────────────────
-        $user = User::where('email', $socialUser->getEmail())->first();
+        $user = User::where('email',  $email)->first();
+       
 
         if (! $user) {
             $user = User::create([
-                'email'             => $socialUser->getEmail(),
-                'first_name'        => $this->extractFirstName($socialUser->getName()),
-                'last_name'         => $this->extractLastName($socialUser->getName()),
+                'email'             =>  $email,
+                'first_name'        => $this->extractFirstName($userInfo["given_name"]),
+                'last_name'         => $this->extractLastName($userInfo["family_name"]),
                 'password'          => Hash::make(Str::random(32)),
                 'email_verified_at' => now(),
                 'is_active'         => true,
                 'locale'            => 'fr',
-                'timezone'          => 'Africa/Abidjan',
-                'avatar_path'       => $socialUser->getAvatar(),
+                'timezone'          => 'Africa/Abidjan'
             ]);
 
             AuditLog::create([
                 'tenant_id'      => null,
                 'user_id'        => $user->id,
                 'action'         => 'oauth_register',
-                'auditable_type' => 'auth',
-                'auditable_id'   => $user->id,
+                'entity_type' => 'auth',
+                'entity_id'   => $user->id,
                 'ip_address'     => $request->ip(),
                 'user_agent'     => $request->userAgent(),
                 'new_data'       => ['provider' => $provider, 'email' => $user->email],
@@ -97,8 +137,8 @@ class SocialAuthController extends Controller
             'tenant_id'      => $user->tenant_id,
             'user_id'        => $user->id,
             'action'         => 'oauth_login_success',
-            'auditable_type' => 'auth',
-            'auditable_id'   => $user->id,
+            'entity_type' => 'auth',
+            'entity_id'   => $user->id,
             'ip_address'     => $request->ip(),
             'user_agent'     => $request->userAgent(),
             'new_data'       => ['provider' => $provider],
@@ -127,4 +167,12 @@ class SocialAuthController extends Controller
         array_shift($parts);
         return implode(' ', $parts);
     }
+
+    private function decodeJwt($jwt)
+    {
+        [$header, $payload, $signature] = explode('.', $jwt);
+        $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $payload)), true);
+        return $payload;
+    }
+
 }

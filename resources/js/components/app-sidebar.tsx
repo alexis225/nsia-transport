@@ -135,6 +135,7 @@ export function AppSidebar() {
             href:  route('admin.approvals.index'),
             icon:  TrendingUp,
         }] : []),
+        
 
         // ...(can('reports.view') ? [{
         //     title: 'Rapports',

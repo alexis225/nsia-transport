@@ -466,17 +466,6 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                         </div>
 
                         <button type="button" className="btn-oauth" disabled={processing}
-                                onClick={() => handleOAuth('google')}>
-                            <svg width="16" height="16" viewBox="0 0 24 24">
-                                <path fill="#EA4335" d="M5.26 9.77A7.09 7.09 0 0 1 12 4.91c1.69 0 3.21.6 4.41 1.57l3.3-3.3A11.97 11.97 0 0 0 12 0C7.39 0 3.38 2.67 1.3 6.58l3.96 3.19Z"/>
-                                <path fill="#34A853" d="M16.04 18.01A7.1 7.1 0 0 1 12 19.09c-2.93 0-5.44-1.77-6.65-4.33L1.3 17.95A12 12 0 0 0 12 24c3.25 0 6.28-1.18 8.57-3.1l-4.53-2.89Z"/>
-                                <path fill="#4A90D9" d="M23.76 12.27c0-.82-.07-1.62-.2-2.39H12v4.63h6.6a5.67 5.67 0 0 1-2.42 3.69l4.53 2.89c2.64-2.44 4.05-6.04 4.05-10.82Z"/>
-                                <path fill="#FBBC05" d="M5.35 14.76A7.1 7.1 0 0 1 4.91 12c0-.96.17-1.89.44-2.77L1.3 6.04A12.03 12.03 0 0 0 0 12c0 1.94.46 3.77 1.3 5.39l4.05-2.63Z"/>
-                            </svg>
-                            Continuer avec Google
-                        </button>
-
-                        <button type="button" className="btn-oauth" disabled={processing}
                                 onClick={() => handleOAuth('microsoft')}>
                             <svg width="16" height="16" viewBox="0 0 23 23">
                                 <rect x="0"    y="0"    width="10.5" height="10.5" fill="#F25022"/>
