@@ -29,7 +29,7 @@
         </svg>
         <div>
             <div class="header-title">NSIA TRANSPORT</div>
-            <div class="header-sub">Plateforme de certificats d'assurance</div>
+            <div class="header-sub">Plateforme d'émission de certificats d'Assurance</div>
         </div>
     </div>
 
@@ -57,7 +57,7 @@
     </div>
 
     <div class="footer">
-        NSIA Assurances Transport — Groupe NSIA<br/>
+        NSIA Holding Assurances<br/>
         Vous recevez cet email car vous êtes membre de la plateforme.<br/>
         © {{ date('Y') }} NSIA Transport. Tous droits réservés.
     </div>

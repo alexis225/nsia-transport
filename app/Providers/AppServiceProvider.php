@@ -22,7 +22,15 @@ class AppServiceProvider extends ServiceProvider
 
         // ── Super admin bypass ────────────────────────────────
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('super_admin') ? true : null;
+            if($user->hasRole('super_admin')){
+                return true;
+            }
+
+            if (\App\Models\UserRoleGrant::hasGrantedPermission($user, $ability)) {
+                return true;
+            }
+
+            return null;
         });
 
         // ── Microsoft Socialite provider ──────────────────────

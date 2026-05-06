@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CertificateController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
 use App\Http\Controllers\Admin\ContractAmendmentController;
 use App\Http\Controllers\Admin\ContractLimitController;
+use App\Http\Controllers\Admin\DelegationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InsuranceContractController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -54,6 +55,7 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
         Route::patch('/{amendment}/reject',[ContractAmendmentController::class, 'reject'])->middleware('permission:contracts.validate')->name('reject');
     });
   
+    //Approval Workflow
     Route::prefix('admin/approvals')->name('admin.approvals.')->group(function () {
         Route::get('/',[ApprovalWorkflowController::class, 'index'])->name('index');
         Route::get('/{workflow}',[ApprovalWorkflowController::class, 'show'])->name('show');
@@ -61,6 +63,11 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
         Route::patch('/{workflow}/reject',[ApprovalWorkflowController::class, 'reject'])->name('reject');
     });
 
+    Route::prefix('admin/delegations')->name('admin.delegations.')->group(function () {
+        Route::get('/',                [DelegationController::class, 'index'])->name('index');
+        Route::post('/',               [DelegationController::class, 'store'])->name('store');
+        Route::patch('/{grant}/revoke',[DelegationController::class, 'revoke'])->name('revoke');
+    });
     // Page tableau de bord plafonds multi-contrats
     Route::get('/contracts/limits',[ContractLimitController::class, 'index'])->middleware('permission:contracts.view')->name('admin.contracts.limits');
     // API polling — état plafond d'un contrat

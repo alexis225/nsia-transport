@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { router } from '@inertiajs/react';
+import axios from 'axios';
 import {
     Bell, CheckCircle, XCircle, Clock,
     AlertTriangle, TrendingUp, Slash,
-    Check, Trash2, ExternalLink, X,
+    Check, ExternalLink, X,
 } from 'lucide-react';
 
 interface Notification {
@@ -26,23 +28,31 @@ const COLOR_STYLES = {
 };
 
 const ICON_MAP: Record<string, any> = {
-    'check-circle':  CheckCircle,
-    'x-circle':      XCircle,
-    'clock':         Clock,
-    'alert-triangle':AlertTriangle,
-    'trending-up':   TrendingUp,
-    'slash':         Slash,
-    'bell':          Bell,
+    'check-circle':   CheckCircle,
+    'x-circle':       XCircle,
+    'clock':          Clock,
+    'alert-triangle': AlertTriangle,
+    'trending-up':    TrendingUp,
+    'slash':          Slash,
+    'bell':           Bell,
 };
+
+function getCsrf(): string {
+    return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+}
 
 export default function NotificationBell() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount,   setUnreadCount]   = useState(0);
     const [open,          setOpen]          = useState(false);
     const [loading,       setLoading]       = useState(false);
-    const panelRef = useRef<HTMLDivElement>(null);
+    const panelRef     = useRef<HTMLDivElement>(null);
+    const lastActionAt = useRef<number>(0);
+    const GRACE_MS     = 10_000; // 10s de grâce après toute action
 
-    const fetchNotifications = async () => {
+    // ── Fetch notifications ───────────────────────────────────
+    const fetchNotifications = async (force = false) => {
+        if (!force && Date.now() - lastActionAt.current < GRACE_MS) return;
         try {
             const res = await fetch('/admin/notifications', {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -55,14 +65,14 @@ export default function NotificationBell() {
         } catch {}
     };
 
-    // Polling toutes les 30 secondes
+    // Polling toutes les 30s
     useEffect(() => {
-        fetchNotifications();
-        const interval = setInterval(fetchNotifications, 30_000);
+        fetchNotifications(true);
+        const interval = setInterval(() => fetchNotifications(), 30_000);
         return () => clearInterval(interval);
     }, []);
 
-    // Fermer le panel au clic extérieur
+    // Fermer au clic extérieur
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -73,42 +83,63 @@ export default function NotificationBell() {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
+    // ── markRead ──────────────────────────────────────────────
     const markRead = async (id: string) => {
-        await fetch(`/admin/notifications/${id}/read`, {
-            method: 'PATCH',
-            headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
-        });
+        lastActionAt.current = Date.now();
+
+        // 1. Optimistic update immédiat
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
         setUnreadCount(prev => Math.max(0, prev - 1));
+
+        // 2. PATCH serveur — await pour s'assurer que c'est persisté
+        try {
+            await axios.patch(`/admin/notifications/${id}/read`);
+        } catch {}
     };
 
+    // ── markAllRead ───────────────────────────────────────────
     const markAllRead = async () => {
         setLoading(true);
-        await fetch('/admin/notifications/read-all', {
-            method: 'PATCH',
-            headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
-        });
+        lastActionAt.current = Date.now();
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         setUnreadCount(0);
+        try {
+            await axios.patch('/admin/notifications/read-all');
+        } catch {}
         setLoading(false);
     };
 
+    // ── deleteNotif ───────────────────────────────────────────
     const deleteNotif = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        await fetch(`/admin/notifications/${id}`, {
-            method: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
-        });
+        lastActionAt.current = Date.now();
+        const was = notifications.find(n => n.id === id);
         setNotifications(prev => prev.filter(n => n.id !== id));
-        setUnreadCount(prev => {
-            const was = notifications.find(n => n.id === id);
-            return was && !was.read ? Math.max(0, prev - 1) : prev;
-        });
+        if (was && !was.read) setUnreadCount(prev => Math.max(0, prev - 1));
+        try {
+            await axios.delete(`/admin/notifications/${id}`);
+        } catch {}
     };
 
-    const handleClick = (notif: Notification) => {
-        if (!notif.read) markRead(notif.id);
-        if (notif.url) window.location.href = notif.url;
+    // ── handleClick ───────────────────────────────────────────
+    const handleClick = async (notif: Notification) => {
+        // 1. Marquer comme lu et attendre la confirmation serveur
+        if (!notif.read) {
+            await markRead(notif.id);
+        }
+
+        // 2. Fermer le panel
+        setOpen(false);
+
+        // 3. Naviguer — après que le PATCH soit confirmé
+        if (notif.url) {
+            // router.visit = navigation Inertia sans full reload
+            // preserveState = garde le composant NotificationBell monté
+            router.visit(notif.url, {
+                preserveScroll: true,
+                preserveState: false, // recharger les props Inertia de la page cible
+            });
+        }
     };
 
     return (
@@ -165,7 +196,7 @@ export default function NotificationBell() {
                     zIndex: 100,
                     overflow: 'hidden',
                 }}>
-                    {/* Header panel */}
+                    {/* Header */}
                     <div style={{
                         padding: '12px 16px',
                         borderBottom: '1px solid rgba(255,255,255,0.15)',
@@ -200,7 +231,7 @@ export default function NotificationBell() {
                     {/* Liste */}
                     <div style={{ maxHeight: 420, overflowY: 'auto' }}>
                         {notifications.length === 0 ? (
-                            <div style={{ padding: '32px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 13, background: '#1e3a8a' }}>
+                            <div style={{ padding: '32px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
                                 <Bell size={28} style={{ opacity: .3, marginBottom: 8 }}/>
                                 <div>Aucune notification</div>
                             </div>
@@ -219,7 +250,6 @@ export default function NotificationBell() {
                                          background: notif.read ? 'transparent' : 'rgba(255,255,255,0.08)',
                                          transition: 'background .13s',
                                      }}>
-                                    {/* Icône */}
                                     <div style={{
                                         width: 32, height: 32, borderRadius: 8, flexShrink: 0,
                                         background: cs.bg, border: `1px solid ${cs.border}`,
@@ -228,10 +258,9 @@ export default function NotificationBell() {
                                         <IconComp size={14} color={cs.dot}/>
                                     </div>
 
-                                    {/* Contenu */}
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
-                                            <div style={{ fontSize: 12, fontWeight: notif.read ? 400 : 600, color: 'var(--color-text-primary)', lineHeight: 1.4 }}>
+                                            <div style={{ fontSize: 12, fontWeight: notif.read ? 400 : 600, color: '#fff', lineHeight: 1.4 }}>
                                                 {notif.title}
                                                 {!notif.read && (
                                                     <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: cs.dot, marginLeft: 5, verticalAlign: 'middle' }}/>
@@ -270,8 +299,4 @@ export default function NotificationBell() {
             )}
         </div>
     );
-}
-
-function getCsrf(): string {
-    return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
 }

@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+
+class DelegationExpiryCheck extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'nsia:check-delegations';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Notifie les délégations de rôle arrivées à échéance';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
+    {
+        $count = $service->expireOverdue();
+        $this->info("{$count} délégation(s) expirée(s) traitée(s).");
+    }
+}

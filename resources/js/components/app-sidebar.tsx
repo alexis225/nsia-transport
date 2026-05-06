@@ -3,7 +3,7 @@ import {
     Award, Briefcase, Building2,
     ClipboardList, Database, FileBadge,
     FileText, LayoutDashboard, Settings,
-    Shield, Users, TrendingUp,
+    Shield, Users, TrendingUp,UserCheck 
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -135,7 +135,11 @@ export function AppSidebar() {
             href:  route('admin.approvals.index'),
             icon:  TrendingUp,
         }] : []),
-        
+        ...(isSA() || isAdminFiliale() ? [{ 
+            title: 'Délégations', 
+            href: route('admin.delegations.index'), 
+            icon: UserCheck 
+         }] : []),
 
         // ...(can('reports.view') ? [{
         //     title: 'Rapports',

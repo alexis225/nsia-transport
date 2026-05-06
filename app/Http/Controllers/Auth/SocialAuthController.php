@@ -97,6 +97,8 @@ class SocialAuthController extends Controller
                 'timezone'          => 'Africa/Abidjan'
             ]);
 
+            $user->assignRole("client");
+
             AuditLog::create([
                 'tenant_id'      => null,
                 'user_id'        => $user->id,
@@ -107,6 +109,7 @@ class SocialAuthController extends Controller
                 'user_agent'     => $request->userAgent(),
                 'new_data'       => ['provider' => $provider, 'email' => $user->email],
             ]);
+            
         }
 
         // ── Compte désactivé ─────────────────────────────────
@@ -144,7 +147,7 @@ class SocialAuthController extends Controller
             'new_data'       => ['provider' => $provider],
         ]);
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     private function validateProvider(string $provider): void
