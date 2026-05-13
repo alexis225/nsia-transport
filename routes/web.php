@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\MfaSetupController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Admin\CertificateVerifyController;
+use App\Http\Controllers\Admin\NotificationCenterController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,19 +33,33 @@ Route::get('/', function () {
 // ── Route publique de vérification (sans auth) ────────────────
 Route::get('/verify/{token}', [CertificateVerifyController::class, 'show'])->name('certificate.verify')->where('token', '[a-zA-Z0-9]+');
 
-Route::middleware(['auth'])->prefix('admin/notifications')->group(function () {
-    // Liste + compteur non lus (polled toutes les 30s)
-    Route::get('/', [NotificationController::class, 'index'])->name('admin.notifications.index');
-    // Marquer toutes comme lues
-    Route::patch('/read-all', [NotificationController::class, 'markAllRead'])->name('admin.notifications.read-all');
-    // Marquer une comme lue
-    Route::patch('/{id}/read', [NotificationController::class, 'markRead'])->name('admin.notifications.read');
-    // Supprimer une notification
-    Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('admin.notifications.destroy');
-});
+
 
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
+    
+    Route::prefix('admin/notifications/feed')->name('admin.notifications.feed.')->group(function () {
+        // Liste + compteur non lus (polled toutes les 30s)
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        // Marquer toutes comme lues
+        Route::patch('/read-all', [NotificationController::class, 'markAllRead'])->name('markAllRead');
+        // Marquer une comme lue
+        Route::patch('/{id}/read', [NotificationController::class, 'markRead'])->name('markRead');
+        // Supprimer une notification
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('admin/notifications')->name('admin.notifications.')->group(function () {
+       
+            Route::get('/',[NotificationCenterController::class, 'index'])->name('index');
+                // GET /admin/notifications
+            Route::patch('/mark-all-read',[NotificationCenterController::class, 'markAllRead'])->name('markAllRead');
+                // PATCH /admin/notifications/mark-all-read
+            Route::delete('/clear-read',[NotificationCenterController::class, 'clearRead'])->name('clearRead');
+            // DELETE /admin/notifications/clear-read
+            Route::post('/preferences',[NotificationCenterController::class, 'savePreferences'])->name('preferences');
+
+    });
     Route::prefix('admin/contracts/{contract}/amendments')->name('admin.contracts.amendments.')->group(function () {
         Route::get('/',[ContractAmendmentController::class, 'index'])->middleware('permission:contracts.view')->name('index');
         Route::get('/create',[ContractAmendmentController::class, 'create'])->middleware('permission:contracts.edit')->name('create');

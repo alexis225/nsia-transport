@@ -3,7 +3,8 @@ import {
     Award, Briefcase, Building2,
     ClipboardList, Database, FileBadge,
     FileText, LayoutDashboard, Settings,
-    Shield, Users, TrendingUp,UserCheck 
+    Shield, Users, TrendingUp,UserCheck, 
+    Bell
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -152,6 +153,11 @@ export function AppSidebar() {
         //         ...(can('reports.contracts')         ? [{ title: 'Contrats',           href: route('admin.reports.contracts') }]    : []),
         //     ],
         // }] : []),
+        {
+            title: 'Notifications',
+            href:  route('admin.notifications.index'),
+            icon:  Bell,
+        },
         // ── Audit Logs ─────────────────────────────────────────
         ...(can('audit_logs.view') ? [{
             title: 'Audit Logs',
