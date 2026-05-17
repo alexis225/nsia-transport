@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide Utilisateur — NSIA Transport</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.65; }
+
+  /* ── Variables ── */
+  :root {
+    --nsia-blue: #003580;
+    --nsia-orange: #e8591a;
+    --nsia-light: #f0f4ff;
+    --nsia-gray: #f5f6fa;
+    --border: #d1d9e6;
+    --text-muted: #5a6a8a;
+    --success: #16a34a;
+    --warning: #d97706;
+  }
+
+  /* ── Print ── */
+  @media print {
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+    body { font-size: 13px; }
+    .cover { height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    .card { break-inside: avoid; }
+  }
+
+  /* ── Navigation fixe ── */
+  .toc-sidebar {
+    position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
+    background: var(--nsia-blue); color: #fff; overflow-y: auto;
+    padding: 20px 0; z-index: 100;
+  }
+  .toc-sidebar h3 { padding: 0 18px 12px; font-size: .8rem; letter-spacing: .1em;
+    text-transform: uppercase; color: rgba(255,255,255,.5); border-bottom: 1px solid rgba(255,255,255,.1); }
+  .toc-sidebar a { display: block; padding: 7px 18px; color: rgba(255,255,255,.8);
+    text-decoration: none; font-size: .82rem; transition: all .15s; }
+  .toc-sidebar a:hover { background: rgba(255,255,255,.1); color: #fff; padding-left: 24px; }
+  .toc-sidebar .toc-section { padding: 4px 18px 2px; font-size: .72rem;
+    color: var(--nsia-orange); font-weight: 700; margin-top: 10px; text-transform: uppercase; }
+
+  /* ── Main content ── */
+  .main { margin-left: 220px; }
+  @media (max-width: 768px) { .toc-sidebar { display: none; } .main { margin-left: 0; } }
+
+  /* ── Cover ── */
+  .cover {
+    background: linear-gradient(135deg, var(--nsia-blue) 0%, #001f5c 60%, #0a0e2e 100%);
+    color: #fff; padding: 80px 60px; min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: rgba(232,89,26,.12); pointer-events: none;
+  }
+  .cover::after {
+    content: ''; position: absolute; bottom: -80px; left: 40%;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: rgba(255,255,255,.04); pointer-events: none;
+  }
+  .cover-badge {
+    display: inline-block; background: var(--nsia-orange); color: #fff;
+    padding: 5px 16px; border-radius: 20px; font-size: .78rem;
+    font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 28px;
+  }
+  .cover h1 { font-size: 3.2rem; font-weight: 800; line-height: 1.1; margin-bottom: 16px; }
+  .cover h1 span { color: var(--nsia-orange); }
+  .cover p.subtitle { font-size: 1.1rem; color: rgba(255,255,255,.7); max-width: 520px; margin-bottom: 50px; }
+  .cover-meta { display: flex; gap: 40px; flex-wrap: wrap; }
+  .cover-meta-item label { display: block; font-size: .72rem; color: rgba(255,255,255,.45);
+    text-transform: uppercase; letter-spacing: .1em; }
+  .cover-meta-item span { font-size: .95rem; font-weight: 600; }
+  .cover-logo { position: absolute; top: 40px; right: 60px;
+    font-size: 1.4rem; font-weight: 900; letter-spacing: .05em; }
+  .cover-logo span { color: var(--nsia-orange); }
+
+  /* ── Section ── */
+  .section { padding: 56px 60px; border-bottom: 1px solid var(--border); }
+  .section:nth-child(even) { background: #fafbfd; }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+  .section-icon { width: 46px; height: 46px; border-radius: 12px;
+    background: var(--nsia-blue); color: #fff; display: flex; align-items: center;
+    justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+  .section-icon.orange { background: var(--nsia-orange); }
+  .section-icon.green { background: var(--success); }
+  .section-icon.gold { background: #b45309; }
+  h2 { font-size: 1.55rem; font-weight: 800; color: var(--nsia-blue); }
+  h2 small { display: block; font-size: .8rem; font-weight: 400; color: var(--text-muted); margin-top: 2px; }
+  h3 { font-size: 1.05rem; font-weight: 700; color: var(--nsia-blue); margin: 28px 0 12px; }
+  h3::before { content: '▶'; color: var(--nsia-orange); margin-right: 8px; font-size: .7em; }
+
+  /* ── Cards grid ── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; margin: 20px 0; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 20px 0; }
+  .card {
+    border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+    background: #fff; position: relative; overflow: hidden;
+  }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: var(--nsia-blue); }
+  .card.orange::before { background: var(--nsia-orange); }
+  .card.green::before { background: var(--success); }
+  .card.gold::before { background: #b45309; }
+  .card h4 { font-size: .92rem; font-weight: 700; color: var(--nsia-blue); margin-bottom: 8px; }
+  .card p { font-size: .83rem; color: var(--text-muted); line-height: 1.55; }
+  .card ul { list-style: none; margin-top: 8px; }
+  .card ul li { font-size: .82rem; color: var(--text-muted); padding: 2px 0; }
+  .card ul li::before { content: '•'; color: var(--nsia-orange); margin-right: 6px; }
+
+  /* ── Tags US ── */
+  .us-tag { display: inline-block; background: var(--nsia-light); color: var(--nsia-blue);
+    border: 1px solid #c5d3f0; border-radius: 6px; font-size: .7rem;
+    font-weight: 700; padding: 2px 8px; margin: 0 4px 4px 0; }
+
+  /* ── Steps ── */
+  .steps { counter-reset: step; margin: 16px 0; }
+  .step { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+  .step-num { counter-increment: step; content: counter(step);
+    min-width: 28px; height: 28px; border-radius: 50%;
+    background: var(--nsia-blue); color: #fff; font-weight: 700;
+    font-size: .78rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-content { font-size: .88rem; color: #2d3748; padding-top: 4px; }
+  .step-content strong { color: var(--nsia-blue); }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .85rem; }
+  th { background: var(--nsia-blue); color: #fff; padding: 10px 14px; text-align: left; font-size: .8rem; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--nsia-gray); }
+  tr:hover td { background: var(--nsia-light); }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 12px;
+    font-size: .72rem; font-weight: 700; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-orange { background: #ffedd5; color: #c2410c; }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-gray { background: #f1f5f9; color: #475569; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+
+  /* ── Alert box ── */
+  .alert { border-radius: 10px; padding: 14px 18px; margin: 16px 0; font-size: .87rem; }
+  .alert-info { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+  .alert-warn { background: #fffbeb; border-left: 4px solid #f59e0b; color: #92400e; }
+  .alert-success { background: #f0fdf4; border-left: 4px solid #22c55e; color: #15803d; }
+  .alert strong { font-weight: 700; }
+
+  /* ── Role pill ── */
+  .role { display: inline-block; border-radius: 20px; padding: 3px 12px; font-size: .75rem;
+    font-weight: 700; margin: 2px; }
+  .role-super { background: #581c87; color: #fff; }
+  .role-admin { background: #1d4ed8; color: #fff; }
+  .role-sous { background: #0891b2; color: #fff; }
+  .role-courtier { background: #059669; color: #fff; }
+  .role-partenaire { background: #d97706; color: #fff; }
+  .role-client { background: #6b7280; color: #fff; }
+
+  /* ── Workflow diagram ── */
+  .workflow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .wf-node { background: #fff; border: 2px solid var(--nsia-blue); border-radius: 8px;
+    padding: 8px 14px; font-size: .8rem; font-weight: 600; color: var(--nsia-blue); }
+  .wf-node.draft { border-color: #94a3b8; color: #64748b; }
+  .wf-node.submitted { border-color: #d97706; color: #d97706; }
+  .wf-node.issued { border-color: var(--success); color: var(--success); }
+  .wf-node.cancelled { border-color: #dc2626; color: #dc2626; }
+  .wf-arrow { padding: 0 8px; color: #94a3b8; font-size: 1.1rem; }
+
+  /* ── Feature list ── */
+  .feat-list { margin: 12px 0; }
+  .feat-list li { display: flex; gap: 10px; padding: 6px 0;
+    border-bottom: 1px solid var(--border); font-size: .87rem; align-items: flex-start; }
+  .feat-list li:last-child { border-bottom: none; }
+  .feat-list .icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .feat-list .desc { color: #374151; }
+  .feat-list .desc strong { color: var(--nsia-blue); }
+
+  /* ── Footer ── */
+  .footer { background: var(--nsia-blue); color: rgba(255,255,255,.6);
+    text-align: center; padding: 30px; font-size: .82rem; }
+  .footer strong { color: #fff; }
+
+  /* ── Scroll to top ── */
+  .scroll-top { position: fixed; bottom: 24px; right: 24px; background: var(--nsia-orange);
+    color: #fff; border: none; width: 42px; height: 42px; border-radius: 50%;
+    font-size: 1.1rem; cursor: pointer; display: none; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 999; }
+  .scroll-top.visible { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="toc-sidebar no-print">
+  <h3>Navigation</h3>
+  <a href="#cover">🏠 Accueil</a>
+  <div class="toc-section">Compte</div>
+  <a href="#connexion">Connexion & MFA</a>
+  <a href="#roles">Rôles & Permissions</a>
+  <a href="#users">Utilisateurs</a>
+  <div class="toc-section">Organisation</div>
+  <a href="#filiales">Filiales</a>
+  <a href="#referentiels">Référentiels</a>
+  <a href="#intermediaires">Intermédiaires</a>
+  <div class="toc-section">Activité</div>
+  <a href="#contrats">Contrats</a>
+  <a href="#certificats">Certificats</a>
+  <a href="#workflow">Workflow</a>
+  <a href="#commissions">Commissions</a>
+  <div class="toc-section">Pilotage</div>
+  <a href="#dashboard">Tableaux de bord</a>
+  <a href="#rapports">Rapports</a>
+  <a href="#export">Exports</a>
+  <div class="toc-section">Sécurité</div>
+  <a href="#securite">Sécurité & Audit</a>
+  <a href="#administration">Administration</a>
+</nav>
+
+<div class="main">
+
+<!-- ═══════════════ COVER ═══════════════ -->
+<section class="cover" id="cover">
+  <div class="cover-logo">NSIA <span>GROUPE</span></div>
+  <div class="cover-badge">Guide Utilisateur — Version 1.0</div>
+  <h1>NSIA <span>Transport</span><br>Certificats</h1>
+  <p class="subtitle">Plateforme d'émission et de gestion des certificats d'assurance transport — Groupe NSIA (12 pays d'Afrique)</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <label>Version</label>
+      <span>1.0 — Sprint 6</span>
+    </div>
+    <div class="cover-meta-item">
+      <label>Date</label>
+      <span>Mai 2026</span>
+    </div>
+    <div class="cover-meta-item">
+      <label>User Stories couvertes</label>
+      <span>US-001 → US-059</span>
+    </div>
+    <div class="cover-meta-item">
+      <label>Pays</label>
+      <span>12 filiales Afrique</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 1. CONNEXION & MFA ═══════════════ -->
+<section class="section" id="connexion">
+  <div class="section-header">
+    <div class="section-icon">🔐</div>
+    <h2>Connexion & Authentification<small><span class="us-tag">US-001</span><span class="us-tag">US-002</span><span class="us-tag">US-003</span></small></h2>
+  </div>
+
+  <h3>Se connecter à la plateforme</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-content">Accédez à l'URL de votre filiale et saisissez votre <strong>adresse email</strong> et votre <strong>mot de passe</strong>.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content">Si la double authentification est activée, saisissez le <strong>code TOTP à 6 chiffres</strong> généré par votre application (Google Authenticator, Authy).</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content">Vous êtes redirigé vers votre <strong>tableau de bord</strong>.</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>🛡️ Authentification à deux facteurs (MFA)</h4>
+      <p>Activez le MFA depuis <strong>Paramètres → Sécurité → Authentification à deux facteurs</strong>. Scannez le QR code avec Google Authenticator. Conservez vos 8 codes de secours.</p>
+      <ul>
+        <li>Réactivation possible à tout moment</li>
+        <li>Codes de récupération régénérables</li>
+        <li>Audit log créé à chaque activation/désactivation</li>
+      </ul>
+    </div>
+    <div class="card orange">
+      <h4>🔒 Sécurité du compte</h4>
+      <p>Le compte est verrouillé automatiquement après <strong>5 tentatives échouées</strong> pendant 30 minutes.</p>
+      <ul>
+        <li>Compte désactivé → contact administrateur</li>
+        <li>Connexion Microsoft (SSO Azure AD)</li>
+        <li>Session expirée → reconnexion requise</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Connexion Microsoft :</strong> Cliquez sur « Continuer avec Microsoft » pour vous connecter avec votre compte professionnel NSIA. Aucun mot de passe supplémentaire requis.
+  </div>
+</section>
+
+<!-- ═══════════════ 2. RÔLES ═══════════════ -->
+<section class="section" id="roles">
+  <div class="section-header">
+    <div class="section-icon orange">👥</div>
+    <h2>Rôles & Permissions<small><span class="us-tag">US-004</span><span class="us-tag">US-005</span></small></h2>
+  </div>
+
+  <p style="margin-bottom:20px;color:var(--text-muted)">La plateforme définit <strong>6 rôles</strong> avec des périmètres d'action distincts. Chaque utilisateur n'accède qu'aux données de sa filiale.</p>
+
+  <table>
+    <thead>
+      <tr><th>Rôle</th><th>Profil</th><th>Périmètre</th><th>Actions principales</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="role role-super">SUPER_ADMIN</span></td>
+        <td>Direction DTAG</td>
+        <td>Toutes filiales</td>
+        <td>Administration globale, dashboard consolidé, IP blacklist</td>
+      </tr>
+      <tr>
+        <td><span class="role role-admin">Admin Filiale</span></td>
+        <td>Responsable IT/Ops</td>
+        <td>Sa filiale</td>
+        <td>Gestion utilisateurs, contrats, validation, paramétrage commissions</td>
+      </tr>
+      <tr>
+        <td><span class="role role-sous">Souscripteur</span></td>
+        <td>Chargé de souscription</td>
+        <td>Sa filiale</td>
+        <td>Créer, soumettre, valider, émettre des certificats</td>
+      </tr>
+      <tr>
+        <td><span class="role role-courtier">Courtier Local</span></td>
+        <td>Courtier partenaire</td>
+        <td>Ses contrats</td>
+        <td>Créer et soumettre des certificats, voir ses commissions</td>
+      </tr>
+      <tr>
+        <td><span class="role role-partenaire">Partenaire Étranger</span></td>
+        <td>Correspondant international</td>
+        <td>Limité</td>
+        <td>Consultation certificats, téléchargement PDF</td>
+      </tr>
+      <tr>
+        <td><span class="role role-client">Client</span></td>
+        <td>Assuré</td>
+        <td>Ses propres polices</td>
+        <td>Consultation et téléchargement de ses certificats</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-warn">
+    <strong>Délégation temporaire :</strong> Un admin filiale peut déléguer son rôle à un autre utilisateur pour une période définie (congé, mission). La délégation expire automatiquement.
+  </div>
+</section>
+
+<!-- ═══════════════ 3. UTILISATEURS ═══════════════ -->
+<section class="section" id="users">
+  <div class="section-header">
+    <div class="section-icon">👤</div>
+    <h2>Gestion des Utilisateurs<small><span class="us-tag">US-006</span><span class="us-tag">US-007</span></small></h2>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h4>➕ Créer un utilisateur</h4>
+      <p>Menu <strong>Administration → Utilisateurs → Nouveau</strong></p>
+      <ul>
+        <li>Prénom, Nom, Email</li>
+        <li>Rôle et filiale d'appartenance</li>
+        <li>Email de bienvenue envoyé automatiquement</li>
+      </ul>
+    </div>
+    <div class="card orange">
+      <h4>🔒 Bloquer / Débloquer</h4>
+      <p>Un <strong>Admin Filiale</strong> peut bloquer un utilisateur de sa filiale (sauf super_admin).</p>
+      <ul>
+        <li>Raison obligatoire à saisir</li>
+        <li>Sessions actives coupées immédiatement</li>
+        <li>Seul le super_admin peut débloquer</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>🔑 Réinitialiser le mot de passe</h4>
+      <p>Via <strong>Mot de passe oublié</strong> sur la page de connexion. Un email avec un lien sécurisé (valable 60 min) est envoyé.</p>
+    </div>
+  </div>
+
+  <h3>Profil utilisateur</h3>
+  <ul class="feat-list">
+    <li><div class="icon">📷</div><div class="desc"><strong>Avatar :</strong> Téléchargez une photo de profil (JPG/PNG/WebP, max 2 Mo) depuis Paramètres → Profil.</div></li>
+    <li><div class="icon">🌍</div><div class="desc"><strong>Langue & Fuseau :</strong> Configurez votre langue et fuseau horaire préféré.</div></li>
+    <li><div class="icon">🌙</div><div class="desc"><strong>Mode sombre :</strong> Activez le thème sombre depuis le bouton de bascule en haut à droite.</div></li>
+  </ul>
+</section>
+
+<!-- ═══════════════ 4. FILIALES ═══════════════ -->
+<section class="section" id="filiales">
+  <div class="section-header">
+    <div class="section-icon orange">🏢</div>
+    <h2>Filiales & Organisation<small><span class="us-tag">US-008</span><span class="us-tag">US-009</span><span class="us-tag">US-010</span><span class="us-tag">US-011</span></small></h2>
+  </div>
+
+  <p style="margin-bottom:20px;color:var(--text-muted)">Le Groupe NSIA opère via <strong>12 filiales</strong> en Afrique. Chaque filiale (tenant) est totalement isolée : ses utilisateurs, contrats et certificats ne sont jamais visibles par une autre filiale.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>🔒 Isolation des données</h4>
+      <p>Le <strong>Row Level Security PostgreSQL</strong> garantit que chaque requête est automatiquement filtrée par filiale. Aucun accès croisé n'est possible, même en cas d'erreur applicative.</p>
+    </div>
+    <div class="card orange">
+      <h4>🌐 Multi-devises & Référentiels</h4>
+      <p>Chaque filiale paramètre ses propres devises (XOF, USD, EUR…), pays, incoterms et modes de transport. Le référentiel est partagé au niveau groupe mais configurable localement.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-success">
+    <strong>Super Admin DTAG :</strong> Le compte Direction Technique possède une vue consolidée de toutes les filiales sans restriction de tenant.
+  </div>
+</section>
+
+<!-- ═══════════════ 5. RÉFÉRENTIELS ═══════════════ -->
+<section class="section" id="referentiels">
+  <div class="section-header">
+    <div class="section-icon green">📋</div>
+    <h2>Référentiels<small><span class="us-tag">US-012</span><span class="us-tag">US-013</span></small></h2>
+  </div>
+
+  <div class="grid">
+    <div class="card green">
+      <h4>🌍 Pays & Incoterms</h4>
+      <ul>
+        <li>Pays d'origine et de destination</li>
+        <li>Incoterms internationaux (FOB, CIF, EXW…)</li>
+        <li>Configuration par l'Admin Filiale</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>🚢 Modes de transport</h4>
+      <ul>
+        <li>Maritime (SEA)</li>
+        <li>Aérien (AIR)</li>
+        <li>Terrestre (ROAD)</li>
+        <li>Multimodal (MULTIMODAL)</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>📦 Catégories marchandises</h4>
+      <ul>
+        <li>Alimentation, électronique, matières premières…</li>
+        <li>Taux spécifiques par catégorie</li>
+        <li>Personnalisable par filiale</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 6. INTERMÉDIAIRES ═══════════════ -->
+<section class="section" id="intermediaires">
+  <div class="section-header">
+    <div class="section-icon">🤝</div>
+    <h2>Intermédiaires<small><span class="us-tag">US-014</span><span class="us-tag">US-041</span><span class="us-tag">US-042</span></small></h2>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Type</th><th>Rôle</th><th>Actions disponibles</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Courtier Local</strong></td>
+        <td>Apporteur d'affaires enregistré</td>
+        <td>Créer des certificats, suivre ses commissions, voir ses contrats</td>
+      </tr>
+      <tr>
+        <td><strong>Coassureur</strong></td>
+        <td>Compagnie partageant le risque</td>
+        <td>Défini sur le contrat, part de coassurance en %</td>
+      </tr>
+      <tr>
+        <td><strong>Expert</strong></td>
+        <td>Expert en sinistres mandaté</td>
+        <td>Assigné au dossier, rapport d'expertise</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Rapport intermédiaires (3 onglets)</h3>
+  <p>Depuis <strong>Rapports → Intermédiaires</strong>, accédez à trois tableaux séparés : <strong>Courtiers</strong>, <strong>Coassureurs</strong>, <strong>Experts</strong> — avec volumes, primes et commissions par période.</p>
+</section>
+
+<!-- ═══════════════ 7. CONTRATS ═══════════════ -->
+<section class="section page-break" id="contrats">
+  <div class="section-header">
+    <div class="section-icon orange">📄</div>
+    <h2>Contrats d'Assurance<small><span class="us-tag">US-015</span><span class="us-tag">US-016</span><span class="us-tag">US-045</span></small></h2>
+  </div>
+
+  <p style="margin-bottom:20px;color:var(--text-muted)">Un <strong>contrat</strong> est le cadre juridique sous lequel sont émis les certificats. Chaque certificat est obligatoirement rattaché à un contrat actif.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>📋 Informations du contrat</h4>
+      <ul>
+        <li>Numéro de police unique</li>
+        <li>Assuré (nom, adresse, téléphone)</li>
+        <li>Période de validité (début / fin)</li>
+        <li>Garanties : valeur max assurée, franchise</li>
+        <li>Courtier associé (optionnel)</li>
+        <li>Coassureurs (optionnel)</li>
+      </ul>
+    </div>
+    <div class="card orange">
+      <h4>📊 Statuts du contrat</h4>
+      <ul>
+        <li><span class="badge badge-blue">DRAFT</span> En cours de rédaction</li>
+        <li><span class="badge badge-green">ACTIVE</span> En vigueur</li>
+        <li><span class="badge badge-gray">SUSPENDED</span> Suspendu temporairement</li>
+        <li><span class="badge badge-red">CANCELLED</span> Résilié</li>
+        <li><span class="badge badge-orange">EXPIRED</span> Échu</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>🔔 Alertes expiration</h4>
+      <p>Le système envoie automatiquement des alertes <strong>30, 15 et 7 jours</strong> avant l'expiration d'un contrat. Notifications dans l'interface et par email.</p>
+    </div>
+  </div>
+
+  <h3>Rapport des contrats</h3>
+  <p>Menu <strong>Rapports → Contrats</strong> — Tableau des contrats filtrables par statut, courtier, période. Export Excel disponible.</p>
+</section>
+
+<!-- ═══════════════ 8. CERTIFICATS ═══════════════ -->
+<section class="section" id="certificats">
+  <div class="section-header">
+    <div class="section-icon">📜</div>
+    <h2>Certificats de Transport<small><span class="us-tag">US-017</span><span class="us-tag">US-018</span><span class="us-tag">US-019</span><span class="us-tag">US-020</span><span class="us-tag">US-021</span></small></h2>
+  </div>
+
+  <h3>Créer un certificat</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-content">Allez dans <strong>Certificats → Nouveau certificat</strong> et sélectionnez le contrat d'assurance actif.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content">Renseignez les informations du voyage : <strong>origine → destination, date, mode de transport, marchandise.</strong></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content">Saisissez la <strong>valeur assurée, la prime totale</strong> et la devise applicable.</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-content">Enregistrez en <strong>Brouillon</strong> ou soumettez directement à la validation.</div></div>
+  </div>
+
+  <h3>Cycle de vie d'un certificat</h3>
+  <div class="workflow">
+    <div class="wf-node draft">DRAFT<br><small>Brouillon</small></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node submitted">SUBMITTED<br><small>Soumis</small></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">VALIDATED<br><small>Validé</small></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node issued">ISSUED<br><small>Émis ✓</small></div>
+    <div class="wf-arrow">|</div>
+    <div class="wf-node cancelled">CANCELLED<br><small>Annulé</small></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h4>📥 Télécharger le PDF</h4>
+      <p>Tout certificat émis génère un <strong>PDF avec QR code</strong> de vérification. Le QR code pointe vers la page de vérification publique du certificat.</p>
+      <ul>
+        <li>PDF au format standard assurance transport</li>
+        <li>Numérotation séquentielle automatique</li>
+        <li>Archivage immédiat sur le serveur</li>
+      </ul>
+    </div>
+    <div class="card orange">
+      <h4>♻️ Dupliquer un certificat</h4>
+      <p>Cliquez sur <strong>Dupliquer</strong> depuis un certificat existant pour pré-remplir un nouveau formulaire avec les mêmes données (contrat, assuré, route).</p>
+    </div>
+    <div class="card green">
+      <h4>✏️ Amender un certificat</h4>
+      <p>Un certificat émis peut être amendé (modification de valeur, de date). L'amendement crée une <strong>nouvelle version</strong> et garde l'historique de l'original.</p>
+    </div>
+  </div>
+
+  <h3>Recherche avancée de certificats <span class="us-tag">US-055</span></h3>
+  <p>Depuis <strong>Certificats → Recherche avancée</strong>, filtrez sur <strong>14 critères</strong> :</p>
+  <div class="grid">
+    <div class="card">
+      <ul>
+        <li>Numéro de certificat</li>
+        <li>Statut (DRAFT / SUBMITTED / ISSUED…)</li>
+        <li>Période d'émission (du / au)</li>
+        <li>Contrat de rattachement</li>
+        <li>Courtier émetteur</li>
+        <li>Assuré (nom)</li>
+        <li>Mode de transport</li>
+      </ul>
+    </div>
+    <div class="card">
+      <ul>
+        <li>Devise</li>
+        <li>Valeur assurée (min / max)</li>
+        <li>Origine / Destination</li>
+        <li>Date de voyage</li>
+        <li>Catégorie de marchandise</li>
+        <li>Incoterm</li>
+        <li>Présence QR code</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 9. WORKFLOW ═══════════════ -->
+<section class="section page-break" id="workflow">
+  <div class="section-header">
+    <div class="section-icon orange">⚙️</div>
+    <h2>Workflow de Validation<small><span class="us-tag">US-025</span><span class="us-tag">US-026</span><span class="us-tag">US-035</span><span class="us-tag">US-036</span><span class="us-tag">US-037</span><span class="us-tag">US-038</span><span class="us-tag">US-039</span><span class="us-tag">US-040</span></small></h2>
+  </div>
+
+  <h3>Circuit de validation standard</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-content"><strong>Soumission :</strong> Le courtier ou souscripteur soumet le certificat (statut → SUBMITTED).</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content"><strong>Approbation N+1 :</strong> Le souscripteur reçoit une notification et approuve ou rejette. En cas de rejet, le motif est notifié à l'émetteur.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content"><strong>Émission :</strong> Le certificat validé passe au statut ISSUED. Le PDF est généré automatiquement.</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card orange">
+      <h4>🚨 Escalade NN300</h4>
+      <p>Si la valeur assurée dépasse le seuil configuré (par défaut <strong>15% de la valeur du contrat</strong>), une approbation supplémentaire du niveau supérieur est déclenchée automatiquement.</p>
+      <ul>
+        <li>Seuil configurable par contrat</li>
+        <li>Notification automatique au responsable</li>
+        <li>Délai de réponse suivi (vérification horaire)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🔄 Délégation de validation</h4>
+      <p>Un valideur peut déléguer son droit de validation à un collègue pour une période définie (ex. congé).</p>
+      <ul>
+        <li>Délégation par rôle entier</li>
+        <li>Date d'expiration obligatoire</li>
+        <li>Alerte 48h avant expiration</li>
+        <li>Révocable à tout moment</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Tableau de bord des approbations</h3>
+  <p>Depuis <strong>Tableau de bord → En attente</strong> ou <strong>Approbations</strong>, visualisez tous les certificats en attente de votre validation, classés par ancienneté.</p>
+</section>
+
+<!-- ═══════════════ 10. COMMISSIONS ═══════════════ -->
+<section class="section" id="commissions">
+  <div class="section-header">
+    <div class="section-icon gold">💰</div>
+    <h2>Commissions Courtiers<small><span class="us-tag">US-029</span><span class="us-tag">US-030</span></small></h2>
+  </div>
+
+  <p style="margin-bottom:20px;color:var(--text-muted)">Les commissions sont calculées <strong>automatiquement</strong> lors de l'émission d'un certificat rattaché à un courtier.</p>
+
+  <div class="grid">
+    <div class="card gold">
+      <h4>📐 Règles de calcul</h4>
+      <ul>
+        <li>Taux applicable : contrat > courtier (priorité)</li>
+        <li>Base de calcul : prime totale ou valeur assurée</li>
+        <li>Montant minimum / maximum configurable</li>
+        <li>Période de validité de la règle</li>
+      </ul>
+    </div>
+    <div class="card gold">
+      <h4>📊 Bordereau de commissions</h4>
+      <p>Depuis <strong>Commissions → Bordereau</strong>, consultez le récapitulatif mensuel des commissions dues par courtier.</p>
+      <ul>
+        <li>Filtrable par courtier, période</li>
+        <li>Export Excel</li>
+        <li>Statuts : PENDING / PAID / CANCELLED</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Annulation :</strong> Si un certificat est annulé, la commission associée est automatiquement passée en statut CANCELLED.
+  </div>
+</section>
+
+<!-- ═══════════════ 11. TABLEAUX DE BORD ═══════════════ -->
+<section class="section page-break" id="dashboard">
+  <div class="section-header">
+    <div class="section-icon">📊</div>
+    <h2>Tableaux de Bord & KPIs<small><span class="us-tag">US-043</span><span class="us-tag">US-044</span><span class="us-tag">US-048</span><span class="us-tag">US-049</span></small></h2>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🏢 Dashboard Filiale <span class="us-tag">US-043</span></h4>
+      <ul>
+        <li>Certificats émis ce mois / ce trimestre</li>
+        <li>Primes encaissées (total)</li>
+        <li>Commissions versées aux courtiers</li>
+        <li>Contrats actifs / expirés ce mois</li>
+        <li>Top 5 courtiers par volume</li>
+        <li>Graphique tendance sur 12 mois</li>
+      </ul>
+    </div>
+    <div class="card orange">
+      <h4>🌍 Dashboard DTAG <span class="us-tag">US-048</span></h4>
+      <p>Réservé au <strong>Super Admin</strong>. Vue consolidée de toutes les filiales :</p>
+      <ul>
+        <li>Comparatif filiales (volume, primes)</li>
+        <li>Carte géographique Afrique</li>
+        <li>Alertes globales (contrats expirant)</li>
+        <li>Classement filiales par performance</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>⚡ KPIs automatiques <span class="us-tag">US-049</span></h4>
+      <p>Les indicateurs sont recalculés chaque nuit à <strong>06h00</strong> et mis en cache. L'affichage est instantané sans charge sur la base de données.</p>
+    </div>
+  </div>
+
+  <h3>Certificats en attente de validation</h3>
+  <p>La page <strong>Tableau de bord → En attente</strong> liste tous les certificats soumis nécessitant votre action, avec ancienneté et niveau d'urgence (escalade NN300 mis en surbrillance).</p>
+</section>
+
+<!-- ═══════════════ 12. RAPPORTS ═══════════════ -->
+<section class="section" id="rapports">
+  <div class="section-header">
+    <div class="section-icon orange">📈</div>
+    <h2>Rapports<small><span class="us-tag">US-044</span><span class="us-tag">US-045</span><span class="us-tag">US-046</span></small></h2>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Rapport</th><th>Menu</th><th>Filtres disponibles</th><th>Export</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Certificats par période</strong></td>
+        <td>Rapports → Certificats</td>
+        <td>Statut, mode transport, date, courtier</td>
+        <td><span class="badge badge-green">Excel</span> <span class="badge badge-blue">PDF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Contrats</strong></td>
+        <td>Rapports → Contrats</td>
+        <td>Statut, courtier, date d'expiration</td>
+        <td><span class="badge badge-green">Excel</span></td>
+      </tr>
+      <tr>
+        <td><strong>Intermédiaires</strong></td>
+        <td>Rapports → Intermédiaires</td>
+        <td>Type (3 onglets), période, filiale</td>
+        <td><span class="badge badge-green">Excel</span></td>
+      </tr>
+      <tr>
+        <td><strong>KPIs Filiale</strong></td>
+        <td>Dashboard → KPIs</td>
+        <td>Période, filiale (super_admin)</td>
+        <td><span class="badge badge-blue">Vue seule</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════ 13. EXPORT ═══════════════ -->
+<section class="section" id="export">
+  <div class="section-header">
+    <div class="section-icon green">📤</div>
+    <h2>Export Grands Volumes<small><span class="us-tag">US-047</span></small></h2>
+  </div>
+
+  <p style="margin-bottom:20px;color:var(--text-muted)">Pour les exports dépassant plusieurs milliers de lignes, le système utilise un <strong>export asynchrone</strong> qui traite les données en arrière-plan.</p>
+
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-content">Lancez l'export depuis <strong>Certificats → Exporter</strong> ou <strong>Exports → Nouveau</strong>. Le système accepte la demande et retourne immédiatement.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content">Suivez l'avancement dans <strong>Exports</strong> : statut <span class="badge badge-orange">QUEUED</span> → <span class="badge badge-blue">PROCESSING</span> → <span class="badge badge-green">COMPLETED</span>.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content">Une fois terminé, cliquez sur <strong>Télécharger</strong>. Le fichier CSV est disponible <strong>24 heures</strong> puis supprimé automatiquement.</div></div>
+  </div>
+
+  <div class="alert alert-warn">
+    <strong>Expiration :</strong> Les fichiers d'export expirent après 24 heures. Téléchargez-les rapidement après génération.
+  </div>
+</section>
+
+<!-- ═══════════════ 14. SÉCURITÉ ═══════════════ -->
+<section class="section page-break" id="securite">
+  <div class="section-header">
+    <div class="section-icon">🛡️</div>
+    <h2>Sécurité & Audit<small><span class="us-tag">US-022</span><span class="us-tag">US-023</span><span class="us-tag">US-050</span><span class="us-tag">US-051</span><span class="us-tag">US-052</span><span class="us-tag">US-053</span></small></h2>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h4>📋 Journal d'audit</h4>
+      <p>Toutes les actions sensibles sont tracées : connexion, émission de certificat, validation, blocage utilisateur, modification de données.</p>
+      <ul>
+        <li>Accessible depuis <strong>Audit → Journal</strong></li>
+        <li>Filtrable par action, utilisateur, date</li>
+        <li>Rétention 5 ans (archivage automatique)</li>
+      </ul>
+    </div>
+    <div class="card orange">
+      <h4>🚫 Blacklist IP</h4>
+      <p>Le Super Admin peut bloquer des plages d'adresses IP suspectes (support CIDR). Les connexions depuis ces IPs sont immédiatement rejetées.</p>
+      <ul>
+        <li>Menu : <strong>Sécurité → Blacklist IP</strong></li>
+        <li>Support CIDR (ex. 192.168.1.0/24)</li>
+        <li>Expiration configurable</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>🔔 Notifications temps réel</h4>
+      <p>Le système notifie automatiquement les utilisateurs des événements les concernant :</p>
+      <ul>
+        <li>Certificat soumis / validé / rejeté</li>
+        <li>Contrat expirant</li>
+        <li>Délégation reçue / expirante</li>
+        <li>Escalade NN300 déclenchée</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Protection des données personnelles</h3>
+  <ul class="feat-list">
+    <li><div class="icon">🔑</div><div class="desc"><strong>Chiffrement PII :</strong> Les données sensibles (adresse, téléphone, numéro d'enregistrement) sont stockées chiffrées en base de données.</div></li>
+    <li><div class="icon">🔒</div><div class="desc"><strong>Row Level Security :</strong> La sécurité au niveau ligne PostgreSQL garantit l'isolation des données même en cas d'accès direct à la base.</div></li>
+    <li><div class="icon">🗂️</div><div class="desc"><strong>Archivage :</strong> Les certificats de plus de 5 ans sont archivés automatiquement le 1er de chaque mois à 02h00.</div></li>
+  </ul>
+</section>
+
+<!-- ═══════════════ 15. ADMINISTRATION ═══════════════ -->
+<section class="section" id="administration">
+  <div class="section-header">
+    <div class="section-icon orange">⚙️</div>
+    <h2>Administration Système<small><span class="us-tag">US-054</span><span class="us-tag">US-056</span><span class="us-tag">US-057</span></small></h2>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h4>📱 Interface Responsive</h4>
+      <p>La plateforme est accessible depuis <strong>mobile, tablette et desktop</strong>. Les pages clés (dashboard, certificats, approbations) sont optimisées pour petits écrans.</p>
+    </div>
+    <div class="card orange">
+      <h4>🌙 Mode Sombre</h4>
+      <p>Basculez entre le thème clair et sombre depuis l'icône ☀️/🌙 en haut à droite de l'interface. La préférence est mémorisée.</p>
+    </div>
+    <div class="card green">
+      <h4>⚡ Performances</h4>
+      <p>Les listes et rapports bénéficient d'un <strong>cache Redis</strong> et d'index PostgreSQL optimisés. Les exports volumineux sont traités en queue pour ne pas bloquer l'interface.</p>
+    </div>
+  </div>
+
+  <h3>Raccourcis utiles</h3>
+  <table>
+    <thead><tr><th>Action</th><th>Chemin dans l'interface</th><th>Rôle requis</th></tr></thead>
+    <tbody>
+      <tr><td>Nouveau certificat</td><td>Certificats → Nouveau</td><td><span class="role role-sous">Souscripteur</span> <span class="role role-courtier">Courtier</span></td></tr>
+      <tr><td>Certificats en attente</td><td>Dashboard → En attente</td><td>Tous sauf Client</td></tr>
+      <tr><td>Paramétrer commissions</td><td>Commissions → Règles</td><td><span class="role role-admin">Admin Filiale</span></td></tr>
+      <tr><td>Gérer les délégations</td><td>Approbations → Délégations</td><td><span class="role role-admin">Admin Filiale</span></td></tr>
+      <tr><td>Dashboard DTAG</td><td>Dashboard → Vue DTAG</td><td><span class="role role-super">Super Admin</span></td></tr>
+      <tr><td>Blacklist IP</td><td>Sécurité → Blacklist IP</td><td><span class="role role-super">Super Admin</span></td></tr>
+      <tr><td>Journal d'audit</td><td>Audit → Journal</td><td><span class="role role-admin">Admin Filiale</span>+</td></tr>
+      <tr><td>Exports asynchrones</td><td>Exports</td><td>Tous (scope filiale)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════ RÉSUMÉ US ═══════════════ -->
+<section class="section page-break">
+  <div class="section-header">
+    <div class="section-icon">✅</div>
+    <h2>Récapitulatif des User Stories</h2>
+  </div>
+
+  <table>
+    <thead><tr><th>US</th><th>Fonctionnalité</th><th>Statut</th></tr></thead>
+    <tbody>
+      <tr><td>US-001</td><td>Authentification (email/mot de passe)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-002</td><td>MFA TOTP (Google Authenticator)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-003</td><td>Réinitialisation mot de passe par email</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-004</td><td>Gestion des rôles (6 profils)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-005</td><td>Permissions granulaires (82 droits)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-006</td><td>Création / modification utilisateurs</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-007</td><td>Blocage / déblocage utilisateurs</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-008</td><td>Gestion des filiales (tenants)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-009</td><td>Avatar & préférences profil</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-010</td><td>Isolation multi-tenant</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-011</td><td>Référentiels (pays, devises, incoterms)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-012</td><td>Modes de transport</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-013</td><td>Catégories de marchandises</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-014</td><td>Gestion des courtiers</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-015</td><td>Contrats d'assurance (CRUD)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-016</td><td>Alertes expiration contrats</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-017</td><td>Templates certificats</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-018</td><td>Création certificats (CRUD)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-019</td><td>Soumission certificat à validation</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-020</td><td>Annulation certificat</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-021</td><td>Génération PDF avec QR code</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-022</td><td>Journal d'audit des actions</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-023</td><td>Notifications in-app temps réel</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-024</td><td>Numérotation automatique certificats</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-025</td><td>Workflow de validation (N+1)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-026</td><td>Approbation / Rejet avec motif</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-027</td><td>Émission du certificat final</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-028</td><td>Tableau de bord approbations en attente</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-029</td><td>Règles de commissions courtiers</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-030</td><td>Bordereau de commissions</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-031</td><td>Historique des versions</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-032</td><td>Duplication de certificat</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-033</td><td>Amendements de certificat</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-035</td><td>Escalade NN300 (seuil dépassé)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-036</td><td>Délégation de validation</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-037</td><td>Connexion Microsoft (SSO)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-038</td><td>Workflow multi-étapes configurable</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-039</td><td>Alertes escalade / délégation</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-040</td><td>Historique des décisions workflow</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-041</td><td>Gestion des coassureurs</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-042</td><td>Gestion des experts</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-043</td><td>Dashboard KPIs filiale</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-044</td><td>Rapport certificats par période</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-045</td><td>Rapport contrats</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-046</td><td>Rapport intermédiaires (3 onglets)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-047</td><td>Export asynchrone grands volumes</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-048</td><td>Dashboard DTAG multi-filiales</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-049</td><td>Génération automatique KPIs (scheduler)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-050</td><td>Blacklist IP & détection intrusion</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-051</td><td>Chiffrement données sensibles (PII)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-052</td><td>Row Level Security PostgreSQL</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-053</td><td>Archivage & rétention (5 ans)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-054</td><td>Interface responsive mobile-first</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-055</td><td>Recherche avancée (14 filtres)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-056</td><td>Optimisation performances (cache + index)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-057</td><td>Mode sombre (Dark Mode)</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-058</td><td>Tests unitaires & intégration backend</td><td><span class="badge badge-green">Livré</span></td></tr>
+      <tr><td>US-059</td><td>Tests E2E (Playwright)</td><td><span class="badge badge-green">Livré</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="footer">
+  <strong>NSIA Transport Certificats</strong> — Guide Utilisateur v1.0 — Sprint 6<br>
+  Groupe NSIA • 12 filiales en Afrique • US-001 → US-059 livrées • Mai 2026<br>
+  <small style="opacity:.5">Document confidentiel — Usage interne uniquement</small>
+</footer>
+
+</div><!-- /main -->
+
+<!-- ═══════════════ SCROLL TOP ═══════════════ -->
+<button class="scroll-top no-print" id="scrollBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  window.addEventListener('scroll', function() {
+    document.getElementById('scrollBtn').classList.toggle('visible', window.scrollY > 400);
+  });
+</script>
+</body>
+</html>
