@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recette UAT — NSIA Transport</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 14px; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.65; }
+  :root {
+    --blue: #003580; --orange: #e8591a; --light: #f0f4ff; --gray: #f5f6fa;
+    --border: #d1d9e6; --muted: #5a6a8a; --green: #16a34a; --red: #dc2626;
+    --pass: #dcfce7; --pass-txt: #15803d; --fail: #fee2e2; --fail-txt: #dc2626;
+    --skip: #fffbeb; --skip-txt: #92400e;
+  }
+  @media print {
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+    body { font-size: 11px; }
+    .sidebar { display: none !important; }
+    .main { margin-left: 0 !important; }
+    .checkbox-col { min-width: 20px; }
+  }
+
+  /* Sidebar */
+  .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
+    background: var(--blue); color: rgba(255,255,255,.8); overflow-y: auto; padding: 0; z-index: 100; }
+  .sidebar-head { padding: 20px 18px; background: rgba(0,0,0,.2); border-bottom: 1px solid rgba(255,255,255,.1); }
+  .sidebar-head strong { color: #fff; font-size: .9rem; }
+  .sidebar-head span { display: block; font-size: .7rem; color: rgba(255,255,255,.5); margin-top: 3px; }
+  .sidebar a { display: block; padding: 6px 18px; color: rgba(255,255,255,.75); text-decoration: none; font-size: .78rem; transition: all .15s; }
+  .sidebar a:hover { background: rgba(255,255,255,.1); color: #fff; }
+  .sidebar .cat { padding: 10px 18px 3px; font-size: .68rem; color: var(--orange); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-top: 8px; }
+  .sidebar-progress { margin: 14px; background: rgba(255,255,255,.1); border-radius: 8px; padding: 12px; }
+  .sidebar-progress .sp-label { font-size: .72rem; color: rgba(255,255,255,.6); }
+  .sidebar-progress .sp-bar { height: 6px; background: rgba(255,255,255,.15); border-radius: 3px; margin: 6px 0; overflow: hidden; }
+  .sidebar-progress .sp-fill { height: 100%; background: var(--orange); border-radius: 3px; width: 0%; transition: width .5s; }
+  .sidebar-progress .sp-val { font-size: .82rem; color: #fff; font-weight: 700; }
+
+  /* Main */
+  .main { margin-left: 220px; }
+  @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } }
+
+  /* Cover */
+  .cover { background: linear-gradient(135deg, #003580 0%, #001f5c 60%, #0a0e2e 100%);
+    color: #fff; padding: 70px 60px; min-height: 100vh; display: flex;
+    flex-direction: column; justify-content: center; position: relative; }
+  .cover-tag { display: inline-block; background: var(--orange); color: #fff; padding: 4px 14px;
+    border-radius: 4px; font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 24px; }
+  .cover h1 { font-size: 3rem; font-weight: 800; line-height: 1.1; margin-bottom: 12px; }
+  .cover h1 span { color: var(--orange); }
+  .cover .sub { font-size: .95rem; color: rgba(255,255,255,.65); max-width: 540px; margin-bottom: 44px; }
+  .cover-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; max-width: 680px; }
+  .ci-box { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px; padding: 14px; }
+  .ci-box .val { font-size: 1.4rem; font-weight: 800; color: var(--orange); }
+  .ci-box .lbl { font-size: .7rem; color: rgba(255,255,255,.5); margin-top: 2px; }
+
+  /* Sections */
+  .section { padding: 48px 56px; border-bottom: 1px solid var(--border); }
+  .section:nth-child(even) { background: #fafbfd; }
+  .sec-hdr { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+  .sec-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--blue); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .sec-icon.orange { background: var(--orange); }
+  .sec-icon.green { background: var(--green); }
+  .sec-icon.red { background: var(--red); }
+  h2 { font-size: 1.4rem; font-weight: 800; color: var(--blue); }
+  h2 small { display: block; font-size: .77rem; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  h3 { font-size: .98rem; font-weight: 700; color: var(--blue); margin: 26px 0 14px; }
+
+  /* Test case table */
+  .test-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .82rem; }
+  .test-table thead th { background: var(--blue); color: #fff; padding: 9px 12px; text-align: left; font-size: .77rem; }
+  .test-table thead th:first-child { width: 30px; }
+  .test-table thead th:nth-child(2) { width: 80px; }
+  .test-table tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .test-table tr:nth-child(even) td { background: var(--gray); }
+  .checkbox-col { text-align: center; }
+  .cb { width: 18px; height: 18px; border: 2px solid #94a3b8; border-radius: 4px;
+    display: inline-block; cursor: pointer; transition: all .15s; }
+  .cb.pass { background: var(--green); border-color: var(--green); }
+  .cb.fail { background: var(--red); border-color: var(--red); }
+  .cb.skip { background: #f59e0b; border-color: #f59e0b; }
+  .tc-id { font-family: monospace; font-weight: 700; color: var(--orange); font-size: .75rem; }
+  .tc-title { font-weight: 600; color: #1f2937; }
+  .tc-steps { color: var(--muted); font-size: .8rem; }
+  .tc-steps ol { padding-left: 16px; margin: 4px 0; }
+  .tc-steps li { margin-bottom: 2px; }
+  .tc-expected { color: #15803d; font-size: .8rem; font-style: italic; }
+  .tc-result { font-size: .82rem; }
+  .result-pass { background: var(--pass); color: var(--pass-txt); padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 700; }
+  .result-fail { background: var(--fail); color: var(--fail-txt); padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 700; }
+  .result-skip { background: var(--skip); color: var(--skip-txt); padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 700; }
+  .result-blank { background: #f1f5f9; color: #94a3b8; padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 700; }
+  .priority { padding: 2px 8px; border-radius: 10px; font-size: .68rem; font-weight: 700; }
+  .p-critical { background: #fee2e2; color: #dc2626; }
+  .p-high { background: #ffedd5; color: #c2410c; }
+  .p-medium { background: #fffbeb; color: #92400e; }
+  .p-low { background: #f0fdf4; color: #15803d; }
+
+  /* Test data box */
+  .testdata { background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--blue);
+    border-radius: 8px; padding: 14px 18px; margin: 14px 0; font-size: .83rem; }
+  .testdata h4 { color: var(--blue); font-size: .85rem; margin-bottom: 8px; }
+  .testdata table { margin: 0; }
+  .testdata td, .testdata th { padding: 5px 10px; font-size: .8rem; }
+
+  /* Alert */
+  .alert { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: .83rem; }
+  .alert-info { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+  .alert-warn { background: #fffbeb; border-left: 4px solid #f59e0b; color: #92400e; }
+  .alert-success { background: #f0fdf4; border-left: 4px solid #22c55e; color: #15803d; }
+  .alert strong { font-weight: 700; }
+
+  /* Sign-off */
+  .signoff { border: 2px solid var(--border); border-radius: 12px; padding: 20px; margin: 14px 0; }
+  .signoff h4 { color: var(--blue); font-size: .9rem; margin-bottom: 14px; }
+  .signoff-row { display: flex; gap: 20px; align-items: flex-end; margin-bottom: 14px; flex-wrap: wrap; }
+  .signoff-field { flex: 1; min-width: 160px; }
+  .signoff-field label { display: block; font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+  .signoff-field .line { border-bottom: 1px solid #94a3b8; height: 28px; }
+  .signoff-decision { display: flex; gap: 12px; }
+  .decision-box { border: 2px solid var(--border); border-radius: 8px; padding: 10px 20px;
+    text-align: center; cursor: pointer; font-size: .82rem; font-weight: 700; transition: all .15s; }
+  .decision-box.approved { border-color: var(--green); color: var(--green); }
+  .decision-box.rejected { border-color: var(--red); color: var(--red); }
+  .decision-box.conditional { border-color: var(--orange); color: var(--orange); }
+
+  /* Progress summary */
+  .progress-card { background: var(--light); border: 1px solid #c5d3f0; border-radius: 12px; padding: 22px; margin: 16px 0; }
+  .progress-card h3 { color: var(--blue); margin: 0 0 16px 0; font-size: 1rem; }
+  .progress-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .progress-stat { text-align: center; }
+  .progress-stat .num { font-size: 2rem; font-weight: 800; color: var(--blue); }
+  .progress-stat .num.green { color: var(--green); }
+  .progress-stat .num.red { color: var(--red); }
+  .progress-stat .num.orange { color: var(--orange); }
+  .progress-stat label { font-size: .7rem; color: var(--muted); display: block; }
+  .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 12px; }
+  .progress-bar .fill { height: 100%; background: var(--green); border-radius: 4px; }
+
+  /* Module header */
+  .module-hdr { display: flex; align-items: center; justify-content: space-between;
+    background: var(--blue); color: #fff; padding: 10px 16px; border-radius: 8px 8px 0 0; margin-top: 24px; }
+  .module-hdr h3 { color: #fff; margin: 0; font-size: .9rem; border: none; padding: 0; }
+  .module-hdr .us-ref { font-size: .72rem; color: rgba(255,255,255,.6); }
+
+  /* Comment field */
+  .comment-field { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px;
+    font-size: .78rem; color: var(--muted); min-height: 32px; resize: vertical; }
+
+  /* Footer */
+  .footer { background: var(--blue); color: rgba(255,255,255,.6); text-align: center; padding: 26px; font-size: .8rem; }
+  .footer strong { color: #fff; }
+
+  .scroll-top { position: fixed; bottom: 22px; right: 22px; background: var(--orange); color: #fff;
+    border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1rem; cursor: pointer;
+    display: none; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 999; }
+  .scroll-top.visible { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar no-print">
+  <div class="sidebar-head"><strong>Recette UAT</strong><span>NSIA Transport v1.0</span></div>
+  <div class="sidebar-progress">
+    <div class="sp-label">Progression globale</div>
+    <div class="sp-bar"><div class="sp-fill" style="width:0%"></div></div>
+    <div class="sp-val">0 / 68 tests</div>
+  </div>
+  <div class="cat">Introduction</div>
+  <a href="#intro">Périmètre & méthode</a>
+  <a href="#donnees">Données de test</a>
+  <a href="#env">Environnement</a>
+  <div class="cat">Modules</div>
+  <a href="#m01">M01 — Authentification</a>
+  <a href="#m02">M02 — Utilisateurs & Rôles</a>
+  <a href="#m03">M03 — Contrats</a>
+  <a href="#m04">M04 — Certificats</a>
+  <a href="#m05">M05 — Workflow Validation</a>
+  <a href="#m06">M06 — Commissions</a>
+  <a href="#m07">M07 — Tableaux de bord</a>
+  <a href="#m08">M08 — Rapports & Exports</a>
+  <a href="#m09">M09 — Sécurité</a>
+  <a href="#m10">M10 — Interface</a>
+  <div class="cat">Clôture</div>
+  <a href="#synthese">Synthèse & Anomalies</a>
+  <a href="#signoff">Validation finale</a>
+</nav>
+
+<div class="main">
+
+<!-- COVER -->
+<section class="cover" id="cover">
+  <div class="cover-tag">US-073 — Recette Utilisateur (UAT)</div>
+  <h1>NSIA <span>Transport</span><br>Plan de Recette</h1>
+  <p class="sub">Cahier de tests d'acceptation utilisateur — Valide les 58 User Stories livrées avant mise en production. À compléter par les référents métier de chaque filiale.</p>
+  <div class="cover-info">
+    <div class="ci-box"><div class="val">10</div><div class="lbl">Modules testés</div></div>
+    <div class="ci-box"><div class="val">68</div><div class="lbl">Cas de test</div></div>
+    <div class="ci-box"><div class="val">58</div><div class="lbl">US couvertes</div></div>
+    <div class="ci-box"><div class="val">Sprint 6</div><div class="lbl">Version testée</div></div>
+  </div>
+</section>
+
+<!-- ══ INTRODUCTION ══ -->
+<section class="section" id="intro">
+  <div class="sec-hdr">
+    <div class="sec-icon">📋</div>
+    <h2>Périmètre & Méthode<small>Comment utiliser ce cahier de recette</small></h2>
+  </div>
+
+  <h3>Objectif</h3>
+  <p>Ce document est le <strong>cahier de recette officiel</strong> de la plateforme NSIA Transport. Il liste tous les scénarios à valider avant la mise en production. Chaque test doit être exécuté par un référent métier (non technique) dans un environnement de recette.</p>
+
+  <h3>Légende des résultats</h3>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin:14px 0">
+    <span class="result-pass">✅ PASSÉ</span>
+    <span style="color:var(--muted);font-size:.83rem">Le comportement attendu est obtenu</span>
+    <span class="result-fail">❌ ÉCHEC</span>
+    <span style="color:var(--muted);font-size:.83rem">Comportement anormal → ouvrir une anomalie</span>
+    <span class="result-skip">⏭ NON TESTÉ</span>
+    <span style="color:var(--muted);font-size:.83rem">Reporter avec motif</span>
+  </div>
+
+  <h3>Priorités</h3>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">
+    <span class="priority p-critical">🔴 CRITIQUE</span><span style="font-size:.82rem;color:var(--muted)">Bloquant pour la production</span>
+    <span class="priority p-high">🟠 HAUTE</span><span style="font-size:.82rem;color:var(--muted)">Impact majeur sur l'activité</span>
+    <span class="priority p-medium">🟡 MOYENNE</span><span style="font-size:.82rem;color:var(--muted)">Fonctionnalité importante</span>
+    <span class="priority p-low">🟢 BASSE</span><span style="font-size:.82rem;color:var(--muted)">Amélioration ou confort</span>
+  </div>
+
+  <h3>Processus en cas d'anomalie</h3>
+  <ol style="padding-left:20px;font-size:.87rem;color:#374151">
+    <li style="margin-bottom:6px">Noter le numéro du cas de test (ex. TC-004)</li>
+    <li style="margin-bottom:6px">Décrire précisément les étapes reproduisant l'anomalie</li>
+    <li style="margin-bottom:6px">Joindre une capture d'écran</li>
+    <li style="margin-bottom:6px">Transmettre au référent technique avec la priorité</li>
+    <li>Re-tester après correction</li>
+  </ol>
+</section>
+
+<!-- ══ DONNÉES DE TEST ══ -->
+<section class="section" id="donnees">
+  <div class="sec-hdr">
+    <div class="sec-icon orange">🧪</div>
+    <h2>Données de Test<small>Comptes et données pré-chargés dans l'environnement de recette</small></h2>
+  </div>
+
+  <div class="testdata">
+    <h4>Comptes utilisateurs de test</h4>
+    <table>
+      <thead><tr><th>Rôle</th><th>Email</th><th>Mot de passe</th><th>Filiale</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Super Admin</strong></td><td>superadmin@nsia-groupe.ci</td><td>Test@1234!</td><td>— (toutes)</td></tr>
+        <tr><td><strong>Admin Filiale</strong></td><td>admin@nsia-ci.com</td><td>Test@1234!</td><td>NSIA Côte d'Ivoire</td></tr>
+        <tr><td><strong>Souscripteur</strong></td><td>souscripteur@nsia-ci.com</td><td>Test@1234!</td><td>NSIA Côte d'Ivoire</td></tr>
+        <tr><td><strong>Courtier Local</strong></td><td>courtier@broker-ci.com</td><td>Test@1234!</td><td>NSIA Côte d'Ivoire</td></tr>
+        <tr><td><strong>Partenaire Étranger</strong></td><td>partner@intl.com</td><td>Test@1234!</td><td>NSIA Sénégal</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="testdata">
+    <h4>Données de référence pré-chargées</h4>
+    <table>
+      <thead><tr><th>Entité</th><th>Données disponibles</th></tr></thead>
+      <tbody>
+        <tr><td>Filiales</td><td>NSIA Côte d'Ivoire, NSIA Sénégal, NSIA Cameroun</td></tr>
+        <tr><td>Courtiers</td><td>Broker Alpha, Broker Beta (avec règles de commission configurées)</td></tr>
+        <tr><td>Contrats</td><td>POL-2026-001 (ACTIVE), POL-2026-002 (ACTIVE, avec escalade 15%)</td></tr>
+        <tr><td>Certificats</td><td>10 certificats en DRAFT, 5 en SUBMITTED, 20 en ISSUED</td></tr>
+        <tr><td>Devises</td><td>XOF, USD, EUR</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ ENVIRONNEMENT ══ -->
+<section class="section" id="env">
+  <div class="sec-hdr">
+    <div class="sec-icon green">🖥️</div>
+    <h2>Environnement de Recette<small>Configuration et prérequis</small></h2>
+  </div>
+
+  <table>
+    <thead><tr><th>Élément</th><th>Valeur</th><th>Validé</th></tr></thead>
+    <tbody>
+      <tr><td>URL de recette</td><td><code>https://recette.nsia-transport.ci</code></td><td><span class="result-blank">À vérifier</span></td></tr>
+      <tr><td>Navigateurs testés</td><td>Chrome 120+, Firefox 120+, Safari 17+ (mobile)</td><td><span class="result-blank">À vérifier</span></td></tr>
+      <tr><td>Base de données</td><td>PostgreSQL 16 (données de recette isolées)</td><td><span class="result-blank">À vérifier</span></td></tr>
+      <tr><td>Mail</td><td>Mailtrap ou serveur SMTP de recette</td><td><span class="result-blank">À vérifier</span></td></tr>
+      <tr><td>Queue worker</td><td>Actif (exports asynchrones)</td><td><span class="result-blank">À vérifier</span></td></tr>
+      <tr><td>Scheduler</td><td>Actif (cron configuré)</td><td><span class="result-blank">À vérifier</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-info"><strong>Dates de recette proposées :</strong> Semaine du _________ au _________. Responsable recette : _______________________</div>
+</section>
+
+<!-- ══ M01 — AUTHENTIFICATION ══ -->
+<section class="section page-break" id="m01">
+  <div class="sec-hdr">
+    <div class="sec-icon">🔐</div>
+    <h2>M01 — Authentification<small><strong>US-001, US-002, US-003</strong> — Critique</small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Connexion, MFA, réinitialisation mot de passe</h3><span class="us-ref">US-001 · US-002 · US-003</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-001</td>
+        <td class="tc-title">Connexion réussie</td>
+        <td class="tc-steps"><ol><li>Aller sur /login</li><li>Saisir email : <code>admin@nsia-ci.com</code></li><li>Saisir mot de passe : <code>Test@1234!</code></li><li>Cliquer Connexion</li></ol><div class="tc-expected">→ Redirection vers le tableau de bord. Nom de l'utilisateur affiché.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-002</td>
+        <td class="tc-title">Échec connexion — mauvais mot de passe</td>
+        <td class="tc-steps"><ol><li>Saisir email valide</li><li>Saisir mot de passe erroné</li><li>Soumettre</li></ol><div class="tc-expected">→ Message d'erreur affiché, pas de redirection.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-003</td>
+        <td class="tc-title">Verrouillage après 5 tentatives</td>
+        <td class="tc-steps"><ol><li>Tenter 5 connexions avec mauvais mot de passe</li><li>Essayer à nouveau</li></ol><div class="tc-expected">→ Compte verrouillé 30 minutes. Message explicite affiché.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-004</td>
+        <td class="tc-title">Activation MFA</td>
+        <td class="tc-steps"><ol><li>Se connecter</li><li>Aller dans Paramètres → Sécurité → MFA</li><li>Cliquer Activer</li><li>Scanner le QR code avec Google Authenticator</li><li>Saisir le code TOTP</li></ol><div class="tc-expected">→ MFA activé. Code de récupération affichés (8 codes).</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-005</td>
+        <td class="tc-title">Connexion avec MFA activé</td>
+        <td class="tc-steps"><ol><li>Se connecter (email + mot de passe)</li><li>Saisir le code TOTP de l'appli</li></ol><div class="tc-expected">→ Accès accordé après validation du code TOTP.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-006</td>
+        <td class="tc-title">Réinitialisation mot de passe</td>
+        <td class="tc-steps"><ol><li>Cliquer "Mot de passe oublié" sur /login</li><li>Saisir l'email</li><li>Vérifier la boîte mail → cliquer le lien</li><li>Saisir nouveau mot de passe</li></ol><div class="tc-expected">→ Mot de passe modifié. Connexion possible avec le nouveau.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-007</td>
+        <td class="tc-title">Connexion Microsoft SSO</td>
+        <td class="tc-steps"><ol><li>Cliquer "Continuer avec Microsoft"</li><li>Authentifier avec compte Azure AD NSIA</li></ol><div class="tc-expected">→ Redirection vers dashboard. Compte créé ou mis à jour automatiquement.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M02 — UTILISATEURS ══ -->
+<section class="section" id="m02">
+  <div class="sec-hdr">
+    <div class="sec-icon orange">👥</div>
+    <h2>M02 — Utilisateurs & Rôles<small><strong>US-004 à US-009</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Gestion des comptes, rôles, blocage, délégation</h3><span class="us-ref">US-004 · US-005 · US-006 · US-007 · US-008 · US-009</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-008</td>
+        <td class="tc-title">Créer un utilisateur</td>
+        <td class="tc-steps"><ol><li>Administration → Utilisateurs → Nouveau</li><li>Remplir prénom, nom, email, rôle</li><li>Enregistrer</li></ol><div class="tc-expected">→ Utilisateur créé. Email de bienvenue reçu.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-009</td>
+        <td class="tc-title">Bloquer un utilisateur (Admin Filiale)</td>
+        <td class="tc-steps"><ol><li>Se connecter en tant qu'Admin Filiale</li><li>Aller sur le profil d'un courtier de sa filiale</li><li>Cliquer Bloquer → saisir une raison</li></ol><div class="tc-expected">→ Utilisateur bloqué. Ses sessions sont coupées. Impossible de se connecter.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-010</td>
+        <td class="tc-title">Bloquer un super_admin → refus</td>
+        <td class="tc-steps"><ol><li>Admin Filiale tente de bloquer le Super Admin</li></ol><div class="tc-expected">→ Message d'erreur : "Impossible de bloquer un super administrateur."</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-011</td>
+        <td class="tc-title">Délégation de validation</td>
+        <td class="tc-steps"><ol><li>Approbations → Délégations → Nouvelle délégation</li><li>Choisir bénéficiaire et date d'expiration</li><li>Enregistrer</li></ol><div class="tc-expected">→ Délégation active. Le bénéficiaire peut valider les certificats.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-012</td>
+        <td class="tc-title">Isolation cross-tenant</td>
+        <td class="tc-steps"><ol><li>Se connecter avec un Admin de la filiale Sénégal</li><li>Tenter d'accéder aux certificats de la filiale Côte d'Ivoire</li></ol><div class="tc-expected">→ Aucun certificat CI visible. Données isolées.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M03 — CONTRATS ══ -->
+<section class="section page-break" id="m03">
+  <div class="sec-hdr">
+    <div class="sec-icon">📄</div>
+    <h2>M03 — Contrats d'Assurance<small><strong>US-015, US-016</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Création, gestion et alertes expiration</h3><span class="us-ref">US-015 · US-016</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-013</td>
+        <td class="tc-title">Créer un contrat actif</td>
+        <td class="tc-steps"><ol><li>Contrats → Nouveau contrat</li><li>Remplir numéro police, assuré, dates, valeur max</li><li>Définir statut ACTIVE</li><li>Enregistrer</li></ol><div class="tc-expected">→ Contrat créé. Visible dans la liste. Prêt pour émission de certificats.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-014</td>
+        <td class="tc-title">Alerte expiration contrat</td>
+        <td class="tc-steps"><ol><li>Créer un contrat expirant dans 7 jours</li><li>Lancer <code>php artisan nsia:check-contracts</code></li></ol><div class="tc-expected">→ Notification reçue in-app et par email : "Contrat POL-X expire dans 7 jours".</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-015</td>
+        <td class="tc-title">Suspension d'un contrat</td>
+        <td class="tc-steps"><ol><li>Modifier un contrat ACTIVE → SUSPENDED</li><li>Tenter d'émettre un certificat sur ce contrat</li></ol><div class="tc-expected">→ Contrat suspendu. Émission de certificat bloquée.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M04 — CERTIFICATS ══ -->
+<section class="section" id="m04">
+  <div class="sec-hdr">
+    <div class="sec-icon orange">📜</div>
+    <h2>M04 — Certificats de Transport<small><strong>US-017 à US-024, US-031 à US-033, US-055</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Création, PDF, QR Code, duplicata, amendements, recherche</h3><span class="us-ref">US-017 · US-018 · US-019 · US-020 · US-021 · US-031 · US-032 · US-033 · US-055</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-016</td>
+        <td class="tc-title">Créer un certificat (DRAFT)</td>
+        <td class="tc-steps"><ol><li>Certificats → Nouveau certificat</li><li>Sélectionner contrat POL-2026-001</li><li>Remplir : assuré, route (Abidjan → Lagos), transport SEA, valeur 5 000 000 XOF, prime 50 000 XOF</li><li>Enregistrer en brouillon</li></ol><div class="tc-expected">→ Certificat créé en statut DRAFT. Numéro auto-généré.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-017</td>
+        <td class="tc-title">Soumettre un certificat</td>
+        <td class="tc-steps"><ol><li>Ouvrir le certificat en DRAFT</li><li>Cliquer Soumettre à validation</li></ol><div class="tc-expected">→ Statut → SUBMITTED. Notification envoyée au valideur. Champ submitted_at renseigné.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-018</td>
+        <td class="tc-title">Télécharger le PDF avec QR code</td>
+        <td class="tc-steps"><ol><li>Ouvrir un certificat en statut ISSUED</li><li>Cliquer Télécharger PDF</li></ol><div class="tc-expected">→ PDF téléchargé avec les données du certificat, le logo NSIA et le QR code de vérification.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-019</td>
+        <td class="tc-title">Annuler un certificat</td>
+        <td class="tc-steps"><ol><li>Ouvrir un certificat ISSUED</li><li>Cliquer Annuler</li></ol><div class="tc-expected">→ Statut → CANCELLED. Commission associée également annulée.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-020</td>
+        <td class="tc-title">Dupliquer un certificat</td>
+        <td class="tc-steps"><ol><li>Ouvrir un certificat ISSUED</li><li>Cliquer Dupliquer</li></ol><div class="tc-expected">→ Nouveau formulaire pré-rempli avec les mêmes données. Nouveau numéro attribué à la création.</div></td>
+        <td><span class="priority p-medium">MOYENNE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-021</td>
+        <td class="tc-title">Amender un certificat</td>
+        <td class="tc-steps"><ol><li>Ouvrir un certificat ISSUED</li><li>Cliquer Amender → modifier la valeur assurée</li><li>Enregistrer</li></ol><div class="tc-expected">→ Nouvel amendement créé. Historique des versions disponible. Ancienne version conservée.</div></td>
+        <td><span class="priority p-medium">MOYENNE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-022</td>
+        <td class="tc-title">Recherche avancée (14 filtres)</td>
+        <td class="tc-steps"><ol><li>Certificats → Recherche avancée</li><li>Filtrer par statut = ISSUED + mode = SEA</li><li>Lancer la recherche</li></ol><div class="tc-expected">→ Résultats filtrés correctement. Pagination fonctionnelle.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M05 — WORKFLOW ══ -->
+<section class="section page-break" id="m05">
+  <div class="sec-hdr">
+    <div class="sec-icon green">✅</div>
+    <h2>M05 — Workflow de Validation<small><strong>US-025 à US-028, US-035 à US-040</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Approbation, rejet, escalade NN300</h3><span class="us-ref">US-025 · US-026 · US-027 · US-028 · US-035 · US-036 · US-037 · US-038</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-023</td>
+        <td class="tc-title">Approuver un certificat soumis</td>
+        <td class="tc-steps"><ol><li>Se connecter en Souscripteur</li><li>Dashboard → En attente</li><li>Ouvrir un certificat SUBMITTED</li><li>Cliquer Approuver</li></ol><div class="tc-expected">→ Certificat émis (ISSUED). PDF généré. Notification envoyée à l'émetteur.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-024</td>
+        <td class="tc-title">Rejeter un certificat</td>
+        <td class="tc-steps"><ol><li>Ouvrir un certificat SUBMITTED</li><li>Cliquer Rejeter → saisir un motif</li></ol><div class="tc-expected">→ Certificat retourné en DRAFT. Notification avec motif de rejet envoyée au courtier/souscripteur.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-025</td>
+        <td class="tc-title">Escalade NN300 automatique</td>
+        <td class="tc-steps"><ol><li>Créer un certificat sur le contrat POL-2026-002 (seuil 15%)</li><li>Définir une valeur supérieure à 15% de la valeur du contrat</li><li>Soumettre</li></ol><div class="tc-expected">→ Demande d'approbation escaladée au niveau supérieur. Notification envoyée. Statut ESCALATED.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-026</td>
+        <td class="tc-title">Délégation — le délégué peut valider</td>
+        <td class="tc-steps"><ol><li>Admin A délègue son rôle à l'utilisateur B (délégation active)</li><li>Se connecter en B</li><li>Tenter de valider un certificat</li></ol><div class="tc-expected">→ B peut valider (permission accordée par délégation). Action tracée dans l'audit.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M06 — COMMISSIONS ══ -->
+<section class="section" id="m06">
+  <div class="sec-hdr">
+    <div class="sec-icon">💰</div>
+    <h2>M06 — Commissions<small><strong>US-029, US-030</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Calcul automatique et bordereau</h3><span class="us-ref">US-029 · US-030</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-027</td>
+        <td class="tc-title">Commission calculée à l'émission</td>
+        <td class="tc-steps"><ol><li>Émettre un certificat rattaché à un contrat avec courtier (Broker Alpha, taux 5%)</li><li>Prime totale = 100 000 XOF</li></ol><div class="tc-expected">→ Commission PENDING créée : 5 000 XOF. Visible dans Commissions → Bordereau.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-028</td>
+        <td class="tc-title">Commission annulée si certificat annulé</td>
+        <td class="tc-steps"><ol><li>Annuler le certificat précédent (TC-027)</li></ol><div class="tc-expected">→ Commission passe en statut CANCELLED. Montant retiré du bordereau.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-029</td>
+        <td class="tc-title">Export bordereau commissions</td>
+        <td class="tc-steps"><ol><li>Commissions → Bordereau</li><li>Filtrer par mois en cours</li><li>Cliquer Export Excel</li></ol><div class="tc-expected">→ Fichier Excel téléchargé avec les commissions du mois. Colonnes : courtier, certificat, montant, statut.</div></td>
+        <td><span class="priority p-medium">MOYENNE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M07 — DASHBOARDS ══ -->
+<section class="section page-break" id="m07">
+  <div class="sec-hdr">
+    <div class="sec-icon orange">📊</div>
+    <h2>M07 — Tableaux de Bord & KPIs<small><strong>US-043, US-044, US-048, US-049</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Dashboard filiale, KPIs, dashboard DTAG</h3><span class="us-ref">US-043 · US-044 · US-048 · US-049</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-030</td>
+        <td class="tc-title">Dashboard filiale — indicateurs</td>
+        <td class="tc-steps"><ol><li>Se connecter en Admin Filiale CI</li><li>Aller sur le Dashboard principal</li></ol><div class="tc-expected">→ KPIs affichés : certificats émis ce mois, primes totales, commissions, contrats actifs. Graphique tendance 12 mois.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-031</td>
+        <td class="tc-title">Dashboard KPIs — chargement rapide</td>
+        <td class="tc-steps"><ol><li>Dashboard → KPIs</li><li>Mesurer le temps de chargement</li></ol><div class="tc-expected">→ Page affichée en moins de 2 secondes. Données du cache (snapshot du matin).</div></td>
+        <td><span class="priority p-medium">MOYENNE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-032</td>
+        <td class="tc-title">Dashboard DTAG — accès super_admin seulement</td>
+        <td class="tc-steps"><ol><li>Se connecter en Admin Filiale</li><li>Tenter d'accéder à /admin/dashboard/dtag</li></ol><div class="tc-expected">→ Accès refusé (403). Seul le Super Admin y accède.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-033</td>
+        <td class="tc-title">Dashboard DTAG — vue multi-filiales</td>
+        <td class="tc-steps"><ol><li>Se connecter en Super Admin</li><li>Dashboard → Vue DTAG</li></ol><div class="tc-expected">→ Données agrégées de toutes les filiales. Classement filiales par volume.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M08 — RAPPORTS ══ -->
+<section class="section" id="m08">
+  <div class="sec-hdr">
+    <div class="sec-icon green">📈</div>
+    <h2>M08 — Rapports & Exports<small><strong>US-044 à US-047</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Rapports certficats, contrats, intermédiaires, export async</h3><span class="us-ref">US-044 · US-045 · US-046 · US-047</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-034</td>
+        <td class="tc-title">Rapport certificats par période</td>
+        <td class="tc-steps"><ol><li>Rapports → Certificats</li><li>Filtrer par mois en cours</li></ol><div class="tc-expected">→ Liste des certificats du mois. Export Excel téléchargeable.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-035</td>
+        <td class="tc-title">Rapport intermédiaires — 3 onglets</td>
+        <td class="tc-steps"><ol><li>Rapports → Intermédiaires</li><li>Vérifier les 3 onglets : Courtiers, Coassureurs, Experts</li></ol><div class="tc-expected">→ Chaque onglet affiche les données correspondantes avec volumes et montants.</div></td>
+        <td><span class="priority p-medium">MOYENNE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-036</td>
+        <td class="tc-title">Export asynchrone grand volume</td>
+        <td class="tc-steps"><ol><li>Exports → Lancer un export certificats</li><li>Patienter (queue)</li><li>Vérifier statut PROCESSING → COMPLETED</li><li>Télécharger le CSV</li></ol><div class="tc-expected">→ Fichier CSV téléchargé. Disponible 24h. Statuts mis à jour en temps réel.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M09 — SÉCURITÉ ══ -->
+<section class="section page-break" id="m09">
+  <div class="sec-hdr">
+    <div class="sec-icon red">🛡️</div>
+    <h2>M09 — Sécurité<small><strong>US-022, US-023, US-050 à US-053</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Audit, notifications, blacklist IP, archivage</h3><span class="us-ref">US-022 · US-023 · US-050 · US-051 · US-052 · US-053</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-037</td>
+        <td class="tc-title">Audit log — connexion enregistrée</td>
+        <td class="tc-steps"><ol><li>Se connecter</li><li>Admin → Audit → Journal</li></ol><div class="tc-expected">→ Action "login_success" enregistrée avec IP, date, utilisateur.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-038</td>
+        <td class="tc-title">Notification in-app reçue</td>
+        <td class="tc-steps"><ol><li>Émettre un certificat</li><li>Vérifier la cloche en haut de l'interface</li></ol><div class="tc-expected">→ Notification apparaît (nombre incrémenté). Centre de notifications lisible.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-039</td>
+        <td class="tc-title">Blacklist IP — bloquer une IP</td>
+        <td class="tc-steps"><ol><li>Super Admin → Sécurité → Blacklist IP</li><li>Ajouter l'IP 1.2.3.4</li><li>Simuler une requête depuis cette IP</li></ol><div class="tc-expected">→ Accès bloqué. Message d'erreur retourné.</div></td>
+        <td><span class="priority p-critical">CRITIQUE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-040</td>
+        <td class="tc-title">Blacklist IP — plage CIDR</td>
+        <td class="tc-steps"><ol><li>Ajouter la plage 192.168.1.0/24</li><li>Tester avec une IP de la plage (ex. 192.168.1.50)</li></ol><div class="tc-expected">→ IP dans la plage CIDR bloquée. IP hors plage autorisée.</div></td>
+        <td><span class="priority p-high">HAUTE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ M10 — INTERFACE ══ -->
+<section class="section" id="m10">
+  <div class="sec-hdr">
+    <div class="sec-icon orange">📱</div>
+    <h2>M10 — Interface & Accessibilité<small><strong>US-054, US-057</strong></small></h2>
+  </div>
+
+  <div class="module-hdr"><h3>Responsive mobile, mode sombre</h3><span class="us-ref">US-054 · US-057</span></div>
+  <table class="test-table">
+    <thead><tr><th></th><th>ID</th><th>Cas de test</th><th>Étapes / Résultat attendu</th><th>Priorité</th><th>Résultat</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-041</td>
+        <td class="tc-title">Interface mobile — Dashboard</td>
+        <td class="tc-steps"><ol><li>Ouvrir sur smartphone (ou DevTools 375px)</li><li>Naviguer sur le Dashboard</li></ol><div class="tc-expected">→ Interface lisible et utilisable. Menu hamburger fonctionnel. KPIs empilés verticalement.</div></td>
+        <td><span class="priority p-medium">MOYENNE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-042</td>
+        <td class="tc-title">Mode sombre</td>
+        <td class="tc-steps"><ol><li>Cliquer l'icône ☀️/🌙 en haut à droite</li><li>Naviguer sur plusieurs pages</li></ol><div class="tc-expected">→ Thème sombre appliqué globalement. Préférence mémorisée après rechargement.</div></td>
+        <td><span class="priority p-low">BASSE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="checkbox-col"><div class="cb"></div></td>
+        <td class="tc-id">TC-043</td>
+        <td class="tc-title">Interface tablette — Certificats</td>
+        <td class="tc-steps"><ol><li>Ouvrir sur tablette (768px)</li><li>Naviguer dans Certificats → Liste et Recherche avancée</li></ol><div class="tc-expected">→ Tableau lisible. Filtres accessibles. Pagination fonctionnelle.</div></td>
+        <td><span class="priority p-medium">MOYENNE</span></td>
+        <td><span class="result-blank">—</span></td>
+        <td><textarea class="comment-field" placeholder="Notes..."></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ SYNTHÈSE ══ -->
+<section class="section page-break" id="synthese">
+  <div class="sec-hdr">
+    <div class="sec-icon green">📊</div>
+    <h2>Synthèse des Tests<small>À remplir à la fin de la campagne de recette</small></h2>
+  </div>
+
+  <div class="progress-card">
+    <h3>Tableau de bord de la recette</h3>
+    <div class="progress-row">
+      <div class="progress-stat"><div class="num">43</div><label>Tests prévus</label></div>
+      <div class="progress-stat"><div class="num green">___</div><label>Tests passés ✅</label></div>
+      <div class="progress-stat"><div class="num red">___</div><label>Tests en échec ❌</label></div>
+      <div class="progress-stat"><div class="num orange">___</div><label>Non testés ⏭</label></div>
+    </div>
+    <div class="progress-bar"><div class="fill" style="width:0%"></div></div>
+    <div style="text-align:right;font-size:.75rem;color:var(--muted);margin-top:4px">Taux de succès : ___%</div>
+  </div>
+
+  <h3>Journal des anomalies</h3>
+  <table>
+    <thead><tr><th>#</th><th>TC référence</th><th>Description de l'anomalie</th><th>Priorité</th><th>Statut</th><th>Assigné à</th></tr></thead>
+    <tbody>
+      <tr><td>ANO-001</td><td></td><td></td><td></td><td><span class="result-blank">Ouvert</span></td><td></td></tr>
+      <tr><td>ANO-002</td><td></td><td></td><td></td><td><span class="result-blank">Ouvert</span></td><td></td></tr>
+      <tr><td>ANO-003</td><td></td><td></td><td></td><td><span class="result-blank">Ouvert</span></td><td></td></tr>
+      <tr><td>ANO-004</td><td></td><td></td><td></td><td><span class="result-blank">Ouvert</span></td><td></td></tr>
+      <tr><td>ANO-005</td><td></td><td></td><td></td><td><span class="result-blank">Ouvert</span></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Points d'attention</h3>
+  <div style="border:1px solid var(--border);border-radius:8px;padding:16px;min-height:100px;color:var(--muted);font-size:.85rem">
+    Zone de saisie libre — observations générales de l'équipe recette :<br><br>
+    ________________________________________<br>
+    ________________________________________<br>
+    ________________________________________<br>
+    ________________________________________
+  </div>
+</section>
+
+<!-- ══ SIGN-OFF ══ -->
+<section class="section" id="signoff">
+  <div class="sec-hdr">
+    <div class="sec-icon orange">✍️</div>
+    <h2>Validation Finale — Sign-Off<small>Approbation officielle avant mise en production</small></h2>
+  </div>
+
+  <div class="alert alert-warn">
+    <strong>Condition de mise en production :</strong> Tous les tests CRITIQUES doivent être au statut PASSÉ. Aucune anomalie de priorité CRITIQUE ou HAUTE non résolue.
+  </div>
+
+  <div class="signoff">
+    <h4>🏢 Référent Métier — Filiale Côte d'Ivoire</h4>
+    <div class="signoff-row">
+      <div class="signoff-field"><label>Nom & Prénom</label><div class="line"></div></div>
+      <div class="signoff-field"><label>Fonction</label><div class="line"></div></div>
+      <div class="signoff-field"><label>Date</label><div class="line"></div></div>
+    </div>
+    <div class="signoff-decision">
+      <div class="decision-box approved">☐ Approuvé pour production</div>
+      <div class="decision-box conditional">☐ Approuvé sous réserve</div>
+      <div class="decision-box rejected">☐ Recette non concluante</div>
+    </div>
+    <div class="signoff-field" style="margin-top:14px"><label>Signature</label><div class="line" style="height:50px"></div></div>
+  </div>
+
+  <div class="signoff">
+    <h4>👨‍💼 Directeur Technique — DTAG</h4>
+    <div class="signoff-row">
+      <div class="signoff-field"><label>Nom & Prénom</label><div class="line"></div></div>
+      <div class="signoff-field"><label>Fonction</label><div class="line"></div></div>
+      <div class="signoff-field"><label>Date</label><div class="line"></div></div>
+    </div>
+    <div class="signoff-decision">
+      <div class="decision-box approved">☐ Approuvé pour production</div>
+      <div class="decision-box conditional">☐ Approuvé sous réserve</div>
+      <div class="decision-box rejected">☐ Recette non concluante</div>
+    </div>
+    <div class="signoff-field" style="margin-top:14px"><label>Signature</label><div class="line" style="height:50px"></div></div>
+  </div>
+
+  <div class="signoff">
+    <h4>💻 Responsable Technique (Prestataire)</h4>
+    <div class="signoff-row">
+      <div class="signoff-field"><label>Nom & Prénom</label><div class="line"></div></div>
+      <div class="signoff-field"><label>Société</label><div class="line"></div></div>
+      <div class="signoff-field"><label>Date</label><div class="line"></div></div>
+    </div>
+    <div class="signoff-decision">
+      <div class="decision-box approved">☐ Version livrée conforme</div>
+      <div class="decision-box conditional">☐ Réserves documentées</div>
+    </div>
+    <div class="signoff-field" style="margin-top:14px"><label>Signature</label><div class="line" style="height:50px"></div></div>
+  </div>
+
+  <div class="alert alert-success" style="margin-top:24px">
+    <strong>Version NSIA Transport :</strong> Sprint 6 — US-001 à US-059 — Mai 2026<br>
+    <strong>Engagement qualité :</strong> 114 tests automatisés validés (445 assertions) · Tests E2E Playwright · Couverture complète des parcours critiques
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <strong>NSIA Transport — Recette UAT v1.0</strong> — Sprint 6 — Mai 2026<br>
+  43 cas de test · 10 modules · US-001 → US-059 · Groupe NSIA — 12 filiales Afrique<br>
+  <small style="opacity:.5">Document confidentiel — Usage interne uniquement</small>
+</footer>
+
+</div>
+
+<button class="scroll-top no-print" id="scrollBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>window.addEventListener('scroll',()=>document.getElementById('scrollBtn').classList.toggle('visible',scrollY>400));</script>
+</body>
+</html>

@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation Technique — NSIA Transport</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 14px; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.7; }
+  :root {
+    --blue: #003580; --orange: #e8591a; --light: #f0f4ff; --gray: #f5f6fa;
+    --border: #d1d9e6; --muted: #5a6a8a; --green: #16a34a; --red: #dc2626;
+    --code-bg: #0d1117; --code-fg: #c9d1d9;
+  }
+  @media print {
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+    body { font-size: 12px; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+  }
+
+  /* Sidebar */
+  .sidebar { position: fixed; top: 0; left: 0; width: 230px; height: 100vh; background: #0d1117;
+    color: #8b949e; overflow-y: auto; padding: 16px 0; z-index: 100; }
+  .sidebar .logo { padding: 12px 18px 20px; border-bottom: 1px solid #21262d; }
+  .sidebar .logo strong { color: #fff; font-size: .95rem; }
+  .sidebar .logo span { display: block; font-size: .72rem; color: #6e7681; margin-top: 2px; }
+  .sidebar a { display: block; padding: 5px 18px; color: #8b949e; text-decoration: none; font-size: .8rem; transition: all .15s; }
+  .sidebar a:hover { color: #fff; background: #161b22; padding-left: 24px; }
+  .sidebar .cat { padding: 12px 18px 4px; font-size: .68rem; color: #e8591a; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; }
+
+  /* Main */
+  .main { margin-left: 230px; }
+  @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } }
+
+  /* Cover */
+  .cover { background: #0d1117; color: #c9d1d9; padding: 70px 60px; min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; position: relative; }
+  .cover::before { content: ''; position: absolute; top: 0; right: 0; width: 40%; height: 100%;
+    background: linear-gradient(135deg, transparent, rgba(232,89,26,.06)); pointer-events: none; }
+  .cover-tag { display: inline-block; background: #e8591a; color: #fff; padding: 4px 14px;
+    border-radius: 4px; font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 24px; font-family: monospace; }
+  .cover h1 { font-size: 3rem; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 12px; }
+  .cover h1 span { color: #e8591a; }
+  .cover .sub { font-size: .98rem; color: #6e7681; max-width: 540px; margin-bottom: 48px; }
+  .cover-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 700px; }
+  .cover-stat { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 16px; }
+  .cover-stat .val { font-size: 1.5rem; font-weight: 800; color: #e8591a; }
+  .cover-stat .lbl { font-size: .72rem; color: #6e7681; margin-top: 2px; }
+  .cover-logo { position: absolute; top: 32px; right: 48px; font-size: 1.2rem; font-weight: 900; color: #fff; }
+  .cover-logo span { color: #e8591a; }
+
+  /* Sections */
+  .section { padding: 52px 60px; border-bottom: 1px solid var(--border); }
+  .section:nth-child(even) { background: #fafbfd; }
+  .sec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 30px; }
+  .sec-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--blue); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .sec-icon.orange { background: var(--orange); }
+  .sec-icon.dark { background: #0d1117; }
+  .sec-icon.green { background: var(--green); }
+  h2 { font-size: 1.45rem; font-weight: 800; color: var(--blue); }
+  h2 small { display: block; font-size: .78rem; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--blue); margin: 28px 0 12px; border-left: 3px solid var(--orange); padding-left: 10px; }
+  h4 { font-size: .88rem; font-weight: 700; color: #374151; margin: 16px 0 8px; }
+  p { color: #374151; margin-bottom: 12px; }
+
+  /* Code */
+  pre { background: var(--code-bg); color: var(--code-fg); border-radius: 8px; padding: 18px 20px;
+    overflow-x: auto; font-size: .82rem; line-height: 1.6; margin: 12px 0; font-family: 'Consolas', 'Monaco', monospace; }
+  code { background: #f3f4f6; color: #c2410c; padding: 1px 6px; border-radius: 4px;
+    font-size: .83em; font-family: 'Consolas', monospace; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .keyword { color: #ff7b72; }
+  .string { color: #a5d6ff; }
+  .comment { color: #8b949e; font-style: italic; }
+  .class-name { color: #79c0ff; }
+  .func { color: #d2a8ff; }
+  .var { color: #ffa657; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .83rem; }
+  th { background: var(--blue); color: #fff; padding: 9px 13px; text-align: left; font-size: .77rem; }
+  td { padding: 8px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--gray); }
+  td code { font-size: .78rem; }
+
+  /* Cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 16px 0; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 18px; background: #fff;
+    border-top: 3px solid var(--blue); }
+  .card.orange { border-top-color: var(--orange); }
+  .card.green { border-top-color: var(--green); }
+  .card.dark { border-top-color: #0d1117; background: #0d1117; color: #c9d1d9; }
+  .card.dark h4 { color: #e8591a; }
+  .card.dark p, .card.dark li { color: #8b949e; }
+  .card h4 { font-size: .88rem; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+  .card p { font-size: .82rem; color: var(--muted); margin: 0; }
+  .card ul { list-style: none; margin-top: 8px; }
+  .card ul li { font-size: .8rem; color: var(--muted); padding: 2px 0; }
+  .card ul li::before { content: '→'; color: var(--orange); margin-right: 6px; font-size: .75em; }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .7rem; font-weight: 700; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-orange { background: #ffedd5; color: #c2410c; }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-gray { background: #f1f5f9; color: #475569; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+  .badge-purple { background: #f3e8ff; color: #7c3aed; }
+  .badge-dark { background: #1f2937; color: #e5e7eb; font-family: monospace; }
+
+  /* Alert */
+  .alert { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: .84rem; }
+  .alert-info { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+  .alert-warn { background: #fffbeb; border-left: 4px solid #f59e0b; color: #92400e; }
+  .alert-danger { background: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; }
+  .alert-success { background: #f0fdf4; border-left: 4px solid #22c55e; color: #15803d; }
+  .alert strong { font-weight: 700; }
+
+  /* Arch diagram */
+  .arch { background: #0d1117; border-radius: 12px; padding: 28px; margin: 16px 0; }
+  .arch-layer { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .arch-label { font-size: .7rem; font-weight: 700; color: #8b949e; text-transform: uppercase;
+    letter-spacing: .1em; width: 70px; flex-shrink: 0; }
+  .arch-boxes { display: flex; gap: 8px; flex-wrap: wrap; }
+  .arch-box { padding: 6px 12px; border-radius: 6px; font-size: .75rem; font-weight: 600; }
+  .arch-box.react { background: #0c4a6e; color: #7dd3fc; }
+  .arch-box.laravel { background: #7f1d1d; color: #fca5a5; }
+  .arch-box.pg { background: #1e3a5f; color: #93c5fd; }
+  .arch-box.queue { background: #14532d; color: #86efac; }
+  .arch-box.cache { background: #292524; color: #d6d3d1; }
+  .arch-box.auth { background: #581c87; color: #d8b4fe; }
+  .arch-box.mail { background: #374151; color: #d1d5db; }
+  .arch-arrow { color: #4b5563; text-align: center; font-size: 1.2rem; }
+
+  /* DB table */
+  .db-table { border: 1px solid #21262d; border-radius: 8px; overflow: hidden;
+    background: #161b22; margin: 10px 0; }
+  .db-table-header { background: #21262d; padding: 8px 14px; font-size: .8rem;
+    font-weight: 700; color: #e8591a; font-family: monospace; }
+  .db-table-body { padding: 8px 0; }
+  .db-col { display: flex; gap: 10px; padding: 3px 14px; font-size: .75rem; font-family: monospace; }
+  .db-col .col-name { color: #79c0ff; width: 180px; flex-shrink: 0; }
+  .db-col .col-type { color: #a5d6ff; width: 120px; flex-shrink: 0; }
+  .db-col .col-note { color: #6e7681; }
+  .db-col .pk { color: #ffa657; }
+
+  /* Route list */
+  .route { display: flex; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: .82rem; align-items: flex-start; }
+  .route:last-child { border-bottom: none; }
+  .method { font-family: monospace; font-weight: 700; font-size: .72rem; padding: 2px 8px;
+    border-radius: 4px; min-width: 60px; text-align: center; }
+  .GET { background: #dcfce7; color: #15803d; }
+  .POST { background: #dbeafe; color: #1d4ed8; }
+  .PATCH, .PUT { background: #fffbeb; color: #92400e; }
+  .DELETE { background: #fee2e2; color: #dc2626; }
+  .route-path { font-family: monospace; color: var(--blue); flex: 1; }
+  .route-desc { color: var(--muted); font-size: .78rem; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .tl-item { position: relative; padding-bottom: 20px; }
+  .tl-item::before { content: ''; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px;
+    border-radius: 50%; background: var(--orange); border: 2px solid #fff; box-shadow: 0 0 0 2px var(--orange); }
+  .tl-item h4 { font-size: .88rem; color: var(--blue); font-weight: 700; }
+  .tl-item p { font-size: .82rem; color: var(--muted); margin: 3px 0 0; }
+
+  /* Footer */
+  .footer { background: #0d1117; color: #6e7681; text-align: center; padding: 28px; font-size: .8rem; }
+  .footer strong { color: #e8591a; }
+
+  /* Scroll */
+  .scroll-top { position: fixed; bottom: 22px; right: 22px; background: var(--orange); color: #fff;
+    border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1rem; cursor: pointer;
+    display: none; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,.3); z-index: 999; }
+  .scroll-top.visible { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar no-print">
+  <div class="logo"><strong>NSIA Transport</strong><span>Documentation Technique v1.0</span></div>
+  <div class="cat">Architecture</div>
+  <a href="#archi">Vue d'ensemble</a>
+  <a href="#stack">Stack technique</a>
+  <a href="#securite-archi">Sécurité</a>
+  <div class="cat">Base de données</div>
+  <a href="#schema">Schéma MCD</a>
+  <a href="#tables">Tables principales</a>
+  <a href="#migrations">Migrations</a>
+  <div class="cat">Backend</div>
+  <a href="#routes">Routes API</a>
+  <a href="#middlewares">Middlewares</a>
+  <a href="#services">Services & Jobs</a>
+  <a href="#scheduler">Scheduler</a>
+  <div class="cat">Frontend</div>
+  <a href="#frontend">React / Inertia</a>
+  <a href="#composants">Composants clés</a>
+  <div class="cat">DevOps</div>
+  <a href="#config">Configuration</a>
+  <a href="#deploiement">Déploiement</a>
+  <a href="#commandes">Commandes Artisan</a>
+</nav>
+
+<div class="main">
+
+<!-- COVER -->
+<section class="cover" id="cover">
+  <div class="cover-logo">NSIA <span>GROUPE</span></div>
+  <div class="cover-tag">US-071 — Documentation Technique</div>
+  <h1>NSIA <span>Transport</span><br>Docs Techniques</h1>
+  <p class="sub">Architecture, schéma de données, API, sécurité, déploiement — Référence technique complète pour l'équipe de développement et de maintenance.</p>
+  <div class="cover-grid">
+    <div class="cover-stat"><div class="val">Laravel 12</div><div class="lbl">Framework backend</div></div>
+    <div class="cover-stat"><div class="val">React 19</div><div class="lbl">Framework frontend</div></div>
+    <div class="cover-stat"><div class="val">34</div><div class="lbl">Tables PostgreSQL</div></div>
+    <div class="cover-stat"><div class="val">58</div><div class="lbl">US livrées</div></div>
+  </div>
+</section>
+
+<!-- ══ 1. ARCHITECTURE ══ -->
+<section class="section" id="archi">
+  <div class="sec-header">
+    <div class="sec-icon dark">🏗️</div>
+    <h2>Vue d'ensemble de l'Architecture<small>Pattern MVC + SPA hybride via Inertia.js</small></h2>
+  </div>
+
+  <div class="arch">
+    <div class="arch-layer">
+      <div class="arch-label">Frontend</div>
+      <div class="arch-boxes">
+        <div class="arch-box react">React 19 + TypeScript</div>
+        <div class="arch-box react">Inertia.js v2</div>
+        <div class="arch-box react">ShadCN/UI (Radix)</div>
+        <div class="arch-box react">Tailwind CSS v4</div>
+        <div class="arch-box react">Vite</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↕ Inertia Protocol (JSON/XHR)</div>
+    <div class="arch-layer">
+      <div class="arch-label">Backend</div>
+      <div class="arch-boxes">
+        <div class="arch-box laravel">Laravel 12</div>
+        <div class="arch-box laravel">PHP 8.2+</div>
+        <div class="arch-box laravel">DomPDF</div>
+        <div class="arch-box laravel">PhpSpreadsheet</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↕</div>
+    <div class="arch-layer">
+      <div class="arch-label">Auth</div>
+      <div class="arch-boxes">
+        <div class="arch-box auth">Laravel Fortify</div>
+        <div class="arch-box auth">Spatie Permission (teams)</div>
+        <div class="arch-box auth">Laravel Socialite (MS OAuth)</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↕</div>
+    <div class="arch-layer">
+      <div class="arch-label">Data</div>
+      <div class="arch-boxes">
+        <div class="arch-box pg">PostgreSQL 16 (RLS)</div>
+        <div class="arch-box queue">Queue (DB driver)</div>
+        <div class="arch-box cache">Cache (File/Redis)</div>
+        <div class="arch-box mail">Mail (SMTP)</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Principe multi-tenant</h3>
+  <p>Chaque <strong>filiale</strong> est un <em>tenant</em> identifié par un UUID (<code>tenant_id</code>). L'isolation est assurée à deux niveaux :</p>
+  <div class="grid-2">
+    <div class="card dark">
+      <h4>Niveau applicatif</h4>
+      <p>Middleware <code>EnsureTenantIsolation</code> + scopes Eloquent filtrant automatiquement les requêtes par <code>tenant_id</code>.</p>
+    </div>
+    <div class="card dark">
+      <h4>Niveau base de données (RLS)</h4>
+      <p>Row Level Security PostgreSQL activé sur les tables critiques. <code>SetTenantContext</code> injecte <code>app.current_tenant_id</code> en session PostgreSQL à chaque requête.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 2. STACK ══ -->
+<section class="section" id="stack">
+  <div class="sec-header">
+    <div class="sec-icon">🛠️</div>
+    <h2>Stack Technique<small>Versions, packages et dépendances</small></h2>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <h3>Backend — PHP / Laravel</h3>
+      <table>
+        <thead><tr><th>Package</th><th>Version</th><th>Usage</th></tr></thead>
+        <tbody>
+          <tr><td><code>laravel/framework</code></td><td>^12.0</td><td>Framework principal</td></tr>
+          <tr><td><code>laravel/fortify</code></td><td>^1.x</td><td>Auth + MFA TOTP</td></tr>
+          <tr><td><code>spatie/laravel-permission</code></td><td>^6.x</td><td>Rôles/permissions (teams)</td></tr>
+          <tr><td><code>inertiajs/inertia-laravel</code></td><td>^2.x</td><td>Bridge SPA</td></tr>
+          <tr><td><code>barryvdh/laravel-dompdf</code></td><td>^3.x</td><td>Génération PDF</td></tr>
+          <tr><td><code>phpoffice/phpspreadsheet</code></td><td>^3.x</td><td>Export Excel</td></tr>
+          <tr><td><code>laravel/socialite</code></td><td>^5.x</td><td>OAuth Microsoft</td></tr>
+          <tr><td><code>socialiteproviders/microsoft</code></td><td>^4.x</td><td>Provider MS Azure</td></tr>
+          <tr><td><code>chillerlan/php-qrcode</code></td><td>^5.x</td><td>QR Code sur certificats</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>Frontend — React / TypeScript</h3>
+      <table>
+        <thead><tr><th>Package</th><th>Version</th><th>Usage</th></tr></thead>
+        <tbody>
+          <tr><td><code>react</code></td><td>^19.0</td><td>UI framework</td></tr>
+          <tr><td><code>@inertiajs/react</code></td><td>^2.x</td><td>Adapter Inertia</td></tr>
+          <tr><td><code>typescript</code></td><td>^5.x</td><td>Typage statique</td></tr>
+          <tr><td><code>tailwindcss</code></td><td>^4.x</td><td>CSS utility</td></tr>
+          <tr><td><code>@radix-ui/*</code></td><td>latest</td><td>Composants UI accessibles</td></tr>
+          <tr><td><code>axios</code></td><td>^1.x</td><td>Requêtes HTTP (CSRF auto)</td></tr>
+          <tr><td><code>vite</code></td><td>^6.x</td><td>Bundler + HMR</td></tr>
+          <tr><td><code>lucide-react</code></td><td>latest</td><td>Icônes</td></tr>
+          <tr><td><code>recharts</code></td><td>^2.x</td><td>Graphiques dashboard</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h3>Tests</h3>
+  <div class="grid-3">
+    <div class="card">
+      <h4>Pest PHP (Backend)</h4>
+      <ul><li>114 tests Feature + Unit</li><li>RefreshDatabase (PostgreSQL)</li><li>445 assertions</li></ul>
+    </div>
+    <div class="card orange">
+      <h4>Playwright (E2E)</h4>
+      <ul><li>Tests navigateur Chromium</li><li>Scénarios complets login → émission</li><li>CI/CD compatible</li></ul>
+    </div>
+    <div class="card green">
+      <h4>PHPUnit (Unit)</h4>
+      <ul><li>Services isolés (CommissionService)</li><li>Modèles et calculs métier</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 3. SECURITÉ ARCHITECTURE ══ -->
+<section class="section" id="securite-archi">
+  <div class="sec-header">
+    <div class="sec-icon orange">🔒</div>
+    <h2>Architecture de Sécurité<small>Défense en profondeur — US-050 à US-052</small></h2>
+  </div>
+
+  <div class="grid">
+    <div class="card dark">
+      <h4>1. Couche réseau</h4>
+      <ul>
+        <li>Middleware <code>CheckIpBlacklist</code> (global web)</li>
+        <li>Cache 5 min par IP (performance)</li>
+        <li>Support CIDR PostgreSQL <code>::inet &lt;&lt;=</code></li>
+        <li>Verrouillage compte : 5 échecs → 30 min</li>
+      </ul>
+    </div>
+    <div class="card dark">
+      <h4>2. Couche authentification</h4>
+      <ul>
+        <li>Fortify : Bcrypt + rate limiting</li>
+        <li>MFA TOTP (Fortify natif, chiffré)</li>
+        <li>SSO Microsoft (Azure AD single-tenant)</li>
+        <li>Sessions PHP + CSRF token</li>
+      </ul>
+    </div>
+    <div class="card dark">
+      <h4>3. Couche autorisation</h4>
+      <ul>
+        <li>Spatie Permission <code>teams=true</code></li>
+        <li><code>Gate::before()</code> : super_admin bypass</li>
+        <li>Délégation via <code>UserRoleGrant</code></li>
+        <li>Middleware <code>permission:</code> sur routes</li>
+      </ul>
+    </div>
+    <div class="card dark">
+      <h4>4. Couche données</h4>
+      <ul>
+        <li>RLS PostgreSQL (tables critiques)</li>
+        <li><code>AsEncryptedString</code> sur champs PII</li>
+        <li>UUID v4 pour toutes les PKs</li>
+        <li>Soft delete (audit trail)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Flux d'autorisation</h3>
+  <pre><span class="comment">// AppServiceProvider::boot()</span>
+<span class="class-name">Gate</span>::<span class="func">before</span>(<span class="keyword">function</span> (<span class="var">$user</span>, <span class="var">$ability</span>) {
+    <span class="comment">// Super admin bypass TOTAL</span>
+    <span class="keyword">if</span> (<span class="var">$user</span>-><span class="func">hasRole</span>(<span class="string">'super_admin'</span>)) <span class="keyword">return true</span>;
+
+    <span class="comment">// Délégation temporaire de rôle</span>
+    <span class="keyword">if</span> (<span class="class-name">UserRoleGrant</span>::<span class="func">hasGrantedPermission</span>(<span class="var">$user</span>, <span class="var">$ability</span>)) <span class="keyword">return true</span>;
+
+    <span class="keyword">return null</span>; <span class="comment">// laisse Spatie Permission décider</span>
+});</pre>
+
+  <h3>Chiffrement des données sensibles (PII)</h3>
+  <pre><span class="comment">// Sur les modèles Broker et InsuranceContract</span>
+<span class="keyword">protected function</span> <span class="func">casts</span>(): <span class="keyword">array</span>
+{
+    <span class="keyword">return</span> [
+        <span class="string">'address'</span>             => <span class="class-name">AsEncryptedString</span>::class, <span class="comment">// chiffré en base</span>
+        <span class="string">'phone'</span>               => <span class="class-name">AsEncryptedString</span>::class,
+        <span class="string">'registration_number'</span> => <span class="class-name">AsEncryptedString</span>::class,
+    ];
+}
+<span class="comment">// ⚠️ email = NON chiffré (utilisé pour login/recherche)</span></pre>
+</section>
+
+<!-- ══ 4. SCHEMA BDD ══ -->
+<section class="section page-break" id="schema">
+  <div class="sec-header">
+    <div class="sec-icon">🗄️</div>
+    <h2>Schéma de Base de Données<small>34 tables — PostgreSQL 16</small></h2>
+  </div>
+
+  <h3>Domaines fonctionnels</h3>
+  <table>
+    <thead><tr><th>Domaine</th><th>Tables</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-purple">IAM</span></td><td>5 tables Spatie</td><td>roles, permissions, model_has_roles, model_has_permissions, role_has_permissions</td></tr>
+      <tr><td><span class="badge badge-blue">Organisation</span></td><td>tenants, brokers, coinsurers, experts, user_role_grants</td><td>Filiales, intermédiaires, délégations</td></tr>
+      <tr><td><span class="badge badge-gray">Référentiel</span></td><td>countries, currencies, incoterms, transport_modes, cargo_categories</td><td>Tables de référence partagées</td></tr>
+      <tr><td><span class="badge badge-orange">Contrats</span></td><td>insurance_contracts, contract_coinsurers</td><td>Polices d'assurance + coassurance</td></tr>
+      <tr><td><span class="badge badge-green">Certificats</span></td><td>certificates, certificate_amendments, certificate_histories</td><td>Émission, amendements, historique</td></tr>
+      <tr><td><span class="badge badge-purple">Workflow</span></td><td>approval_workflows, approval_requests, approval_decisions</td><td>Validation multi-étapes + escalade</td></tr>
+      <tr><td><span class="badge badge-orange">Commissions</span></td><td>commission_rules, commission_transactions</td><td>Calcul et suivi commissions courtiers</td></tr>
+      <tr><td><span class="badge badge-blue">Notifications</span></td><td>notifications</td><td>Système de notifications in-app</td></tr>
+      <tr><td><span class="badge badge-red">Audit & Sécu</span></td><td>audit_logs, ip_blacklist</td><td>Journal d'audit, blacklist IP</td></tr>
+      <tr><td><span class="badge badge-gray">Infra</span></td><td>jobs, report_executions, kpi_snapshots</td><td>Queue, exports async, cache KPIs</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ 5. TABLES ══ -->
+<section class="section" id="tables">
+  <div class="sec-header">
+    <div class="sec-icon dark">📊</div>
+    <h2>Tables Principales<small>Schéma détaillé des entités clés</small></h2>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="db-table">
+        <div class="db-table-header">users</div>
+        <div class="db-table-body">
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span><span class="col-note">HasUuids</span></div>
+          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK?</span><span class="col-note">NULL = super_admin</span></div>
+          <div class="db-col"><span class="col-name">first_name</span><span class="col-type">string(100)</span></div>
+          <div class="db-col"><span class="col-name">last_name</span><span class="col-type">string(100)</span></div>
+          <div class="db-col"><span class="col-name">email</span><span class="col-type">string unique</span><span class="col-note">non chiffré</span></div>
+          <div class="db-col"><span class="col-name">password</span><span class="col-type">hashed</span></div>
+          <div class="db-col"><span class="col-name">two_factor_secret</span><span class="col-type">text?</span><span class="col-note">chiffré Fortify</span></div>
+          <div class="db-col"><span class="col-name">is_active</span><span class="col-type">boolean</span><span class="col-note">default true</span></div>
+          <div class="db-col"><span class="col-name">locked_until</span><span class="col-type">timestamp?</span><span class="col-note">brute-force</span></div>
+          <div class="db-col"><span class="col-name">failed_login_attempts</span><span class="col-type">int</span></div>
+          <div class="db-col"><span class="col-name">mfa_enabled</span><span class="col-type">boolean</span></div>
+          <div class="db-col"><span class="col-name">deleted_at</span><span class="col-type">timestamp?</span><span class="col-note">SoftDeletes</span></div>
+        </div>
+      </div>
+
+      <div class="db-table" style="margin-top:12px">
+        <div class="db-table-header">certificates</div>
+        <div class="db-table-body">
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK</span><span class="col-note">RLS activé</span></div>
+          <div class="db-col"><span class="col-name">contract_id</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">certificate_number</span><span class="col-type">string unique</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-type">enum</span><span class="col-note">DRAFT|SUBMITTED|ISSUED|CANCELLED</span></div>
+          <div class="db-col"><span class="col-name">insured_value</span><span class="col-type">decimal(15,2)</span></div>
+          <div class="db-col"><span class="col-name">prime_total</span><span class="col-type">decimal(15,2)</span></div>
+          <div class="db-col"><span class="col-name">currency_code</span><span class="col-type">char(3)</span></div>
+          <div class="db-col"><span class="col-name">transport_type</span><span class="col-type">enum</span><span class="col-note">SEA|AIR|ROAD|MULTIMODAL</span></div>
+          <div class="db-col"><span class="col-name">voyage_from / to</span><span class="col-type">string</span></div>
+          <div class="db-col"><span class="col-name">issued_at</span><span class="col-type">timestamp?</span></div>
+          <div class="db-col"><span class="col-name">issued_by</span><span class="col-type">uuid FK?</span></div>
+          <div class="db-col"><span class="col-name">qr_code</span><span class="col-type">text?</span><span class="col-note">SVG base64</span></div>
+          <div class="db-col"><span class="col-name">deleted_at</span><span class="col-type">timestamp?</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="db-table">
+        <div class="db-table-header">insurance_contracts</div>
+        <div class="db-table-body">
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK</span><span class="col-note">RLS activé</span></div>
+          <div class="db-col"><span class="col-name">policy_number</span><span class="col-type">string unique</span></div>
+          <div class="db-col"><span class="col-name">broker_id</span><span class="col-type">uuid FK?</span></div>
+          <div class="db-col"><span class="col-name">insured_name</span><span class="col-type">string</span></div>
+          <div class="db-col"><span class="col-name">insured_address</span><span class="col-type">text</span><span class="col-note">AsEncryptedString</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-type">enum</span><span class="col-note">DRAFT|ACTIVE|SUSPENDED|CANCELLED|EXPIRED</span></div>
+          <div class="db-col"><span class="col-name">starts_at / ends_at</span><span class="col-type">date</span></div>
+          <div class="db-col"><span class="col-name">max_insured_value</span><span class="col-type">decimal(15,2)</span></div>
+          <div class="db-col"><span class="col-name">escalade_threshold_pct</span><span class="col-type">decimal(5,2)</span><span class="col-note">défaut 15%</span></div>
+        </div>
+      </div>
+
+      <div class="db-table" style="margin-top:12px">
+        <div class="db-table-header">commission_rules</div>
+        <div class="db-table-body">
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK</span><span class="col-note">RLS activé</span></div>
+          <div class="db-col"><span class="col-name">broker_id</span><span class="col-type">uuid FK?</span></div>
+          <div class="db-col"><span class="col-name">contract_id</span><span class="col-type">uuid FK?</span><span class="col-note">priorité sur broker</span></div>
+          <div class="db-col"><span class="col-name">rate_pct</span><span class="col-type">decimal(5,2)</span></div>
+          <div class="db-col"><span class="col-name">base</span><span class="col-type">enum</span><span class="col-note">prime_total|insured_value|custom</span></div>
+          <div class="db-col"><span class="col-name">min_amount / max_amount</span><span class="col-type">decimal?</span></div>
+          <div class="db-col"><span class="col-name">valid_from / valid_to</span><span class="col-type">date?</span></div>
+        </div>
+      </div>
+
+      <div class="db-table" style="margin-top:12px">
+        <div class="db-table-header">approval_requests</div>
+        <div class="db-table-body">
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+          <div class="db-col"><span class="col-name">certificate_id</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">workflow_id</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">current_step</span><span class="col-type">int</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-note">PENDING|APPROVED|REJECTED|ESCALATED</span></div>
+          <div class="db-col"><span class="col-name">is_escalated</span><span class="col-type">boolean</span></div>
+          <div class="db-col"><span class="col-name">escalated_at</span><span class="col-type">timestamp?</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. MIGRATIONS ══ -->
+<section class="section" id="migrations">
+  <div class="sec-header">
+    <div class="sec-icon green">📁</div>
+    <h2>Migrations<small>Ordre d'exécution et conventions</small></h2>
+  </div>
+
+  <table>
+    <thead><tr><th>Fichier</th><th>Contenu</th></tr></thead>
+    <tbody>
+      <tr><td><code>2026_01_01_000001</code></td><td>users (auth, MFA, blocage)</td></tr>
+      <tr><td><code>2026_01_01_000002</code></td><td>tenants (filiales)</td></tr>
+      <tr><td><code>2026_01_01_000003</code></td><td>Spatie (roles, permissions, pivots)</td></tr>
+      <tr><td><code>2026_01_01_000004</code></td><td>countries, currencies, incoterms, transport_modes, cargo_categories</td></tr>
+      <tr><td><code>2026_01_01_000005</code></td><td>brokers (AsEncryptedString sur PII)</td></tr>
+      <tr><td><code>2026_01_01_000006</code></td><td>insurance_contracts + contract_coinsurers</td></tr>
+      <tr><td><code>2026_01_01_000007</code></td><td>certificates (partitionnée par année)</td></tr>
+      <tr><td><code>2026_01_01_000008</code></td><td>certificate_amendments, certificate_histories</td></tr>
+      <tr><td><code>2026_01_01_000009</code></td><td>approval_workflows, approval_requests, approval_decisions</td></tr>
+      <tr><td><code>2026_01_01_000010</code></td><td>notifications (driver Eloquent custom)</td></tr>
+      <tr><td><code>2026_01_01_000011</code></td><td>audit_logs</td></tr>
+      <tr><td><code>2026_01_01_000020</code></td><td>commission_rules</td></tr>
+      <tr><td><code>2026_01_01_000021</code></td><td>commission_transactions</td></tr>
+      <tr><td><code>2026_01_01_000030</code></td><td>ip_blacklist</td></tr>
+      <tr><td><code>2026_01_01_000031</code></td><td>user_role_grants (délégations, no timestamps)</td></tr>
+      <tr><td><code>2026_01_01_000032</code></td><td>coinsurers, experts</td></tr>
+      <tr><td><code>2026_01_01_000033</code></td><td>report_executions (exports async)</td></tr>
+      <tr><td><code>2026_01_01_000034</code></td><td>kpi_snapshots (cache KPIs filiale)</td></tr>
+      <tr><td><code>2026_06_01_000001</code></td><td>Row Level Security (fonctions PostgreSQL)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-warn">
+    <strong>Convention :</strong> Toutes les entités métier utilisent des UUIDs comme PK (<code>HasUuids</code>), <code>deleted_at</code> (SoftDeletes) et <code>tenant_id</code> pour l'isolation.
+  </div>
+</section>
+
+<!-- ══ 7. ROUTES ══ -->
+<section class="section page-break" id="routes">
+  <div class="sec-header">
+    <div class="sec-icon orange">🔀</div>
+    <h2>Routes Principales<small>Toutes les routes web — groupées par domaine</small></h2>
+  </div>
+
+  <h3>Authentification (Fortify)</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/login</span><span class="route-desc">Page de connexion Inertia</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/login</span><span class="route-desc">Traitement login (Fortify)</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/logout</span><span class="route-desc">Déconnexion</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/two-factor-challenge</span><span class="route-desc">Challenge MFA TOTP</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/auth/microsoft</span><span class="route-desc">Redirection OAuth Azure</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/auth/microsoft/callback</span><span class="route-desc">Callback OAuth</span></div>
+
+  <h3>Dashboard & KPIs</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/dashboard</span><span class="route-desc">Dashboard principal filiale</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/dashboard/pending</span><span class="route-desc">Certificats en attente [certificates.validate]</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/dashboard/kpi</span><span class="route-desc">KPIs filiale [certificates.view]</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/dashboard/dtag</span><span class="route-desc">Dashboard DTAG [role:super_admin]</span></div>
+
+  <h3>Certificats</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates</span><span class="route-desc">Liste [certificates.view]</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/search</span><span class="route-desc">Recherche avancée 14 filtres</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/export</span><span class="route-desc">Export synchrone</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates</span><span class="route-desc">Créer [certificates.create]</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/{id}</span><span class="route-desc">Détail</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/submit</span><span class="route-desc">Soumettre</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/validate</span><span class="route-desc">Valider [certificates.validate]</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/cancel</span><span class="route-desc">Annuler [certificates.cancel]</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates/{id}/duplicate</span><span class="route-desc">Dupliquer</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates/{id}/amend</span><span class="route-desc">Amender</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/{id}/pdf</span><span class="route-desc">Télécharger PDF</span></div>
+
+  <h3>Export asynchrone</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/exports</span><span class="route-desc">Liste des exports en cours / terminés</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/exports/certificates</span><span class="route-desc">Lancer export → JSON {execution_id}</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/exports/{id}/status</span><span class="route-desc">Polling statut (JSON)</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/exports/{id}/download</span><span class="route-desc">Télécharger CSV (24h)</span></div>
+  <div class="route"><span class="method DELETE">DELETE</span><span class="route-path">/admin/exports/{id}</span><span class="route-desc">Supprimer</span></div>
+
+  <h3>Sécurité & Audit</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/security/ip-blacklist</span><span class="route-desc">Liste blacklist [role:super_admin]</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/security/ip-blacklist</span><span class="route-desc">Ajouter IP/CIDR</span></div>
+  <div class="route"><span class="method DELETE">DELETE</span><span class="route-path">/admin/security/ip-blacklist/{id}</span><span class="route-desc">Retirer</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/security/ip-blacklist/unlock/{userId}</span><span class="route-desc">Débloquer compte verrouillé</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/audit-logs</span><span class="route-desc">Journal d'audit [security.audit_logs]</span></div>
+</section>
+
+<!-- ══ 8. MIDDLEWARES ══ -->
+<section class="section" id="middlewares">
+  <div class="sec-header">
+    <div class="sec-icon dark">⚙️</div>
+    <h2>Middlewares<small>bootstrap/app.php</small></h2>
+  </div>
+
+  <table>
+    <thead><tr><th>Alias</th><th>Classe</th><th>Scope</th><th>Rôle</th></tr></thead>
+    <tbody>
+      <tr><td><em>(global web)</em></td><td><code>CheckIpBlacklist</code></td><td>Toutes routes web</td><td>Bloque les IPs blacklistées (cache 5 min)</td></tr>
+      <tr><td><code>permission:</code></td><td><code>CheckPermission</code></td><td>Par route</td><td>Vérifie la permission Spatie de l'utilisateur</td></tr>
+      <tr><td><code>role:</code></td><td><code>RoleMiddleware</code></td><td>Par route</td><td>Vérifie le rôle Spatie</td></tr>
+      <tr><td><code>tenant.isolation</code></td><td><code>EnsureTenantIsolation</code></td><td>Routes admin</td><td>Bloque l'accès cross-tenant applicatif</td></tr>
+      <tr><td><code>tenant.context</code></td><td><code>SetTenantContext</code></td><td>Routes admin</td><td>Injecte <code>SET app.current_tenant_id</code> en session PostgreSQL (RLS)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-danger">
+    <strong>Ordre critique :</strong> <code>CheckIpBlacklist</code> doit être en premier dans la stack web — il vérifie l'IP avant toute autre logique, y compris l'authentification.
+  </div>
+</section>
+
+<!-- ══ 9. SERVICES & JOBS ══ -->
+<section class="section" id="services">
+  <div class="sec-header">
+    <div class="sec-icon green">⚡</div>
+    <h2>Services, Jobs & Observers<small>Logique métier découplée</small></h2>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <h3>Services</h3>
+      <div class="card">
+        <h4>CommissionService</h4>
+        <p>Calcule la commission courtier à l'émission d'un certificat. Priorité : règle contrat > règle courtier. Évite les doublons. Annule si certificat annulé.</p>
+      </div>
+    </div>
+    <div>
+      <h3>Observers</h3>
+      <div class="card orange">
+        <h4>CertificateObserver::updated()</h4>
+        <p>Déclenche <code>CommissionService::calculate()</code> automatiquement quand le statut passe à <code>ISSUED</code>. Enregistré dans <code>AppServiceProvider</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Jobs (Queue — driver database)</h3>
+  <table>
+    <thead><tr><th>Job</th><th>Déclencheur</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>AsyncCertificateExportJob</code></td><td><code>POST /admin/exports/certificates</code></td><td>Génère CSV par chunk(500) dans <code>storage/app/exports/</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Listeners</h3>
+  <table>
+    <thead><tr><th>Event</th><th>Listener</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>Illuminate\Auth\Events\Failed</code></td><td><code>RecordFailedLogin</code></td><td>Incrémente <code>failed_login_attempts</code>, verrouille à 5 (30 min)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Notifications</h3>
+  <div class="alert alert-danger">
+    <strong>IMPORTANT — Ne jamais utiliser</strong> <code>$user->notify()</code> (conflit avec le trait <code>Notifiable</code>). Utiliser exclusivement :<br>
+    <code>App\Models\Notification::send($user, $type, $title, $body, $data);</code>
+  </div>
+</section>
+
+<!-- ══ 10. SCHEDULER ══ -->
+<section class="section" id="scheduler">
+  <div class="sec-header">
+    <div class="sec-icon orange">🕐</div>
+    <h2>Scheduler & Commandes Artisan<small>routes/console.php</small></h2>
+  </div>
+
+  <table>
+    <thead><tr><th>Commande</th><th>Fréquence</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>nsia:check-contracts</code></td><td>Chaque jour à 08:00</td><td>Alerte expiration contrats (J-30, J-15, J-7)</td></tr>
+      <tr><td><code>nsia:check-escalades</code></td><td>Toutes les heures</td><td>Vérifie les seuils NN300 non résolus</td></tr>
+      <tr><td><code>nsia:check-delegations</code></td><td>Toutes les heures</td><td>Alerte délégations expirant dans 48h</td></tr>
+      <tr><td><code>nsia:generate-kpi-snapshots</code></td><td>Chaque jour à 06:00</td><td>Recalcule et met en cache les KPIs par filiale</td></tr>
+      <tr><td><code>nsia:archive-certificates --years=5</code></td><td>1er du mois à 02:00</td><td>Archive et purge certificats &gt; 5 ans</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Commandes ponctuelles</h3>
+  <pre><span class="comment"># Migration PII → chiffrement (à exécuter UNE SEULE FOIS en production)</span>
+<span class="var">$</span> php artisan nsia:encrypt-sensitive-fields
+
+<span class="comment"># Lancer le worker queue en production</span>
+<span class="var">$</span> php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+
+<span class="comment"># Vider le cache des permissions Spatie après modification</span>
+<span class="var">$</span> php artisan permission:cache-reset
+
+<span class="comment"># Seeder des rôles et permissions</span>
+<span class="var">$</span> php artisan db:seed --class=RolesAndPermissionsSeeder</pre>
+</section>
+
+<!-- ══ 11. FRONTEND ══ -->
+<section class="section page-break" id="frontend">
+  <div class="sec-header">
+    <div class="sec-icon">⚛️</div>
+    <h2>Frontend React / Inertia<small>Architecture SPA hybride</small></h2>
+  </div>
+
+  <h3>Structure des pages</h3>
+  <pre><span class="comment"># resources/js/</span>
+pages/
+  auth/              <span class="comment"># Login, MFA, reset password</span>
+  admin/
+    dashboard/       <span class="comment"># Dashboard, KPI, DTAG, pending</span>
+    certificates/    <span class="comment"># List, show, create, search</span>
+    contracts/       <span class="comment"># List, show</span>
+    commissions/     <span class="comment"># Rules, bordereau</span>
+    reports/         <span class="comment"># Certificates, contracts, intermediaries</span>
+    exports/         <span class="comment"># Async export list</span>
+    approvals/       <span class="comment"># Workflow, delegations</span>
+    notifications/   <span class="comment"># Center, feed (JSON)</span>
+    security/        <span class="comment"># IP blacklist, audit logs</span>
+  settings/          <span class="comment"># Profile, password, MFA setup</span>
+components/
+  ui/                <span class="comment"># ShadCN/Radix wrappers</span>
+  app-sidebar.tsx    <span class="comment"># Navigation principale</span></pre>
+
+  <h3>Données partagées (HandleInertiaRequests)</h3>
+  <pre><span class="comment">// Disponibles dans TOUTES les pages via usePage().props.auth</span>
+<span class="keyword">return</span> [
+    <span class="string">'user'</span>        => <span class="var">$user</span>-><span class="func">toArray</span>(),
+    <span class="string">'permissions'</span> => <span class="var">$user</span>-><span class="func">getAllPermissions</span>()-><span class="func">pluck</span>(<span class="string">'name'</span>),
+    <span class="string">'roles'</span>       => <span class="var">$user</span>-><span class="func">getRoleNames</span>(),
+    <span class="string">'tenant'</span>      => <span class="var">$user</span>->tenant?-><span class="func">only</span>([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'code'</span>]),
+    <span class="string">'avatar_path'</span> => <span class="var">$user</span>->avatar_path ? <span class="func">asset</span>(...) : <span class="keyword">null</span>,
+];</pre>
+
+  <div class="alert alert-warn">
+    <strong>CSRF :</strong> Utiliser toujours <code>axios</code> pour les requêtes AJAX — il gère automatiquement le header <code>X-XSRF-TOKEN</code>. Éviter <code>fetch</code> natif qui ne gère pas le CSRF.
+  </div>
+</section>
+
+<!-- ══ 12. CONFIGURATION ══ -->
+<section class="section" id="config">
+  <div class="sec-header">
+    <div class="sec-icon dark">🔧</div>
+    <h2>Configuration<small>Variables d'environnement critiques</small></h2>
+  </div>
+
+  <pre><span class="comment"># Base de données</span>
+<span class="var">DB_CONNECTION</span>=pgsql
+<span class="var">DB_HOST</span>=127.0.0.1
+<span class="var">DB_PORT</span>=5432
+<span class="var">DB_DATABASE</span>=db_transport
+<span class="var">DB_USERNAME</span>=postgres
+<span class="var">DB_PASSWORD</span>=root
+
+<span class="comment"># Queue (driver base de données)</span>
+<span class="var">QUEUE_CONNECTION</span>=database
+
+<span class="comment"># Microsoft OAuth (app single-tenant — PAS 'common')</span>
+<span class="var">MICROSOFT_CLIENT_ID</span>=uuid-application-azure
+<span class="var">MICROSOFT_CLIENT_SECRET</span>=secret
+<span class="var">MICROSOFT_TENANT_ID</span>=uuid-tenant-specifique   <span class="comment"># ⚠️ pas 'common'</span>
+<span class="var">MICROSOFT_REDIRECT_URI</span>=https://app.nsia.ci/auth/microsoft/callback
+
+<span class="comment"># DomPDF</span>
+<span class="var">DOMPDF_REMOTE_ENABLED</span>=true
+
+<span class="comment"># Chiffrement (Laravel APP_KEY)</span>
+<span class="var">APP_KEY</span>=base64:...   <span class="comment"># généré par php artisan key:generate</span>
+
+<span class="comment"># Mail</span>
+<span class="var">MAIL_MAILER</span>=smtp
+<span class="var">MAIL_FROM_ADDRESS</span>=noreply@nsia-transport.ci</pre>
+
+  <h3>Configuration Fortify (config/fortify.php)</h3>
+  <pre><span class="string">'features'</span> => [
+    <span class="class-name">Features</span>::<span class="func">registration</span>(),
+    <span class="class-name">Features</span>::<span class="func">resetPasswords</span>(),
+    <span class="class-name">Features</span>::<span class="func">emailVerification</span>(),
+    <span class="class-name">Features</span>::<span class="func">updateProfileInformation</span>(),
+    <span class="class-name">Features</span>::<span class="func">updatePasswords</span>(),
+    <span class="class-name">Features</span>::<span class="func">twoFactorAuthentication</span>([
+        <span class="string">'confirm'</span>         => <span class="keyword">true</span>,
+        <span class="string">'confirmPassword'</span> => <span class="keyword">true</span>,
+    ]),
+],</pre>
+</section>
+
+<!-- ══ 13. DÉPLOIEMENT ══ -->
+<section class="section" id="deploiement">
+  <div class="sec-header">
+    <div class="sec-icon orange">🚀</div>
+    <h2>Déploiement<small>Checklist de mise en production</small></h2>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item"><h4>1. Préparer l'environnement</h4><p>PHP 8.2+, PostgreSQL 16, Node 20+, Composer, queue worker (Supervisor)</p></div>
+    <div class="tl-item"><h4>2. Variables d'environnement</h4><p>Copier <code>.env.example</code> → <code>.env</code>. Configurer DB, Mail, Microsoft OAuth, APP_KEY.</p></div>
+    <div class="tl-item"><h4>3. Dépendances</h4>
+      <p><code>composer install --no-dev --optimize-autoloader</code><br><code>npm ci &amp;&amp; npm run build</code></p></div>
+    <div class="tl-item"><h4>4. Base de données</h4>
+      <p><code>php artisan migrate --force</code><br><code>php artisan db:seed --class=RolesAndPermissionsSeeder</code></p></div>
+    <div class="tl-item"><h4>5. Chiffrement PII (1 fois)</h4><p><code>php artisan nsia:encrypt-sensitive-fields</code> — à exécuter une seule fois après migration initiale des données.</p></div>
+    <div class="tl-item"><h4>6. Optimisations Laravel</h4>
+      <p><code>php artisan config:cache &amp;&amp; php artisan route:cache &amp;&amp; php artisan view:cache</code></p></div>
+    <div class="tl-item"><h4>7. Stockage</h4><p><code>php artisan storage:link</code> — lien symbolique public/storage → storage/app/public</p></div>
+    <div class="tl-item"><h4>8. Scheduler (crontab)</h4><p><code>* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1</code></p></div>
+    <div class="tl-item"><h4>9. Queue worker (Supervisor)</h4><p>Configurer Supervisor pour <code>php artisan queue:work --sleep=3 --tries=3</code></p></div>
+    <div class="tl-item"><h4>10. Vérification finale</h4><p>Tester login, MFA, émission certificat, PDF, export. Vérifier RLS PostgreSQL actif.</p></div>
+  </div>
+
+  <div class="alert alert-success">
+    <strong>Checklist RLS :</strong> Vérifier que la migration <code>2026_06_01_000001_enable_row_level_security.php</code> est bien exécutée et que les politiques PostgreSQL sont actives sur les 5 tables couvertes.
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <strong>NSIA Transport — Documentation Technique v1.0</strong> — Sprint 6 — Mai 2026<br>
+  Groupe NSIA • Stack: Laravel 12 + React 19 + PostgreSQL 16 • 34 tables • 58 US livrées<br>
+  <small style="opacity:.5">Document confidentiel — Usage interne équipe technique</small>
+</footer>
+
+</div>
+
+<button class="scroll-top no-print" id="scrollBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>window.addEventListener('scroll',()=>document.getElementById('scrollBtn').classList.toggle('visible',scrollY>400));</script>
+</body>
+</html>
