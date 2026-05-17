@@ -10,6 +10,8 @@ class IpBlacklist extends Model
 {
     use HasUuids;
 
+    protected $table = 'ip_blacklist';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -46,8 +48,9 @@ class IpBlacklist extends Model
      */
     public static function isBlocked(string $ip): bool
     {
+        // Le cast ::inet est requis pour que PostgreSQL connaisse le type du paramètre lié
         return static::active()
-            ->whereRaw('? <<= ip_range', [$ip])
+            ->whereRaw('?::inet <<= ip_range', [$ip])
             ->exists();
     }
 

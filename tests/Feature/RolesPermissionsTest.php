@@ -81,7 +81,7 @@ it('admin_filiale peut bloquer un utilisateur', function () {
     $user = makeUserWithRole('admin_filiale');
 
     expect($user->can('users.block'))->toBeTrue();
-    expect($user->can('users.unblock'))->toBeTrue();
+    expect($user->can('users.unblock'))->toBeFalse();
     expect($user->can('tenants.delete'))->toBeFalse();
 });
 

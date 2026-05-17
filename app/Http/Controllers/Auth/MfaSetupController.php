@@ -60,7 +60,7 @@ class MfaSetupController extends Controller
 
         $this->auditLog($request, 'mfa_enable_initiated');
 
-        return redirect()->route('mfa.setup')->with('status', 'Scannez le QR code avec Google Authenticator.');
+        return redirect()->route('user.mfa-setup')->with('status', 'Scannez le QR code avec Google Authenticator.');
     }
 
     // ── Désactiver ───────────────────────────────────────────
@@ -72,7 +72,7 @@ class MfaSetupController extends Controller
 
         $this->auditLog($request, 'mfa_disabled');
 
-        return redirect()->route('mfa.setup')->with('status', 'Authentification à deux facteurs désactivée.');
+        return redirect()->route('user.mfa-setup')->with('status', 'Authentification à deux facteurs désactivée.');
     }
 
     // ── Regénérer codes de récupération ──────────────────────
@@ -84,7 +84,7 @@ class MfaSetupController extends Controller
 
         $this->auditLog($request, 'mfa_recovery_codes_regenerated');
 
-        return redirect()->route('mfa.setup')->with('status', 'Codes de récupération régénérés.');
+        return redirect()->route('user.mfa-setup')->with('status', 'Codes de récupération régénérés.');
     }
 
     // ── Audit log helper ─────────────────────────────────────

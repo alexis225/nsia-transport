@@ -1,0 +1,4 @@
+- php artisan nsia:encrypt-sensitive-fields pour chiffrer les données PII existantes
+- php artisan migrate pour la migration
+- Pest : php artisan test --filter CommissionServiceTest (base de test testing_bd_transport requise)
+- Playwright : php artisan serve puis npm run test:e2e (compte E2E_USER_EMAIL requis)

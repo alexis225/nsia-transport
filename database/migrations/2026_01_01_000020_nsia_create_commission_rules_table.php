@@ -21,41 +21,62 @@ return new class extends Migration
     {
         Schema::create('commission_rules', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
-
-            $table->foreignUuid('tenant_id')->constrained('tenants');
-            $table->foreignUuid('broker_id')->constrained('brokers');
-
-            // NULL = règle générale courtier ; NOT NULL = règle propre au contrat
+ 
+            $table->foreignUuid('tenant_id')
+                  ->constrained('tenants')
+                  ->cascadeOnDelete();
+ 
+            $table->foreignUuid('broker_id')
+                  ->constrained('brokers')
+                  ->cascadeOnDelete();
+ 
+            // Taux spécifique par contrat (optionnel — prime sur taux courtier)
             $table->foreignUuid('contract_id')
                   ->nullable()
                   ->constrained('insurance_contracts')
                   ->nullOnDelete();
-
-            $table->decimal('rate', 5, 2);               // % commission
-            $table->string('applies_to', 30)->default('PREMIUM'); // PREMIUM | NET_PREMIUM
-
+ 
+            // Taux de commission en %
+            $table->decimal('rate_pct', 5, 2);
+            // ex: 10.00 = 10%
+ 
+            // Base de calcul configurable
+            $table->string('base_type', 30)->default('prime_total');
+            // prime_total     → prime_total du certificat (défaut)
+            // insured_value   → valeur assurée du certificat
+            // custom_amount   → montant fixe saisi manuellement
+            $table->decimal('custom_base_amount', 20, 2)->nullable();
+            // Utilisé uniquement si base_type = 'custom_amount'
+            // Date d'effet
             $table->date('effective_date');
-            $table->date('expiry_date')->nullable();
-
+            $table->date('end_date')->nullable(); // null = toujours actif
+ 
             $table->boolean('is_active')->default(true);
-
+            $table->text('notes')->nullable();
+ 
             $table->foreignUuid('created_by')
                   ->nullable()
                   ->constrained('users')
                   ->nullOnDelete();
-
-            $table->timestamp('created_at')->useCurrent();
-
-            // Unicité : une seule règle active par (tenant, courtier, contrat, date d'effet)
-            $table->unique(['tenant_id', 'broker_id', 'contract_id', 'effective_date']);
+ 
+            $table->timestamps();
+ 
+            $table->index(['broker_id', 'is_active', 'effective_date']);
+            $table->index(['contract_id', 'is_active']);
+            $table->index(['tenant_id', 'broker_id']);
         });
-
-        DB::statement("ALTER TABLE commission_rules ADD CONSTRAINT cr_applies_check
-            CHECK (applies_to IN ('PREMIUM','NET_PREMIUM'))");
-
-        DB::statement("CREATE INDEX idx_commission_rules_active ON commission_rules
-            (tenant_id, broker_id, effective_date)
-            WHERE is_active = true");
+ 
+        DB::statement("ALTER TABLE commission_rules ADD CONSTRAINT cr_rate_check
+            CHECK (rate_pct >= 0 AND rate_pct <= 100)");
+ 
+        DB::statement("ALTER TABLE commission_rules ADD CONSTRAINT cr_base_type_check
+            CHECK (base_type IN ('prime_total','insured_value','custom_amount'))");
+ 
+        // Index partiel pour règles actives
+        DB::statement("CREATE INDEX idx_commission_rules_active
+            ON commission_rules(broker_id, effective_date DESC)
+            WHERE is_active = TRUE AND end_date IS NULL");
+ 
     }
 
     public function down(): void

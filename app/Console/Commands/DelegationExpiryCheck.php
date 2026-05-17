@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\DelegationService;
 use Illuminate\Console\Command;
 
 class DelegationExpiryCheck extends Command
@@ -23,7 +24,7 @@ class DelegationExpiryCheck extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(DelegationService $service): void
     {
         $count = $service->expireOverdue();
         $this->info("{$count} délégation(s) expirée(s) traitée(s).");

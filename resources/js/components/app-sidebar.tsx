@@ -1,10 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    Award, Briefcase, Building2,
-    ClipboardList, Database, FileBadge,
-    FileText, LayoutDashboard, Settings,
-    Shield, Users, TrendingUp,UserCheck, 
-    Bell
+    Award, BarChart2, Briefcase, Building2,
+    ClipboardList, Database, Download, FileBadge,
+    FileText, LayoutDashboard, Search, Settings,
+    Shield, Users, TrendingUp, UserCheck,
+    Bell, Percent, Users2,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -34,6 +34,20 @@ export function AppSidebar() {
             href:  route('admin.dashboard'),
             icon:  LayoutDashboard,
         },
+
+        // ── KPIs Filiale — US-043 ─────────────────────────────
+        ...(can('certificates.view') ? [{
+            title: 'KPIs Filiale',
+            href:  route('admin.dashboard.kpi'),
+            icon:  BarChart2,
+        }] : []),
+
+        // ── Dashboard DTAG — US-048 (super_admin uniquement) ──
+        ...(isSA() ? [{
+            title: 'Dashboard DTAG',
+            href:  route('admin.dashboard.dtag'),
+            icon:  Building2,
+        }] : []),
 
         // ── Utilisateurs — US-007/008 ──────────────────────────
         ...(can('users.view') ? [{
@@ -80,6 +94,28 @@ export function AppSidebar() {
             ],
         }] : []),
 
+        // ── Coassureurs — US-041 ─────────────────────────────
+        ...(can('coinsurers.view') ? [{
+            title: 'Coassureurs',
+            href:  route('admin.coinsurers.index'),
+            icon:  Users2,
+            children: [
+                { title: 'Liste',   href: route('admin.coinsurers.index') },
+                ...(can('coinsurers.create') ? [{ title: 'Nouveau', href: route('admin.coinsurers.create') }] : []),
+            ],
+        }] : []),
+
+        // ── Experts — US-042 ─────────────────────────────────
+        ...(can('experts.view') ? [{
+            title: 'Experts',
+            href:  route('admin.experts.index'),
+            icon:  UserCheck,
+            children: [
+                { title: 'Liste',   href: route('admin.experts.index') },
+                ...(can('experts.create') ? [{ title: 'Nouveau', href: route('admin.experts.create') }] : []),
+            ],
+        }] : []),
+
         // ── Références ─────────────────────────────────────────
         ...(isSA() ? [{
             title: 'Références',
@@ -117,13 +153,14 @@ export function AppSidebar() {
             ],
         }] : []),
 
-        // ── Certificats — US-017 ───────────────────────────────
+        // ── Certificats — US-017/055 ──────────────────────────
         ...(can('certificates.view') ? [{
             title: 'Certificats',
             href:  route('admin.certificates.index'),
             icon:  Award,
             children: [
-                { title: 'Liste',   href: route('admin.certificates.index') },
+                { title: 'Liste',              href: route('admin.certificates.index') },
+                { title: 'Recherche avancée',  href: route('admin.certificates.search'), icon: Search },
                 ...(can('certificates.create')   ? [{ title: 'Nouveau',    href: route('admin.certificates.create') }] : []),
                 ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.dashboard.pending') }]   : []),
             ],
@@ -141,18 +178,32 @@ export function AppSidebar() {
             href: route('admin.delegations.index'), 
             icon: UserCheck 
          }] : []),
-
-        // ...(can('reports.view') ? [{
-        //     title: 'Rapports',
-        //     href:  route('admin.reports.index'),
-        //     icon:  BarChart2,
-        //     children: [
-        //         ...(can('reports.dashboard_filiale') ? [{ title: 'Dashboard filiale', href: route('admin.reports.filiale') }]      : []),
-        //         ...(can('reports.dashboard_dtag')    ? [{ title: 'Dashboard DTAG',    href: route('admin.reports.dtag') }]          : []),
-        //         ...(can('reports.certificates')      ? [{ title: 'Certificats',        href: route('admin.reports.certificates') }] : []),
-        //         ...(can('reports.contracts')         ? [{ title: 'Contrats',           href: route('admin.reports.contracts') }]    : []),
-        //     ],
-        // }] : []),
+        {
+            title: 'Commissions',
+            href: route('admin.commissions.rules'),
+            icon: Percent,
+            children: [
+                { title: 'Règles',     href: route('admin.commissions.rules') },
+                { title: 'Bordereau',  href: route('admin.commissions.bordereau') },
+            ],
+        },
+        // ── Rapports — US-044/045/046 ─────────────────────────
+        ...(can('certificates.view') || can('contracts.view') || can('brokers.view') ? [{
+            title: 'Rapports',
+            href:  route('admin.reports.certificates'),
+            icon:  BarChart2,
+            children: [
+                ...(can('certificates.view') ? [{ title: 'État certificats',    href: route('admin.reports.certificates') }]    : []),
+                ...(can('contracts.view')    ? [{ title: 'État contrats',        href: route('admin.reports.contracts') }]       : []),
+                ...(can('brokers.view')      ? [{ title: 'Intermédiaires',       href: route('admin.reports.intermediaries') }]  : []),
+            ],
+        }] : []),
+        // ── Mes exports — US-047 ─────────────────────────────
+        ...(can('certificates.view') ? [{
+            title: 'Mes exports',
+            href:  route('admin.exports.index'),
+            icon:  Download,
+        }] : []),
         {
             title: 'Notifications',
             href:  route('admin.notifications.index'),
@@ -163,6 +214,15 @@ export function AppSidebar() {
             title: 'Audit Logs',
             href:  route('admin.audit-logs.index'),
             icon:  ClipboardList,
+        }] : []),
+        // ── Sécurité — US-050 (super_admin uniquement) ────────
+        ...(isSA() ? [{
+            title: 'Sécurité',
+            href:  route('admin.security.ip-blacklist.index'),
+            icon:  Shield,
+            children: [
+                { title: 'Blacklist IP', href: route('admin.security.ip-blacklist.index') },
+            ],
         }] : []),
 
         // ── Paramètres ─────────────────────────────────────────

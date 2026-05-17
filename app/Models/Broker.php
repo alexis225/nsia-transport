@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsEncryptedString;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,15 +36,20 @@ class Broker extends Model
     protected function casts(): array
     {
         return [
-            'commission_rate' => 'decimal:2',
-            'is_active'       => 'boolean',
-            'blocked_at'      => 'datetime',
+            'commission_rate'     => 'decimal:2',
+            'is_active'           => 'boolean',
+            'blocked_at'          => 'datetime',
+            // US-051 — Chiffrement données PII (non-queryables)
+            'address'             => AsEncryptedString::class,
+            'phone'               => AsEncryptedString::class,
+            'registration_number' => AsEncryptedString::class,
         ];
     }
 
     // ── Constantes ───────────────────────────────────────────
-    const TYPE_LOCAL   = 'LOCAL';
-    const TYPE_FOREIGN = 'FOREIGN_PARTNER';
+    // Valeurs contrainte DB : fix_brokers_type_constraint migration
+    const TYPE_LOCAL   = 'courtier_local';
+    const TYPE_FOREIGN = 'partenaire_etranger';
 
     // ── Scopes ───────────────────────────────────────────────
     public function scopeActive($query)

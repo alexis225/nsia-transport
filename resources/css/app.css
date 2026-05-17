@@ -146,6 +146,103 @@
     }
 }
 
+/* ── US-057 — Dark mode : surcharges composants custom (inline-style pages) ── */
+
+/* Panneaux / cartes */
+.dark .kpi-card,
+.dark .kpi-panel,
+.dark .rpt-panel,
+.dark .panel,
+.dark .tbl-card,
+.dark .chart-card,
+.dark .exp-panel,
+.dark .filter-bar,
+.dark .side-card,
+.dark .pd-card,
+.dark .int-tabs {
+    background: oklch(0.18 0.01 264) !important;
+    border-color: oklch(0.3 0.02 264) !important;
+    color: oklch(0.9 0 0) !important;
+}
+
+/* En-têtes de panneaux */
+.dark .rpt-panel-hdr,
+.dark .kpi-panel-hdr,
+.dark .panel-hdr,
+.dark .tbl-hdr,
+.dark .exp-panel-hdr,
+.dark .chart-hdr,
+.dark .pd-card-hdr,
+.dark .side-hdr {
+    background: oklch(0.21 0.01 264) !important;
+    border-color: oklch(0.3 0.02 264) !important;
+    color: oklch(0.9 0 0) !important;
+}
+
+/* Tables */
+.dark table thead,
+.dark thead { background: oklch(0.21 0.01 264) !important; }
+.dark table th,
+.dark th {
+    color: oklch(0.65 0 0) !important;
+    border-color: oklch(0.3 0.02 264) !important;
+}
+.dark table td,
+.dark td {
+    color: oklch(0.85 0 0) !important;
+    border-color: oklch(0.25 0.01 264) !important;
+}
+.dark tr:hover td { background: oklch(0.22 0.01 264) !important; }
+
+/* Inputs de filtre */
+.dark .fin,
+.dark input[type="date"],
+.dark input[type="text"],
+.dark input[type="number"],
+.dark select {
+    background: oklch(0.22 0.01 264) !important;
+    border-color: oklch(0.35 0.02 264) !important;
+    color: oklch(0.9 0 0) !important;
+}
+.dark .fin:focus { border-color: oklch(0.55 0.2 264) !important; }
+
+/* Onglets */
+.dark .tab-btn { color: oklch(0.65 0 0) !important; }
+.dark .tab-btn.active {
+    background: oklch(0.25 0.01 264) !important;
+    color: oklch(0.75 0.18 264) !important;
+}
+
+/* Textes courants */
+.dark .kpi-val,
+.dark .stat-val,
+.dark .broker-name,
+.dark .cert-num { color: oklch(0.9 0 0) !important; }
+.dark .kpi-lbl,
+.dark .stat-lbl,
+.dark .broker-sub,
+.dark .bar-lbl   { color: oklch(0.55 0 0) !important; }
+
+/* Barres de progression — fond */
+.dark div[style*="background: #f1f5f9"],
+.dark div[style*="background:#f1f5f9"] {
+    background: oklch(0.28 0.01 264) !important;
+}
+
+/* Zone de contenu principal */
+.dark .dash,
+.dark .kpi-page,
+.dark .rpt-page,
+.dark .int-page,
+.dark .exp-page,
+.dark .sec-page,
+.dark .srch-page,
+.dark .dtag-page { color: oklch(0.85 0 0); }
+
+/* Badges statut — ajuster le contraste en dark */
+.dark .badge,
+.dark .s-badge { opacity: 0.92; }
+
 /* ── Dégradé Midone sur la sidebar ── */
 [data-slot="sidebar"] {
     background: linear-gradient(

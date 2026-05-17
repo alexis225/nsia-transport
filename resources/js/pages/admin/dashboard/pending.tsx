@@ -130,6 +130,17 @@ export default function PendingDashboard({
                 .expiry-num{font-size:11px;font-weight:500;color:#1e293b;}
                 .expiry-date{font-size:11px;color:#dc2626;font-weight:600;}
                 .days-left{font-size:10px;color:#dc2626;background:#fef2f2;padding:1px 5px;border-radius:6px;}
+
+                /* US-054 — Responsive */
+                @media(max-width:1100px){
+                    .kpi-grid{grid-template-columns:repeat(3,1fr);}
+                    .pd-layout{grid-template-columns:1fr;}
+                }
+                @media(max-width:700px){
+                    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+                    table th:nth-child(3),table td:nth-child(3),
+                    table th:nth-child(5),table td:nth-child(5){display:none;}
+                }
             `}</style>
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">

@@ -19,52 +19,59 @@ return new class extends Migration
     {
         Schema::create('commission_transactions', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
-
-            $table->foreignUuid('tenant_id')->constrained('tenants');
-            $table->foreignUuid('broker_id')->constrained('brokers');
-
-            // Pas de FK directe vers certificates (table partitionnée)
-            $table->uuid('certificate_id');
+            $table->foreignUuid('tenant_id')
+                ->constrained('tenants');
+            $table->foreignUuid('certificate_id')
+                ->constrained('certificates')
+                ->cascadeOnDelete();
 
             $table->foreignUuid('contract_id')
-                  ->constrained('insurance_contracts');
+                ->constrained('insurance_contracts');
 
-            $table->foreignUuid('rule_id')
-                  ->nullable()
-                  ->constrained('commission_rules')
-                  ->nullOnDelete();
+            $table->foreignUuid('broker_id')
+                ->nullable()
+                ->constrained('brokers')
+                ->nullOnDelete();
 
+            $table->foreignUuid('commission_rule_id')
+                ->nullable()
+                ->constrained('commission_rules')
+                ->nullOnDelete();
+
+            // Valeurs calculées
             $table->char('currency_code', 3);
+            $table->decimal('prime_brute',    20, 2); // prime_total du certificat
+            $table->decimal('rate_pct',        5, 2); // taux appliqué
+            $table->decimal('commission',     20, 2); // prime_brute * rate_pct / 100
+            $table->decimal('prime_nette',    20, 2); // prime_brute - commission
 
-            // Montants
-            $table->decimal('gross_premium', 20, 2);
-            $table->decimal('commission_rate', 5, 2);
-            $table->decimal('commission_amount', 20, 2);
-            $table->decimal('net_premium', 20, 2);
+            // Période comptable
+            $table->string('period_month', 7);
+            // Format : YYYY-MM ex: 2026-05
 
-            // Période de rattachement pour les bordereaux (ex: "2025-03")
-            $table->char('period_month', 7);
+            // Statut paiement
+            $table->string('status', 20)->default('PENDING');
+            // PENDING | PAID | CANCELLED
 
-            $table->string('status', 30)->default('PENDING');
-            // PENDING | VALIDATED | PAID | DISPUTED
-
-            $table->timestamp('settled_at')->nullable();
+            $table->timestamp('paid_at')->nullable();
+            $table->foreignUuid('paid_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             $table->timestamps();
+
+            $table->index(['broker_id', 'period_month']);
+            $table->index(['tenant_id', 'period_month', 'status']);
+            $table->index(['certificate_id']);
         });
-
+ 
         DB::statement("ALTER TABLE commission_transactions ADD CONSTRAINT ct_status_check
-            CHECK (status IN ('PENDING','VALIDATED','PAID','DISPUTED'))");
-
-        DB::statement('CREATE INDEX idx_commission_broker_period
-            ON commission_transactions(tenant_id, broker_id, period_month)');
-
-        DB::statement('CREATE INDEX idx_commission_cert
-            ON commission_transactions(certificate_id)');
-
-        DB::statement("CREATE INDEX idx_commission_pending
-            ON commission_transactions(tenant_id, status)
-            WHERE status IN ('PENDING','DISPUTED')");
+            CHECK (status IN ('PENDING','PAID','CANCELLED'))");
+ 
+        DB::statement("CREATE UNIQUE INDEX idx_commission_cert_unique
+            ON commission_transactions(certificate_id)
+            WHERE status != 'CANCELLED'");
     }
 
     public function down(): void

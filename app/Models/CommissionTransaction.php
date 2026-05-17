@@ -8,61 +8,40 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CommissionTransaction extends Model
 {
-    use HasUuids;
-
+        use HasUuids;
+ 
     protected $fillable = [
-        'tenant_id',
-        'broker_id',
-        'certificate_id',
-        'contract_id',
-        'rule_id',
+        'tenant_id', 'certificate_id', 'contract_id',
+        'broker_id', 'commission_rule_id',
         'currency_code',
-        'gross_premium',
-        'commission_rate',
-        'commission_amount',
-        'net_premium',
+        'prime_brute', 'rate_pct', 'commission', 'prime_nette',
         'period_month',
-        'status',
-        'settled_at',
+        'status', 'paid_at', 'paid_by',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'gross_premium'     => 'decimal:2',
-            'commission_rate'   => 'decimal:2',
-            'commission_amount' => 'decimal:2',
-            'net_premium'       => 'decimal:2',
-            'settled_at'        => 'datetime',
-        ];
-    }
-
-    // ── Constantes ───────────────────────────────────────────
+ 
+    protected $casts = [
+        'prime_brute'  => 'decimal:2',
+        'rate_pct'     => 'decimal:2',
+        'commission'   => 'decimal:2',
+        'prime_nette'  => 'decimal:2',
+        'paid_at'      => 'datetime',
+    ];
+ 
     const STATUS_PENDING   = 'PENDING';
-    const STATUS_VALIDATED = 'VALIDATED';
     const STATUS_PAID      = 'PAID';
-    const STATUS_DISPUTED  = 'DISPUTED';
+    const STATUS_CANCELLED = 'CANCELLED';
+ 
+    // ── Relations ─────────────────────────────────────────────
+    public function tenant(): BelongsTo      { return $this->belongsTo(Tenant::class); }
+    public function certificate(): BelongsTo { return $this->belongsTo(Certificate::class); }
+    public function contract(): BelongsTo    { return $this->belongsTo(InsuranceContract::class, 'contract_id'); }
+    public function broker(): BelongsTo      { return $this->belongsTo(Broker::class); }
+    public function rule(): BelongsTo        { return $this->belongsTo(CommissionRule::class, 'commission_rule_id'); }
+    public function paidBy(): BelongsTo      { return $this->belongsTo(User::class, 'paid_by'); }
+ 
+    // ── Helpers ───────────────────────────────────────────────
+    public function isPending(): bool   { return $this->status === self::STATUS_PENDING; }
+    public function isPaid(): bool      { return $this->status === self::STATUS_PAID; }
+    public function isCancelled(): bool { return $this->status === self::STATUS_CANCELLED; }
 
-    // ── Scopes ───────────────────────────────────────────────
-    public function scopePending($query)
-    {
-        return $query->where('status', self::STATUS_PENDING);
-    }
-
-    public function scopeForPeriod($query, string $period)
-    {
-        return $query->where('period_month', $period);
-    }
-
-    public function scopeForBroker($query, string $brokerId)
-    {
-        return $query->where('broker_id', $brokerId);
-    }
-
-    // ── Relations ────────────────────────────────────────────
-    public function tenant(): BelongsTo   { return $this->belongsTo(Tenant::class); }
-    public function broker(): BelongsTo   { return $this->belongsTo(Broker::class); }
-    public function contract(): BelongsTo { return $this->belongsTo(InsuranceContract::class, 'contract_id'); }
-    public function rule(): BelongsTo     { return $this->belongsTo(CommissionRule::class, 'rule_id'); }
-    public function currency(): BelongsTo { return $this->belongsTo(Currency::class, 'currency_code', 'code'); }
 }

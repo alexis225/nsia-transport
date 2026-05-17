@@ -211,8 +211,6 @@ class UserController extends Controller
     {
         $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
-        $this->authorizeTenantAccess($user);
-
         if ($user->getKey() == $request->user()->getKey()) {
             return back()->withErrors(['user' => 'Vous ne pouvez pas vous bloquer vous-même.']);
         }
@@ -220,6 +218,8 @@ class UserController extends Controller
         if ($user->fresh()->hasRole('super_admin')) {
             return back()->withErrors(['user' => 'Impossible de bloquer un super administrateur.']);
         }
+
+        $this->authorizeTenantAccess($user);
 
         $user->update([
             'is_active'      => false,

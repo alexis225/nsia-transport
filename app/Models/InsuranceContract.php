@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsEncryptedString;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -63,6 +64,9 @@ class InsuranceContract extends Model
         'certificates_count' => 'integer',
         'certificates_limit' => 'integer',
         'notice_period_days' => 'integer',
+        // US-051 — Chiffrement données PII (non-queryables)
+        'insured_address'    => AsEncryptedString::class,
+        'insured_phone'      => AsEncryptedString::class,
     ];
 
     // ── Constantes ────────────────────────────────────────────
@@ -111,10 +115,10 @@ class InsuranceContract extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    // public function certificates(): HasMany
-    // {
-    //     return $this->hasMany(Certificate::class, 'contract_id'); // US-017
-    // }
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class, 'contract_id');
+    }
 
     // ── Scopes ───────────────────────────────────────────────
     public function scopeActive($query)

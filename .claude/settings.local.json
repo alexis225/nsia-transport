@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"c:/wamp64/www/nsia-transport/resources/js/pages/admin/reports\")",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\app\\\\Http\\\\Controllers\" -Recurse -Name | Where-Object { $_ -match \"InsuranceContractController|BrokerController\" })"
+    ],
+    "additionalDirectories": [
+      "c:\\wamp64\\www\\nsia-transport\\resources\\js\\pages\\admin"
+    ]
+  }
+}

@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Listeners\RecordFailedLogin;
+use App\Models\Certificate;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Failed as LoginFailed;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -11,7 +14,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
-
+use App\Observers\CertificateObserver;
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void {}
@@ -19,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
-
+        Certificate::observe(CertificateObserver::class);
         // ── Super admin bypass ────────────────────────────────
         Gate::before(function ($user, $ability) {
             if($user->hasRole('super_admin')){
@@ -32,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
 
             return null;
         });
+
+        // ── US-050 — Détection tentatives de connexion échouées ──
+        Event::listen(LoginFailed::class, RecordFailedLogin::class);
 
         // ── Microsoft Socialite provider ──────────────────────
         Event::listen(SocialiteWasCalled::class, function (SocialiteWasCalled $event) {

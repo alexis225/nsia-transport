@@ -9,6 +9,14 @@ use App\Http\Controllers\Admin\ContractAmendmentController;
 use App\Http\Controllers\Admin\ContractLimitController;
 use App\Http\Controllers\Admin\DelegationController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\CertificateReportController;
+use App\Http\Controllers\Admin\AsyncExportController;
+use App\Http\Controllers\Admin\CertificateSearchController;
+use App\Http\Controllers\Admin\ContractReportController;
+use App\Http\Controllers\Admin\DtagDashboardController;
+use App\Http\Controllers\Admin\IntermediaryReportController;
+use App\Http\Controllers\Admin\IpBlacklistController;
+use App\Http\Controllers\Admin\KpiDashboardController;
 use App\Http\Controllers\Admin\InsuranceContractController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\ReferenceController;
@@ -18,6 +26,9 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\MfaSetupController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Admin\CertificateVerifyController;
+use App\Http\Controllers\Admin\CoinsurersController;
+use App\Http\Controllers\Admin\CommissionController;
+use App\Http\Controllers\Admin\ExpertController;
 use App\Http\Controllers\Admin\NotificationCenterController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -33,11 +44,26 @@ Route::get('/', function () {
 // ── Route publique de vérification (sans auth) ────────────────
 Route::get('/verify/{token}', [CertificateVerifyController::class, 'show'])->name('certificate.verify')->where('token', '[a-zA-Z0-9]+');
 
+// ── Alias dashboard (compatibilité Fortify / boilerplate tests) ─
+Route::get('/dashboard', function () {
+    if (! auth()->check()) {
+        return redirect()->route('login');
+    }
+    return redirect()->route('admin.dashboard');
+})->name('dashboard');
+
 
 
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
-    
+    Route::prefix('admin/commissions')->name('admin.commissions.')->group(function(){
+        Route::get('/rules',                 [CommissionController::class, 'rules'])      ->name('rules');
+        Route::post('/rules',                [CommissionController::class, 'storeRule'])  ->name('rules.store');
+        Route::patch('/rules/{rule}/toggle', [CommissionController::class, 'toggleRule']) ->name('rules.toggle');
+        Route::get('/bordereau',             [CommissionController::class, 'bordereau'])  ->name('bordereau');
+        Route::get('/export/{format}',       [CommissionController::class, 'export'])     ->name('export');
+
+    });
     Route::prefix('admin/notifications/feed')->name('admin.notifications.feed.')->group(function () {
         // Liste + compteur non lus (polled toutes les 30s)
         Route::get('/', [NotificationController::class, 'index'])->name('index');
@@ -88,8 +114,33 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     // API polling — état plafond d'un contrat
     Route::get('/contracts/{contract}/limit-status',[ContractLimitController::class, 'status'])->middleware('permission:contracts.view')->name('admin.contracts.limit-status');
     // Dashboard
-    Route::inertia('admin/dashboard', 'dashboard')->name('admin.dashboard');
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/dashboard/pending',[DashboardController::class, 'pending'])->middleware('permission:certificates.validate')->name('admin.dashboard.pending');
+    // US-043 — Dashboard KPIs filiale
+    Route::get('/admin/dashboard/kpi',[KpiDashboardController::class, 'index'])->middleware('permission:certificates.view')->name('admin.dashboard.kpi');
+    // US-044 — État des certificats par période
+    Route::get('/admin/reports/certificates',[CertificateReportController::class, 'index'])->middleware('permission:certificates.view')->name('admin.reports.certificates');
+    // US-045 — État des contrats
+    Route::get('/admin/reports/contracts',[ContractReportController::class, 'index'])->middleware('permission:contracts.view')->name('admin.reports.contracts');
+    // US-046 — État des intermédiaires
+    Route::get('/admin/reports/intermediaries',[IntermediaryReportController::class, 'index'])->middleware('permission:brokers.view')->name('admin.reports.intermediaries');
+    // US-047 — Export asynchrone
+    Route::get('/admin/exports',                        [AsyncExportController::class, 'index'])           ->middleware('permission:certificates.view')->name('admin.exports.index');
+    Route::post('/admin/exports/certificates',          [AsyncExportController::class, 'dispatchCertificates'])->middleware('permission:certificates.view')->name('admin.exports.dispatch');
+    Route::get('/admin/exports/{execution}/download',   [AsyncExportController::class, 'download'])        ->middleware('permission:certificates.view')->name('admin.exports.download');
+    Route::get('/admin/exports/{execution}/status',     [AsyncExportController::class, 'status'])          ->middleware('permission:certificates.view')->name('admin.exports.status');
+    Route::delete('/admin/exports/{execution}',         [AsyncExportController::class, 'destroy'])         ->middleware('permission:certificates.view')->name('admin.exports.destroy');
+    // US-048 — Dashboard DTAG multi-filiales
+    Route::get('/admin/dashboard/dtag', [DtagDashboardController::class, 'index'])->middleware('role:super_admin')->name('admin.dashboard.dtag');
+    // US-050 — IP Blacklist
+    Route::prefix('admin/security/ip-blacklist')->name('admin.security.ip-blacklist.')->middleware('role:super_admin')->group(function () {
+        Route::get('/',          [IpBlacklistController::class, 'index'])  ->name('index');
+        Route::post('/',         [IpBlacklistController::class, 'store'])  ->name('store');
+        Route::delete('/{id}',   [IpBlacklistController::class, 'destroy'])->name('destroy');
+        Route::patch('/unlock/{userId}', [IpBlacklistController::class, 'unlockUser'])->name('unlock');
+    });
+    // US-055 — Recherche avancée certificats
+    Route::get('/admin/certificates/search', [CertificateSearchController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificates.search');
     // ── MFA Setup — US-002 ───────────────────────────────────
     Route::get('/user/mfa-setup', [MfaSetupController::class, 'show'])->name('user.mfa-setup');
     Route::post('/user/mfa-setup/enable', [MfaSetupController::class, 'enable'])->name('mfa.enable');
@@ -201,6 +252,27 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
             Route::delete('/brokers/{broker}', [BrokerController::class, 'destroy'])->middleware('permission:brokers.delete')->name('admin.brokers.destroy');
 
             Route::patch('/brokers/{broker}/toggle', [BrokerController::class, 'toggle'])->middleware('permission:brokers.edit')->name('admin.brokers.toggle');
+
+            // ── Coassureurs — US-041 ──────────────────────────
+            Route::get('/coinsurers', [CoinsurersController::class, 'index'])->middleware('permission:coinsurers.view')->name('admin.coinsurers.index');
+            Route::get('/coinsurers/create', [CoinsurersController::class, 'create'])->middleware('permission:coinsurers.create')->name('admin.coinsurers.create');
+            Route::post('/coinsurers', [CoinsurersController::class, 'store'])->middleware('permission:coinsurers.create')->name('admin.coinsurers.store');
+            Route::get('/coinsurers/{coinsurer}', [CoinsurersController::class, 'show'])->middleware('permission:coinsurers.view')->name('admin.coinsurers.show');
+            Route::get('/coinsurers/{coinsurer}/edit', [CoinsurersController::class, 'edit'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.edit');
+            Route::put('/coinsurers/{coinsurer}', [CoinsurersController::class, 'update'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.update');
+            Route::delete('/coinsurers/{coinsurer}', [CoinsurersController::class, 'destroy'])->middleware('permission:coinsurers.delete')->name('admin.coinsurers.destroy');
+            Route::patch('/coinsurers/{coinsurer}/toggle', [CoinsurersController::class, 'toggle'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.toggle');
+
+            // ── Experts — US-042 ──────────────────────────────
+            Route::get('/experts', [ExpertController::class, 'index'])->middleware('permission:experts.view')->name('admin.experts.index');
+            Route::get('/experts/create', [ExpertController::class, 'create'])->middleware('permission:experts.create')->name('admin.experts.create');
+            Route::post('/experts', [ExpertController::class, 'store'])->middleware('permission:experts.create')->name('admin.experts.store');
+            Route::get('/experts/{expert}', [ExpertController::class, 'show'])->middleware('permission:experts.view')->name('admin.experts.show');
+            Route::get('/experts/{expert}/edit', [ExpertController::class, 'edit'])->middleware('permission:experts.edit')->name('admin.experts.edit');
+            Route::put('/experts/{expert}', [ExpertController::class, 'update'])->middleware('permission:experts.edit')->name('admin.experts.update');
+            Route::delete('/experts/{expert}', [ExpertController::class, 'destroy'])->middleware('permission:experts.delete')->name('admin.experts.destroy');
+            Route::patch('/experts/{expert}/toggle', [ExpertController::class, 'toggle'])->middleware('permission:experts.edit')->name('admin.experts.toggle');
+
         // ── Rôles & Permissions — US-003 ─────────────────────
         Route::middleware('role:super_admin')->group(function () {
 
