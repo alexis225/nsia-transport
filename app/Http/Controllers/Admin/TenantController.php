@@ -135,6 +135,18 @@ class TenantController extends Controller
             'timezone'     => ['required', 'string', 'max:50'],
             'is_active'    => ['boolean'],
             'subscription_limit_config' => ['nullable', 'array'],
+            'settings'                  => ['nullable', 'array'],
+            'settings.siege_social'     => ['nullable', 'string', 'max:500'],
+            'settings.phone'            => ['nullable', 'string', 'max:100'],
+            'settings.website'          => ['nullable', 'string', 'max:150'],
+            'settings.email'            => ['nullable', 'string', 'email', 'max:150'],
+            'settings.capital'          => ['nullable', 'string', 'max:200'],
+            'settings.rccm'             => ['nullable', 'string', 'max:150'],
+            'settings.regulator'        => ['nullable', 'string', 'max:200'],
+            'settings.payment_address'  => ['nullable', 'string', 'max:300'],
+            'settings.surveyor_name'    => ['nullable', 'string', 'max:200'],
+            'settings.surveyor_address' => ['nullable', 'string', 'max:300'],
+            'settings.city'             => ['nullable', 'string', 'max:100'],
         ]);
 
         $oldValues = $tenant->only(['name', 'code', 'is_active']);

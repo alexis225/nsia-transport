@@ -210,10 +210,12 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
             Route::get('/certificates',[CertificateController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificates.index');
             // ── US-016 : Soumission ───────────────────────────────
             Route::get('/certificates/create',[CertificateController::class, 'create'])->middleware('permission:certificates.create')->name('admin.certificates.create');
+            Route::get('/certificates/print-models',[CertificateController::class, 'printModels'])->middleware('permission:certificates.view')->name('admin.certificates.print-models');
 
             Route::post('/certificates/{certificate}/duplicate',[CertificateController::class, 'duplicate'])->middleware('permission:certificates.create')->name('admin.certificates.duplicate');
  
             Route::get('/certificates/{certificate}',[CertificateController::class, 'show'])->middleware('permission:certificates.view')->name('admin.certificates.show');
+            Route::get('/certificates/{certificate}/print',[CertificateController::class, 'print'])->middleware('permission:certificates.view')->name('admin.certificates.print');
 
             Route::delete('/certificates/{certificate}',[CertificateController::class, 'destroy'])->middleware('permission:certificates.create')->name('admin.certificates.destroy');
             Route::post('/certificates',[CertificateController::class, 'store'])->middleware('permission:certificates.create')->name('admin.certificates.store');

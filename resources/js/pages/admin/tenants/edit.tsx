@@ -5,14 +5,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import type { BreadcrumbItem } from '@/types';
-import { Building2, Check, Camera, Trash2 } from 'lucide-react';
+import { Building2, Check, Camera, Trash2, FileText } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+interface TenantSettings {
+    siege_social?: string;
+    phone?: string;
+    website?: string;
+    email?: string;
+    capital?: string;
+    rccm?: string;
+    regulator?: string;
+    payment_address?: string;
+    surveyor_name?: string;
+    surveyor_address?: string;
+    city?: string;
+}
 interface Tenant {
     id: string; name: string; code: string; country_code: string;
     currency: string; locale: string; timezone: string; is_active: boolean;
     logo_path: string | null;
     subscription_limit_config: { nn300_limit: number };
+    settings: TenantSettings | null;
 }
 interface Props { tenant: Tenant; }
 
@@ -47,7 +61,24 @@ export default function TenantEdit({ tenant }: Props) {
         timezone:     tenant.timezone,
         is_active:    tenant.is_active,
         subscription_limit_config: tenant.subscription_limit_config ?? { nn300_limit: 0 },
+        settings: {
+            siege_social:     tenant.settings?.siege_social     ?? '',
+            phone:            tenant.settings?.phone            ?? '',
+            website:          tenant.settings?.website          ?? '',
+            email:            tenant.settings?.email            ?? '',
+            capital:          tenant.settings?.capital          ?? '',
+            rccm:             tenant.settings?.rccm             ?? '',
+            regulator:        tenant.settings?.regulator        ?? '',
+            payment_address:  tenant.settings?.payment_address  ?? '',
+            surveyor_name:    tenant.settings?.surveyor_name    ?? '',
+            surveyor_address: tenant.settings?.surveyor_address ?? '',
+            city:             tenant.settings?.city             ?? '',
+        } as TenantSettings,
     });
+
+    function setSetting(key: keyof TenantSettings, value: string) {
+        setData('settings', { ...data.settings, [key]: value });
+    }
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -246,6 +277,94 @@ export default function TenantEdit({ tenant }: Props) {
                                             <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>{data.is_active ? 'Filiale active' : 'Filiale inactive'}</div>
                                             <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>{data.is_active ? 'Les utilisateurs peuvent se connecter' : 'Accès bloqué'}</div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* ── Section : Informations certificat (impression) ── */}
+                                <div style={{ borderTop: '1.5px solid #f1f5f9', paddingTop: 16, marginTop: 4 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                                        <div style={{ width: 28, height: 28, background: '#eff6ff', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                            <FileText size={14} color="#3b82f6" />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>Informations pour l'impression des certificats</div>
+                                            <div style={{ fontSize: 11, color: '#94a3b8' }}>Ces données apparaissent dans l'en-tête et le bas du certificat imprimé</div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+                                        <div className="grid gap-2">
+                                            <Label className="te-label">Siège social</Label>
+                                            <textarea
+                                                rows={3}
+                                                value={data.settings.siege_social}
+                                                onChange={e => setSetting('siege_social', e.target.value)}
+                                                placeholder={"Immeuble NSIA\nBP 5884 Conakry Guinée"}
+                                                style={{ width: '100%', padding: '10px 12px', fontSize: 13, fontFamily: 'inherit', color: '#1e293b', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 9, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
+                                            />
+                                        </div>
+
+                                        <div className="form-grid">
+                                            <div className="grid gap-2">
+                                                <Label className="te-label">Téléphone</Label>
+                                                <Input className="h-11" value={data.settings.phone} onChange={e => setSetting('phone', e.target.value)} placeholder="(+224) 666 18 12 82"/>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label className="te-label">Ville (lieu d'émission)</Label>
+                                                <Input className="h-11" value={data.settings.city} onChange={e => setSetting('city', e.target.value)} placeholder="Conakry"/>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-grid">
+                                            <div className="grid gap-2">
+                                                <Label className="te-label">Site Web</Label>
+                                                <Input className="h-11" value={data.settings.website} onChange={e => setSetting('website', e.target.value)} placeholder="www.groupensia.com"/>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label className="te-label">E-mail</Label>
+                                                <Input className="h-11" type="email" value={data.settings.email} onChange={e => setSetting('email', e.target.value)} placeholder="nsiaguinee@groupensia.com"/>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label className="te-label">Capital social</Label>
+                                            <Input className="h-11" value={data.settings.capital} onChange={e => setSetting('capital', e.target.value)} placeholder="13 000 000 000 GNF entièrement libéré"/>
+                                        </div>
+
+                                        <div className="form-grid">
+                                            <div className="grid gap-2">
+                                                <Label className="te-label">N° RCCM</Label>
+                                                <Input className="h-11" value={data.settings.rccm} onChange={e => setSetting('rccm', e.target.value)} placeholder="RCCM/GC-KAL/024,618A/2009"/>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label className="te-label">Organisme de tutelle</Label>
+                                                <Input className="h-11" value={data.settings.regulator} onChange={e => setSetting('regulator', e.target.value)} placeholder="Assurances de la Guinée"/>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label className="te-label">Adresse de paiement des sinistres</Label>
+                                            <textarea
+                                                rows={2}
+                                                value={data.settings.payment_address}
+                                                onChange={e => setSetting('payment_address', e.target.value)}
+                                                placeholder="NSIA Guinée — BP 5884 Conakry"
+                                                style={{ width: '100%', padding: '10px 12px', fontSize: 13, fontFamily: 'inherit', color: '#1e293b', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 9, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
+                                            />
+                                        </div>
+
+                                        <div className="form-grid">
+                                            <div className="grid gap-2">
+                                                <Label className="te-label">Nom de l'expert (en cas d'avaries)</Label>
+                                                <Input className="h-11" value={data.settings.surveyor_name} onChange={e => setSetting('surveyor_name', e.target.value)} placeholder="Cabinet METEA"/>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label className="te-label">Adresse de l'expert</Label>
+                                                <Input className="h-11" value={data.settings.surveyor_address} onChange={e => setSetting('surveyor_address', e.target.value)} placeholder="Adresse du cabinet"/>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
 

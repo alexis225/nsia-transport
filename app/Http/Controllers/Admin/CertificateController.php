@@ -202,6 +202,29 @@ class CertificateController extends Controller
         ]);
     }
 
+    // ── Impression carnet ─────────────────────────────────────
+    public function print(Request $request, Certificate $certificate): Response
+    {
+        $this->authorizeTenant($certificate->tenant_id);
+
+        $certificate->load([
+            'tenant',
+            'contract:id,contract_number,insured_name,insured_address,coverage_type,rate_ro,rate_rg,rate_surprime,rate_accessories,rate_tax',
+            'template:id,name,is_bilingual',
+            'issuedBy:id,first_name,last_name',
+        ]);
+
+        return Inertia::render('admin/certificates/print', [
+            'certificate' => $certificate,
+            'templateId'  => $request->query('template', 'guinee-conakry'),
+        ]);
+    }
+
+    public function printModels(): Response
+    {
+        return Inertia::render('admin/certificates/print-models');
+    }
+
     // ── US-017 : Formulaire modification ─────────────────────
     public function edit(Certificate $certificate): Response
     {

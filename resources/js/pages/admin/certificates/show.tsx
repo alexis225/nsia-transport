@@ -9,6 +9,7 @@ import {
     Ship, Plane, Truck, MapPin, DollarSign,
     AlertCircle, Printer, QrCode, ExternalLink, Download, Copy,
 } from 'lucide-react';
+import { PRINT_TEMPLATES } from './print-templates/registry';
 
 interface ExpeditionItem {
     marks: string; package_numbers: string; package_count: number;
@@ -90,7 +91,9 @@ function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose
 }
 
 export default function CertificateShow({ certificate, can }: Props) {
-    const [modal, setModal] = useState<string | null>(null);
+    const [modal, setModal]               = useState<string | null>(null);
+    const [printModal, setPrintModal]     = useState(false);
+    const [selectedTemplate, setSelected] = useState<string>(PRINT_TEMPLATES[0]?.id ?? '');
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Certificats', href: '/admin/certificates' },
@@ -111,6 +114,84 @@ export default function CertificateShow({ certificate, can }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${certificate.certificate_number} — NSIA Transport`}/>
+
+            {/* ── Modal sélection modèle d'impression ── */}
+            {printModal && (
+                <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.55)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+                    <div style={{ background:'#fff', borderRadius:16, width:'100%', maxWidth:520, border:'1.5px solid #e2e8f0', boxShadow:'0 24px 64px rgba(0,0,0,.18)', overflow:'hidden' }}>
+                        {/* Header */}
+                        <div style={{ padding:'16px 20px', borderBottom:'1px solid #f1f5f9', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                                <div style={{ width:34, height:34, borderRadius:8, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                    <Printer size={16} color="#3b82f6"/>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize:14, fontWeight:700, color:'#1e293b', margin:0 }}>Choisir un modèle d'impression</p>
+                                    <p style={{ fontSize:11, color:'#94a3b8', margin:0 }}>Sélectionnez le carnet officiel du pays</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setPrintModal(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:4 }}>
+                                <X size={17}/>
+                            </button>
+                        </div>
+
+                        {/* Liste des modèles */}
+                        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10, maxHeight:360, overflowY:'auto' }}>
+                            {PRINT_TEMPLATES.length === 0 && (
+                                <p style={{ textAlign:'center', color:'#94a3b8', fontSize:13, padding:'20px 0' }}>
+                                    Aucun modèle disponible.
+                                </p>
+                            )}
+                            {PRINT_TEMPLATES.map(tpl => (
+                                <button
+                                    key={tpl.id}
+                                    onClick={() => setSelected(tpl.id)}
+                                    style={{
+                                        display:'flex', alignItems:'center', gap:14,
+                                        padding:'12px 14px', borderRadius:10, cursor:'pointer',
+                                        border: selectedTemplate === tpl.id ? '2px solid #3b82f6' : '1.5px solid #e2e8f0',
+                                        background: selectedTemplate === tpl.id ? '#eff6ff' : '#fafafa',
+                                        textAlign:'left', width:'100%', fontFamily:'inherit',
+                                        transition:'all .15s',
+                                    }}>
+                                    {/* Drapeau */}
+                                    <span style={{ fontSize:28, flexShrink:0 }}>{tpl.countryFlag}</span>
+                                    {/* Infos */}
+                                    <div style={{ flex:1 }}>
+                                        <p style={{ fontSize:13, fontWeight:700, color:'#1e293b', margin:'0 0 2px' }}>{tpl.name}</p>
+                                        <p style={{ fontSize:11, color:'#64748b', margin:0 }}>{tpl.description}</p>
+                                        <p style={{ fontSize:10, color:'#94a3b8', margin:'2px 0 0' }}>
+                                            {tpl.paperSize} {tpl.orientation} · {tpl.country}
+                                        </p>
+                                    </div>
+                                    {/* Indicateur sélection */}
+                                    {selectedTemplate === tpl.id && (
+                                        <div style={{ width:20, height:20, borderRadius:'50%', background:'#3b82f6', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                                            <CheckCircle size={13} color="#fff"/>
+                                        </div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ padding:'14px 20px', borderTop:'1px solid #f1f5f9', display:'flex', gap:8, justifyContent:'flex-end' }}>
+                            <Button variant="outline" onClick={() => setPrintModal(false)}>Annuler</Button>
+                            <a
+                                href={route('admin.certificates.print', { certificate: certificate.id }) + `?template=${selectedTemplate}`}
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <Button
+                                    disabled={!selectedTemplate}
+                                    onClick={() => setPrintModal(false)}
+                                    style={{ background:'#1e3a8a', color:'#fff', display:'flex', alignItems:'center', gap:6 }}>
+                                    <Printer size={14}/> Lancer l'impression
+                                </Button>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
             <style>{`
                 .cs-wrap{width:100%;max-width:960px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .cs-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:flex-start;gap:16px;position:relative;overflow:hidden;}
@@ -179,7 +260,7 @@ export default function CertificateShow({ certificate, can }: Props) {
                         </div>
                         <div style={{ position:'relative', zIndex:1, display:'flex', gap:8 }}>
                             <div style={{ display:'flex', gap:8 }}>
-                                <Button variant="outline" onClick={() => window.print()} className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
+                                <Button variant="outline" onClick={() => setPrintModal(true)} className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
                                     <Printer size={13}/> Imprimer
                                 </Button>
                                 {certificate.status === 'ISSUED' && (

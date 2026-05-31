@@ -161,6 +161,7 @@ export function AppSidebar() {
             children: [
                 { title: 'Liste',              href: route('admin.certificates.index') },
                 { title: 'Recherche avancée',  href: route('admin.certificates.search'), icon: Search },
+                { title: 'Modèles d\'impression', href: route('admin.certificates.print-models') },
                 ...(can('certificates.create')   ? [{ title: 'Nouveau',    href: route('admin.certificates.create') }] : []),
                 ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.dashboard.pending') }]   : []),
             ],
