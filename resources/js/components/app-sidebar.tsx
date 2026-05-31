@@ -4,7 +4,7 @@ import {
     ClipboardList, Database, Download, FileBadge,
     FileText, LayoutDashboard, Search, Settings,
     Shield, Users, TrendingUp, UserCheck,
-    Bell, Percent, Users2,
+    Bell, Percent, Users2, Upload,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -163,6 +163,17 @@ export function AppSidebar() {
                 { title: 'Recherche avancée',  href: route('admin.certificates.search'), icon: Search },
                 ...(can('certificates.create')   ? [{ title: 'Nouveau',    href: route('admin.certificates.create') }] : []),
                 ...(can('certificates.validate') ? [{ title: 'En attente', href: route('admin.dashboard.pending') }]   : []),
+            ],
+        }] : []),
+
+        // ── Certificats GUCE ───────────────────────────────────
+        ...(can('certificates.view') ? [{
+            title: 'Certificats GUCE',
+            href:  route('admin.guce-certificates.index'),
+            icon:  Upload,
+            children: [
+                { title: 'Liste',    href: route('admin.guce-certificates.index') },
+                { title: 'Importer', href: route('admin.guce-certificates.create') },
             ],
         }] : []),
 

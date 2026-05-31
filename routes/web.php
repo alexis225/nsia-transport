@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\CoinsurersController;
 use App\Http\Controllers\Admin\CommissionController;
 use App\Http\Controllers\Admin\ExpertController;
 use App\Http\Controllers\Admin\NotificationCenterController;
+use App\Http\Controllers\Admin\GuceCertificateController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -141,6 +142,16 @@ Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     });
     // US-055 — Recherche avancée certificats
     Route::get('/admin/certificates/search', [CertificateSearchController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificates.search');
+
+    // Certificats GUCE (import depuis plateformes étatiques)
+    Route::prefix('admin/guce-certificates')->name('admin.guce-certificates.')->middleware('auth')->group(function () {
+        Route::get('/',                              [GuceCertificateController::class, 'index'])   ->name('index');
+        Route::get('/create',                        [GuceCertificateController::class, 'create'])  ->name('create');
+        Route::post('/',                             [GuceCertificateController::class, 'store'])   ->name('store');
+        Route::get('/{guceCertificate}',             [GuceCertificateController::class, 'show'])    ->name('show');
+        Route::get('/{guceCertificate}/download',    [GuceCertificateController::class, 'download'])->name('download');
+        Route::delete('/{guceCertificate}',          [GuceCertificateController::class, 'destroy']) ->name('destroy');
+    });
     // ── MFA Setup — US-002 ───────────────────────────────────
     Route::get('/user/mfa-setup', [MfaSetupController::class, 'show'])->name('user.mfa-setup');
     Route::post('/user/mfa-setup/enable', [MfaSetupController::class, 'enable'])->name('mfa.enable');
