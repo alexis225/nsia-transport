@@ -103,7 +103,7 @@ class UserController extends Controller
             'new_values'  => ['email' => $user->email, 'role' => $request->role],
         ]);
 
-        return redirect()->route('admin.users')
+        return redirect()->route('admin.users.index')
             ->with('status', "Utilisateur {$user->first_name} {$user->last_name} créé avec succès.");
     }
 
