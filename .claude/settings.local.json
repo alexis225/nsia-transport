@@ -2,10 +2,44 @@
   "permissions": {
     "allow": [
       "Bash(mkdir -p \"c:/wamp64/www/nsia-transport/resources/js/pages/admin/reports\")",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\app\\\\Http\\\\Controllers\" -Recurse -Name | Where-Object { $_ -match \"InsuranceContractController|BrokerController\" })"
+      "PowerShell(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\app\\\\Http\\\\Controllers\" -Recurse -Name | Where-Object { $_ -match \"InsuranceContractController|BrokerController\" })",
+      "Bash(curl -sS -I https://api.github.com/repos/voku/portable-ascii)",
+      "Bash(openssl s_client -connect api.github.com:443 -showcerts)",
+      "Bash(curl -sS -o \"/c/wamp64/bin/php/php8.3.28/cacert.pem\" https://curl.se/ca/cacert.pem)",
+      "Read(//c/wamp64/bin/php/php8.3.28/**)",
+      "Bash(grep -n -E \"^;?curl.cainfo|^;?openssl.cafile\" \"/c/wamp64/bin/php/php8.3.28/php.ini\")",
+      "Bash(php -r ' *)",
+      "Bash(composer install *)",
+      "Bash(php -m)",
+      "Bash(ls \"/c/wamp64/bin/php/php8.3.28/ext/\" | grep -i pgsql)",
+      "Read(//c/wamp64/bin/php/php8.3.28/ext//**)",
+      "Bash(grep -rn \"PHPIniDir\" /c/wamp64/bin/apache/*/conf/*.conf 2>/dev/null | head -5)",
+      "Read(//c/wamp64/bin/apache/**)",
+      "Bash(diff \"/c/wamp64/bin/apache/apache2.4.65/bin/php.ini\" \"/c/wamp64/bin/php/php8.3.28/php.ini\")",
+      "Read(//c/wamp64/bin/apache/apache2.4.65/bin/**)",
+      "Bash(ls \"/c/wamp64/bin/php/php8.2.29/ext/\" 2>/dev/null | grep -i pgsql *)",
+      "Read(//c/wamp64/bin/php/php8.2.29/ext//**)",
+      "Bash(ls \"/c/wamp64/bin/php/php8.2.29/cacert.pem\" 2>/dev/null && echo \"existe déjà\" || echo \"à créer\")",
+      "Read(//c/wamp64/bin/php/php8.2.29/**)",
+      "Bash(cp \"/c/wamp64/bin/php/php8.3.28/cacert.pem\" \"/c/wamp64/bin/php/php8.2.29/cacert.pem\")",
+      "Bash(php artisan *)",
+      "Bash(CACHE_STORE=array php artisan migrate --force)",
+      "Bash(npm -v)",
+      "Bash(yarn -v)",
+      "Bash(yarn install *)",
+      "Bash(node -e ' *)",
+      "Bash(export NODE_EXTRA_CA_CERTS=\"/c/wamp64/bin/php/php8.3.28/cacert.pem\")",
+      "Bash(yarn vite *)",
+      "Bash(yarn build *)",
+      "Bash(php -l app/Services/CertificatePdfService.php)",
+      "Bash(php -l app/Services/CertificateQrService.php)",
+      "Bash(grep -rn \"CertificatePdfService::class\\\\|CertificatePdfService \\\\$\" app resources)"
     ],
     "additionalDirectories": [
-      "c:\\wamp64\\www\\nsia-transport\\resources\\js\\pages\\admin"
+      "c:\\wamp64\\www\\nsia-transport\\resources\\js\\pages\\admin",
+      "c:\\wamp64\\bin\\php\\php8.3.28",
+      "c:\\wamp64\\bin\\apache\\apache2.4.65\\bin",
+      "c:\\wamp64\\bin\\php\\php8.2.29"
     ]
   }
 }

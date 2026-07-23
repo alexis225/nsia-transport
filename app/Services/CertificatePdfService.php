@@ -23,6 +23,10 @@ use Illuminate\Support\Facades\Storage;
  */
 class CertificatePdfService
 {
+    public function __construct(
+        private CertificateQrService $qrService
+    ) {}
+
     /**
      * Génère le PDF, le stocke et retourne le path
      */
@@ -44,6 +48,8 @@ class CertificatePdfService
             'certificate' => $certificate,
             'template'    => $template,
             'logoBase64'  => $this->getLogoBase64($template),
+            'qrBase64'    => $this->qrService->generateBase64Image($certificate),
+            'verifyUrl'   => $this->qrService->getVerifyUrl($certificate),
         ])->render();
 
         $pdf = Pdf::loadHTML($html)
@@ -89,6 +95,8 @@ class CertificatePdfService
             'certificate' => $certificate,
             'template'    => $template,
             'logoBase64'  => $this->getLogoBase64($template),
+            'qrBase64'    => $this->qrService->generateBase64Image($certificate),
+            'verifyUrl'   => $this->qrService->getVerifyUrl($certificate),
         ])->render();
 
         return Pdf::loadHTML($html)
@@ -115,6 +123,8 @@ class CertificatePdfService
             'certificate' => $certificate,
             'template'    => $template,
             'logoBase64'  => $this->getLogoBase64($template),
+            'qrBase64'    => $this->qrService->generateBase64Image($certificate),
+            'verifyUrl'   => $this->qrService->getVerifyUrl($certificate),
         ])->render();
 
         return Pdf::loadHTML($html)

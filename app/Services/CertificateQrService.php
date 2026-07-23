@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Certificate;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
@@ -68,6 +69,26 @@ class CertificateQrService
                 'margin'      => 4,
                 'format'      => 'png',
             ]);
+    }
+
+    /**
+     * Récupère l'image QR encodée en data URI base64, pour l'intégrer
+     * directement dans le PDF sans dépendre d'un fetch réseau par DomPDF
+     * (fonctionne même quand isRemoteEnabled=false, cas de download()/stream()).
+     * Retourne null si le service QR externe est injoignable — le PDF se
+     * génère quand même, simplement sans QR code.
+     */
+    public function generateBase64Image(Certificate $certificate, int $size = 120): ?string
+    {
+        try {
+            $response = Http::timeout(5)->get($this->generateBase64($certificate, $size));
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (! $response->successful()) return null;
+
+        return 'data:image/png;base64,' . base64_encode($response->body());
     }
 
     /**
