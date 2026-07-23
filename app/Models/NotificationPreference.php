@@ -40,6 +40,10 @@ class NotificationPreference extends Model
         'CertificateIssued'      => 'Certificat émis',
         'CertificateRejected'    => 'Certificat rejeté',
         'CertificateCancelled'   => 'Certificat annulé',
+        // Demandes partenaires
+        'CertificateRequestCreated'  => 'Nouvelle demande de certificat',
+        'CertificateRequestInReview' => 'Demande en cours de traitement',
+        'CertificateRequestRejected' => 'Demande de certificat rejetée',
         // Contrats
         'ContractExpiring'       => 'Contrat expirant bientôt',
         'ContractLimitReached'   => 'Plafond NN300 atteint',

@@ -21,6 +21,7 @@ class StoreUserRequest extends FormRequest
             'phone'      => ['nullable', 'string', 'max:30'],
             'role'       => ['required', 'string', 'exists:roles,name'],
             'tenant_id'  => ['nullable', 'uuid', 'exists:tenants,id'],
+            'broker_id'  => ['nullable', 'uuid', 'exists:brokers,id'],
             'password'   => ['required', 'confirmed', Password::min(8)
                 ->mixedCase()->numbers()->symbols()],
         ];

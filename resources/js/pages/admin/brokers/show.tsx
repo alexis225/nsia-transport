@@ -1,21 +1,24 @@
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
     Edit2, ArrowLeft, Mail, Phone, MapPin,
     Shield, Building2, ToggleLeft, ToggleRight,
-    Briefcase, FileText,
+    Briefcase, FileText, UserPlus, KeyRound, Percent,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 interface Broker {
     id: string; name: string; code: string;
     type: 'courtier_local' | 'partenaire_etranger';
-    agreement_number: string | null;
+    registration_number: string | null;
+    commission_rate: string | null;
     email: string | null; phone: string | null; phone_secondary: string | null;
     address: string | null; city: string | null; country_code: string;
     is_active: boolean; created_at: string;
-    tenant: { name: string; code: string } | null;
+    tenant: { id: string; name: string; code: string } | null;
+    tenants: { id: string; name: string; code: string }[];
+    user: { id: string; email: string; first_name: string; last_name: string } | null;
 }
 interface Props { broker: Broker; }
 
@@ -27,7 +30,7 @@ const TYPE_STYLES = {
 export default function BrokerShow({ broker }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Courtiers', href: '/admin/brokers' },
-        { title: broker.name },
+        { title: broker.name, href: route('admin.brokers.show', { broker: broker.id }) },
     ];
 
     const ts  = TYPE_STYLES[broker.type];
@@ -35,8 +38,10 @@ export default function BrokerShow({ broker }: Props) {
 
     const handleToggle = () => {
         const action = broker.is_active ? 'désactiver' : 'activer';
-        if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${broker.name} ?`))
+
+        if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${broker.name} ?`)) {
             router.patch(route('admin.brokers.toggle', { broker: broker.id }));
+        }
     };
 
     return (
@@ -108,13 +113,27 @@ export default function BrokerShow({ broker }: Props) {
                                     <span className="info-value">{broker.registration_number ?? '—'}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Building2 size={10}/>Filiale</span>
+                                    <span className="info-label"><Building2 size={10}/>Filiale principale</span>
                                     <span className="info-value">{broker.tenant?.name ?? '—'}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label"><Percent size={10}/>Commission standard</span>
+                                    <span className="info-value">{broker.commission_rate ? `${broker.commission_rate}%` : '—'}</span>
                                 </div>
                                 <div className="info-item">
                                     <span className="info-label"><FileText size={10}/>Créé le</span>
                                     <span className="info-value">{fmt(broker.created_at)}</span>
                                 </div>
+                                {broker.tenants.filter(t => t.id !== broker.tenant?.id).length > 0 && (
+                                    <div className="info-item" style={{ gridColumn:'1/-1' }}>
+                                        <span className="info-label"><Building2 size={10}/>Filiales supplémentaires</span>
+                                        <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:2 }}>
+                                            {broker.tenants.filter(t => t.id !== broker.tenant?.id).map(t => (
+                                                <span key={t.id} className="bs-badge" style={{ background:'#eff6ff', color:'#1d4ed8' }}>{t.name}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -154,6 +173,37 @@ export default function BrokerShow({ broker }: Props) {
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Accès à l'espace partenaire */}
+                    <div className="bs-card">
+                        <div className="bs-card-hdr">
+                            <div className="bs-card-ico" style={{ background:'#fdf4ff' }}><KeyRound size={15} color="#a21caf"/></div>
+                            <span className="bs-card-ttl">Accès à l'espace partenaire</span>
+                        </div>
+                        <div className="bs-card-body">
+                            {broker.user ? (
+                                <div className="info-item">
+                                    <span className="info-label"><Mail size={10}/>Compte lié</span>
+                                    <span className="info-value">{broker.user.first_name} {broker.user.last_name} · {broker.user.email}</span>
+                                </div>
+                            ) : (
+                                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+                                    <span style={{ fontSize:12, color:'#94a3b8' }}>
+                                        Aucun compte de connexion n'est encore rattaché à ce courtier.
+                                    </span>
+                                    <Link href={route('admin.users.create', {
+                                        broker_id: broker.id,
+                                        role:      broker.type,
+                                        tenant_id: broker.tenant?.id,
+                                    })}>
+                                        <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-9 px-4 text-sm">
+                                            <UserPlus size={13}/> Créer un compte d'accès
+                                        </Button>
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </div>
 

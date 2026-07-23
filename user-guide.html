@@ -81,6 +81,7 @@
   .step-body p{font-size:13px;color:var(--muted);line-height:1.6}
   .step-body .note{margin-top:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;font-size:12px;color:#92400e}
   .step-body .tip{margin-top:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-size:12px;color:#1d4ed8}
+  .step-body .new{margin-top:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 12px;font-size:12px;color:#15803d}
 
   /* ── Role table ─────────────────────────────── */
   .role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px}
@@ -100,6 +101,11 @@
   .s-cancel  {background:#fef2f2;color:#dc2626}.s-cancel .dot{background:#ef4444}
   .s-dup     {background:#f5f3ff;color:#7c3aed}.s-dup .dot{background:#a855f7}
   .s-active  {background:#eff6ff;color:#1d4ed8}.s-active .dot{background:#3b82f6}
+  .s-review  {background:#eff6ff;color:#1d4ed8}.s-review .dot{background:#3b82f6}
+  .s-approved{background:#f0fdf4;color:#15803d}.s-approved .dot{background:#22c55e}
+
+  /* ── New feature badge ─────────────────────── */
+  .new-badge{display:inline-block;background:var(--gold);color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.4px;margin-left:8px;vertical-align:middle}
 
   /* ── FAQ ────────────────────────────────────── */
   .faq{display:flex;flex-direction:column;gap:10px}
@@ -140,7 +146,7 @@
   <div class="sidebar-logo">
     <div class="brand">🛡 NSIA Transport</div>
     <div class="sub">Guide utilisateur</div>
-    <div class="badge">Version 1.0 — 2026</div>
+    <div class="badge">Version 2.0</div>
   </div>
 
   <div class="sidebar-nav">
@@ -168,6 +174,9 @@
     <a class="nav-item" href="#duplicata">
       <span class="icon">📋</span> Duplicata
     </a>
+    <a class="nav-item" href="#impression">
+      <span class="icon">🖨️</span> Impression souches
+    </a>
     <a class="nav-item" href="#escalade">
       <span class="icon">📈</span> Escalade NN300
     </a>
@@ -176,6 +185,15 @@
     </a>
     <a class="nav-item" href="#commissions">
       <span class="icon">💰</span> Commissions
+    </a>
+    <a class="nav-item" href="#taxes">
+      <span class="icon">🧾</span> Taxes
+    </a>
+    <a class="nav-item" href="#demandes">
+      <span class="icon">📥</span> Demandes partenaires
+    </a>
+    <a class="nav-item" href="#guce">
+      <span class="icon">🛃</span> Certificats GUCE
     </a>
     <a class="nav-item" href="#notifications">
       <span class="icon">🔔</span> Notifications
@@ -206,7 +224,7 @@
 
   <!-- COVER -->
   <div class="cover" id="intro">
-    <div class="cover-version">v1.0 — Juin 2026</div>
+    <div class="cover-version">v2.0</div>
     <div class="cover-tag">📘 Guide Utilisateur</div>
     <h1>NSIA <span>Transport</span></h1>
     <p class="cover-sub">
@@ -215,9 +233,10 @@
     </p>
     <div class="cover-chips">
       <span class="chip">🌍 Multi-filiales</span>
-      <span class="chip">🔐 SSO Microsoft</span>
+      <span class="chip">🔐 SSO Microsoft / Google</span>
       <span class="chip">📄 Certificats PDF + QR</span>
-      <span class="chip">📊 Tableaux de bord</span>
+      <span class="chip">🖨️ Impression sur souches</span>
+      <span class="chip">🛃 Import GUCE (OCR)</span>
       <span class="chip">📤 Export Excel / PDF / CSV</span>
     </div>
   </div>
@@ -227,36 +246,37 @@
     <div class="section-tag">01 · Introduction</div>
     <h2 class="section-title">Qu'est-ce que NSIA Transport ?</h2>
     <p class="section-intro">
-      NSIA Transport est une application web sécurisée permettant aux collaborateurs des filiales du Groupe NSIA
-      de créer, gérer et émettre des certificats d'assurance transport. Elle centralise les contrats,
-      suit les plafonds NN300 en temps réel et génère des documents PDF avec QR code de vérification.
+      NSIA Transport est une application web sécurisée permettant aux collaborateurs des filiales du Groupe NSIA,
+      ainsi qu'à leurs courtiers et partenaires, de créer, gérer et émettre des certificats d'assurance transport.
+      Elle centralise les contrats, suit les plafonds NN300 en temps réel, calcule automatiquement primes et
+      commissions, et génère des documents PDF avec QR code de vérification.
     </p>
 
     <div class="cards">
       <div class="card">
         <div class="card-icon" style="background:#eff6ff">📄</div>
         <h3>Gestion des contrats</h3>
-        <p>Créez et gérez vos contrats d'assurance transport avec suivi des plafonds NN300 en temps réel.</p>
+        <p>Créez et gérez vos contrats d'assurance transport avec suivi des plafonds NN300 (cumulé et par certificat) en temps réel.</p>
       </div>
       <div class="card">
         <div class="card-icon" style="background:#f0fdf4">🏅</div>
         <h3>Émission de certificats</h3>
-        <p>Générez des certificats PDF professionnels avec QR code intégré pour la vérification en ligne.</p>
+        <p>Générez des certificats PDF professionnels avec QR code intégré, ou imprimez directement sur les souches physiques pré-imprimées de votre filiale.</p>
       </div>
       <div class="card">
         <div class="card-icon" style="background:#fffbeb">📈</div>
         <h3>Escalade NN300</h3>
-        <p>Workflow automatique d'approbation multi-niveaux pour les opérations dépassant le seuil configuré.</p>
+        <p>Workflow automatique d'approbation multi-niveaux, désormais paramétrable par filiale, pour toute opération dépassant un seuil configuré.</p>
       </div>
       <div class="card">
         <div class="card-icon" style="background:#fdf4ff">💰</div>
-        <h3>Commissions</h3>
-        <p>Calcul automatique des commissions courtiers à l'émission avec export du bordereau.</p>
+        <h3>Commissions & Taxes</h3>
+        <p>Calcul automatique des commissions courtiers (avec possibilité de taux spécifique par contrat) et des taxes selon la filiale, le transport et le pays.</p>
       </div>
       <div class="card">
-        <div class="card-icon" style="background:#fef2f2">🔔</div>
-        <h3>Notifications</h3>
-        <p>Alertes en temps réel pour les événements importants : validation, escalade, expiration de contrat.</p>
+        <div class="card-icon" style="background:#fef2f2">📥</div>
+        <h3>Espace partenaire</h3>
+        <p>Vos courtiers soumettent leurs demandes de certificat en ligne, joignent leurs pièces justificatives et suivent leur traitement en temps réel.</p>
       </div>
       <div class="card">
         <div class="card-icon" style="background:#f8fafc">📜</div>
@@ -270,7 +290,7 @@
   <div class="page-section section-anchor" id="connexion">
     <div class="section-tag">02 · Accès</div>
     <h2 class="section-title">Se connecter à NSIA Transport</h2>
-    <p class="section-intro">L'authentification s'effectue via votre compte Microsoft professionnel (SSO). Aucun mot de passe séparé n'est requis.</p>
+    <p class="section-intro">L'authentification s'effectue via votre compte Microsoft ou Google professionnel (SSO). Aucun mot de passe séparé n'est requis.</p>
 
     <div class="steps">
       <div class="step">
@@ -283,23 +303,23 @@
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-body">
-          <h4>Cliquer sur « Se connecter avec Microsoft »</h4>
-          <p>Vous serez redirigé vers la page de connexion Microsoft. Saisissez votre adresse e-mail professionnelle NSIA.</p>
-          <div class="note">⚠️ Utilisez uniquement votre adresse professionnelle (@nsia-groupe.com ou équivalent). Les comptes personnels ne sont pas autorisés.</div>
+          <h4>Choisir « Se connecter avec Microsoft » ou « Se connecter avec Google »</h4>
+          <p>Vous serez redirigé vers la page de connexion du fournisseur choisi. Saisissez votre adresse e-mail professionnelle NSIA.</p>
+          <div class="note">⚠️ Utilisez uniquement votre adresse professionnelle. Les comptes personnels ne sont pas autorisés.</div>
         </div>
       </div>
       <div class="step">
         <div class="step-num">3</div>
         <div class="step-body">
           <h4>Valider l'authentification</h4>
-          <p>Entrez votre mot de passe de session Windows/Outlook. Si l'authentification multifacteur (MFA) est activée, validez via votre application Microsoft Authenticator.</p>
+          <p>Entrez votre mot de passe habituel. Si l'authentification multifacteur (MFA) est activée sur votre compte, validez via votre application d'authentification (code à 6 chiffres).</p>
         </div>
       </div>
       <div class="step">
         <div class="step-num">4</div>
         <div class="step-body">
           <h4>Accéder au tableau de bord</h4>
-          <p>Vous êtes connecté. Le tableau de bord affiche un résumé des activités récentes de votre filiale.</p>
+          <p>Vous êtes connecté. Selon votre rôle, vous accédez soit au tableau de bord de la filiale, soit à votre espace partenaire dédié (courtiers).</p>
           <div class="tip">💡 Pour se déconnecter, cliquez sur votre avatar en haut à droite → <strong>Déconnexion</strong>. Déconnectez-vous toujours après utilisation sur un poste partagé.</div>
         </div>
       </div>
@@ -310,13 +330,13 @@
   <div class="page-section section-anchor" id="roles">
     <div class="section-tag">03 · Rôles</div>
     <h2 class="section-title">Rôles & Permissions</h2>
-    <p class="section-intro">Chaque utilisateur dispose d'un rôle qui détermine les actions qu'il peut effectuer dans l'application.</p>
+    <p class="section-intro">Chaque utilisateur dispose d'un rôle qui détermine les actions qu'il peut effectuer dans l'application. Il existe 6 rôles au total.</p>
 
     <div class="role-grid">
       <div class="role-card" style="border-color:#bfdbfe;background:#eff6ff20">
         <div class="role-name" style="color:#1d4ed8">🔵 Souscripteur</div>
         <ul>
-          <li>Créer des certificats</li>
+          <li>Créer des contrats et certificats</li>
           <li>Soumettre pour validation</li>
           <li>Générer des duplicatas</li>
           <li>Consulter ses contrats</li>
@@ -326,12 +346,13 @@
       <div class="role-card" style="border-color:#bbf7d0;background:#f0fdf420">
         <div class="role-name" style="color:#15803d">🟢 Admin Filiale</div>
         <ul>
-          <li>Valider / rejeter les certificats</li>
-          <li>Gérer les contrats</li>
-          <li>Approuver les escalades NN300</li>
+          <li>Valider / rejeter les certificats et contrats</li>
+          <li>Traiter les demandes partenaires</li>
+          <li>Approuver les escalades NN300 (niveau 1)</li>
+          <li>Configurer les seuils d'escalade de sa filiale</li>
           <li>Déléguer temporairement un rôle</li>
           <li>Gérer les utilisateurs de sa filiale</li>
-          <li>Voir les commissions</li>
+          <li>Paramétrer commissions et taxes</li>
         </ul>
       </div>
       <div class="role-card" style="border-color:#fde68a;background:#fffbeb20">
@@ -339,20 +360,39 @@
         <ul>
           <li>Accès à toutes les filiales</li>
           <li>Approuver les escalades niveau 2</li>
-          <li>Gérer les filiales et rôles</li>
+          <li>Gérer les filiales, modules et rôles</li>
           <li>Configurer les données de référence</li>
           <li>Accéder aux rapports consolidés</li>
-          <li>Gestion des workflows</li>
         </ul>
       </div>
       <div class="role-card" style="border-color:#e9d5ff;background:#faf5ff20">
         <div class="role-name" style="color:#7c3aed">🟣 Courtier Local</div>
         <ul>
-          <li>Consulter ses certificats</li>
-          <li>Télécharger les documents</li>
+          <li>Soumettre des demandes de certificat</li>
+          <li>Suivre le traitement de ses demandes</li>
+          <li>Télécharger ses certificats une fois disponibles</li>
           <li>Voir l'état de ses commissions</li>
         </ul>
       </div>
+      <div class="role-card" style="border-color:#fecaca;background:#fef2f220">
+        <div class="role-name" style="color:#dc2626">🔴 Partenaire Étranger</div>
+        <ul>
+          <li>Même espace dédié que le courtier local</li>
+          <li>Soumettre et suivre ses demandes</li>
+          <li>Télécharger ses certificats</li>
+        </ul>
+      </div>
+      <div class="role-card" style="border-color:#e2e8f0;background:#f8fafc80">
+        <div class="role-name" style="color:#475569">⚪ Client</div>
+        <ul>
+          <li>Consulter et télécharger ses certificats</li>
+          <li>Vérifier un certificat</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;font-size:13px;color:#1e40af">
+      💡 Les rôles <strong>Courtier Local</strong> et <strong>Partenaire Étranger</strong> sont automatiquement redirigés vers l'<strong>espace partenaire</strong> dédié (<code>/partner</code>) — ils n'ont pas accès au tableau de bord interne de la filiale, sauf si un délégué de rôle leur donne temporairement accès.
     </div>
   </div>
 
@@ -360,7 +400,7 @@
   <div class="page-section section-anchor" id="contrats">
     <div class="section-tag">04 · Contrats</div>
     <h2 class="section-title">Gérer les contrats</h2>
-    <p class="section-intro">Un contrat est le cadre dans lequel les certificats sont émis. Il définit l'assuré, la valeur maximale garantie et le seuil NN300.</p>
+    <p class="section-intro">Un contrat est le cadre dans lequel les certificats sont émis. Il définit l'assuré, le souscripteur en charge, la valeur maximale garantie et les seuils NN300.</p>
 
     <div class="steps">
       <div class="step">
@@ -374,22 +414,29 @@
         <div class="step-num">2</div>
         <div class="step-body">
           <h4>Créer un nouveau contrat</h4>
-          <p>Cliquez sur <strong>Nouveau contrat</strong>. Renseignez les informations : nom de l'assuré, type (au voyage / cadre), devise, valeur assurée, dates de validité et courtier associé.</p>
-          <div class="note">⚠️ Le plafond NN300 est calculé automatiquement comme 30% de la valeur assurée. Il peut être ajusté manuellement.</div>
+          <p>Cliquez sur <strong>Nouveau contrat</strong>. Renseignez : type (au voyage / police ouverte / annuel voyage), assuré, souscripteur responsable, courtier associé, devise et dates de validité.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-num">3</div>
         <div class="step-body">
-          <h4>Suivre le plafond NN300</h4>
-          <p>Sur la fiche d'un contrat, le widget <strong>Plafond NN300</strong> affiche en temps réel le cumul des primes émises vs le plafond autorisé. Une alerte s'affiche dès 80% d'utilisation.</p>
+          <h4>Paramétrer les plafonds et l'escalade</h4>
+          <p>Deux plafonds distincts peuvent être définis : le <strong>Plafond NN300</strong> (cumul de toutes les primes émises sur le contrat) et le <strong>Plein</strong> (montant maximal assurable pour UN certificat). Vous pouvez aussi désactiver l'escalade automatique ou fixer un seuil de déclenchement spécifique à ce contrat.</p>
+          <div class="note">⚠️ Le dépassement de l'un de ces plafonds ne bloque plus la création d'un certificat — il déclenche désormais une <strong>escalade de validation hiérarchique</strong> (voir section Escalade NN300).</div>
         </div>
       </div>
       <div class="step">
         <div class="step-num">4</div>
         <div class="step-body">
+          <h4>Suivre le plafond NN300</h4>
+          <p>Sur la fiche d'un contrat, le widget <strong>Plafond NN300</strong> affiche en temps réel le cumul des primes émises vs le plafond autorisé, ainsi que la page <strong>Contrats → Plafonds NN300</strong> pour une vue consolidée multi-contrats.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
           <h4>Créer un avenant</h4>
-          <p>Sur la fiche d'un contrat actif, cliquez sur <strong>Avenants</strong> pour modifier la valeur assurée, les dates ou d'autres paramètres. Chaque modification est tracée dans l'historique.</p>
+          <p>Sur la fiche d'un contrat actif, cliquez sur <strong>Avenants</strong> pour modifier la valeur assurée, les dates ou d'autres paramètres. Chaque avenant suit son propre workflow de soumission/validation et est tracé dans l'historique.</p>
         </div>
       </div>
     </div>
@@ -416,7 +463,8 @@
         <div class="step-num">1</div>
         <div class="step-body">
           <h4>Créer un certificat (Brouillon)</h4>
-          <p>Accédez à <strong>Certificats → Nouveau</strong>. Sélectionnez le contrat, puis renseignez : assuré, voyage (départ / destination / date), mode de transport, marchandises et valeurs.</p>
+          <p>Accédez à <strong>Certificats → Nouveau</strong>. Sélectionnez le contrat : les informations de l'assuré, du souscripteur et des paramètres tarifaires se pré-remplissent automatiquement. Complétez le voyage (départ / destination / date / pays), le mode de transport, les marchandises et la valeur assurée.</p>
+          <div class="new">✨ La valeur assurée en toutes lettres est générée automatiquement, tout comme le calcul de la taxe applicable selon la filiale, le mode de transport et le pays de destination.</div>
           <div class="tip">💡 Vous pouvez sauvegarder en brouillon et revenir plus tard pour compléter.</div>
         </div>
       </div>
@@ -425,7 +473,7 @@
         <div class="step-body">
           <h4>Soumettre pour validation</h4>
           <p>Une fois le formulaire complet, cliquez sur <strong>Soumettre</strong>. L'Admin Filiale reçoit une notification et doit valider ou rejeter.</p>
-          <div class="note">⚠️ Si la valeur dépasse le seuil NN300 du contrat, une <strong>escalade automatique</strong> est déclenchée (voir section Escalade NN300).</div>
+          <div class="note">⚠️ Si la valeur dépasse le seuil configuré du contrat, ou si l'émission ferait dépasser un plafond du contrat (NN300 cumulé ou nombre de certificats), une <strong>escalade automatique</strong> est déclenchée (voir section Escalade NN300).</div>
         </div>
       </div>
       <div class="step">
@@ -438,8 +486,8 @@
       <div class="step">
         <div class="step-num">4</div>
         <div class="step-body">
-          <h4>Télécharger le certificat PDF</h4>
-          <p>Après émission, le certificat est disponible en PDF. Il comporte le numéro unique, les informations du voyage, les valeurs et un <strong>QR code de vérification</strong>.</p>
+          <h4>Télécharger ou imprimer le certificat</h4>
+          <p>Après émission, le certificat est disponible en PDF classique (numéro unique, informations du voyage, valeurs et <strong>QR code de vérification</strong>), ou peut être imprimé directement sur la souche physique pré-imprimée de votre filiale (voir section <a href="#impression">Impression sur souches</a>).</p>
         </div>
       </div>
     </div>
@@ -495,8 +543,41 @@
         <div class="step-num">3</div>
         <div class="step-body">
           <h4>Confirmer et télécharger</h4>
-          <p>Le duplicata est généré immédiatement avec la mention <strong>DUPLICATA</strong> en rouge et la date de réédition. Il conserve toutes les données du certificat original.</p>
+          <p>Le duplicata est généré immédiatement avec la mention <strong>DUPLICATA</strong> en rouge et la date de réédition. Il conserve toutes les données du certificat original. La personne ayant créé l'original en est notifiée si elle n'est pas celle qui édite le duplicata.</p>
           <div class="note">⚠️ La mention DUPLICATA apparaît en filigrane sur tout le document pour éviter toute confusion avec l'original.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPRESSION SOUCHES -->
+  <div class="page-section section-anchor" id="impression">
+    <div class="section-tag">08 · Impression</div>
+    <h2 class="section-title">Impression sur souches physiques<span class="new-badge">NOUVEAU</span></h2>
+    <p class="section-intro">Certaines filiales disposent de carnets de souches pré-imprimés par les autorités locales (numérotation officielle, cadres, mentions légales CIMA). Plutôt qu'un PDF complet, l'application peut imprimer uniquement les champs variables du certificat, positionnés pour correspondre au papier déjà en place dans l'imprimante.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Choisir le modèle d'impression</h4>
+          <p>Depuis <strong>Certificats → Modèles d'impression</strong>, ou directement depuis la fiche d'un certificat émis, sélectionnez le modèle correspondant à votre filiale. Le modèle est présélectionné automatiquement selon le pays du certificat. 6 filiales disposent aujourd'hui d'un modèle dédié : Gabon, Guinée Conakry, Togo, Sénégal, Cameroun, Congo.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Charger la souche dans l'imprimante</h4>
+          <p>Placez la feuille de souche pré-imprimée dans le bac de l'imprimante avant de lancer l'impression, exactement comme vous le feriez pour une impression manuelle.</p>
+          <div class="note">⚠️ Aucune bordure ni fond n'est imprimé par l'application — seuls les champs variables (numéro, assuré, voyage, valeurs, taux) sont positionnés par-dessus la souche déjà pré-imprimée.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Ajuster si nécessaire (mode calibration)</h4>
+          <p>Si les champs ne s'alignent pas parfaitement avec votre souche, un <strong>mode calibration</strong> affiche une grille de repère millimétrique par-dessus les champs pour permettre à votre administrateur système de signaler les écarts à ajuster.</p>
+          <div class="tip">💡 Ce réglage est une opération technique ponctuelle par filiale, à effectuer une fois lors de la mise en place d'un nouveau carnet de souches.</div>
         </div>
       </div>
     </div>
@@ -504,40 +585,84 @@
 
   <!-- ESCALADE NN300 -->
   <div class="page-section section-anchor" id="escalade">
-    <div class="section-tag">08 · Escalade NN300</div>
-    <h2 class="section-title">Workflow d'escalade NN300</h2>
-    <p class="section-intro">Lorsqu'un certificat dépasse le seuil configuré (15% de la valeur du contrat par défaut), un workflow d'approbation multi-niveaux est automatiquement déclenché.</p>
+    <div class="section-tag">09 · Escalade NN300</div>
+    <h2 class="section-title">Workflow d'escalade NN300<span class="new-badge">RENFORCÉ</span></h2>
+    <p class="section-intro">Lorsqu'une opération dépasse un seuil configuré, un workflow d'approbation multi-niveaux est automatiquement déclenché — au lieu d'un simple blocage.</p>
+
+    <h3 style="font-size:15px;color:var(--navy);margin-bottom:12px">Trois situations peuvent déclencher une escalade</h3>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon" style="background:#fffbeb">📊</div>
+        <h3>Dépassement du « plein »</h3>
+        <p>La valeur assurée d'UN certificat dépasse le pourcentage configuré (15 % par défaut) du plafond par certificat du contrat.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#fef2f2">📈</div>
+        <h3>Plafond NN300 cumulé dépassé<span class="new-badge">NOUVEAU</span></h3>
+        <p>La soumission du certificat ferait dépasser le plafond cumulé de toutes les primes déjà émises sur le contrat.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#eff6ff">🔢</div>
+        <h3>Nombre de certificats atteint<span class="new-badge">NOUVEAU</span></h3>
+        <p>Le contrat a déjà atteint son nombre maximal de certificats émis autorisé.</p>
+      </div>
+    </div>
 
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-body">
           <h4>Déclenchement automatique</h4>
-          <p>Lors de la soumission d'un certificat, le système vérifie si la valeur assurée dépasse le seuil NN300 du contrat. Si oui, une escalade est créée automatiquement.</p>
+          <p>Lors de la soumission d'un certificat, le système vérifie les trois conditions ci-dessus. Si l'une d'elles est vraie, une escalade est créée automatiquement — le certificat n'est plus jamais bloqué à la création, seulement mis en attente de validation à la soumission.</p>
           <div class="note">⚠️ Le souscripteur reçoit un message l'informant que le certificat est en attente d'approbation d'escalade.</div>
         </div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-body">
-          <h4>Niveau 1 — Admin Filiale (48h ouvrables)</h4>
-          <p>L'Admin Filiale reçoit une notification et doit approuver ou rejeter depuis <strong>Escalades NN300</strong>. Il dispose de 48h ouvrables pour décider.</p>
-          <div class="tip">💡 Si l'Admin Filiale ne répond pas dans les délais, l'escalade remonte automatiquement au niveau 2.</div>
+          <h4>Niveau 1 — Admin Filiale</h4>
+          <p>L'Admin Filiale reçoit une notification et doit approuver ou rejeter depuis <strong>Escalades NN300</strong>. Il dispose d'un délai en heures ouvrables (48h par défaut, configurable) pour décider.</p>
+          <div class="tip">💡 Si l'Admin Filiale ne répond pas dans les délais, l'escalade remonte automatiquement au niveau suivant.</div>
         </div>
       </div>
       <div class="step">
         <div class="step-num">3</div>
         <div class="step-body">
-          <h4>Niveau 2 — Super Admin DTAG (48h ouvrables)</h4>
-          <p>Le Super Admin (DTAG) reçoit la demande et prend la décision finale dans les 48h ouvrables.</p>
+          <h4>Niveau 2 — Super Admin DTAG</h4>
+          <p>Le Super Admin (DTAG) reçoit la demande et prend la décision finale dans le délai configuré.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-num">4</div>
         <div class="step-body">
           <h4>Émission automatique après approbation</h4>
-          <p>Si le Super Admin approuve, le certificat est <strong>émis automatiquement</strong> sans action supplémentaire requise. Le souscripteur reçoit une notification.</p>
-          <div class="note">⚠️ En cas de rejet ou d'expiration du délai niveau 2, le certificat revient en brouillon. Le souscripteur peut le modifier et le resoumettre.</div>
+          <p>Si l'approbation finale est donnée, le certificat est <strong>émis automatiquement</strong> sans action supplémentaire requise. Le souscripteur reçoit une notification. En cas de rejet ou d'expiration du délai à la dernière étape, le certificat revient en brouillon et peut être modifié puis resoumis.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size:15px;color:var(--navy);margin:24px 0 12px">Gestion des seuils & validations par filiale<span class="new-badge">NOUVEAU</span></h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">L'Admin Filiale (pour sa filiale) et le Super Admin (pour toutes les filiales) peuvent désormais configurer eux-mêmes les règles d'escalade depuis <strong>Paramètres → Seuils NN300</strong>, sans intervention technique :</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Créer une règle</h4>
+          <p>Choisissez le type de déclencheur (dépassement du plein en %, plafond NN300 cumulé, ou nombre de certificats), et pour le premier type, le seuil en pourcentage.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Définir la chaîne de validation</h4>
+          <p>Configurez une ou deux étapes d'approbation : le rôle habilité à décider (Admin Filiale et/ou Super Admin) et le délai accordé à chaque étape.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Activer / désactiver</h4>
+          <p>Chaque règle peut être temporairement désactivée sans être supprimée, ou modifiée à tout moment.</p>
         </div>
       </div>
     </div>
@@ -545,7 +670,7 @@
 
   <!-- DELEGATION -->
   <div class="page-section section-anchor" id="delegation">
-    <div class="section-tag">09 · Délégation</div>
+    <div class="section-tag">10 · Délégation</div>
     <h2 class="section-title">Délégation temporaire de rôle</h2>
     <p class="section-intro">L'Admin Filiale peut déléguer temporairement son rôle de validation à un collègue (congés, absence) avec une date d'expiration automatique.</p>
 
@@ -569,7 +694,7 @@
         <div class="step-num">3</div>
         <div class="step-body">
           <h4>Notification au délégataire</h4>
-          <p>Le collègue reçoit automatiquement une notification in-app et un email l'informant de la délégation reçue.</p>
+          <p>Le collègue reçoit automatiquement une notification in-app l'informant de la délégation reçue.</p>
         </div>
       </div>
       <div class="step">
@@ -584,16 +709,17 @@
 
   <!-- COMMISSIONS -->
   <div class="page-section section-anchor" id="commissions">
-    <div class="section-tag">10 · Commissions</div>
+    <div class="section-tag">11 · Commissions</div>
     <h2 class="section-title">Gestion des commissions courtiers</h2>
-    <p class="section-intro">Les commissions sont calculées automatiquement à l'émission de chaque certificat selon les règles paramétrées par courtier.</p>
+    <p class="section-intro">Les commissions sont calculées automatiquement à l'émission de chaque certificat selon les règles paramétrées.</p>
 
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-body">
           <h4>Paramétrer les taux (Admin Filiale)</h4>
-          <p>Accédez à <strong>Commissions → Règles</strong>. Définissez le taux de commission par courtier (et optionnellement par contrat). Un taux spécifique à un contrat prime sur le taux général.</p>
+          <p>Accédez à <strong>Commissions → Règles</strong>. Le taux de commission peut être défini à trois niveaux, du plus prioritaire au moins prioritaire : <strong>taux spécifique au contrat</strong>, puis <strong>taux du courtier</strong> défini sur sa fiche, puis un taux général par règle.</p>
+          <div class="new">✨ Un taux de commission peut désormais être fixé directement sur un contrat particulier, pour l'emporter sur le taux habituel du courtier.</div>
         </div>
       </div>
       <div class="step">
@@ -621,17 +747,147 @@
     </div>
   </div>
 
+  <!-- TAXES -->
+  <div class="page-section section-anchor" id="taxes">
+    <div class="section-tag">12 · Taxes</div>
+    <h2 class="section-title">Gestion des taxes<span class="new-badge">NOUVEAU</span></h2>
+    <p class="section-intro">Le taux de taxe appliqué à un certificat est désormais résolu automatiquement selon la filiale, le mode de transport et le pays de destination — fini la saisie manuelle du taux sur chaque contrat.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Consulter le référentiel</h4>
+          <p>Accédez à <strong>Taxes</strong> dans le menu. La liste affiche l'ensemble des taux définis, avec leur filiale, mode de transport, pays de destination, date d'effet et statut.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Créer un taux</h4>
+          <p>Cliquez sur <strong>Nouveau taux</strong>. Renseignez le mode de transport, le pays de destination, le taux (%) et sa date d'effet (et éventuellement une date de fin).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Application automatique</h4>
+          <p>À l'émission d'un certificat, le taux correspondant à la combinaison filiale/transport/pays du certificat est automatiquement recherché et appliqué dans le décompte de prime.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMANDES PARTENAIRES -->
+  <div class="page-section section-anchor" id="demandes">
+    <div class="section-tag">13 · Demandes partenaires</div>
+    <h2 class="section-title">Espace partenaire & demandes de certificat<span class="new-badge">NOUVEAU</span></h2>
+    <p class="section-intro">Les courtiers et partenaires ne créent plus directement de certificats : ils soumettent une <strong>demande</strong> avec leurs pièces justificatives, que le personnel de la filiale traite avant de leur mettre à disposition le certificat final.</p>
+
+    <h3 style="font-size:15px;color:var(--navy);margin-bottom:12px">Côté partenaire (courtier)</h3>
+    <div class="status-row">
+      <span class="status s-submit"><span class="dot"></span>En attente</span>
+      <span style="color:var(--muted);font-size:18px">→</span>
+      <span class="status s-review"><span class="dot"></span>En cours de traitement</span>
+      <span style="color:var(--muted);font-size:18px">→</span>
+      <span class="status s-approved"><span class="dot"></span>Approuvée</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:24px">Une demande peut aussi être <span class="status s-cancel" style="font-size:11px;padding:2px 8px"><span class="dot" style="width:5px;height:5px"></span>Rejetée</span> à tout moment avant traitement.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Soumettre une demande</h4>
+          <p>Depuis votre espace partenaire, cliquez sur <strong>Nouvelle demande</strong>. Renseignez les informations du voyage et de l'assuré, puis joignez vos pièces justificatives (facture, connaissement, etc.).</p>
+          <div class="tip">💡 Le personnel habilité de la filiale est notifié instantanément de votre nouvelle demande.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Suivre le traitement</h4>
+          <p>Vous êtes notifié dès qu'un agent prend votre demande en charge, puis à nouveau lorsqu'elle est approuvée, rejetée (avec motif), ou lorsque le certificat final est disponible au téléchargement.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Télécharger le certificat</h4>
+          <p>Une fois la demande approuvée et le certificat rattaché par la filiale, celui-ci apparaît dans <strong>Mes certificats</strong>, prêt à être téléchargé.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size:15px;color:var(--navy);margin:24px 0 12px">Côté filiale (Admin Filiale / Souscripteur)</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>File d'attente des demandes</h4>
+          <p>Depuis <strong>Partenaires → Demandes partenaires</strong>, les demandes en attente apparaissent en tête de liste, triées par ancienneté.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Prendre en charge, approuver ou rejeter</h4>
+          <p>Cliquez sur <strong>Prendre en charge</strong> pour signaler que vous traitez la demande, consultez les pièces jointes, puis <strong>Approuver</strong> ou <strong>Rejeter</strong> (motif obligatoire). Le partenaire est notifié à chaque étape.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Rattacher le certificat émis</h4>
+          <p>Une fois la demande approuvée et le certificat réellement émis via le module Certificats (ou importé via GUCE), rattachez-le à la demande depuis sa fiche. Le partenaire est immédiatement notifié que son certificat est disponible.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUCE -->
+  <div class="page-section section-anchor" id="guce">
+    <div class="section-tag">14 · Certificats GUCE</div>
+    <h2 class="section-title">Import de certificats GUCE<span class="new-badge">NOUVEAU</span></h2>
+    <p class="section-intro">Pour les certificats émis en dehors de l'application via des plateformes étatiques (guichet unique du commerce extérieur — GUCE), l'application propose un import assisté avec extraction automatique des données par lecture optique (OCR).</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Importer le document</h4>
+          <p>Accédez à <strong>Certificats → Importer GUCE</strong> et téléversez le PDF ou l'image du certificat GUCE.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Extraction automatique</h4>
+          <p>Le système analyse le document et pré-remplit automatiquement le formulaire : assuré, valeur assurée, marchandise, dates, navire, origine/destination, prime nette…</p>
+          <div class="tip">💡 Vérifiez et corrigez si besoin les champs extraits avant validation — la lecture automatique peut ponctuellement mal interpréter un champ selon la qualité du scan.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Enregistrer</h4>
+          <p>Une fois vérifié, le certificat GUCE est enregistré dans l'application et peut être rattaché à une demande partenaire ou consulté depuis <strong>Certificats GUCE</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- NOTIFICATIONS -->
   <div class="page-section section-anchor" id="notifications">
-    <div class="section-tag">11 · Notifications</div>
+    <div class="section-tag">15 · Notifications</div>
     <h2 class="section-title">Centre de notifications</h2>
-    <p class="section-intro">Restez informé en temps réel de tous les événements importants : validations, escalades, expirations de contrat, délégations.</p>
+    <p class="section-intro">Restez informé en temps réel de tous les événements importants : demandes, validations, escalades, expirations de contrat, délégations.</p>
 
     <div class="cards">
       <div class="card">
         <div class="card-icon" style="background:#fef2f2">🔔</div>
         <h3>Badge en temps réel</h3>
-        <p>La cloche en haut à droite affiche le nombre de notifications non lues, mis à jour toutes les 30 secondes.</p>
+        <p>La cloche en haut à droite affiche le nombre de notifications non lues, mise à jour toutes les 30 secondes.</p>
       </div>
       <div class="card">
         <div class="card-icon" style="background:#f0fdf4">✅</div>
@@ -648,25 +904,26 @@
     <h3 style="font-size:14px;color:var(--navy);margin-bottom:12px">Types de notifications</h3>
     <table class="guide-table">
       <thead>
-        <tr><th>Événement</th><th>Destinataires</th><th>Canal</th></tr>
+        <tr><th>Événement</th><th>Destinataires</th></tr>
       </thead>
       <tbody>
-        <tr><td>Certificat soumis</td><td>Admin Filiale</td><td>In-app + Email</td></tr>
-        <tr><td>Certificat émis / rejeté</td><td>Souscripteur</td><td>In-app + Email</td></tr>
-        <tr><td>Escalade NN300 déclenchée</td><td>Admin Filiale, DTAG</td><td>In-app + Email</td></tr>
-        <tr><td>Décision escalade</td><td>Souscripteur</td><td>In-app + Email</td></tr>
-        <tr><td>Contrat expirant (J-30)</td><td>Admin Filiale</td><td>In-app + Email</td></tr>
-        <tr><td>Plafond NN300 atteint à 80%</td><td>Admin Filiale</td><td>In-app</td></tr>
-        <tr><td>Délégation reçue / révoquée</td><td>Délégataire</td><td>In-app + Email</td></tr>
+        <tr><td>Certificat soumis / émis / rejeté</td><td>Admin Filiale (soumission), Souscripteur (émission/rejet)</td></tr>
+        <tr><td>Nouvelle demande partenaire <span class="new-badge">NOUVEAU</span></td><td>Admin Filiale et Souscripteur habilités de la filiale</td></tr>
+        <tr><td>Demande partenaire en cours de traitement <span class="new-badge">NOUVEAU</span></td><td>Le partenaire ayant soumis la demande</td></tr>
+        <tr><td>Demande partenaire rejetée <span class="new-badge">NOUVEAU</span></td><td>Le partenaire, avec le motif du rejet</td></tr>
+        <tr><td>Certificat mis à disposition</td><td>Le partenaire ayant soumis la demande</td></tr>
+        <tr><td>Escalade NN300 déclenchée / décision</td><td>Approbateurs de l'étape (Admin Filiale, DTAG), puis le souscripteur</td></tr>
+        <tr><td>Contrat expirant (J-30 / J-15 / J-7)</td><td>Admin Filiale</td></tr>
+        <tr><td>Délégation reçue / révoquée</td><td>Délégataire</td></tr>
       </tbody>
     </table>
   </div>
 
   <!-- HISTORIQUE -->
   <div class="page-section section-anchor" id="historique">
-    <div class="section-tag">12 · Audit</div>
+    <div class="section-tag">16 · Audit</div>
     <h2 class="section-title">Historique & Audit</h2>
-    <p class="section-intro">Toutes les actions effectuées dans l'application sont enregistrées et consultables. L'historique conserve les données sur 90 jours minimum.</p>
+    <p class="section-intro">Toutes les actions effectuées dans l'application sont enregistrées et consultables.</p>
 
     <div class="steps">
       <div class="step">
@@ -695,18 +952,22 @@
 
   <!-- FAQ -->
   <div class="page-section section-anchor" id="faq">
-    <div class="section-tag">13 · FAQ</div>
+    <div class="section-tag">17 · FAQ</div>
     <h2 class="section-title">Questions fréquentes</h2>
     <p class="section-intro">Réponses aux questions les plus courantes des utilisateurs.</p>
 
     <div class="faq">
       <div class="faq-item">
-        <div class="faq-q">Je n'arrive pas à me connecter avec mon compte Microsoft. Que faire ?</div>
+        <div class="faq-q">Je n'arrive pas à me connecter avec mon compte Microsoft ou Google. Que faire ?</div>
         <div class="faq-a">Vérifiez que vous utilisez bien votre adresse e-mail professionnelle NSIA. Videz le cache de votre navigateur. Si le problème persiste, contactez votre administrateur pour vérifier que votre compte est bien enregistré dans l'application.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Mon certificat est bloqué en « Soumis » depuis longtemps. Pourquoi ?</div>
-        <div class="faq-a">Deux raisons possibles : (1) votre Admin Filiale n'a pas encore validé — contactez-le directement, (2) votre certificat a déclenché une escalade NN300 (valeur dépassant le seuil du contrat) et attend l'approbation de l'Admin ou du DTAG.</div>
+        <div class="faq-a">Deux raisons possibles : (1) votre Admin Filiale n'a pas encore validé — contactez-le directement, (2) votre certificat a déclenché une escalade NN300 (dépassement du seuil du contrat, du plafond cumulé ou du nombre de certificats) et attend l'approbation de l'Admin ou du DTAG — consultez <strong>Escalades NN300</strong> pour voir l'étape en cours.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Puis-je créer un certificat même si le contrat a atteint son plafond ?</div>
+        <div class="faq-a">Oui, tant que le contrat lui-même est actif et non expiré. Le dépassement d'un plafond (NN300 cumulé ou nombre de certificats) ne bloque plus la création — il déclenchera une escalade de validation hiérarchique à la soumission, sauf si l'Admin Filiale a désactivé l'escalade automatique sur ce contrat.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Puis-je modifier un certificat après soumission ?</div>
@@ -717,8 +978,16 @@
         <div class="faq-a">Accédez à la fiche du certificat émis et cliquez sur <strong>Duplicata</strong>. Un duplicata portant le même numéro avec le suffixe -D1 sera généré immédiatement.</div>
       </div>
       <div class="faq-item">
+        <div class="faq-q">En tant que courtier, comment suivre ma demande de certificat ?</div>
+        <div class="faq-a">Depuis votre espace partenaire, la liste de vos demandes affiche leur statut en temps réel. Vous recevez également une notification à chaque étape (prise en charge, approbation ou rejet, mise à disposition du certificat).</div>
+      </div>
+      <div class="faq-item">
         <div class="faq-q">Le QR code ne fonctionne pas. Que faire ?</div>
         <div class="faq-a">Vérifiez que vous avez une connexion internet lors du scan. Si le lien est invalide, l'Admin Filiale peut régénérer le QR code depuis la fiche du certificat. L'ancien lien sera automatiquement désactivé.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">L'impression sur la souche physique ne s'aligne pas correctement. Que faire ?</div>
+        <div class="faq-a">Utilisez le mode calibration accessible depuis l'écran d'impression : il affiche une grille de repère millimétrique par-dessus les champs. Signalez les écarts mesurés à votre administrateur système afin d'ajuster les coordonnées du modèle pour votre filiale.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Je ne reçois pas les notifications par email. Comment configurer cela ?</div>
@@ -733,7 +1002,7 @@
 
   <!-- CONTACT -->
   <div class="page-section section-anchor" id="contact">
-    <div class="section-tag">14 · Support</div>
+    <div class="section-tag">18 · Support</div>
     <h2 class="section-title">Contacter le support</h2>
     <p class="section-intro">Pour toute question technique ou fonctionnelle, l'équipe DDIT est disponible pour vous assister.</p>
 
@@ -759,7 +1028,7 @@
       <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--gold)">DDIT — Direction des Systèmes d'Information</div>
       <div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.8">
         NSIA Groupe · Côte d'Ivoire<br>
-        Guide Version 1.0 — Juin 2026<br>
+        Guide Version 2.0<br>
         <em style="color:rgba(255,255,255,0.5);font-size:12px">L'Union fait NSIA…</em>
       </div>
     </div>

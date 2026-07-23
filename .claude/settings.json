@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan *)",
+      "Bash(npx tsc *)",
+      "Bash(xargs grep -l \"RouteList\")",
+      "Bash(git stash *)",
+      "Bash(php -l \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\app\\\\Http\\\\Controllers\\\\Admin\\\\CertificateRequestController.php\")",
+      "Bash(php -l \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\app\\\\Models\\\\CertificateRequest.php\")",
+      "Bash(php -l \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\routes\\\\web.php\")",
+      "Bash(php -l \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\app\\\\Http\\\\Controllers\\\\Partner\\\\CertificateRequestController.php\")",
+      "Bash(grep -n \"Espace partenaire\\\\|Partner\\\\\\\\\\\\\\\\CertificateRequestController\\\\|use App\\\\\\\\\\\\\\\\Http\\\\\\\\\\\\\\\\Controllers\\\\\\\\\\\\\\\\Admin\\\\\\\\\\\\\\\\NotificationController\" \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\routes\\\\web.php\")",
+      "Bash(php -l \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\app\\\\Http\\\\Controllers\\\\Partner\\\\PartnerDashboardController.php\")",
+      "Bash(npx eslint *)",
+      "Bash(grep -n \"^return\\\\|^}$\" \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\resources\\\\js\\\\pages\\\\partner\\\\certificate-requests\\\\create.tsx\")",
+      "Bash(php artisan tinker '--execute= *)",
+      "Bash(php -l \"c:\\\\wamp64\\\\www\\\\nsia-transport\\\\database\\\\seeders\\\\UserSeeder.php\")"
+    ]
+  }
+}

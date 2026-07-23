@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\AsEncryptedString;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -40,9 +40,9 @@ class Broker extends Model
             'is_active'           => 'boolean',
             'blocked_at'          => 'datetime',
             // US-051 — Chiffrement données PII (non-queryables)
-            'address'             => AsEncryptedString::class,
-            'phone'               => AsEncryptedString::class,
-            'registration_number' => AsEncryptedString::class,
+            'address'             => 'encrypted',
+            'phone'               => 'encrypted',
+            'registration_number' => 'encrypted',
         ];
     }
 
@@ -77,6 +77,20 @@ class Broker extends Model
         return $this->belongsTo(Tenant::class);
     }
 
+    // Toutes les filiales dans lesquelles ce courtier peut opérer
+    // (inclut sa filiale principale — voir syncTenants()).
+    public function tenants(): BelongsToMany
+    {
+        return $this->belongsToMany(Tenant::class, 'broker_tenant')->withTimestamps();
+    }
+
+    // Synchronise les filiales du courtier en garantissant que
+    // la filiale principale (tenant_id) est toujours incluse.
+    public function syncTenants(array $tenantIds): void
+    {
+        $this->tenants()->sync(array_unique(array_filter([$this->tenant_id, ...$tenantIds])));
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -100,6 +114,11 @@ class Broker extends Model
     public function certificates(): HasMany
     {
         return $this->hasMany(Certificate::class);
+    }
+
+    public function certificateRequests(): HasMany
+    {
+        return $this->hasMany(CertificateRequest::class);
     }
 
     public function commissionRules(): HasMany

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\GuceCertificate;
+use App\Services\GuceExtractionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,14 +13,16 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class GuceCertificateController extends Controller
 {
     public function index(Request $request): Response
     {
-        $tenantId = Auth::user()->tenant_id;
+        $user = Auth::user();
 
-        $query = GuceCertificate::where('tenant_id', $tenantId)
+        $query = GuceCertificate::query()
+            ->when(! $user->hasRole('super_admin'), fn ($q) => $q->where('tenant_id', $user->tenant_id))
             ->with('importedBy:id,name')
             ->latest();
 
@@ -44,6 +48,31 @@ class GuceCertificateController extends Controller
         return Inertia::render('admin/guce-certificates/create');
     }
 
+    // ── Extraction automatique (OCR/IA) du PDF avant soumission ─
+    public function extract(Request $request, GuceExtractionService $extraction): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+        ]);
+
+        $tempPath = $request->file('file')->store('guce-certificates/tmp', 'private');
+
+        try {
+            $data = $extraction->extract(Storage::disk('private')->path($tempPath));
+
+            return response()->json(['success' => true, 'data' => $data]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Extraction automatique indisponible — merci de compléter le formulaire manuellement.',
+            ], 422);
+        } finally {
+            Storage::disk('private')->delete($tempPath);
+        }
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -62,6 +91,7 @@ class GuceCertificateController extends Controller
             'transit_date'       => 'nullable|date',
             'insured_value'      => 'nullable|numeric|min:0',
             'currency'           => 'nullable|string|max:10',
+            'net_premium'        => 'nullable|numeric|min:0',
             'total_premium'      => 'nullable|numeric|min:0',
             'notes'              => 'nullable|string|max:2000',
             'file'               => 'required|file|mimes:pdf,doc,docx|max:10240',
@@ -129,7 +159,13 @@ class GuceCertificateController extends Controller
 
     private function authorizeTenant(GuceCertificate $cert): void
     {
-        if ($cert->tenant_id !== Auth::user()->tenant_id) {
+        $user = Auth::user();
+
+        if ($user->hasRole('super_admin')) {
+            return;
+        }
+
+        if ($cert->tenant_id !== $user->tenant_id) {
             abort(403);
         }
     }

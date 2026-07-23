@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Broker;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,9 @@ class UserSeeder extends Seeder
             $code = strtolower($tenant->code);
             $this->createUser($tenant->code, 'admin_filiale',  'Admin',        $tenant->code, "admin.{$code}@nsia-{$code}.com",        "Admin@{$tenant->code}2026!");
             $this->createUser($tenant->code, 'souscripteur',   'Souscripteur', $tenant->code, "souscripteur.{$code}@nsia-{$code}.com", "Souscript@{$tenant->code}2026!");
-            $this->createUser($tenant->code, 'courtier_local', 'Courtier',     $tenant->code, "courtier.{$code}@nsia-{$code}.com",     "Courtier@{$tenant->code}2026!");
+
+            $courtier = $this->createUser($tenant->code, 'courtier_local', 'Courtier', $tenant->code, "courtier.{$code}@nsia-{$code}.com", "Courtier@{$tenant->code}2026!");
+            $this->linkDemoBroker($courtier, $tenant->id, $tenant->code);
         }
 
         // Client démo CI
@@ -42,7 +45,7 @@ class UserSeeder extends Seeder
         string  $lastName,
         string  $email,
         string  $password,
-    ): void {
+    ): User {
         // Récupérer le tenant_id UUID via DB::table (pas via modèle)
         $tenantId = null;
         $timezone = 'Africa/Abidjan';
@@ -78,5 +81,27 @@ class UserSeeder extends Seeder
 
         $label = $tenantCode ?? 'DTAG (global)';
         $this->command->line("    <info>[{$label}]</info> {$role} → {$email}");
+
+        return $user;
+    }
+
+    // Rattache le compte courtier de démo à une fiche courtier
+    // (nécessaire pour que l'espace partenaire affiche des données).
+    private function linkDemoBroker(User $user, string $tenantId, string $tenantCode): void
+    {
+        $broker = Broker::firstOrCreate(
+            ['tenant_id' => $tenantId, 'code' => 'BRK-' . $tenantCode . '-DEMO'],
+            [
+                'name'       => "Courtier Démo {$tenantCode}",
+                'type'       => Broker::TYPE_LOCAL,
+                'email'      => $user->email,
+                'is_active'  => true,
+                'created_by' => $user->id,
+            ]
+        );
+
+        if ($broker->user_id !== $user->id) {
+            $broker->update(['user_id' => $user->id]);
+        }
     }
 }

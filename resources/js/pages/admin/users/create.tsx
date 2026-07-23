@@ -1,12 +1,12 @@
 import { Head, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { UserPlus, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { UserPlus, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Utilisateurs', href: '/admin/users' },
@@ -16,9 +16,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Props {
     roles:   string[];
     tenants: { id: string; name: string; code: string }[];
+    brokers: { id: string; name: string; code: string; type: string }[];
+    prefill: { role: string | null; broker_id: string | null; tenant_id: string | null };
 }
 
-export default function UserCreate({ roles, tenants }: Props) {
+const PARTNER_ROLES = ['courtier_local', 'partenaire_etranger'];
+
+export default function UserCreate({ roles, tenants, brokers, prefill }: Props) {
     const [showPw,      setShowPw]      = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -27,11 +31,14 @@ export default function UserCreate({ roles, tenants }: Props) {
         last_name:             '',
         email:                 '',
         phone:                 '',
-        role:                  '',
-        tenant_id:             '',
+        role:                  prefill?.role ?? '',
+        tenant_id:             prefill?.tenant_id ?? '',
+        broker_id:             prefill?.broker_id ?? '',
         password:              '',
         password_confirmation: '',
     });
+
+    const isPartnerRole = PARTNER_ROLES.includes(data.role);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -124,6 +131,18 @@ export default function UserCreate({ roles, tenants }: Props) {
                                     </select>
                                     <InputError message={errors.role}/>
                                 </div>
+
+                                {/* Courtier à rattacher (rôles partenaires) */}
+                                {isPartnerRole && (
+                                    <div className="grid gap-2">
+                                        <Label className="uc-label">Courtier à rattacher</Label>
+                                        <select className="uc-select" value={data.broker_id} onChange={e => setData('broker_id', e.target.value)}>
+                                            <option value="">Aucun (à rattacher plus tard)</option>
+                                            {brokers.map(b => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+                                        </select>
+                                        <InputError message={errors.broker_id}/>
+                                    </div>
+                                )}
 
                                 {/* Filiale (super admin seulement) */}
                                 {tenants.length > 0 && (

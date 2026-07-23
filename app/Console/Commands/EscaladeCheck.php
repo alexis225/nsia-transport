@@ -12,7 +12,7 @@ class EscaladeCheck extends Command
      *
      * @var string
      */
-    protected $signature = 'app:check-escalades';
+    protected $signature = 'nsia:check-escalades';
 
     /**
      * The console command description.

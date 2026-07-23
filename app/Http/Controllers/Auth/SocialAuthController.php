@@ -38,30 +38,38 @@ class SocialAuthController extends Controller
     {
 
         try {
-            $code = $request->query('code');
-            if (!$code) {
-                return redirect('/')->with('error', 'Authorization code not returned.');
-            }
+            // $code = $request->query('code');
+            // if (!$code) {
+            //     return redirect('/')->with('error', 'Authorization code not returned.');
+            // }
 
-            $tokenResponse = Http::withOptions([
-                'verify' => false
-            ])->asForm()->post("https://login.microsoftonline.com/common/oauth2/v2.0/token", [
-                'client_id' => env('MICROSOFT_CLIENT_ID'),
-                'scope' => 'User.Read',
-                'code' => $code,
-                'redirect_uri' => env('MICROSOFT_REDIRECT_URI'),
-                'grant_type' => 'authorization_code',
-                'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
-            ]);
+            // $tokenResponse = Http::withOptions([
+            //     'verify' => false
+            // ])->asForm()->post("https://login.microsoftonline.com/common/oauth2/v2.0/token", [
+            //     'client_id' => env('MICROSOFT_CLIENT_ID'),
+            //     'scope' => 'User.Read',
+            //     'code' => $code,
+            //     'redirect_uri' => env('MICROSOFT_REDIRECT_URI'),
+            //     'grant_type' => 'authorization_code',
+            //     'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+            // ]);
 
-            if ($tokenResponse->failed()) {
-                return redirect('/')->with('error', 'Failed to get token from Microsoft.');
-            }
+            // if ($tokenResponse->failed()) {
+            //     return redirect('/')->with('error', 'Failed to get token from Microsoft.');
+            // }
 
-            $tokenData = $tokenResponse->json();
+            // $tokenData = $tokenResponse->json();
         
-            $idToken = $tokenData['access_token'];
-            $userInfo = $this->decodeJwt($idToken);
+            // $idToken = $tokenData['access_token'];
+            // $userInfo = $this->decodeJwt($idToken);
+            //---------------------user info pour les tests à supprimer après les tests------------------
+            $userInfo = [
+                'upn'         => 'jean-louis.goueguy@nsiaholdingassurances.com',
+                'given_name'  => 'Jean-Louis Alexis',
+                'family_name' => 'GOUEGUY',
+                'name'        => 'GOUEGUY Jean-Louis Alexis [NSIA Holding Assurances]',
+                'email'       => 'jean-louis.goueguy@nsiaholdingassurances.com',
+            ];
             //dd($userInfo, $tokenResponse->json()["access_token"]);
         } catch (\Exception $e) {
             return redirect()->route('login')

@@ -21,7 +21,7 @@
   }
 
   /* Sidebar */
-  .sidebar { position: fixed; top: 0; left: 0; width: 230px; height: 100vh; background: #0d1117;
+  .sidebar { position: fixed; top: 0; left: 0; width: 235px; height: 100vh; background: #0d1117;
     color: #8b949e; overflow-y: auto; padding: 16px 0; z-index: 100; }
   .sidebar .logo { padding: 12px 18px 20px; border-bottom: 1px solid #21262d; }
   .sidebar .logo strong { color: #fff; font-size: .95rem; }
@@ -32,7 +32,7 @@
     text-transform: uppercase; letter-spacing: .1em; }
 
   /* Main */
-  .main { margin-left: 230px; }
+  .main { margin-left: 235px; }
   @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } }
 
   /* Cover */
@@ -45,13 +45,15 @@
     text-transform: uppercase; margin-bottom: 24px; font-family: monospace; }
   .cover h1 { font-size: 3rem; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 12px; }
   .cover h1 span { color: #e8591a; }
-  .cover .sub { font-size: .98rem; color: #6e7681; max-width: 540px; margin-bottom: 48px; }
-  .cover-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 700px; }
+  .cover .sub { font-size: .98rem; color: #6e7681; max-width: 560px; margin-bottom: 48px; }
+  .cover-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 720px; }
   .cover-stat { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 16px; }
   .cover-stat .val { font-size: 1.5rem; font-weight: 800; color: #e8591a; }
   .cover-stat .lbl { font-size: .72rem; color: #6e7681; margin-top: 2px; }
   .cover-logo { position: absolute; top: 32px; right: 48px; font-size: 1.2rem; font-weight: 900; color: #fff; }
   .cover-logo span { color: #e8591a; }
+  .cover-changelog { margin-top: 36px; max-width: 620px; font-size: .78rem; color: #6e7681; border-top: 1px solid #21262d; padding-top: 16px; }
+  .cover-changelog strong { color: #8b949e; }
 
   /* Sections */
   .section { padding: 52px 60px; border-bottom: 1px solid var(--border); }
@@ -114,6 +116,7 @@
   .badge-red { background: #fee2e2; color: #dc2626; }
   .badge-purple { background: #f3e8ff; color: #7c3aed; }
   .badge-dark { background: #1f2937; color: #e5e7eb; font-family: monospace; }
+  .badge-new { background: #052e16; color: #4ade80; font-family: monospace; }
 
   /* Alert */
   .alert { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: .84rem; }
@@ -172,6 +175,11 @@
   .tl-item h4 { font-size: .88rem; color: var(--blue); font-weight: 700; }
   .tl-item p { font-size: .82rem; color: var(--muted); margin: 3px 0 0; }
 
+  /* Module grid */
+  .mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 16px 0; }
+  .mod-chip { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: .78rem; }
+  .mod-chip code { display: block; margin-bottom: 3px; }
+
   /* Footer */
   .footer { background: #0d1117; color: #6e7681; text-align: center; padding: 28px; font-size: .8rem; }
   .footer strong { color: #e8591a; }
@@ -187,7 +195,7 @@
 
 <!-- SIDEBAR -->
 <nav class="sidebar no-print">
-  <div class="logo"><strong>NSIA Transport</strong><span>Documentation Technique v1.0</span></div>
+  <div class="logo"><strong>NSIA Transport</strong><span>Documentation Technique v2.0</span></div>
   <div class="cat">Architecture</div>
   <a href="#archi">Vue d'ensemble</a>
   <a href="#stack">Stack technique</a>
@@ -196,10 +204,12 @@
   <a href="#schema">Schéma MCD</a>
   <a href="#tables">Tables principales</a>
   <a href="#migrations">Migrations</a>
-  <div class="cat">Backend</div>
-  <a href="#routes">Routes API</a>
+  <div class="cat">Modules & Backend</div>
+  <a href="#modules">Modules activables</a>
+  <a href="#routes">Routes principales</a>
   <a href="#middlewares">Middlewares</a>
   <a href="#services">Services & Jobs</a>
+  <a href="#escalade">Module Escalade NN300</a>
   <a href="#scheduler">Scheduler</a>
   <div class="cat">Frontend</div>
   <a href="#frontend">React / Inertia</a>
@@ -215,14 +225,21 @@
 <!-- COVER -->
 <section class="cover" id="cover">
   <div class="cover-logo">NSIA <span>GROUPE</span></div>
-  <div class="cover-tag">US-071 — Documentation Technique</div>
+  <div class="cover-tag">Documentation Technique</div>
   <h1>NSIA <span>Transport</span><br>Docs Techniques</h1>
   <p class="sub">Architecture, schéma de données, API, sécurité, déploiement — Référence technique complète pour l'équipe de développement et de maintenance.</p>
   <div class="cover-grid">
     <div class="cover-stat"><div class="val">Laravel 12</div><div class="lbl">Framework backend</div></div>
     <div class="cover-stat"><div class="val">React 19</div><div class="lbl">Framework frontend</div></div>
-    <div class="cover-stat"><div class="val">34</div><div class="lbl">Tables PostgreSQL</div></div>
-    <div class="cover-stat"><div class="val">58</div><div class="lbl">US livrées</div></div>
+    <div class="cover-stat"><div class="val">51</div><div class="lbl">Migrations PostgreSQL</div></div>
+    <div class="cover-stat"><div class="val">16</div><div class="lbl">Modules activables</div></div>
+    <div class="cover-stat"><div class="val">41</div><div class="lbl">Contrôleurs</div></div>
+    <div class="cover-stat"><div class="val">92</div><div class="lbl">Pages React (Inertia)</div></div>
+    <div class="cover-stat"><div class="val">6</div><div class="lbl">Rôles applicatifs</div></div>
+    <div class="cover-stat"><div class="val">114</div><div class="lbl">Tests Pest</div></div>
+  </div>
+  <div class="cover-changelog">
+    <strong>Depuis la v1.0 :</strong> module Escalade renforcé (seuils cumulés NN300 escaladables, UI de gestion des seuils/validations par filiale), module Notifications étendu au cycle de vie des demandes partenaires, module Gestion des taxes (référentiel filiale × transport × pays), gestion des commissions par contrat, import de certificats GUCE par OCR (Mindee), impression sur souches physiques pré-imprimées (overlay par pays), espace partenaire dédié (demandes de certificats).
   </div>
 </section>
 
@@ -241,7 +258,7 @@
         <div class="arch-box react">Inertia.js v2</div>
         <div class="arch-box react">ShadCN/UI (Radix)</div>
         <div class="arch-box react">Tailwind CSS v4</div>
-        <div class="arch-box react">Vite</div>
+        <div class="arch-box react">Vite 7</div>
       </div>
     </div>
     <div class="arch-arrow">↕ Inertia Protocol (JSON/XHR)</div>
@@ -252,6 +269,7 @@
         <div class="arch-box laravel">PHP 8.2+</div>
         <div class="arch-box laravel">DomPDF</div>
         <div class="arch-box laravel">PhpSpreadsheet</div>
+        <div class="arch-box laravel">Mindee (OCR)</div>
       </div>
     </div>
     <div class="arch-arrow">↕</div>
@@ -259,15 +277,15 @@
       <div class="arch-label">Auth</div>
       <div class="arch-boxes">
         <div class="arch-box auth">Laravel Fortify</div>
-        <div class="arch-box auth">Spatie Permission (teams)</div>
-        <div class="arch-box auth">Laravel Socialite (MS OAuth)</div>
+        <div class="arch-box auth">Spatie Permission</div>
+        <div class="arch-box auth">Laravel Socialite (MS + Google)</div>
       </div>
     </div>
     <div class="arch-arrow">↕</div>
     <div class="arch-layer">
       <div class="arch-label">Data</div>
       <div class="arch-boxes">
-        <div class="arch-box pg">PostgreSQL 16 (RLS)</div>
+        <div class="arch-box pg">PostgreSQL 16</div>
         <div class="arch-box queue">Queue (DB driver)</div>
         <div class="arch-box cache">Cache (File/Redis)</div>
         <div class="arch-box mail">Mail (SMTP)</div>
@@ -276,16 +294,20 @@
   </div>
 
   <h3>Principe multi-tenant</h3>
-  <p>Chaque <strong>filiale</strong> est un <em>tenant</em> identifié par un UUID (<code>tenant_id</code>). L'isolation est assurée à deux niveaux :</p>
+  <p>Chaque <strong>filiale</strong> est un <em>tenant</em> identifié par un UUID (<code>tenant_id</code>). L'isolation applicative repose sur deux mécanismes complémentaires :</p>
   <div class="grid-2">
     <div class="card dark">
-      <h4>Niveau applicatif</h4>
-      <p>Middleware <code>EnsureTenantIsolation</code> + scopes Eloquent filtrant automatiquement les requêtes par <code>tenant_id</code>.</p>
+      <h4>Isolation au niveau requête</h4>
+      <p>Middleware <code>EnsureTenantIsolation</code> (alias <code>tenant.isolation</code>) sur tout le groupe de routes authentifiées, combiné à un filtrage manuel par <code>tenant_id</code> dans chaque contrôleur (pas de <em>global scope</em> Eloquent automatique — vérifié dans tous les contrôleurs admin).</p>
     </div>
     <div class="card dark">
-      <h4>Niveau base de données (RLS)</h4>
-      <p>Row Level Security PostgreSQL activé sur les tables critiques. <code>SetTenantContext</code> injecte <code>app.current_tenant_id</code> en session PostgreSQL à chaque requête.</p>
+      <h4>Modules activables par filiale</h4>
+      <p><code>Tenant::MODULES</code> (16 clés) + middleware <code>module:</code> (<code>EnsureModuleEnabled</code>) permettent de masquer des pans entiers de l'application par filiale (ex : une filiale sans courtiers désactive le module <code>brokers</code>). Voir section <a href="#modules">Modules activables</a>.</p>
     </div>
+  </div>
+
+  <div class="alert alert-warn">
+    <strong>Row Level Security PostgreSQL — état actuel :</strong> la migration <code>2026_06_01_000001_enable_row_level_security.php</code> et le middleware <code>SetTenantContext</code> (alias <code>tenant.context</code>, <code>SET app.current_tenant_id</code>) existent dans le code, mais <strong>ce middleware n'est actuellement rattaché à aucun groupe de routes</strong> dans <code>routes/web.php</code>. L'isolation multi-tenant réellement active aujourd'hui est donc <strong>uniquement applicative</strong> (middleware + filtrage <code>tenant_id</code> par contrôleur), pas renforcée par des politiques RLS actives en base. À vérifier/rattacher avant de considérer la RLS comme une couche de défense opérationnelle.
   </div>
 </section>
 
@@ -293,7 +315,7 @@
 <section class="section" id="stack">
   <div class="sec-header">
     <div class="sec-icon">🛠️</div>
-    <h2>Stack Technique<small>Versions, packages et dépendances</small></h2>
+    <h2>Stack Technique<small>Versions et dépendances (composer.json / package.json)</small></h2>
   </div>
 
   <div class="grid-2">
@@ -303,14 +325,18 @@
         <thead><tr><th>Package</th><th>Version</th><th>Usage</th></tr></thead>
         <tbody>
           <tr><td><code>laravel/framework</code></td><td>^12.0</td><td>Framework principal</td></tr>
-          <tr><td><code>laravel/fortify</code></td><td>^1.x</td><td>Auth + MFA TOTP</td></tr>
-          <tr><td><code>spatie/laravel-permission</code></td><td>^6.x</td><td>Rôles/permissions (teams)</td></tr>
-          <tr><td><code>inertiajs/inertia-laravel</code></td><td>^2.x</td><td>Bridge SPA</td></tr>
-          <tr><td><code>barryvdh/laravel-dompdf</code></td><td>^3.x</td><td>Génération PDF</td></tr>
-          <tr><td><code>phpoffice/phpspreadsheet</code></td><td>^3.x</td><td>Export Excel</td></tr>
-          <tr><td><code>laravel/socialite</code></td><td>^5.x</td><td>OAuth Microsoft</td></tr>
-          <tr><td><code>socialiteproviders/microsoft</code></td><td>^4.x</td><td>Provider MS Azure</td></tr>
-          <tr><td><code>chillerlan/php-qrcode</code></td><td>^5.x</td><td>QR Code sur certificats</td></tr>
+          <tr><td><code>laravel/fortify</code></td><td>^1.30</td><td>Auth + MFA TOTP</td></tr>
+          <tr><td><code>spatie/laravel-permission</code></td><td>^7.2</td><td>Rôles/permissions</td></tr>
+          <tr><td><code>inertiajs/inertia-laravel</code></td><td>^2.0</td><td>Bridge SPA</td></tr>
+          <tr><td><code>barryvdh/laravel-dompdf</code></td><td>^3.1</td><td>Génération PDF certificats</td></tr>
+          <tr><td><code>phpoffice/phpspreadsheet</code></td><td>^5.7</td><td>Export Excel (bordereau commissions)</td></tr>
+          <tr><td><code>laravel/socialite</code></td><td>^5.13</td><td>OAuth Microsoft / Google</td></tr>
+          <tr><td><code>socialiteproviders/microsoft</code></td><td>^4.1</td><td>Provider MS Azure AD</td></tr>
+          <tr><td><code>endroid/qr-code</code></td><td>^6.0</td><td>QR Code sur certificats</td></tr>
+          <tr><td><code>mindee/mindee</code></td><td>^3.0</td><td><span class="badge badge-new">nouveau</span> OCR extraction certificats GUCE</td></tr>
+          <tr><td><code>pragmarx/google2fa-laravel</code></td><td>^2.3</td><td>Support TOTP MFA</td></tr>
+          <tr><td><code>laravel/wayfinder</code></td><td>^0.1.9</td><td>Génération routes typées TS</td></tr>
+          <tr><td><code>tightenco/ziggy</code></td><td>^2.6</td><td>Routes Laravel côté JS (<code>route()</code>)</td></tr>
         </tbody>
       </table>
     </div>
@@ -319,14 +345,14 @@
       <table>
         <thead><tr><th>Package</th><th>Version</th><th>Usage</th></tr></thead>
         <tbody>
-          <tr><td><code>react</code></td><td>^19.0</td><td>UI framework</td></tr>
+          <tr><td><code>react</code></td><td>^19.2</td><td>UI framework</td></tr>
           <tr><td><code>@inertiajs/react</code></td><td>^2.x</td><td>Adapter Inertia</td></tr>
-          <tr><td><code>typescript</code></td><td>^5.x</td><td>Typage statique</td></tr>
-          <tr><td><code>tailwindcss</code></td><td>^4.x</td><td>CSS utility</td></tr>
+          <tr><td><code>typescript</code></td><td>^5.7</td><td>Typage statique</td></tr>
+          <tr><td><code>tailwindcss</code></td><td>^4.0</td><td>CSS utility</td></tr>
           <tr><td><code>@radix-ui/*</code></td><td>latest</td><td>Composants UI accessibles</td></tr>
           <tr><td><code>axios</code></td><td>^1.x</td><td>Requêtes HTTP (CSRF auto)</td></tr>
-          <tr><td><code>vite</code></td><td>^6.x</td><td>Bundler + HMR</td></tr>
-          <tr><td><code>lucide-react</code></td><td>latest</td><td>Icônes</td></tr>
+          <tr><td><code>vite</code></td><td>^7.0</td><td>Bundler + HMR</td></tr>
+          <tr><td><code>lucide-react</code></td><td>^0.475</td><td>Icônes</td></tr>
           <tr><td><code>recharts</code></td><td>^2.x</td><td>Graphiques dashboard</td></tr>
         </tbody>
       </table>
@@ -336,16 +362,17 @@
   <h3>Tests</h3>
   <div class="grid-3">
     <div class="card">
-      <h4>Pest PHP (Backend)</h4>
-      <ul><li>114 tests Feature + Unit</li><li>RefreshDatabase (PostgreSQL)</li><li>445 assertions</li></ul>
+      <h4>Pest PHP (^4.4)</h4>
+      <ul><li>114 tests (Feature + Unit)</li><li>Auth, MFA, IP blacklist, rôles/permissions</li><li>Workflow certificats, commissions, dashboard KPI</li></ul>
     </div>
     <div class="card orange">
-      <h4>Playwright (E2E)</h4>
-      <ul><li>Tests navigateur Chromium</li><li>Scénarios complets login → émission</li><li>CI/CD compatible</li></ul>
+      <h4>Couverture fonctionnelle</h4>
+      <ul><li><code>tests/Feature/Auth/*</code> — 8 fichiers</li><li><code>tests/Feature/*</code> — workflow métier</li><li><code>tests/Feature/Settings/*</code> — profil, MFA</li></ul>
     </div>
     <div class="card green">
-      <h4>PHPUnit (Unit)</h4>
-      <ul><li>Services isolés (CommissionService)</li><li>Modèles et calculs métier</li></ul>
+      <h4>Lancer les tests</h4>
+      <pre style="margin:0"><span class="var">$</span> php artisan test
+<span class="var">$</span> composer test  <span class="comment"># + pint --test</span></pre>
     </div>
   </div>
 </section>
@@ -354,96 +381,99 @@
 <section class="section" id="securite-archi">
   <div class="sec-header">
     <div class="sec-icon orange">🔒</div>
-    <h2>Architecture de Sécurité<small>Défense en profondeur — US-050 à US-052</small></h2>
+    <h2>Architecture de Sécurité<small>Défense en profondeur</small></h2>
   </div>
 
   <div class="grid">
     <div class="card dark">
       <h4>1. Couche réseau</h4>
       <ul>
-        <li>Middleware <code>CheckIpBlacklist</code> (global web)</li>
+        <li>Middleware <code>CheckIpBlacklist</code> (global web, en tête de stack)</li>
         <li>Cache 5 min par IP (performance)</li>
         <li>Support CIDR PostgreSQL <code>::inet &lt;&lt;=</code></li>
-        <li>Verrouillage compte : 5 échecs → 30 min</li>
+        <li>Verrouillage compte : échecs de connexion → blocage temporaire</li>
       </ul>
     </div>
     <div class="card dark">
       <h4>2. Couche authentification</h4>
       <ul>
         <li>Fortify : Bcrypt + rate limiting</li>
-        <li>MFA TOTP (Fortify natif, chiffré)</li>
-        <li>SSO Microsoft (Azure AD single-tenant)</li>
+        <li>MFA TOTP (Fortify + google2fa)</li>
+        <li>SSO Microsoft (Azure AD single-tenant) + Google</li>
         <li>Sessions PHP + CSRF token</li>
       </ul>
     </div>
     <div class="card dark">
       <h4>3. Couche autorisation</h4>
       <ul>
-        <li>Spatie Permission <code>teams=true</code></li>
-        <li><code>Gate::before()</code> : super_admin bypass</li>
-        <li>Délégation via <code>UserRoleGrant</code></li>
-        <li>Middleware <code>permission:</code> sur routes</li>
+        <li>Spatie Permission — 6 rôles, ~90 permissions</li>
+        <li>Middleware <code>permission:</code> / <code>role:</code> sur routes</li>
+        <li>Délégation temporaire via <code>UserRoleGrant</code></li>
+        <li><code>EnsureStaffAccess</code> : isole espace admin / espace partenaire</li>
       </ul>
     </div>
     <div class="card dark">
       <h4>4. Couche données</h4>
       <ul>
-        <li>RLS PostgreSQL (tables critiques)</li>
-        <li><code>AsEncryptedString</code> sur champs PII</li>
-        <li>UUID v4 pour toutes les PKs</li>
-        <li>Soft delete (audit trail)</li>
+        <li>Isolation applicative <code>tenant_id</code> (RLS non rattachée — voir §1)</li>
+        <li><code>encrypted</code> cast sur champs PII (adresse, téléphone, n° immatriculation)</li>
+        <li>UUID v4 pour toutes les PKs (<code>HasUuids</code>)</li>
+        <li>Soft delete (audit trail) sur les entités métier</li>
       </ul>
     </div>
   </div>
 
-  <h3>Flux d'autorisation</h3>
-  <pre><span class="comment">// AppServiceProvider::boot()</span>
-<span class="class-name">Gate</span>::<span class="func">before</span>(<span class="keyword">function</span> (<span class="var">$user</span>, <span class="var">$ability</span>) {
-    <span class="comment">// Super admin bypass TOTAL</span>
-    <span class="keyword">if</span> (<span class="var">$user</span>-><span class="func">hasRole</span>(<span class="string">'super_admin'</span>)) <span class="keyword">return true</span>;
-
-    <span class="comment">// Délégation temporaire de rôle</span>
-    <span class="keyword">if</span> (<span class="class-name">UserRoleGrant</span>::<span class="func">hasGrantedPermission</span>(<span class="var">$user</span>, <span class="var">$ability</span>)) <span class="keyword">return true</span>;
-
-    <span class="keyword">return null</span>; <span class="comment">// laisse Spatie Permission décider</span>
-});</pre>
+  <h3>Flux d'autorisation par rôle</h3>
+  <p>6 rôles Spatie sont seedés par <code>RolesAndPermissionsSeeder</code> : <code>super_admin</code>, <code>admin_filiale</code>, <code>souscripteur</code>, <code>courtier_local</code>, <code>partenaire_etranger</code>, <code>client</code>. Les deux derniers rôles courtier/partenaire sont redirigés vers l'espace <code>/partner</code> dédié par <code>EnsureStaffAccess</code>.</p>
+  <pre><span class="comment">// app/Http/Middleware/EnsureStaffAccess.php</span>
+<span class="keyword">if</span> (
+    <span class="var">$user</span>-><span class="func">hasAnyRole</span>([<span class="string">'courtier_local'</span>, <span class="string">'partenaire_etranger'</span>])
+    && ! <span class="var">$user</span>-><span class="func">hasAnyRole</span>([<span class="string">'super_admin'</span>, <span class="string">'admin_filiale'</span>, <span class="string">'souscripteur'</span>])
+) {
+    <span class="keyword">return</span> <span class="func">redirect</span>()-><span class="func">route</span>(<span class="string">'partner.dashboard'</span>);
+}</pre>
 
   <h3>Chiffrement des données sensibles (PII)</h3>
   <pre><span class="comment">// Sur les modèles Broker et InsuranceContract</span>
-<span class="keyword">protected function</span> <span class="func">casts</span>(): <span class="keyword">array</span>
-{
-    <span class="keyword">return</span> [
-        <span class="string">'address'</span>             => <span class="class-name">AsEncryptedString</span>::class, <span class="comment">// chiffré en base</span>
-        <span class="string">'phone'</span>               => <span class="class-name">AsEncryptedString</span>::class,
-        <span class="string">'registration_number'</span> => <span class="class-name">AsEncryptedString</span>::class,
-    ];
-}
-<span class="comment">// ⚠️ email = NON chiffré (utilisé pour login/recherche)</span></pre>
+<span class="keyword">protected</span> <span class="var">$casts</span> = [
+    <span class="string">'insured_address'</span> => <span class="string">'encrypted'</span>,
+    <span class="string">'insured_phone'</span>   => <span class="string">'encrypted'</span>,
+];
+<span class="comment">// ⚠️ email = NON chiffré (utilisé pour login/recherche)</span>
+<span class="comment">// US-051 : migration nsia:encrypt-sensitive-fields à exécuter UNE FOIS
+// pour chiffrer les données déjà présentes en base après déploiement.</span></pre>
 </section>
 
 <!-- ══ 4. SCHEMA BDD ══ -->
 <section class="section page-break" id="schema">
   <div class="sec-header">
     <div class="sec-icon">🗄️</div>
-    <h2>Schéma de Base de Données<small>34 tables — PostgreSQL 16</small></h2>
+    <h2>Schéma de Base de Données<small>51 migrations — PostgreSQL 16</small></h2>
   </div>
 
   <h3>Domaines fonctionnels</h3>
   <table>
     <thead><tr><th>Domaine</th><th>Tables</th><th>Description</th></tr></thead>
     <tbody>
-      <tr><td><span class="badge badge-purple">IAM</span></td><td>5 tables Spatie</td><td>roles, permissions, model_has_roles, model_has_permissions, role_has_permissions</td></tr>
-      <tr><td><span class="badge badge-blue">Organisation</span></td><td>tenants, brokers, coinsurers, experts, user_role_grants</td><td>Filiales, intermédiaires, délégations</td></tr>
-      <tr><td><span class="badge badge-gray">Référentiel</span></td><td>countries, currencies, incoterms, transport_modes, cargo_categories</td><td>Tables de référence partagées</td></tr>
-      <tr><td><span class="badge badge-orange">Contrats</span></td><td>insurance_contracts, contract_coinsurers</td><td>Polices d'assurance + coassurance</td></tr>
-      <tr><td><span class="badge badge-green">Certificats</span></td><td>certificates, certificate_amendments, certificate_histories</td><td>Émission, amendements, historique</td></tr>
-      <tr><td><span class="badge badge-purple">Workflow</span></td><td>approval_workflows, approval_requests, approval_decisions</td><td>Validation multi-étapes + escalade</td></tr>
-      <tr><td><span class="badge badge-orange">Commissions</span></td><td>commission_rules, commission_transactions</td><td>Calcul et suivi commissions courtiers</td></tr>
-      <tr><td><span class="badge badge-blue">Notifications</span></td><td>notifications</td><td>Système de notifications in-app</td></tr>
-      <tr><td><span class="badge badge-red">Audit & Sécu</span></td><td>audit_logs, ip_blacklist</td><td>Journal d'audit, blacklist IP</td></tr>
-      <tr><td><span class="badge badge-gray">Infra</span></td><td>jobs, report_executions, kpi_snapshots</td><td>Queue, exports async, cache KPIs</td></tr>
+      <tr><td><span class="badge badge-purple">IAM</span></td><td>roles, permissions, model_has_roles, model_has_permissions, role_has_permissions, personal_access_tokens</td><td>Spatie Permission + Sanctum</td></tr>
+      <tr><td><span class="badge badge-blue">Organisation</span></td><td>tenants, brokers, broker_tenant, coinsurers, experts, user_role_grants, user_sessions</td><td>Filiales, intermédiaires (multi-filiales via pivot), délégations</td></tr>
+      <tr><td><span class="badge badge-gray">Référentiel</span></td><td>countries, currencies, incoterms, transport_modes, merchandise_categories</td><td>Tables de référence partagées</td></tr>
+      <tr><td><span class="badge badge-orange">Contrats</span></td><td>insurance_contracts, contract_coinsurers, contract_amendments</td><td>Polices d'assurance, coassurance, avenants</td></tr>
+      <tr><td><span class="badge badge-green">Certificats</span></td><td>certificates, certificate_sequences, certificate_history, certificate_templates</td><td>Émission, numérotation, historique, modèles d'impression</td></tr>
+      <tr><td><span class="badge badge-green">Demandes partenaires</span></td><td>certificate_requests, certificate_request_documents</td><td><span class="badge badge-new">nouveau</span> Cycle de demande courtier → traitement → certificat</td></tr>
+      <tr><td><span class="badge badge-green">Certificats GUCE</span></td><td>guce_certificates</td><td><span class="badge badge-new">nouveau</span> Import + extraction OCR de certificats émis par plateformes étatiques</td></tr>
+      <tr><td><span class="badge badge-purple">Workflow</span></td><td>approval_workflows (configs), approval_requests, approval_decisions</td><td>Validation multi-étapes + escalade NN300 (renforcée — voir §<a href="#escalade">Module Escalade</a>)</td></tr>
+      <tr><td><span class="badge badge-orange">Commissions</span></td><td>commission_rules, commission_transactions</td><td>Calcul et suivi commissions courtiers (règle contrat &gt; règle courtier)</td></tr>
+      <tr><td><span class="badge badge-orange">Taxes</span></td><td>tax_rules</td><td><span class="badge badge-new">nouveau</span> Référentiel filiale × mode de transport × pays</td></tr>
+      <tr><td><span class="badge badge-blue">Notifications</span></td><td>notifications, notification_templates, notification_preferences</td><td>Notifications in-app + préférences opt-in/opt-out par type d'événement</td></tr>
+      <tr><td><span class="badge badge-red">Audit & Sécu</span></td><td>audit_logs, ip_blacklist</td><td>Journal d'audit, blacklist IP/CIDR</td></tr>
+      <tr><td><span class="badge badge-gray">Infra</span></td><td>jobs, cache, report_executions</td><td>Queue (driver DB), cache, exports asynchrones</td></tr>
     </tbody>
   </table>
+
+  <div class="alert alert-info">
+    <strong>Correction v1.0 → v2.0 :</strong> les KPIs filiale (<code>nsia:generate-kpi-snapshots</code>) ne sont <strong>pas</strong> persistés dans une table <code>kpi_snapshots</code> — ils sont mis en cache applicatif (<code>Cache::put('kpi_snapshot_{tenant_id}', ..., 25h)</code>), régénérés quotidiennement à 06:00.
+  </div>
 </section>
 
 <!-- ══ 5. TABLES ══ -->
@@ -456,20 +486,21 @@
   <div class="grid-2">
     <div>
       <div class="db-table">
-        <div class="db-table-header">users</div>
+        <div class="db-table-header">insurance_contracts</div>
         <div class="db-table-body">
-          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span><span class="col-note">HasUuids</span></div>
-          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK?</span><span class="col-note">NULL = super_admin</span></div>
-          <div class="db-col"><span class="col-name">first_name</span><span class="col-type">string(100)</span></div>
-          <div class="db-col"><span class="col-name">last_name</span><span class="col-type">string(100)</span></div>
-          <div class="db-col"><span class="col-name">email</span><span class="col-type">string unique</span><span class="col-note">non chiffré</span></div>
-          <div class="db-col"><span class="col-name">password</span><span class="col-type">hashed</span></div>
-          <div class="db-col"><span class="col-name">two_factor_secret</span><span class="col-type">text?</span><span class="col-note">chiffré Fortify</span></div>
-          <div class="db-col"><span class="col-name">is_active</span><span class="col-type">boolean</span><span class="col-note">default true</span></div>
-          <div class="db-col"><span class="col-name">locked_until</span><span class="col-type">timestamp?</span><span class="col-note">brute-force</span></div>
-          <div class="db-col"><span class="col-name">failed_login_attempts</span><span class="col-type">int</span></div>
-          <div class="db-col"><span class="col-name">mfa_enabled</span><span class="col-type">boolean</span></div>
-          <div class="db-col"><span class="col-name">deleted_at</span><span class="col-type">timestamp?</span><span class="col-note">SoftDeletes</span></div>
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">broker_id / subscriber_id</span><span class="col-type">uuid FK?</span><span class="col-note">courtier / souscripteur</span></div>
+          <div class="db-col"><span class="col-name">contract_number</span><span class="col-type">string unique</span></div>
+          <div class="db-col"><span class="col-name">type</span><span class="col-type">enum</span><span class="col-note">OPEN_POLICY|VOYAGE|ANNUAL_VOYAGE</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-type">enum</span><span class="col-note">DRAFT|ACTIVE|SUSPENDED|EXPIRED|CANCELLED</span></div>
+          <div class="db-col"><span class="col-name">insured_address / phone</span><span class="col-type">text</span><span class="col-note">encrypted</span></div>
+          <div class="db-col"><span class="col-name">subscription_limit / used_limit</span><span class="col-type">decimal(20,2)</span><span class="col-note">plafond NN300 cumulé</span></div>
+          <div class="db-col"><span class="col-name">plein</span><span class="col-type">decimal(20,2)?</span><span class="col-note">plafond PAR certificat</span></div>
+          <div class="db-col"><span class="col-name">certificates_limit / count</span><span class="col-type">int?</span><span class="col-note">plafond nombre de certificats</span></div>
+          <div class="db-col"><span class="col-name">escalade_enabled</span><span class="col-type">boolean</span><span class="col-note">défaut true</span></div>
+          <div class="db-col"><span class="col-name">escalade_threshold_pct</span><span class="col-type">decimal(5,2)?</span><span class="col-note">surcharge le seuil workflow</span></div>
+          <div class="db-col"><span class="col-name">rate_ro/rg/surprime/accessories/tax</span><span class="col-type">decimal(15,4)</span><span class="col-note">taux prime — tax auto-résolu si tax_rules</span></div>
         </div>
       </div>
 
@@ -477,51 +508,42 @@
         <div class="db-table-header">certificates</div>
         <div class="db-table-body">
           <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
-          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK</span><span class="col-note">RLS activé</span></div>
-          <div class="db-col"><span class="col-name">contract_id</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id / contract_id</span><span class="col-type">uuid FK</span></div>
           <div class="db-col"><span class="col-name">certificate_number</span><span class="col-type">string unique</span></div>
           <div class="db-col"><span class="col-name">status</span><span class="col-type">enum</span><span class="col-note">DRAFT|SUBMITTED|ISSUED|CANCELLED</span></div>
-          <div class="db-col"><span class="col-name">insured_value</span><span class="col-type">decimal(15,2)</span></div>
-          <div class="db-col"><span class="col-name">prime_total</span><span class="col-type">decimal(15,2)</span></div>
-          <div class="db-col"><span class="col-name">currency_code</span><span class="col-type">char(3)</span></div>
-          <div class="db-col"><span class="col-name">transport_type</span><span class="col-type">enum</span><span class="col-note">SEA|AIR|ROAD|MULTIMODAL</span></div>
-          <div class="db-col"><span class="col-name">voyage_from / to</span><span class="col-type">string</span></div>
-          <div class="db-col"><span class="col-name">issued_at</span><span class="col-type">timestamp?</span></div>
-          <div class="db-col"><span class="col-name">issued_by</span><span class="col-type">uuid FK?</span></div>
-          <div class="db-col"><span class="col-name">qr_code</span><span class="col-type">text?</span><span class="col-note">SVG base64</span></div>
-          <div class="db-col"><span class="col-name">deleted_at</span><span class="col-type">timestamp?</span></div>
+          <div class="db-col"><span class="col-name">insured_value / prime_total</span><span class="col-type">decimal(15,2)</span></div>
+          <div class="db-col"><span class="col-name">insured_value_letters</span><span class="col-type">text?</span><span class="col-note">conversion auto en lettres (FR)</span></div>
+          <div class="db-col"><span class="col-name">prime_breakdown</span><span class="col-type">json</span><span class="col-note">décompte RO/RG/surprime/divers/taxe/prime nette</span></div>
+          <div class="db-col"><span class="col-name">destination_country_code</span><span class="col-type">char(2)?</span><span class="col-note">résolution automatique du taux de taxe</span></div>
+          <div class="db-col"><span class="col-name">transport_type</span><span class="col-type">enum</span><span class="col-note">SEA|AIR|ROAD|RAIL|MULTIMODAL</span></div>
+          <div class="db-col"><span class="col-name">qr_token</span><span class="col-type">string?</span><span class="col-note">vérification publique</span></div>
+          <div class="db-col"><span class="col-name">document_type / parent_id</span><span class="col-type">enum/uuid?</span><span class="col-note">ORIGINAL|DUPLICATA</span></div>
+        </div>
+      </div>
+
+      <div class="db-table" style="margin-top:12px">
+        <div class="db-table-header">certificate_requests <span class="badge badge-new" style="margin-left:6px">nouveau</span></div>
+        <div class="db-table-body">
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id / broker_id / created_by</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-type">enum</span><span class="col-note">PENDING|IN_REVIEW|APPROVED|REJECTED</span></div>
+          <div class="db-col"><span class="col-name">assigned_to / reviewed_by</span><span class="col-type">uuid FK?</span></div>
+          <div class="db-col"><span class="col-name">certificate_id / guce_certificate_id</span><span class="col-type">uuid FK?</span><span class="col-note">rattachement final (l'un OU l'autre)</span></div>
+          <div class="db-col"><span class="col-name">review_notes</span><span class="col-type">text?</span></div>
         </div>
       </div>
     </div>
 
     <div>
       <div class="db-table">
-        <div class="db-table-header">insurance_contracts</div>
+        <div class="db-table-header">approval_workflows <span class="col-note">(config — modèle ApprovalWorkflowConfig)</span></div>
         <div class="db-table-body">
           <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
-          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK</span><span class="col-note">RLS activé</span></div>
-          <div class="db-col"><span class="col-name">policy_number</span><span class="col-type">string unique</span></div>
-          <div class="db-col"><span class="col-name">broker_id</span><span class="col-type">uuid FK?</span></div>
-          <div class="db-col"><span class="col-name">insured_name</span><span class="col-type">string</span></div>
-          <div class="db-col"><span class="col-name">insured_address</span><span class="col-type">text</span><span class="col-note">AsEncryptedString</span></div>
-          <div class="db-col"><span class="col-name">status</span><span class="col-type">enum</span><span class="col-note">DRAFT|ACTIVE|SUSPENDED|CANCELLED|EXPIRED</span></div>
-          <div class="db-col"><span class="col-name">starts_at / ends_at</span><span class="col-type">date</span></div>
-          <div class="db-col"><span class="col-name">max_insured_value</span><span class="col-type">decimal(15,2)</span></div>
-          <div class="db-col"><span class="col-name">escalade_threshold_pct</span><span class="col-type">decimal(5,2)</span><span class="col-note">défaut 15%</span></div>
-        </div>
-      </div>
-
-      <div class="db-table" style="margin-top:12px">
-        <div class="db-table-header">commission_rules</div>
-        <div class="db-table-body">
-          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
-          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK</span><span class="col-note">RLS activé</span></div>
-          <div class="db-col"><span class="col-name">broker_id</span><span class="col-type">uuid FK?</span></div>
-          <div class="db-col"><span class="col-name">contract_id</span><span class="col-type">uuid FK?</span><span class="col-note">priorité sur broker</span></div>
-          <div class="db-col"><span class="col-name">rate_pct</span><span class="col-type">decimal(5,2)</span></div>
-          <div class="db-col"><span class="col-name">base</span><span class="col-type">enum</span><span class="col-note">prime_total|insured_value|custom</span></div>
-          <div class="db-col"><span class="col-name">min_amount / max_amount</span><span class="col-type">decimal?</span></div>
-          <div class="db-col"><span class="col-name">valid_from / valid_to</span><span class="col-type">date?</span></div>
+          <div class="db-col"><span class="col-name">tenant_id</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">name / entity_type</span><span class="col-type">string</span><span class="col-note">CERTIFICATE</span></div>
+          <div class="db-col"><span class="col-name">trigger_condition</span><span class="col-type">json</span><span class="col-note">insured_value_pct_of_contract | subscription_limit_exceeded | certificates_limit_reached</span></div>
+          <div class="db-col"><span class="col-name">steps_config</span><span class="col-type">json</span><span class="col-note">[{step, role, label, timeout_hours}]</span></div>
+          <div class="db-col"><span class="col-name">is_active</span><span class="col-type">boolean</span></div>
         </div>
       </div>
 
@@ -529,12 +551,32 @@
         <div class="db-table-header">approval_requests</div>
         <div class="db-table-body">
           <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
-          <div class="db-col"><span class="col-name">certificate_id</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id / entity_type / entity_id</span><span class="col-type">uuid/string</span></div>
           <div class="db-col"><span class="col-name">workflow_id</span><span class="col-type">uuid FK</span></div>
-          <div class="db-col"><span class="col-name">current_step</span><span class="col-type">int</span></div>
-          <div class="db-col"><span class="col-name">status</span><span class="col-note">PENDING|APPROVED|REJECTED|ESCALATED</span></div>
-          <div class="db-col"><span class="col-name">is_escalated</span><span class="col-type">boolean</span></div>
-          <div class="db-col"><span class="col-name">escalated_at</span><span class="col-type">timestamp?</span></div>
+          <div class="db-col"><span class="col-name">current_step / total_steps</span><span class="col-type">int</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-note">PENDING|APPROVED|REJECTED|CANCELLED</span></div>
+          <div class="db-col"><span class="col-name">due_date</span><span class="col-type">timestamp</span><span class="col-note">calcul en heures ouvrables (lun-ven)</span></div>
+        </div>
+      </div>
+
+      <div class="db-table" style="margin-top:12px">
+        <div class="db-table-header">tax_rules <span class="badge badge-new" style="margin-left:6px">nouveau</span></div>
+        <div class="db-table-body">
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id / transport_mode_id / country_code</span><span class="col-type">uuid/int/char(2)</span></div>
+          <div class="db-col"><span class="col-name">rate_pct</span><span class="col-type">decimal(5,2)</span></div>
+          <div class="db-col"><span class="col-name">effective_date / end_date</span><span class="col-type">date/date?</span></div>
+          <div class="db-col"><span class="col-name">is_active</span><span class="col-type">boolean</span></div>
+        </div>
+      </div>
+
+      <div class="db-table" style="margin-top:12px">
+        <div class="db-table-header">commission_rules</div>
+        <div class="db-table-body">
+          <div class="db-col"><span class="col-name pk">id</span><span class="col-type">uuid PK</span></div>
+          <div class="db-col"><span class="col-name">tenant_id / broker_id?</span><span class="col-type">uuid FK</span></div>
+          <div class="db-col"><span class="col-name">contract_id</span><span class="col-type">uuid FK?</span><span class="col-note">priorité sur broker_id — override par contrat</span></div>
+          <div class="db-col"><span class="col-name">rate_pct</span><span class="col-type">decimal(5,2)</span></div>
         </div>
       </div>
     </div>
@@ -545,89 +587,147 @@
 <section class="section" id="migrations">
   <div class="sec-header">
     <div class="sec-icon green">📁</div>
-    <h2>Migrations<small>Ordre d'exécution et conventions</small></h2>
+    <h2>Migrations<small>Ordre chronologique — 51 fichiers</small></h2>
   </div>
 
   <table>
     <thead><tr><th>Fichier</th><th>Contenu</th></tr></thead>
     <tbody>
-      <tr><td><code>2026_01_01_000001</code></td><td>users (auth, MFA, blocage)</td></tr>
-      <tr><td><code>2026_01_01_000002</code></td><td>tenants (filiales)</td></tr>
-      <tr><td><code>2026_01_01_000003</code></td><td>Spatie (roles, permissions, pivots)</td></tr>
-      <tr><td><code>2026_01_01_000004</code></td><td>countries, currencies, incoterms, transport_modes, cargo_categories</td></tr>
-      <tr><td><code>2026_01_01_000005</code></td><td>brokers (AsEncryptedString sur PII)</td></tr>
-      <tr><td><code>2026_01_01_000006</code></td><td>insurance_contracts + contract_coinsurers</td></tr>
-      <tr><td><code>2026_01_01_000007</code></td><td>certificates (partitionnée par année)</td></tr>
-      <tr><td><code>2026_01_01_000008</code></td><td>certificate_amendments, certificate_histories</td></tr>
-      <tr><td><code>2026_01_01_000009</code></td><td>approval_workflows, approval_requests, approval_decisions</td></tr>
-      <tr><td><code>2026_01_01_000010</code></td><td>notifications (driver Eloquent custom)</td></tr>
-      <tr><td><code>2026_01_01_000011</code></td><td>audit_logs</td></tr>
-      <tr><td><code>2026_01_01_000020</code></td><td>commission_rules</td></tr>
-      <tr><td><code>2026_01_01_000021</code></td><td>commission_transactions</td></tr>
-      <tr><td><code>2026_01_01_000030</code></td><td>ip_blacklist</td></tr>
-      <tr><td><code>2026_01_01_000031</code></td><td>user_role_grants (délégations, no timestamps)</td></tr>
-      <tr><td><code>2026_01_01_000032</code></td><td>coinsurers, experts</td></tr>
-      <tr><td><code>2026_01_01_000033</code></td><td>report_executions (exports async)</td></tr>
-      <tr><td><code>2026_01_01_000034</code></td><td>kpi_snapshots (cache KPIs filiale)</td></tr>
-      <tr><td><code>2026_06_01_000001</code></td><td>Row Level Security (fonctions PostgreSQL)</td></tr>
+      <tr><td><code>0001_01_01_*</code></td><td>users, cache, jobs (squelette Laravel)</td></tr>
+      <tr><td><code>2024_10_04_*</code></td><td>Tables Spatie Permission</td></tr>
+      <tr><td><code>2026_01_01_000000-028</code></td><td>Noyau métier : tenants, sessions, brokers, délégations, coassureurs, experts, référentiel (countries/currencies/incoterms/transport_modes/merchandise_categories), modèles de certificats, contrats + coassurance, certificats + séquençage + historique, workflow d'approbation (3 tables), commissions (2 tables), rapports, notifications (2 tables), audit_logs, ip_blacklist, personal_access_tokens</td></tr>
+      <tr><td><code>2026_03_16</code></td><td>Colonnes MFA (two_factor_*) sur users</td></tr>
+      <tr><td><code>2026_03_19</code></td><td>Correction contrainte type sur brokers</td></tr>
+      <tr><td><code>2026_03_27</code></td><td>contract_amendments (avenants)</td></tr>
+      <tr><td><code>2026_05_06</code></td><td>notification_preferences (opt-in/opt-out par type)</td></tr>
+      <tr><td><code>2026_05_31</code></td><td>guce_certificates</td></tr>
+      <tr><td><code>2026_06_01_000001</code></td><td>Row Level Security (politiques PostgreSQL — <em>middleware non rattaché, voir §Sécurité</em>)</td></tr>
+      <tr><td><code>2026_06_01_000002</code></td><td>Index de performance</td></tr>
+      <tr><td><code>2026_07_20_000001-002</code></td><td><span class="badge badge-new">nouveau</span> certificate_requests + certificate_request_documents</td></tr>
+      <tr><td><code>2026_07_20_000003-004</code></td><td>Suivi (tracking) + rattachement GUCE sur certificate_requests</td></tr>
+      <tr><td><code>2026_07_20_000005</code></td><td><span class="badge badge-new">nouveau</span> Colonne <code>modules</code> (JSON) sur tenants</td></tr>
+      <tr><td><code>2026_07_20_000006</code></td><td>Élargissement des colonnes chiffrées (encrypted)</td></tr>
+      <tr><td><code>2026_07_20_000007</code></td><td><span class="badge badge-new">nouveau</span> Pivot broker_tenant (courtier multi-filiales)</td></tr>
+      <tr><td><code>2026_07_20_000008</code></td><td><span class="badge badge-new">nouveau</span> Champs métier contrat : subscriber_id, plein, escalade_enabled, escalade_threshold_pct</td></tr>
+      <tr><td><code>2026_07_21_223927</code></td><td>Prime nette sur guce_certificates</td></tr>
+      <tr><td><code>2026_07_21_231636-711</code></td><td><span class="badge badge-new">nouveau</span> tax_rules + champs taxe/pays destination sur certificates</td></tr>
     </tbody>
   </table>
 
   <div class="alert alert-warn">
-    <strong>Convention :</strong> Toutes les entités métier utilisent des UUIDs comme PK (<code>HasUuids</code>), <code>deleted_at</code> (SoftDeletes) et <code>tenant_id</code> pour l'isolation.
+    <strong>Convention :</strong> Toutes les entités métier utilisent des UUIDs comme PK (<code>HasUuids</code>), la plupart ont <code>deleted_at</code> (SoftDeletes) et un <code>tenant_id</code> pour l'isolation applicative.
   </div>
 </section>
 
-<!-- ══ 7. ROUTES ══ -->
+<!-- ══ 7. MODULES ══ -->
+<section class="section page-break" id="modules">
+  <div class="sec-header">
+    <div class="sec-icon">🧩</div>
+    <h2>Modules Activables par Filiale<small><code>Tenant::MODULES</code> — colonne JSON <code>modules</code></small></h2>
+  </div>
+
+  <p>Chaque filiale (<code>Tenant</code>) peut désactiver individuellement l'un des 16 modules ci-dessous via <strong>Filiales → Configuration</strong> (super_admin uniquement, <code>PATCH /admin/tenants/{tenant}/modules</code>). Le middleware <code>module:&lt;clé&gt;</code> (<code>EnsureModuleEnabled</code>) bloque l'accès aux routes correspondantes, et la sidebar React masque automatiquement l'entrée de menu (<code>moduleEnabled()</code> dans <code>app-sidebar.tsx</code>). Par défaut (clé absente du JSON), un module est considéré <strong>actif</strong>.</p>
+
+  <div class="mod-grid">
+    <div class="mod-chip"><code>brokers</code>Courtiers & partenaires</div>
+    <div class="mod-chip"><code>coinsurers</code>Coassureurs</div>
+    <div class="mod-chip"><code>experts</code>Experts</div>
+    <div class="mod-chip"><code>contracts</code>Contrats</div>
+    <div class="mod-chip"><code>certificates</code>Certificats</div>
+    <div class="mod-chip"><code>guce_certificates</code>Certificats GUCE</div>
+    <div class="mod-chip"><code>commissions</code>Commissions</div>
+    <div class="mod-chip"><code>taxes</code>Gestion des taxes</div>
+    <div class="mod-chip"><code>reports</code>Rapports</div>
+    <div class="mod-chip"><code>approvals</code>Escalades NN300</div>
+    <div class="mod-chip"><code>delegations</code>Délégations</div>
+    <div class="mod-chip"><code>certificate_templates</code>Modèles de certificats</div>
+    <div class="mod-chip"><code>audit_logs</code>Audit Logs</div>
+    <div class="mod-chip"><code>notifications</code>Notifications</div>
+    <div class="mod-chip"><code>exports</code>Mes exports</div>
+    <div class="mod-chip"><code>kpi</code>KPI Filiale</div>
+  </div>
+
+  <pre><span class="comment">// app/Models/Tenant.php</span>
+<span class="keyword">public function</span> <span class="func">hasModule</span>(<span class="keyword">string</span> <span class="var">$key</span>): <span class="keyword">bool</span>
+{
+    <span class="keyword">return</span> (<span class="var">$this</span>->modules[<span class="var">$key</span>] ?? <span class="keyword">true</span>) !== <span class="keyword">false</span>;
+}</pre>
+</section>
+
+<!-- ══ 8. ROUTES ══ -->
 <section class="section page-break" id="routes">
   <div class="sec-header">
     <div class="sec-icon orange">🔀</div>
-    <h2>Routes Principales<small>Toutes les routes web — groupées par domaine</small></h2>
+    <h2>Routes Principales<small>Groupées par domaine — routes/web.php</small></h2>
   </div>
 
-  <h3>Authentification (Fortify)</h3>
+  <h3>Authentification</h3>
   <div class="route"><span class="method GET">GET</span><span class="route-path">/login</span><span class="route-desc">Page de connexion Inertia</span></div>
-  <div class="route"><span class="method POST">POST</span><span class="route-path">/login</span><span class="route-desc">Traitement login (Fortify)</span></div>
-  <div class="route"><span class="method POST">POST</span><span class="route-path">/logout</span><span class="route-desc">Déconnexion</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/auth/{provider}/redirect</span><span class="route-desc">google|microsoft — redirection OAuth</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/auth/{provider}/callback</span><span class="route-desc">Callback OAuth</span></div>
   <div class="route"><span class="method GET">GET</span><span class="route-path">/two-factor-challenge</span><span class="route-desc">Challenge MFA TOTP</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/auth/microsoft</span><span class="route-desc">Redirection OAuth Azure</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/auth/microsoft/callback</span><span class="route-desc">Callback OAuth</span></div>
-
-  <h3>Dashboard & KPIs</h3>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/dashboard</span><span class="route-desc">Dashboard principal filiale</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/dashboard/pending</span><span class="route-desc">Certificats en attente [certificates.validate]</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/dashboard/kpi</span><span class="route-desc">KPIs filiale [certificates.view]</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/dashboard/dtag</span><span class="route-desc">Dashboard DTAG [role:super_admin]</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/verify/{token}</span><span class="route-desc">Vérification publique QR (sans auth)</span></div>
 
   <h3>Certificats</h3>
   <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates</span><span class="route-desc">Liste [certificates.view]</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/search</span><span class="route-desc">Recherche avancée 14 filtres</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/export</span><span class="route-desc">Export synchrone</span></div>
-  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates</span><span class="route-desc">Créer [certificates.create]</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/{id}</span><span class="route-desc">Détail</span></div>
-  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/submit</span><span class="route-desc">Soumettre</span></div>
-  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/validate</span><span class="route-desc">Valider [certificates.validate]</span></div>
-  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/cancel</span><span class="route-desc">Annuler [certificates.cancel]</span></div>
-  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates/{id}/duplicate</span><span class="route-desc">Dupliquer</span></div>
-  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates/{id}/amend</span><span class="route-desc">Amender</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/{id}/pdf</span><span class="route-desc">Télécharger PDF</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/search</span><span class="route-desc">Recherche avancée multi-filtres</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates</span><span class="route-desc">Créer (Brouillon) [certificates.create]</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/submit</span><span class="route-desc">Soumettre → déclenche triggerIfNeeded() escalade</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/issue</span><span class="route-desc">Émettre [certificates.validate] — bloqué si escalade PENDING</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificates/{id}/reject</span><span class="route-desc">Rejeter [certificates.validate]</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates/{id}/duplicate</span><span class="route-desc">Dupliquer (numéro -D1, -D2…)</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/{id}/print</span><span class="route-desc">Impression sur souche pré-imprimée (overlay par pays)</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificates/print-models</span><span class="route-desc">Choix du modèle d'impression</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/certificates/{id}/qr/regenerate</span><span class="route-desc">Régénérer le QR token</span></div>
+
+  <h3>Demandes partenaires <span class="badge badge-new">nouveau</span></h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/certificate-requests</span><span class="route-desc">File d'attente (PENDING/IN_REVIEW en tête) [certificates.view]</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificate-requests/{id}/assign</span><span class="route-desc">Prise en charge (PENDING → IN_REVIEW) — notifie le partenaire</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificate-requests/{id}/approve</span><span class="route-desc">Approuver</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificate-requests/{id}/reject</span><span class="route-desc">Rejeter — notifie le partenaire avec motif</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/certificate-requests/{id}/link-certificate</span><span class="route-desc">Rattacher le certificat émis — notifie le partenaire (mise à disposition)</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/partner/certificate-requests</span><span class="route-desc">Espace courtier — mes demandes</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/partner/certificate-requests</span><span class="route-desc">Créer une demande — notifie le staff habilité</span></div>
+
+  <h3>Escalades NN300</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/approvals</span><span class="route-desc">File d'attente des escalades en cours</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/approvals/{id}/approve</span><span class="route-desc">Approuver l'étape courante</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/approvals/{id}/reject</span><span class="route-desc">Rejeter (certificat → Brouillon)</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/approvals/configs</span><span class="route-desc"><span class="badge badge-new">nouveau</span> Gestion des seuils/validations par filiale</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/approvals/configs</span><span class="route-desc">Créer une règle d'escalade</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/approvals/configs/{id}</span><span class="route-desc">Modifier une règle</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/approvals/configs/{id}/toggle</span><span class="route-desc">Activer / désactiver</span></div>
+
+  <h3>Contrats</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/contracts</span><span class="route-desc">Liste [contracts.view]</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/contracts</span><span class="route-desc">Créer [contracts.create]</span></div>
+  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/contracts/{id}/approve</span><span class="route-desc">Approuver [contracts.validate]</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/contracts/limits</span><span class="route-desc">Tableau de bord plafonds multi-contrats</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/contracts/{contract}/amendments</span><span class="route-desc">Avenants — historique et workflow de validation</span></div>
+
+  <h3>Commissions & Taxes</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/commissions/rules</span><span class="route-desc">Règles par courtier / par contrat (override)</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/commissions/bordereau</span><span class="route-desc">Bordereau filtrable — export PDF/Excel/CSV</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/taxes/rules</span><span class="route-desc"><span class="badge badge-new">nouveau</span> Référentiel filiale × transport × pays</span></div>
+
+  <h3>Certificats GUCE <span class="badge badge-new">nouveau</span></h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/guce-certificates/create</span><span class="route-desc">Import + extraction OCR (Mindee)</span></div>
+  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/guce-certificates/extract</span><span class="route-desc">Appel API Mindee → pré-remplissage du formulaire</span></div>
 
   <h3>Export asynchrone</h3>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/exports</span><span class="route-desc">Liste des exports en cours / terminés</span></div>
   <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/exports/certificates</span><span class="route-desc">Lancer export → JSON {execution_id}</span></div>
   <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/exports/{id}/status</span><span class="route-desc">Polling statut (JSON)</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/exports/{id}/download</span><span class="route-desc">Télécharger CSV (24h)</span></div>
-  <div class="route"><span class="method DELETE">DELETE</span><span class="route-path">/admin/exports/{id}</span><span class="route-desc">Supprimer</span></div>
 
   <h3>Sécurité & Audit</h3>
   <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/security/ip-blacklist</span><span class="route-desc">Liste blacklist [role:super_admin]</span></div>
-  <div class="route"><span class="method POST">POST</span><span class="route-path">/admin/security/ip-blacklist</span><span class="route-desc">Ajouter IP/CIDR</span></div>
-  <div class="route"><span class="method DELETE">DELETE</span><span class="route-path">/admin/security/ip-blacklist/{id}</span><span class="route-desc">Retirer</span></div>
-  <div class="route"><span class="method PATCH">PATCH</span><span class="route-path">/admin/security/ip-blacklist/unlock/{userId}</span><span class="route-desc">Débloquer compte verrouillé</span></div>
-  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/audit-logs</span><span class="route-desc">Journal d'audit [security.audit_logs]</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/admin/audit-logs</span><span class="route-desc">Journal d'audit [audit_logs.view]</span></div>
+
+  <h3>Espace partenaire (/partner)</h3>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/partner</span><span class="route-desc">Dashboard partenaire [role:courtier_local|partenaire_etranger]</span></div>
+  <div class="route"><span class="method GET">GET</span><span class="route-path">/partner/certificates</span><span class="route-desc">Certificats rattachés à mes demandes</span></div>
 </section>
 
-<!-- ══ 8. MIDDLEWARES ══ -->
+<!-- ══ 9. MIDDLEWARES ══ -->
 <section class="section" id="middlewares">
   <div class="sec-header">
     <div class="sec-icon dark">⚙️</div>
@@ -638,19 +738,22 @@
     <thead><tr><th>Alias</th><th>Classe</th><th>Scope</th><th>Rôle</th></tr></thead>
     <tbody>
       <tr><td><em>(global web)</em></td><td><code>CheckIpBlacklist</code></td><td>Toutes routes web</td><td>Bloque les IPs blacklistées (cache 5 min)</td></tr>
+      <tr><td><em>(global web)</em></td><td><code>HandleAppearance</code>, <code>HandleInertiaRequests</code></td><td>Toutes routes web</td><td>Thème + props Inertia partagées (auth, permissions, tenant)</td></tr>
       <tr><td><code>permission:</code></td><td><code>CheckPermission</code></td><td>Par route</td><td>Vérifie la permission Spatie de l'utilisateur</td></tr>
-      <tr><td><code>role:</code></td><td><code>RoleMiddleware</code></td><td>Par route</td><td>Vérifie le rôle Spatie</td></tr>
-      <tr><td><code>tenant.isolation</code></td><td><code>EnsureTenantIsolation</code></td><td>Routes admin</td><td>Bloque l'accès cross-tenant applicatif</td></tr>
-      <tr><td><code>tenant.context</code></td><td><code>SetTenantContext</code></td><td>Routes admin</td><td>Injecte <code>SET app.current_tenant_id</code> en session PostgreSQL (RLS)</td></tr>
+      <tr><td><code>role:</code></td><td><code>Spatie\...\RoleMiddleware</code></td><td>Par route</td><td>Vérifie le rôle Spatie</td></tr>
+      <tr><td><code>tenant.isolation</code></td><td><code>EnsureTenantIsolation</code></td><td>Groupe admin</td><td>Bloque l'accès cross-tenant applicatif</td></tr>
+      <tr><td><code>staff.only</code></td><td><code>EnsureStaffAccess</code></td><td>Groupe admin</td><td><span class="badge badge-new">nouveau</span> Redirige les comptes purement partenaires vers <code>/partner</code></td></tr>
+      <tr><td><code>module:</code></td><td><code>EnsureModuleEnabled</code></td><td>Par route/groupe</td><td>Bloque si le module est désactivé pour la filiale — voir §<a href="#modules">Modules</a></td></tr>
+      <tr><td><code>tenant.context</code></td><td><code>SetTenantContext</code></td><td><em>non rattachée</em></td><td>Alias défini mais non utilisé dans <code>routes/web.php</code> — voir alerte §Sécurité</td></tr>
     </tbody>
   </table>
 
   <div class="alert alert-danger">
-    <strong>Ordre critique :</strong> <code>CheckIpBlacklist</code> doit être en premier dans la stack web — il vérifie l'IP avant toute autre logique, y compris l'authentification.
+    <strong>Ordre critique :</strong> <code>CheckIpBlacklist</code> doit rester en tête de la stack web — il vérifie l'IP avant toute autre logique, y compris l'authentification.
   </div>
 </section>
 
-<!-- ══ 9. SERVICES & JOBS ══ -->
+<!-- ══ 10. SERVICES & JOBS ══ -->
 <section class="section" id="services">
   <div class="sec-header">
     <div class="sec-icon green">⚡</div>
@@ -659,10 +762,22 @@
 
   <div class="grid-2">
     <div>
-      <h3>Services</h3>
+      <h3>Services principaux</h3>
       <div class="card">
         <h4>CommissionService</h4>
-        <p>Calcule la commission courtier à l'émission d'un certificat. Priorité : règle contrat > règle courtier. Évite les doublons. Annule si certificat annulé.</p>
+        <p>Calcule la commission courtier à l'émission d'un certificat. Priorité : règle <strong>contrat</strong> &gt; règle <strong>courtier</strong> &gt; <code>Broker::commission_rate</code> (fallback direct). Évite les doublons ; annule si certificat annulé.</p>
+      </div>
+      <div class="card orange" style="margin-top:12px">
+        <h4>ApprovalWorkflowService</h4>
+        <p>Déclenche/instruit les escalades NN300 (<code>triggerIfNeeded</code>, <code>approve</code>, <code>reject</code>, <code>checkExpired</code>). Auto-escalade au step suivant sur dépassement de délai, sinon rejet automatique à la dernière étape. Émission automatique du certificat à l'approbation finale. Voir §<a href="#escalade">Module Escalade</a>.</p>
+      </div>
+      <div class="card green" style="margin-top:12px">
+        <h4>GuceExtractionService</h4>
+        <p><span class="badge badge-new">nouveau</span> Appelle l'API Mindee (v2, modèle personnalisé « GUCE ») pour extraire automatiquement les champs d'un certificat scanné/importé (assuré, valeur, transport, dates…), via <code>config('services.mindee.field_map')</code>.</p>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h4>CertificatePdfService</h4>
+        <p>Génère le PDF officiel (DomPDF) et fournit le rendu overlay pour impression sur souche physique pré-imprimée (6 gabarits pays : Gabon, Guinée, Togo, Sénégal, Cameroun, Congo).</p>
       </div>
     </div>
     <div>
@@ -671,34 +786,97 @@
         <h4>CertificateObserver::updated()</h4>
         <p>Déclenche <code>CommissionService::calculate()</code> automatiquement quand le statut passe à <code>ISSUED</code>. Enregistré dans <code>AppServiceProvider</code>.</p>
       </div>
+
+      <h3 style="margin-top:24px">Jobs (Queue — driver database)</h3>
+      <table>
+        <thead><tr><th>Job</th><th>Déclencheur</th></tr></thead>
+        <tbody>
+          <tr><td><code>AsyncCertificateExportJob</code></td><td><code>POST /admin/exports/certificates</code> — CSV par chunk(500)</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:24px">Listeners</h3>
+      <table>
+        <thead><tr><th>Event</th><th>Listener</th></tr></thead>
+        <tbody>
+          <tr><td><code>Auth\Events\Failed</code></td><td><code>RecordFailedLogin</code> — verrouillage temporaire</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <h3>Jobs (Queue — driver database)</h3>
-  <table>
-    <thead><tr><th>Job</th><th>Déclencheur</th><th>Action</th></tr></thead>
-    <tbody>
-      <tr><td><code>AsyncCertificateExportJob</code></td><td><code>POST /admin/exports/certificates</code></td><td>Génère CSV par chunk(500) dans <code>storage/app/exports/</code></td></tr>
-    </tbody>
-  </table>
-
-  <h3>Listeners</h3>
-  <table>
-    <thead><tr><th>Event</th><th>Listener</th><th>Action</th></tr></thead>
-    <tbody>
-      <tr><td><code>Illuminate\Auth\Events\Failed</code></td><td><code>RecordFailedLogin</code></td><td>Incrémente <code>failed_login_attempts</code>, verrouille à 5 (30 min)</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Notifications</h3>
+  <h3>Système de Notifications</h3>
   <div class="alert alert-danger">
-    <strong>IMPORTANT — Ne jamais utiliser</strong> <code>$user->notify()</code> (conflit avec le trait <code>Notifiable</code>). Utiliser exclusivement :<br>
-    <code>App\Models\Notification::send($user, $type, $title, $body, $data);</code>
+    <strong>IMPORTANT — Ne jamais utiliser</strong> <code>$user->notify()</code> (conflit avec le trait Laravel <code>Notifiable</code>). Utiliser exclusivement :<br>
+    <code>App\Models\Notification::send($user, $type, $title, $body, $data);</code> ou <code>Notification::sendToMany($users, ...)</code>.
+  </div>
+  <p>Types de notifications actifs (constantes <code>Notification::TYPE_*</code>, préférences dans <code>NotificationPreference::EVENT_TYPES</code>) :</p>
+  <table>
+    <thead><tr><th>Type</th><th>Déclencheur</th></tr></thead>
+    <tbody>
+      <tr><td><code>CertificateSubmitted</code> / <code>CertificateIssued</code> / <code>CertificateRejected</code></td><td>Cycle de vie certificat interne</td></tr>
+      <tr><td><code>CertificateRequestCreated</code></td><td><span class="badge badge-new">nouveau</span> Nouvelle demande partenaire — vers le staff <code>admin_filiale</code>/<code>souscripteur</code> du tenant</td></tr>
+      <tr><td><code>CertificateRequestInReview</code></td><td><span class="badge badge-new">nouveau</span> Prise en charge (traitement) — vers le partenaire demandeur</td></tr>
+      <tr><td><code>CertificateRequestRejected</code></td><td><span class="badge badge-new">nouveau</span> Rejet de la demande — vers le partenaire, avec motif</td></tr>
+      <tr><td><code>EscaladeNN300</code> / <code>EscaladeDecision</code></td><td>Déclenchement et décision d'escalade NN300</td></tr>
+      <tr><td><code>DelegationGranted</code> / <code>DelegationRevoked</code></td><td>Délégation de rôle</td></tr>
+      <tr><td><code>ContractExpiring</code></td><td>Contrat expirant (J-30/J-15/J-7)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ 11. MODULE ESCALADE ══ -->
+<section class="section page-break" id="escalade">
+  <div class="sec-header">
+    <div class="sec-icon orange">📈</div>
+    <h2>Module Escalade NN300 — Renforcement<small>Architecture détaillée du workflow d'approbation</small></h2>
+  </div>
+
+  <p>Le mécanisme d'escalade repose sur des règles (<code>ApprovalWorkflowConfig</code>, table <code>approval_workflows</code>) évaluées à la soumission d'un certificat. Une filiale peut définir <strong>plusieurs règles</strong> ; <code>findForCertificate()</code> retient la <strong>première dont la condition est vraie</strong> (sémantique OR entre les lignes de configuration).</p>
+
+  <h3>Types de déclencheurs (<code>trigger_condition</code>)</h3>
+  <table>
+    <thead><tr><th>Clé JSON</th><th>Condition</th><th>Portée</th></tr></thead>
+    <tbody>
+      <tr><td><code>insured_value_pct_of_contract</code></td><td>Valeur du certificat &gt; X % du <code>plein</code> du contrat (défaut 15 %, surchargeable par <code>InsuranceContract.escalade_threshold_pct</code>)</td><td>Historique — par certificat</td></tr>
+      <tr><td><code>subscription_limit_exceeded</code></td><td><span class="badge badge-new">nouveau</span> La soumission ferait dépasser le plafond NN300 cumulé (<code>used_limit + valeur &gt; subscription_limit</code>)</td><td>Renforcement — cumulé</td></tr>
+      <tr><td><code>certificates_limit_reached</code></td><td><span class="badge badge-new">nouveau</span> Le contrat a atteint son nombre maximal de certificats émis</td><td>Renforcement — cumulé</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-success">
+    <strong>Changement de comportement :</strong> avant renforcement, le dépassement des plafonds cumulés (<code>subscription_limit</code>, <code>certificates_limit</code>) provoquait un <strong>blocage HTTP dur</strong> à la création du certificat (<code>InsuranceContract::canIssue()</code>). Depuis le renforcement, seul le statut du contrat (actif/expiré) bloque la création (<code>isActiveAndValid()</code>) — le dépassement des plafonds cumulés déclenche désormais une <strong>escalade hiérarchique</strong> à la soumission, comme le mécanisme du « plein » déjà existant. <code>canIssue()</code> est conservé tel quel pour l'affichage du badge de statut sur le tableau de bord des plafonds.
+  </div>
+
+  <h3>Gestion des seuils & validations hiérarchiques par filiale</h3>
+  <p>Nouvelle UI d'administration <code>/admin/approvals/configs</code> (<code>ApprovalWorkflowController::configs/storeConfig/updateConfig/toggleConfig/destroyConfig</code>) permettant à un <code>admin_filiale</code> (sa filiale) ou <code>super_admin</code> (toutes) de créer/modifier/activer/désactiver des règles : type de déclencheur, seuil (%), et jusqu'à 2 étapes de validation (rôle approbateur + délai en heures ouvrables).</p>
+
+  <pre><span class="comment">// app/Models/ApprovalWorkflowConfig.php — evaluateCondition()</span>
+<span class="keyword">if</span> (! <span class="func">empty</span>(<span class="var">$condition</span>[<span class="string">'subscription_limit_exceeded'</span>])
+    && ! <span class="var">$contract</span>-><span class="func">exceedsSubscriptionLimit</span>((<span class="keyword">float</span>) <span class="var">$certificate</span>->insured_value)) {
+    <span class="keyword">return false</span>;
+}
+<span class="keyword">if</span> (! <span class="func">empty</span>(<span class="var">$condition</span>[<span class="string">'certificates_limit_reached'</span>])
+    && ! <span class="var">$contract</span>-><span class="func">reachedCertificatesLimit</span>()) {
+    <span class="keyword">return false</span>;
+}</pre>
+
+  <h3>Cycle de vie d'une escalade</h3>
+  <div class="timeline">
+    <div class="tl-item"><h4>1. Déclenchement</h4><p><code>CertificateController::submit()</code> appelle <code>ApprovalWorkflowService::triggerIfNeeded()</code> — crée un <code>ApprovalRequest</code> (step 1) et notifie les approbateurs de l'étape.</p></div>
+    <div class="tl-item"><h4>2. Décision ou timeout</h4><p>L'approbateur valide/rejette depuis <code>/admin/approvals/{id}</code>. Si le délai (<code>due_date</code>, en heures ouvrables) expire, <code>nsia:check-escalades</code> (horaire) fait automatiquement remonter à l'étape suivante, ou rejette si c'était la dernière étape.</p></div>
+    <div class="tl-item"><h4>3. Garde-fou anti-contournement</h4><p><code>CertificateController::issue()</code> refuse toute émission directe tant qu'un <code>ApprovalRequest PENDING</code> existe pour le certificat.</p></div>
+    <div class="tl-item"><h4>4. Émission automatique</h4><p>À l'approbation de la dernière étape, le certificat passe directement à <code>ISSUED</code> et son PDF est généré (<code>issueCertificate()</code>).</p></div>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Bug planification corrigé :</strong> la commande de vérification des délais était enregistrée sous <code>app:check-escalades</code> alors que <code>routes/console.php</code> planifiait <code>nsia:check-escalades</code> — mismatch silencieux qui empêchait toute auto-escalade/rejet sur timeout de s'exécuter. Toutes les commandes Artisan personnalisées de ce projet doivent utiliser le préfixe <code>nsia:</code> (vérifié systématiquement contre <code>routes/console.php</code>).
   </div>
 </section>
 
-<!-- ══ 10. SCHEDULER ══ -->
+<!-- ══ 12. SCHEDULER ══ -->
 <section class="section" id="scheduler">
+  <span id="commandes"></span>
   <div class="sec-header">
     <div class="sec-icon orange">🕐</div>
     <h2>Scheduler & Commandes Artisan<small>routes/console.php</small></h2>
@@ -708,9 +886,9 @@
     <thead><tr><th>Commande</th><th>Fréquence</th><th>Action</th></tr></thead>
     <tbody>
       <tr><td><code>nsia:check-contracts</code></td><td>Chaque jour à 08:00</td><td>Alerte expiration contrats (J-30, J-15, J-7)</td></tr>
-      <tr><td><code>nsia:check-escalades</code></td><td>Toutes les heures</td><td>Vérifie les seuils NN300 non résolus</td></tr>
-      <tr><td><code>nsia:check-delegations</code></td><td>Toutes les heures</td><td>Alerte délégations expirant dans 48h</td></tr>
-      <tr><td><code>nsia:generate-kpi-snapshots</code></td><td>Chaque jour à 06:00</td><td>Recalcule et met en cache les KPIs par filiale</td></tr>
+      <tr><td><code>nsia:check-escalades</code></td><td>Toutes les heures</td><td>Vérifie les délais d'approbation NN300 non résolus, auto-escalade ou rejette</td></tr>
+      <tr><td><code>nsia:check-delegations</code></td><td>Toutes les heures</td><td>Alerte délégations expirant sous 48h</td></tr>
+      <tr><td><code>nsia:generate-kpi-snapshots</code></td><td>Chaque jour à 06:00</td><td>Recalcule et met en <strong>cache</strong> (25h TTL) les KPIs par filiale + global</td></tr>
       <tr><td><code>nsia:archive-certificates --years=5</code></td><td>1er du mois à 02:00</td><td>Archive et purge certificats &gt; 5 ans</td></tr>
     </tbody>
   </table>
@@ -725,35 +903,52 @@
 <span class="comment"># Vider le cache des permissions Spatie après modification</span>
 <span class="var">$</span> php artisan permission:cache-reset
 
-<span class="comment"># Seeder des rôles et permissions</span>
-<span class="var">$</span> php artisan db:seed --class=RolesAndPermissionsSeeder</pre>
+<span class="comment"># Seeders (ordre recommandé)</span>
+<span class="var">$</span> php artisan db:seed --class=RolesAndPermissionsSeeder
+<span class="var">$</span> php artisan db:seed --class=TenantSeeder
+<span class="var">$</span> php artisan db:seed --class=ReferentialSeeder
+<span class="var">$</span> php artisan db:seed --class=ApprovalWorkflowSeeder
+<span class="var">$</span> php artisan db:seed --class=CertificateTemplateSeeder</pre>
 </section>
 
-<!-- ══ 11. FRONTEND ══ -->
+<!-- ══ 13. FRONTEND ══ -->
 <section class="section page-break" id="frontend">
   <div class="sec-header">
     <div class="sec-icon">⚛️</div>
-    <h2>Frontend React / Inertia<small>Architecture SPA hybride</small></h2>
+    <h2>Frontend React / Inertia<small>92 pages — Architecture SPA hybride</small></h2>
   </div>
 
-  <h3>Structure des pages</h3>
-  <pre><span class="comment"># resources/js/</span>
-pages/
-  auth/              <span class="comment"># Login, MFA, reset password</span>
-  admin/
-    dashboard/       <span class="comment"># Dashboard, KPI, DTAG, pending</span>
-    certificates/    <span class="comment"># List, show, create, search</span>
-    contracts/       <span class="comment"># List, show</span>
-    commissions/     <span class="comment"># Rules, bordereau</span>
-    reports/         <span class="comment"># Certificates, contracts, intermediaries</span>
-    exports/         <span class="comment"># Async export list</span>
-    approvals/       <span class="comment"># Workflow, delegations</span>
-    notifications/   <span class="comment"># Center, feed (JSON)</span>
-    security/        <span class="comment"># IP blacklist, audit logs</span>
-  settings/          <span class="comment"># Profile, password, MFA setup</span>
+  <h3>Structure des pages (resources/js/pages/)</h3>
+  <pre>auth/                    <span class="comment"># Login, MFA, reset password, two-factor-challenge</span>
+admin/
+  dashboard/             <span class="comment"># Dashboard, KPI, DTAG, pending</span>
+  certificates/          <span class="comment"># List, show, create, search, print (souches)</span>
+    print-templates/     <span class="comment"># NOUVEAU — overlay par pays (gabon, togo, senegal,
+                         #   cameroun, congo, guinee-conakry) + registry.ts</span>
+  certificate-requests/  <span class="comment"># NOUVEAU — file d'attente, détail, rattachement</span>
+  guce-certificates/     <span class="comment"># NOUVEAU — import + extraction OCR</span>
+  contracts/             <span class="comment"># List, show, create/edit, amendments/</span>
+  commissions/           <span class="comment"># Rules (+ override contrat), bordereau</span>
+  taxes/                 <span class="comment"># NOUVEAU — rules (référentiel filiale×transport×pays)</span>
+  approvals/              <span class="comment"># index (file d'attente), show (décision),
+                         #   configs (NOUVEAU — seuils & validations par filiale)</span>
+  reports/                <span class="comment"># Certificates, contracts, intermediaries</span>
+  exports/                <span class="comment"># Async export list</span>
+  notifications/          <span class="comment"># Center, préférences</span>
+  security/               <span class="comment"># IP blacklist, audit logs</span>
+partner/                  <span class="comment"># NOUVEAU — espace courtier/partenaire dédié
+                         #   dashboard, certificate-requests/, certificates/</span>
+settings/                 <span class="comment"># Profile, password, MFA setup</span>
 components/
-  ui/                <span class="comment"># ShadCN/Radix wrappers</span>
-  app-sidebar.tsx    <span class="comment"># Navigation principale</span></pre>
+  ui/                     <span class="comment"># ShadCN/Radix wrappers</span>
+  app-sidebar.tsx         <span class="comment"># Navigation principale — conditionnée par rôle + module</span>
+  notification-bell.tsx   <span class="comment"># Cloche temps réel (polling 30s)</span></pre>
+
+  <h3>Impression sur souches physiques pré-imprimées</h3>
+  <p>Système d'« overlay » : chaque champ variable du certificat est positionné en absolu (mm) par-dessus une page vierge, destinée à être imprimée sur le papier à souche déjà pré-imprimé par la filiale (numérotation, cadres, mentions légales). Sélection automatique du gabarit par code filiale (<code>getTemplateForTenantCode()</code>), mode calibration (<code>?calibrate=1</code>) affichant une grille de repère en mm pour ajuster les coordonnées contre le papier réel.</p>
+  <div class="alert alert-warn">
+    <strong>Coordonnées à valider physiquement :</strong> les positions livrées pour les 6 gabarits pays sont des valeurs de départ raisonnables, non calibrées contre un exemplaire physique réel (aucun accès imprimante/papier en environnement de développement). Un ajustement fin via le mode calibration est nécessaire avant mise en production.
+  </div>
 
   <h3>Données partagées (HandleInertiaRequests)</h3>
   <pre><span class="comment">// Disponibles dans TOUTES les pages via usePage().props.auth</span>
@@ -761,16 +956,35 @@ components/
     <span class="string">'user'</span>        => <span class="var">$user</span>-><span class="func">toArray</span>(),
     <span class="string">'permissions'</span> => <span class="var">$user</span>-><span class="func">getAllPermissions</span>()-><span class="func">pluck</span>(<span class="string">'name'</span>),
     <span class="string">'roles'</span>       => <span class="var">$user</span>-><span class="func">getRoleNames</span>(),
-    <span class="string">'tenant'</span>      => <span class="var">$user</span>->tenant?-><span class="func">only</span>([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'code'</span>]),
-    <span class="string">'avatar_path'</span> => <span class="var">$user</span>->avatar_path ? <span class="func">asset</span>(...) : <span class="keyword">null</span>,
+    <span class="string">'tenant'</span>      => <span class="var">$user</span>->tenant?-><span class="func">only</span>([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'code'</span>, <span class="string">'modules'</span>]),
 ];</pre>
 
   <div class="alert alert-warn">
-    <strong>CSRF :</strong> Utiliser toujours <code>axios</code> pour les requêtes AJAX — il gère automatiquement le header <code>X-XSRF-TOKEN</code>. Éviter <code>fetch</code> natif qui ne gère pas le CSRF.
+    <strong>CSRF :</strong> Utiliser toujours <code>axios</code> pour les requêtes AJAX — il gère automatiquement le header <code>X-XSRF-TOKEN</code>. Éviter <code>fetch</code> natif qui ne gère pas le CSRF (l'un des rares usages de <code>fetch</code> dans le code, le polling de <code>notification-bell.tsx</code>, tolère l'absence de CSRF car en lecture seule).
+  </div>
+
+  <h3 id="composants">Composants clés réutilisables</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>app-sidebar.tsx</h4>
+      <p>Navigation principale — construit dynamiquement la liste des menus selon les permissions Spatie de l'utilisateur (<code>can()</code>), son rôle (<code>isSA()</code>, <code>isAdminFiliale()</code>) et les modules activés pour sa filiale (<code>moduleEnabled()</code>).</p>
+    </div>
+    <div class="card">
+      <h4>notification-bell.tsx</h4>
+      <p>Cloche de notifications en temps réel — polling toutes les 30s via <code>fetch</code>, marquage lu optimiste avec confirmation serveur, navigation Inertia au clic.</p>
+    </div>
+    <div class="card orange">
+      <h4>print-templates/stub-overlay.tsx</h4>
+      <p>Composant de rendu partagé par les 6 gabarits d'impression pays — positionne chaque champ en absolu (mm), avec grille de calibration optionnelle (<code>?calibrate=1</code>).</p>
+    </div>
+    <div class="card green">
+      <h4>AmountInput</h4>
+      <p>Champ de saisie monétaire avec séparateur de milliers automatique, utilisé sur les formulaires contrat/certificat pour les montants (valeur assurée, plafonds, primes).</p>
+    </div>
   </div>
 </section>
 
-<!-- ══ 12. CONFIGURATION ══ -->
+<!-- ══ 14. CONFIGURATION ══ -->
 <section class="section" id="config">
   <div class="sec-header">
     <div class="sec-icon dark">🔧</div>
@@ -794,6 +1008,15 @@ components/
 <span class="var">MICROSOFT_TENANT_ID</span>=uuid-tenant-specifique   <span class="comment"># ⚠️ pas 'common'</span>
 <span class="var">MICROSOFT_REDIRECT_URI</span>=https://app.nsia.ci/auth/microsoft/callback
 
+<span class="comment"># Google OAuth</span>
+<span class="var">GOOGLE_CLIENT_ID</span>=...
+<span class="var">GOOGLE_CLIENT_SECRET</span>=...
+<span class="var">GOOGLE_REDIRECT_URI</span>=https://app.nsia.ci/auth/google/callback
+
+<span class="comment"># Extraction OCR certificats GUCE (Mindee API v2)</span>
+<span class="var">MINDEE_V2_API_KEY</span>=...
+<span class="var">MINDEE_GUCE_MODEL_ID</span>=...   <span class="comment"># modèle personnalisé créé sur app.mindee.com</span>
+
 <span class="comment"># DomPDF</span>
 <span class="var">DOMPDF_REMOTE_ENABLED</span>=true
 
@@ -804,21 +1027,12 @@ components/
 <span class="var">MAIL_MAILER</span>=smtp
 <span class="var">MAIL_FROM_ADDRESS</span>=noreply@nsia-transport.ci</pre>
 
-  <h3>Configuration Fortify (config/fortify.php)</h3>
-  <pre><span class="string">'features'</span> => [
-    <span class="class-name">Features</span>::<span class="func">registration</span>(),
-    <span class="class-name">Features</span>::<span class="func">resetPasswords</span>(),
-    <span class="class-name">Features</span>::<span class="func">emailVerification</span>(),
-    <span class="class-name">Features</span>::<span class="func">updateProfileInformation</span>(),
-    <span class="class-name">Features</span>::<span class="func">updatePasswords</span>(),
-    <span class="class-name">Features</span>::<span class="func">twoFactorAuthentication</span>([
-        <span class="string">'confirm'</span>         => <span class="keyword">true</span>,
-        <span class="string">'confirmPassword'</span> => <span class="keyword">true</span>,
-    ]),
-],</pre>
+  <div class="alert alert-info">
+    <strong>Champ Mindee <code>field_map</code> (config/services.php) :</strong> le modèle Mindee « Insurance Certificate » ne fournit nativement qu'un sous-ensemble des champs GUCE requis. Les champs additionnels (adresse assuré, marchandise, poids, marques, navire, dates de transit, valeur assurée…) doivent être ajoutés manuellement dans l'onglet « Schéma de données » du modèle sur app.mindee.com, avec un slug anglais correspondant exactement à la clé PHP — sauf <code>marks</code> qui utilise le slug français <code>marques</code> (vérifié empiriquement via les logs).
+  </div>
 </section>
 
-<!-- ══ 13. DÉPLOIEMENT ══ -->
+<!-- ══ 15. DÉPLOIEMENT ══ -->
 <section class="section" id="deploiement">
   <div class="sec-header">
     <div class="sec-icon orange">🚀</div>
@@ -827,29 +1041,29 @@ components/
 
   <div class="timeline">
     <div class="tl-item"><h4>1. Préparer l'environnement</h4><p>PHP 8.2+, PostgreSQL 16, Node 20+, Composer, queue worker (Supervisor)</p></div>
-    <div class="tl-item"><h4>2. Variables d'environnement</h4><p>Copier <code>.env.example</code> → <code>.env</code>. Configurer DB, Mail, Microsoft OAuth, APP_KEY.</p></div>
+    <div class="tl-item"><h4>2. Variables d'environnement</h4><p>Copier <code>.env.example</code> → <code>.env</code>. Configurer DB, Mail, Microsoft/Google OAuth, Mindee, APP_KEY.</p></div>
     <div class="tl-item"><h4>3. Dépendances</h4>
       <p><code>composer install --no-dev --optimize-autoloader</code><br><code>npm ci &amp;&amp; npm run build</code></p></div>
     <div class="tl-item"><h4>4. Base de données</h4>
-      <p><code>php artisan migrate --force</code><br><code>php artisan db:seed --class=RolesAndPermissionsSeeder</code></p></div>
+      <p><code>php artisan migrate --force</code><br>Puis les seeders (voir §<a href="#scheduler">Scheduler</a>) dans l'ordre : rôles → filiales → référentiel → workflows d'approbation → modèles de certificats.</p></div>
     <div class="tl-item"><h4>5. Chiffrement PII (1 fois)</h4><p><code>php artisan nsia:encrypt-sensitive-fields</code> — à exécuter une seule fois après migration initiale des données.</p></div>
     <div class="tl-item"><h4>6. Optimisations Laravel</h4>
       <p><code>php artisan config:cache &amp;&amp; php artisan route:cache &amp;&amp; php artisan view:cache</code></p></div>
-    <div class="tl-item"><h4>7. Stockage</h4><p><code>php artisan storage:link</code> — lien symbolique public/storage → storage/app/public</p></div>
+    <div class="tl-item"><h4>7. Stockage</h4><p><code>php artisan storage:link</code> — lien symbolique public/storage → storage/app/public (documents demandes partenaires, GUCE, logos)</p></div>
     <div class="tl-item"><h4>8. Scheduler (crontab)</h4><p><code>* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1</code></p></div>
     <div class="tl-item"><h4>9. Queue worker (Supervisor)</h4><p>Configurer Supervisor pour <code>php artisan queue:work --sleep=3 --tries=3</code></p></div>
-    <div class="tl-item"><h4>10. Vérification finale</h4><p>Tester login, MFA, émission certificat, PDF, export. Vérifier RLS PostgreSQL actif.</p></div>
+    <div class="tl-item"><h4>10. Vérification finale</h4><p>Tester login SSO, MFA, émission certificat, PDF, export, impression souche (mode calibration), extraction GUCE. Décider explicitement du sort de la RLS (rattacher <code>tenant.context</code> ou retirer la migration).</p></div>
   </div>
 
-  <div class="alert alert-success">
-    <strong>Checklist RLS :</strong> Vérifier que la migration <code>2026_06_01_000001_enable_row_level_security.php</code> est bien exécutée et que les politiques PostgreSQL sont actives sur les 5 tables couvertes.
+  <div class="alert alert-danger">
+    <strong>À trancher avant mise en production :</strong> le middleware <code>SetTenantContext</code> (RLS) n'est actuellement rattaché à aucune route. Si les politiques RLS PostgreSQL sont actives en base sans que <code>app.current_tenant_id</code> soit jamais défini, cela peut soit bloquer silencieusement des requêtes légitimes, soit ne rien appliquer du tout selon la politique par défaut (<code>USING</code> vs <code>PERMISSIVE</code>) — à valider avec un test d'intégration dédié avant go-live.
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer class="footer">
-  <strong>NSIA Transport — Documentation Technique v1.0</strong> — Sprint 6 — Mai 2026<br>
-  Groupe NSIA • Stack: Laravel 12 + React 19 + PostgreSQL 16 • 34 tables • 58 US livrées<br>
+  <strong>NSIA Transport — Documentation Technique v2.0</strong><br>
+  Groupe NSIA • Stack : Laravel 12 + React 19 + PostgreSQL 16 • 51 migrations • 16 modules activables<br>
   <small style="opacity:.5">Document confidentiel — Usage interne équipe technique</small>
 </footer>
 

@@ -1,17 +1,18 @@
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { ContractForm } from './create';
 import type { BreadcrumbItem } from '@/types';
+import { ContractForm } from './create';
 
 interface Contract {
     id: string; contract_number: string; tenant_id: string;
-    broker_id: string | null; type: string;
+    broker_id: string | null; subscriber_id: string | null; type: string;
     insured_name: string; insured_address: string | null;
     insured_email: string | null; insured_phone: string | null;
     currency_code: string; subscription_limit: string | null;
+    plein: string | null; escalade_enabled: boolean; escalade_threshold_pct: string | null;
     premium_rate: string | null; deductible: string;
     rate_ro: string | null; rate_rg: string | null;
-    rate_surprime: string | null; rate_accessories: string | null; rate_tax: string | null;
+    rate_surprime: string | null; rate_accessories: string | null;
     coverage_type: string | null; clauses: string[]; exclusions: string[];
     incoterm_code: string | null; transport_mode_id: number | null;
     transport_mode_detail: string | null; covered_countries: string[];
@@ -22,12 +23,14 @@ interface Props {
     contract:       Contract;
     tenants:        any[];
     brokers:        any[];
+    subscribers:    any[];
     incoterms:      any[];
     transportModes: any[];
     currencies:     string[];
+    commissionRate: string | null;
 }
 
-export default function ContractEdit({ contract, tenants, brokers, incoterms, transportModes, currencies }: Props) {
+export default function ContractEdit({ contract, tenants, brokers, subscribers, incoterms, transportModes, currencies, commissionRate }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Contrats', href: '/admin/contracts' },
         { title: contract.contract_number },
@@ -37,6 +40,8 @@ export default function ContractEdit({ contract, tenants, brokers, incoterms, tr
     const { data, setData, put, processing, errors } = useForm({
         tenant_id:              contract.tenant_id,
         broker_id:              contract.broker_id ?? '',
+        commission_rate:        commissionRate ?? '',
+        subscriber_id:          contract.subscriber_id ?? '',
         type:                   contract.type,
         insured_name:           contract.insured_name,
         insured_address:        contract.insured_address ?? '',
@@ -44,13 +49,15 @@ export default function ContractEdit({ contract, tenants, brokers, incoterms, tr
         insured_phone:          contract.insured_phone ?? '',
         currency_code:          contract.currency_code,
         subscription_limit:     contract.subscription_limit ?? '',
+        plein:                  contract.plein ?? '',
+        escalade_enabled:       contract.escalade_enabled ?? true,
+        escalade_threshold_pct: contract.escalade_threshold_pct ?? '',
         premium_rate:           contract.premium_rate ?? '',
         deductible:             contract.deductible ?? '0',
         rate_ro:                contract.rate_ro ?? '',
         rate_rg:                contract.rate_rg ?? '',
         rate_surprime:          contract.rate_surprime ?? '',
         rate_accessories:       contract.rate_accessories ?? '',
-        rate_tax:               contract.rate_tax ?? '',
         coverage_type:          contract.coverage_type ?? '',
         clauses:                contract.clauses ?? [],
         exclusions:             contract.exclusions ?? [],
@@ -77,7 +84,7 @@ export default function ContractEdit({ contract, tenants, brokers, incoterms, tr
             <ContractForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
-                tenants={tenants} brokers={brokers}
+                tenants={tenants} brokers={brokers} subscribers={subscribers}
                 incoterms={incoterms} transportModes={transportModes}
                 currencies={currencies}
                 heroTitle={`Modifier — ${contract.contract_number}`}

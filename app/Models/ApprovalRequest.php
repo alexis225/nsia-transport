@@ -71,18 +71,18 @@ class ApprovalRequest extends Model
     /**
      * Calcule la date d'expiration : now + timeout_hours ouvrables (lun-ven)
      */
-    public static function computeDueDate(\Carbon\Carbon $from, int $timeoutHours = 48): \Carbon\Carbon
+    public static function computeDueDate(\Carbon\CarbonInterface $from, int $timeoutHours = 48): \Carbon\CarbonInterface
     {
         $remaining = $timeoutHours;
-        $current   = $from->copy();
- 
+        $current   = $from;
+
         while ($remaining > 0) {
-            $current->addHour();
+            $current = $current->addHour();
             if ($current->isWeekday()) {
                 $remaining--;
             }
         }
- 
+
         return $current;
     }
 }

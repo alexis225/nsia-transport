@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
     TrendingUp, CheckCircle, XCircle, Clock,
     AlertTriangle, ArrowRight, X, Shield,
 } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Escalades NN300', href: '/admin/approvals' },
@@ -21,7 +21,7 @@ interface Decision {
 interface Workflow {
     id: string; current_level: number; status: string;
     certificate_value: number; contract_value: number;
-    threshold_pct: number; threshold_amount: number;
+    threshold_pct: number; threshold_amount: number | null;
     triggered_at: string; expires_at: string;
     hours_left: number; is_overdue: boolean;
     certificate: { id: string; certificate_number: string; insured_name: string; insured_value: number; currency_code: string } | null;
@@ -53,6 +53,7 @@ const fmtDt  = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit
 function ActionModal({ type, onConfirm, onClose }: { type: 'approve' | 'reject'; onConfirm: (v: string) => void; onClose: () => void }) {
     const [value, setValue] = useState('');
     const isApprove = type === 'approve';
+
     return (
         <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
             <div style={{ background:'#fff', borderRadius:14, width:'100%', maxWidth:460, border:'1.5px solid #e2e8f0', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
@@ -95,7 +96,9 @@ function ActionModal({ type, onConfirm, onClose }: { type: 'approve' | 'reject';
     );
 }
 
-function workflow_level_label() { return ''; }
+function workflow_level_label() {
+ return ''; 
+}
 
 export default function ApprovalShow({ workflow, can }: Props) {
     const [modal, setModal] = useState<'approve' | 'reject' | null>(null);
@@ -107,9 +110,8 @@ export default function ApprovalShow({ workflow, can }: Props) {
 
     const cert  = workflow.certificate;
     const contr = workflow.contract;
-    const curr  = workflow.currency_code ?? cert?.currency_code ?? 'XOF';
 
-    const excessAmount = cert ? cert.insured_value - workflow.threshold_amount : 0;
+    const excessAmount = cert && workflow.threshold_amount != null ? cert.insured_value - workflow.threshold_amount : 0;
     const excessPct    = contr ? ((cert?.insured_value ?? 0) / (contr.insured_value) * 100).toFixed(1) : '0';
 
     return (
@@ -238,7 +240,7 @@ export default function ApprovalShow({ workflow, can }: Props) {
                             <div className="ap-row">
                                 <span className="ap-label">Seuil d'escalade ({workflow.threshold_pct}% du contrat)</span>
                                 <span className="ap-value">
-                                    {fmt(workflow.threshold_amount, cert?.currency_code ?? 'XOF')}
+                                    {workflow.threshold_amount != null ? fmt(workflow.threshold_amount, cert?.currency_code ?? 'XOF') : '—'}
                                 </span>
                             </div>
                             <div className="ap-row">
@@ -305,6 +307,7 @@ export default function ApprovalShow({ workflow, can }: Props) {
                             <div style={{ padding:'14px 20px' }}>
                                 {workflow.decisions.map((d, i) => {
                                     const ds = DECISION_STYLES[d.decision] ?? DECISION_STYLES.EXPIRED;
+
                                     return (
                                         <div key={i} className="decision-row">
                                             <div style={{ width:8, height:8, borderRadius:'50%', background: ds.color, flexShrink:0, marginTop:4 }}/>

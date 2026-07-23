@@ -1,14 +1,15 @@
 import { Head, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Settings, Check, Shield, Bell, Database, ToggleLeft } from 'lucide-react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Settings, Check, Shield, Bell, Database, Globe } from 'lucide-react';
 
 interface Tenant {
     id: string; name: string; code: string; currency: string;
+    modules: Record<string, boolean> | null;
     subscription_limit_config: {
         nn300_limit:          number;
         alert_threshold:      number;
@@ -24,13 +25,27 @@ interface Tenant {
         retention_days:        number;
     };
 }
-interface Props { tenant: Tenant; }
+interface Props { tenant: Tenant; moduleRegistry: Record<string, string>; }
 
-export default function TenantConfig({ tenant }: Props) {
+function Toggle({ value, onChange, label, desc }: { value: boolean; onChange: () => void; label: string; desc?: string }) {
+    return (
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, cursor:'pointer' }} onClick={onChange}>
+            <div>
+                <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>{label}</div>
+                {desc && <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>{desc}</div>}
+            </div>
+            <div style={{ width:40, height:22, borderRadius:11, background: value ? '#1e3a8a' : '#e2e8f0', position:'relative', flexShrink:0, transition:'background .2s' }}>
+                <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', position:'absolute', top:3, left: value ? 21 : 3, transition:'left .2s' }}/>
+            </div>
+        </div>
+    );
+}
+
+export default function TenantConfig({ tenant, moduleRegistry }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Filiales',     href: '/admin/tenants' },
         { title: tenant.name,    href: route('admin.tenants.show', { tenant: tenant.id }) },
-        { title: 'Configuration' },
+        { title: 'Configuration', href: route('admin.tenants.config', { tenant: tenant.id }) },
     ];
 
     const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
@@ -55,17 +70,19 @@ export default function TenantConfig({ tenant }: Props) {
         put(route('admin.tenants.update', { tenant: tenant.id }));
     };
 
-    const Toggle = ({ value, onChange, label, desc }: { value: boolean; onChange: () => void; label: string; desc?: string }) => (
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, cursor:'pointer' }} onClick={onChange}>
-            <div>
-                <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>{label}</div>
-                {desc && <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>{desc}</div>}
-            </div>
-            <div style={{ width:40, height:22, borderRadius:11, background: value ? '#1e3a8a' : '#e2e8f0', position:'relative', flexShrink:0, transition:'background .2s' }}>
-                <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', position:'absolute', top:3, left: value ? 21 : 3, transition:'left .2s' }}/>
-            </div>
-        </div>
-    );
+    const moduleKeys = Object.keys(moduleRegistry);
+    const modulesForm = useForm({
+        modules: moduleKeys.reduce<Record<string, boolean>>((acc, key) => {
+            acc[key] = tenant.modules?.[key] ?? true;
+
+            return acc;
+        }, {}),
+    });
+
+    const submitModules = (e: React.FormEvent) => {
+        e.preventDefault();
+        modulesForm.patch(route('admin.tenants.modules', { tenant: tenant.id }));
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -104,6 +121,40 @@ export default function TenantConfig({ tenant }: Props) {
                             <div className="tc-hero-sub">Paramètres avancés · Plafonds · Notifications · Limites</div>
                         </div>
                     </div>
+
+                    {/* ── Modules — activation par filiale ── */}
+                    <form onSubmit={submitModules}>
+                        <div className="tc-card">
+                            <div className="tc-card-hdr">
+                                <div className="tc-card-ico" style={{ background:'#fdf4ff' }}><ToggleLeft size={17} color="#a21caf"/></div>
+                                <div>
+                                    <div className="tc-card-ttl">Modules activés</div>
+                                    <div className="tc-card-sub">Un module désactivé disparaît du menu et devient inaccessible pour cette filiale</div>
+                                </div>
+                            </div>
+                            <div className="tc-card-body">
+                                {modulesForm.recentlySuccessful && <div className="status-ok"><Check size={13}/>Modules mis à jour.</div>}
+
+                                {moduleKeys.map(key => (
+                                    <Toggle
+                                        key={key}
+                                        value={modulesForm.data.modules[key]}
+                                        onChange={() => modulesForm.setData('modules', {
+                                            ...modulesForm.data.modules,
+                                            [key]: !modulesForm.data.modules[key],
+                                        })}
+                                        label={moduleRegistry[key]}
+                                    />
+                                ))}
+
+                                <div style={{ display:'flex', gap:8, paddingTop:4 }}>
+                                    <Button type="submit" disabled={modulesForm.processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
+                                        {modulesForm.processing ? 'Enregistrement…' : <><Check size={14}/> Enregistrer les modules</>}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
 
                     <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
 

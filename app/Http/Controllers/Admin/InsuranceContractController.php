@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Broker;
+use App\Models\CommissionRule;
 use App\Models\Incoterm;
 use App\Models\InsuranceContract;
 use App\Models\Tenant;
 use App\Models\TransportMode;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -70,7 +72,8 @@ class InsuranceContractController extends Controller
         return Inertia::render('admin/contracts/create', [
             'tenants'         => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'currency_code']) : collect(),
             'brokers'         => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                                       ->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'type']),
+                                       ->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'type', 'commission_rate']),
+            'subscribers'     => $this->subscribers($user, $isSA),
             'incoterms'       => Incoterm::orderBy('code')->get(['code', 'name']),
             'transportModes'  => TransportMode::orderBy('name_fr')->get(['id', 'code', 'name_fr']),
             'currencies'      => ['XOF', 'XAF', 'GNF', 'MGA', 'NGN', 'EUR', 'USD'],
@@ -78,10 +81,21 @@ class InsuranceContractController extends Controller
         ]);
     }
 
+    // ── Souscripteurs sélectionnables (rôle "souscripteur") ──
+    private function subscribers($user, bool $isSA)
+    {
+        return User::whereHas('roles', fn ($q) => $q->where('name', 'souscripteur'))
+            ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
+    }
+
     // ── Créer — store ────────────────────────────────────────
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validateContract($request);
+        $commissionRate = $validated['commission_rate'] ?? null;
+        unset($validated['commission_rate']);
 
         $tenant  = Tenant::find($validated['tenant_id']);
         $validated['contract_number'] = InsuranceContract::generateContractNumber(
@@ -92,6 +106,8 @@ class InsuranceContractController extends Controller
         $validated['updated_by'] = $request->user()->id;
 
         $contract = InsuranceContract::create($validated);
+
+        $this->syncCommissionRate($contract, $commissionRate, $request->user());
 
         AuditLog::create([
             'tenant_id'   => $contract->tenant_id,
@@ -116,6 +132,7 @@ class InsuranceContractController extends Controller
         $contract->load([
             'tenant:id,name,code,currency_code',
             'broker:id,name,code,type,email,phone',
+            'subscriber:id,first_name,last_name,email',
             'transportMode:id,code,name_fr',
             'createdBy:id,first_name,last_name',
             'approvedBy:id,first_name,last_name',
@@ -145,10 +162,15 @@ class InsuranceContractController extends Controller
             'contract'       => $contract,
             'tenants'        => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id','name','code','currency_code']) : collect(),
             'brokers'        => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                                      ->where('is_active', true)->orderBy('name')->get(['id','name','code','type']),
+                                      ->where('is_active', true)->orderBy('name')->get(['id','name','code','type','commission_rate']),
+            'subscribers'    => $this->subscribers($user, $isSA),
             'incoterms'      => Incoterm::orderBy('code')->get(['code','name']),
             'transportModes' => TransportMode::orderBy('name_fr')->get(['id','code','name_fr']),
             'currencies'     => ['XOF','XAF','GNF','MGA','NGN','EUR','USD'],
+            'commissionRate' => CommissionRule::where('contract_id', $contract->id)
+                ->where('is_active', true)
+                ->orderBy('effective_date', 'desc')
+                ->value('rate_pct'),
         ]);
     }
 
@@ -157,11 +179,51 @@ class InsuranceContractController extends Controller
     {
         $this->authorizeTenant($contract);
         $validated = $this->validateContract($request);
+        $commissionRate = $validated['commission_rate'] ?? null;
+        unset($validated['commission_rate']);
         $validated['updated_by'] = $request->user()->id;
         $contract->update($validated);
 
+        $this->syncCommissionRate($contract, $commissionRate, $request->user());
+
         return redirect()->route('admin.contracts.show', $contract)
             ->with('status', 'Contrat mis à jour.');
+    }
+
+    // ── Taux de commission spécifique au contrat ─────────────
+    // Crée/actualise ou désactive la CommissionRule liée au contrat —
+    // le taux "au niveau du contrat" prime sur le taux général du
+    // courtier via CommissionRule::findApplicable() (déjà en place).
+    private function syncCommissionRate(InsuranceContract $contract, ?float $rate, User $user): void
+    {
+        if (! $contract->broker_id) return;
+
+        $existing = CommissionRule::where('contract_id', $contract->id)
+            ->where('broker_id', $contract->broker_id)
+            ->orderBy('effective_date', 'desc')
+            ->first();
+
+        if ($rate === null) {
+            $existing?->update(['is_active' => false]);
+            return;
+        }
+
+        if ($existing) {
+            $existing->update(['rate_pct' => $rate, 'is_active' => true]);
+            return;
+        }
+
+        CommissionRule::create([
+            'tenant_id'       => $contract->tenant_id,
+            'broker_id'       => $contract->broker_id,
+            'contract_id'     => $contract->id,
+            'rate_pct'        => $rate,
+            'base_type'       => CommissionRule::BASE_PRIME_TOTAL,
+            'effective_date'  => $contract->effective_date ?? now(),
+            'is_active'       => true,
+            'notes'           => 'Taux défini depuis le formulaire du contrat.',
+            'created_by'      => $user->id,
+        ]);
     }
 
     // ── Supprimer ────────────────────────────────────────────
@@ -305,6 +367,8 @@ class InsuranceContractController extends Controller
         return $request->validate([
             'tenant_id'            => ['required', 'uuid', 'exists:tenants,id'],
             'broker_id'            => ['nullable', 'uuid', 'exists:brokers,id'],
+            'commission_rate'      => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'subscriber_id'        => ['nullable', 'uuid', 'exists:users,id'],
             'type'                 => ['required', 'in:OPEN_POLICY,VOYAGE,ANNUAL_VOYAGE'],
             'insured_name'         => ['required', 'string', 'max:200'],
             'insured_address'      => ['nullable', 'string'],
@@ -312,6 +376,9 @@ class InsuranceContractController extends Controller
             'insured_phone'        => ['nullable', 'string', 'max:30'],
             'currency_code'        => ['required', 'size:3'],
             'subscription_limit'   => ['nullable', 'numeric', 'min:0'],
+            'plein'                => ['nullable', 'numeric', 'min:0'],
+            'escalade_enabled'     => ['boolean'],
+            'escalade_threshold_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'premium_rate'         => ['nullable', 'numeric', 'min:0', 'max:100'],
             'deductible'           => ['nullable', 'numeric', 'min:0'],
             'rate_ro'              => ['nullable', 'numeric', 'min:0', 'max:100'],

@@ -1,8 +1,8 @@
 import { Head } from '@inertiajs/react';
+import { Printer, FileText, AlertTriangle } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { PRINT_TEMPLATES } from './print-templates/registry';
-import { Printer, FileText } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Certificats', href: '/admin/certificates' },
@@ -27,8 +27,25 @@ export default function PrintModels() {
                         </h1>
                     </div>
                     <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>
-                        Carnets officiels reconnus par les autorités de chaque pays. Sélectionnez un modèle lors de l'impression d'un certificat.
+                        Carnets officiels reconnus par les autorités de chaque pays, imprimés par-dessus la souche physique pré-imprimée NSIA.
+                        Le modèle correspondant à la filiale du certificat est présélectionné automatiquement, mais reste modifiable à l'impression.
                     </p>
+                </div>
+
+                {/* Avertissement calibration */}
+                <div style={{
+                    marginBottom: 20, padding: '14px 18px',
+                    background: '#fffbeb', border: '1px solid #fde68a',
+                    borderRadius: 10, fontSize: 12, color: '#92400e', lineHeight: 1.6,
+                    display: 'flex', gap: 10,
+                }}>
+                    <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }}/>
+                    <div>
+                        <strong>Positionnement des champs à finaliser.</strong> Les coordonnées actuelles sont un point de départ générique,
+                        pas encore calibrées sur les souches physiques réelles. Ajoutez <code style={{ background:'#fff7ed', padding:'1px 5px', borderRadius:4 }}>?calibrate=1</code> à
+                        l'URL d'impression pour afficher une grille de repère (tous les 10&nbsp;mm) et le nom de chaque champ — imprimez sur la souche réelle,
+                        mesurez les écarts, puis ajustez les coordonnées dans le fichier du pays correspondant (<code style={{ background:'#fff7ed', padding:'1px 5px', borderRadius:4 }}>print-templates/&lt;pays&gt;.tsx</code>).
+                    </div>
                 </div>
 
                 {/* Grille des modèles */}
@@ -65,8 +82,8 @@ export default function PrintModels() {
                                 <span style={{ fontSize: 11, background: '#f1f5f9', color: '#475569', borderRadius: 20, padding: '2px 8px', fontWeight: 500 }}>
                                     {tpl.orientation}
                                 </span>
-                                <span style={{ fontSize: 11, background: '#f0fdf4', color: '#15803d', borderRadius: 20, padding: '2px 8px', fontWeight: 600 }}>
-                                    Actif
+                                <span style={{ fontSize: 11, background: '#eff6ff', color: '#1d4ed8', borderRadius: 20, padding: '2px 8px', fontWeight: 600, fontFamily: 'monospace' }}>
+                                    {tpl.tenantCode}
                                 </span>
                             </div>
 

@@ -39,6 +39,11 @@ class Notification extends Model
     const TYPE_CONTRACT_EXPIRING = 'ContractExpiring';
     const TYPE_CONTRACT_LIMIT    = 'ContractLimitReached';
 
+    // Demandes partenaires (CertificateRequest)
+    const TYPE_CERT_REQUEST_CREATED   = 'CertificateRequestCreated';
+    const TYPE_CERT_REQUEST_IN_REVIEW = 'CertificateRequestInReview';
+    const TYPE_CERT_REQUEST_REJECTED  = 'CertificateRequestRejected';
+
     protected $fillable = [
         'type',
         'notifiable_type',

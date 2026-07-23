@@ -25,11 +25,11 @@ class Certificate extends Model
         'tenant_id', 'contract_id', 'template_id',
         'certificate_number', 'policy_number',
         'insured_name', 'insured_ref',
-        'voyage_date', 'voyage_from', 'voyage_to', 'voyage_via',
+        'voyage_date', 'voyage_from', 'voyage_to', 'voyage_via', 'destination_country_code',
         'transport_type', 'vessel_name', 'flight_number', 'voyage_mode',
         'expedition_items',
         'currency_code', 'insured_value', 'insured_value_letters',
-        'guarantee_mode', 'prime_breakdown', 'prime_total',
+        'guarantee_mode', 'prime_breakdown', 'prime_total', 'prime_nette',
         'exchange_currency', 'exchange_rate',
         'status', 'submitted_at', 'issued_at', 'cancelled_at',
         'cancellation_reason', 'issued_by', 'submitted_by', 'validation_notes',
@@ -49,6 +49,7 @@ class Certificate extends Model
         'prime_breakdown'   => 'array',
         'insured_value'     => 'decimal:2',
         'prime_total'       => 'decimal:2',
+        'prime_nette'       => 'decimal:2',
         'exchange_rate'     => 'decimal:6',
         'reissued_at'       => 'datetime',
     ];
@@ -81,6 +82,11 @@ class Certificate extends Model
     public function template(): BelongsTo
     {
         return $this->belongsTo(CertificateTemplate::class, 'template_id');
+    }
+
+    public function destinationCountry(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'destination_country_code', 'code');
     }
 
     public function issuedBy(): BelongsTo

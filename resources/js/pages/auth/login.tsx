@@ -25,7 +25,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
     };
 
     const handleOAuth = (provider: 'google' | 'microsoft') => {
-        window.location.href = route('auth.social.redirect', { provider });
+        window.location.href = route('auth.social.callback', { provider });
     };
 
     return (

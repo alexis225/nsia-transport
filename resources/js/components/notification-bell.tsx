@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react';
 import axios from 'axios';
 import {
     Bell, CheckCircle, XCircle, Clock,
-    AlertTriangle, TrendingUp, Slash,
+    AlertTriangle, TrendingUp, Slash, Inbox,
     Check, ExternalLink, X,
 } from 'lucide-react';
 
@@ -35,6 +35,7 @@ const ICON_MAP: Record<string, any> = {
     'trending-up':    TrendingUp,
     'slash':          Slash,
     'bell':           Bell,
+    'inbox':          Inbox,
 };
 
 function getCsrf(): string {

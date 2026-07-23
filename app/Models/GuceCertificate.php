@@ -29,6 +29,7 @@ class GuceCertificate extends Model
         'transit_date',
         'insured_value',
         'currency',
+        'net_premium',
         'total_premium',
         'file_path',
         'file_original_name',
@@ -39,6 +40,7 @@ class GuceCertificate extends Model
     protected $casts = [
         'transit_date' => 'date',
         'insured_value' => 'decimal:2',
+        'net_premium' => 'decimal:2',
         'total_premium' => 'decimal:2',
     ];
 

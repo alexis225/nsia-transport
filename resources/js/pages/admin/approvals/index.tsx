@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
+import { Clock, AlertTriangle, CheckCircle, ArrowRight, ShieldAlert } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { TrendingUp, Clock, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Escalades NN300', href: '/admin/approvals' },
@@ -9,7 +9,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Workflow {
     id: string; current_level: number; status: string;
-    threshold_pct: number; threshold_amount: number;
+    threshold_pct: number; threshold_amount: number | null;
     hours_left: number; is_overdue: boolean;
     triggered_at: string; expires_at: string;
     certificate: { id: string; certificate_number: string; insured_name: string; insured_value: number; currency_code: string } | null;
@@ -60,9 +60,15 @@ export default function ApprovalsIndex({ workflows, isSA }: Props) {
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="al-page">
 
-                    <div>
-                        <h1 className="al-title">Escalades NN300</h1>
-                        <p className="al-sub">Certificats dépassant le seuil de souscription — en attente de décision</p>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        <div>
+                            <h1 className="al-title">Escalades NN300</h1>
+                            <p className="al-sub">Certificats dépassant le seuil de souscription — en attente de décision</p>
+                        </div>
+                        <Link href={route('admin.approvals.configs')}
+                              style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 14px', background:'#fff', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12, fontWeight:500, color:'#475569', textDecoration:'none' }}>
+                            <ShieldAlert size={14}/> Seuils & validations
+                        </Link>
                     </div>
 
                     <div className="kpi-grid">
@@ -108,6 +114,7 @@ export default function ApprovalsIndex({ workflows, isSA }: Props) {
                                 <tbody>
                                     {workflows.map(w => {
                                         const cert = w.certificate;
+
                                         return (
                                             <tr key={w.id}>
                                                 <td>
@@ -131,9 +138,11 @@ export default function ApprovalsIndex({ workflows, isSA }: Props) {
                                                     <div style={{ fontSize:11, color:'#dc2626', fontWeight:600 }}>
                                                         &gt; {w.threshold_pct}%
                                                     </div>
-                                                    <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                        Seuil : {fmt(w.threshold_amount, cert?.currency_code ?? 'XOF')}
-                                                    </div>
+                                                    {w.threshold_amount != null && (
+                                                        <div style={{ fontSize:10, color:'#94a3b8' }}>
+                                                            Seuil : {fmt(w.threshold_amount, cert?.currency_code ?? 'XOF')}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 {isSA && (
                                                     <td style={{ fontSize:11, color:'#64748b' }}>

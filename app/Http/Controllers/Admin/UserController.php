@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\AuditLog;
+use App\Models\Broker;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -65,11 +66,23 @@ class UserController extends Controller
     // ── Formulaire création ──────────────────────────────────
     public function create(Request $request): Response
     {
+        $tenantId = $request->user()->hasRole('super_admin')
+            ? $request->query('tenant_id')
+            : $request->user()->tenant_id;
+
         return Inertia::render('admin/users/create', [
             'roles'   => Role::orderBy('name')->pluck('name'),
             'tenants' => $request->user()->hasRole('super_admin')
                 ? Tenant::orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
+            'brokers' => $tenantId
+                ? Broker::where('tenant_id', $tenantId)->whereNull('user_id')->orderBy('name')->get(['id', 'name', 'code', 'type'])
+                : collect(),
+            'prefill' => [
+                'role'      => $request->query('role'),
+                'broker_id' => $request->query('broker_id'),
+                'tenant_id' => $request->query('tenant_id'),
+            ],
         ]);
     }
 
@@ -88,6 +101,13 @@ class UserController extends Controller
         ]);
 
         $user->assignRole($request->role);
+
+        if ($request->broker_id) {
+            $broker = Broker::find($request->broker_id);
+            if ($broker && $broker->tenant_id === $user->tenant_id) {
+                $broker->update(['user_id' => $user->id]);
+            }
+        }
 
         // Envoyer email de bienvenue avec lien de réinitialisation
         Password::sendResetLink(['email' => $user->email]);

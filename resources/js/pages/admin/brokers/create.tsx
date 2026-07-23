@@ -1,15 +1,16 @@
 import { Head, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Briefcase, Check } from 'lucide-react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Briefcase, Check } from 'lucide-react';
 
 interface Tenant { id: string; name: string; code: string; }
 interface Props {
     tenants:         Tenant[];
+    allTenants:      Tenant[];
     defaultTenantId: string | null;
 }
 
@@ -25,10 +26,10 @@ const COUNTRIES = [
     { code:'DZ', name:'Algérie' }, { code:'TN', name:'Tunisie' },
 ];
 
-export default function BrokerCreate({ tenants, defaultTenantId }: Props) {
+export default function BrokerCreate({ tenants, allTenants, defaultTenantId }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Courtiers', href: '/admin/brokers' },
-        { title: 'Nouveau courtier' },
+        { title: 'Nouveau courtier', href: '/admin/brokers/create' },
     ];
 
     const { data, setData, post, processing, errors } = useForm({
@@ -42,8 +43,10 @@ export default function BrokerCreate({ tenants, defaultTenantId }: Props) {
         address:          '',
         city:             '',
         country_code:     'CI',
+        commission_rate:  '',
         is_active:        true,
         tenant_id:        defaultTenantId ?? '',
+        additional_tenant_ids: [] as string[],
     });
 
     const submit = (e: React.FormEvent) => {
@@ -57,7 +60,7 @@ export default function BrokerCreate({ tenants, defaultTenantId }: Props) {
             <BrokerForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
-                tenants={tenants}
+                tenants={tenants} allTenants={allTenants}
                 submitLabel="Créer le courtier"
                 heroTitle="Nouveau courtier"
                 heroSub="Enregistrez un nouveau courtier ou partenaire étranger"
@@ -67,7 +70,14 @@ export default function BrokerCreate({ tenants, defaultTenantId }: Props) {
 }
 
 // ── Formulaire partagé ────────────────────────────────────────
-export function BrokerForm({ data, setData, errors, processing, onSubmit, tenants, submitLabel, heroTitle, heroSub }: any) {
+export function BrokerForm({ data, setData, errors, processing, onSubmit, tenants, allTenants, submitLabel, heroTitle, heroSub }: any) {
+    const toggleAdditionalTenant = (id: string) => {
+        const current: string[] = data.additional_tenant_ids ?? [];
+        setData('additional_tenant_ids', current.includes(id)
+            ? current.filter((t: string) => t !== id)
+            : [...current, id]);
+    };
+
     return (
         <>
             <style>{`
@@ -151,7 +161,7 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
 
                                 {tenants?.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Filiale</Label>
+                                        <Label className="bf-label">Filiale principale</Label>
                                         <select className="bf-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
                                             <option value="">Sélectionnez une filiale</option>
                                             {tenants.map((t: any) => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
@@ -159,6 +169,50 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                                         <InputError message={errors.tenant_id}/>
                                     </div>
                                 )}
+
+                                {allTenants?.length > 0 && (
+                                    <div className="grid gap-2">
+                                        <Label className="bf-label">Filiales supplémentaires</Label>
+                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: -6, marginBottom: 2 }}>
+                                            Ce courtier pourra également opérer dans les filiales cochées ci-dessous
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto', border: '1.5px solid #e2e8f0', borderRadius: 9, padding: 10 }}>
+                                            {allTenants
+                                                .filter((t: any) => t.id !== data.tenant_id)
+                                                .map((t: any) => (
+                                                    <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1e293b', cursor: 'pointer' }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={(data.additional_tenant_ids ?? []).includes(t.id)}
+                                                            onChange={() => toggleAdditionalTenant(t.id)}
+                                                        />
+                                                        {t.name} ({t.code})
+                                                    </label>
+                                                ))}
+                                        </div>
+                                        <InputError message={errors.additional_tenant_ids}/>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* ── Commission ── */}
+                        <div className="bf-card">
+                            <div className="bf-card-hdr">
+                                <div className="bf-card-ttl">Commission</div>
+                                <div className="bf-card-sub">Taux standard appliqué par défaut sur les contrats de ce courtier</div>
+                            </div>
+                            <div className="bf-card-body">
+                                <div className="grid gap-2">
+                                    <Label className="bf-label">Commission standard — %</Label>
+                                    <Input className="h-11" type="number" step="0.01" min={0} max={100}
+                                           value={data.commission_rate} onChange={e => setData('commission_rate', e.target.value)}
+                                           placeholder="ex: 5"/>
+                                    <InputError message={errors.commission_rate}/>
+                                    <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                                        Utilisé automatiquement à l'émission des certificats, sauf si un taux spécifique est défini sur le contrat.
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

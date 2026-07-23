@@ -190,8 +190,38 @@ class TenantController extends Controller
     public function config(Tenant $tenant): Response
     {
         return Inertia::render('admin/tenants/config', [
-            'tenant' => $tenant,
+            'tenant'        => $tenant,
+            'moduleRegistry' => Tenant::MODULES,
         ]);
+    }
+
+    // ── Modules métier activables/désactivables par filiale ───
+    public function updateModules(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $validated = $request->validate([
+            'modules'   => ['required', 'array'],
+            'modules.*' => ['boolean'],
+        ]);
+
+        $modules = collect($validated['modules'])
+            ->only(array_keys(Tenant::MODULES))
+            ->map(fn ($enabled) => (bool) $enabled)
+            ->toArray();
+
+        $tenant->update(['modules' => $modules]);
+
+        AuditLog::create([
+            'tenant_id'   => null,
+            'user_id'     => $request->user()->id,
+            'action'      => 'tenant_modules_updated',
+            'entity_type' => 'tenant',
+            'entity_id'   => $tenant->id,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => $request->userAgent(),
+            'new_values'  => $modules,
+        ]);
+
+        return back()->with('status', "Modules de {$tenant->name} mis à jour.");
     }
 
         // ── Upload logo filiale ──────────────────────────────────

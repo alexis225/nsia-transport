@@ -1,21 +1,24 @@
 import { Head, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { FileText, Check, Plus, X } from 'lucide-react';
+import { useState } from 'react';
+import { AmountInput } from '@/components/amount-input';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { FileText, Check, Plus, X } from 'lucide-react';
-import { useState } from 'react';
 
 interface Tenant        { id: string; name: string; code: string; currency_code: string; }
-interface Broker        { id: string; name: string; code: string; type: string; }
+interface Broker        { id: string; name: string; code: string; type: string; commission_rate: string | null; }
 interface Incoterm      { code: string; name: string; }
 interface TransportMode { id: number; code: string; name_fr: string; }
+interface Subscriber    { id: string; first_name: string; last_name: string; }
 
 interface Props {
     tenants:         Tenant[];
     brokers:         Broker[];
+    subscribers:     Subscriber[];
     incoterms:       Incoterm[];
     transportModes:  TransportMode[];
     currencies:      string[];
@@ -27,10 +30,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Nouveau contrat' },
 ];
 
-export default function ContractCreate({ tenants, brokers, incoterms, transportModes, currencies, defaultTenantId }: Props) {
+export default function ContractCreate({ tenants, brokers, subscribers, incoterms, transportModes, currencies, defaultTenantId }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         tenant_id:              defaultTenantId ?? '',
         broker_id:              '',
+        commission_rate:        '',
+        subscriber_id:          '',
         type:                   'OPEN_POLICY',
         insured_name:           '',
         insured_address:        '',
@@ -38,13 +43,15 @@ export default function ContractCreate({ tenants, brokers, incoterms, transportM
         insured_phone:          '',
         currency_code:          'XOF',
         subscription_limit:     '',
+        plein:                  '',
+        escalade_enabled:       true,
+        escalade_threshold_pct: '',
         premium_rate:           '',
         deductible:             '0',
         rate_ro:                '',
         rate_rg:                '',
         rate_surprime:          '',
         rate_accessories:       '',
-        rate_tax:               '',
         coverage_type:          'TOUS_RISQUES',
         clauses:                [] as string[],
         exclusions:             [] as string[],
@@ -71,7 +78,7 @@ export default function ContractCreate({ tenants, brokers, incoterms, transportM
             <ContractForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
-                tenants={tenants} brokers={brokers}
+                tenants={tenants} brokers={brokers} subscribers={subscribers}
                 incoterms={incoterms} transportModes={transportModes}
                 currencies={currencies}
                 heroTitle="Nouveau contrat d'assurance transport"
@@ -82,25 +89,8 @@ export default function ContractCreate({ tenants, brokers, incoterms, transportM
     );
 }
 
-// ── Formulaire partagé ────────────────────────────────────────
-export function ContractForm({ data, setData, errors, processing, onSubmit,
-    tenants, brokers, incoterms, transportModes, currencies,
-    heroTitle, heroSub, submitLabel }: any) {
-
-    const [clauseInput, setClauseInput]       = useState('');
-    const [exclusionInput, setExclusionInput] = useState('');
-
-    const addToList = (field: string, value: string, setter: (v: string) => void) => {
-        if (!value.trim()) return;
-        setData(field, [...(data[field] ?? []), value.trim()]);
-        setter('');
-    };
-
-    const removeFromList = (field: string, index: number) => {
-        setData(field, (data[field] ?? []).filter((_: any, i: number) => i !== index));
-    };
-
-    const Toggle = ({ field, label, hint }: any) => (
+function Toggle({ data, setData, field, label, hint }: any) {
+    return (
         <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 13px', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, cursor:'pointer' }}
              onClick={() => setData(field, !data[field])}>
             <div style={{ width:36, height:20, borderRadius:10, background: data[field] ? '#1e3a8a' : '#e2e8f0', position:'relative', transition:'background .2s', flexShrink:0 }}>
@@ -112,29 +102,60 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
             </div>
         </div>
     );
+}
 
-    const TagList = ({ field, input, setInput, placeholder }: any) => (
+function TagList({ data, setData, field, input, setInput, placeholder }: any) {
+    const addToList = () => {
+        if (!input.trim()) {
+            return;
+        }
+
+        setData(field, [...(data[field] ?? []), input.trim()]);
+        setInput('');
+    };
+
+    const removeFromList = (index: number) => {
+        setData(field, (data[field] ?? []).filter((_: any, i: number) => i !== index));
+    };
+
+    return (
         <div>
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:6 }}>
                 {(data[field] ?? []).map((item: string, i: number) => (
                     <span key={i} style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'3px 8px', background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:8, fontSize:11, color:'#1d4ed8' }}>
                         {item}
-                        <button type="button" onClick={() => removeFromList(field, i)} style={{ background:'none', border:'none', cursor:'pointer', color:'#64748b', padding:0, display:'flex' }}><X size={10}/></button>
+                        <button type="button" onClick={() => removeFromList(i)} style={{ background:'none', border:'none', cursor:'pointer', color:'#64748b', padding:0, display:'flex' }}><X size={10}/></button>
                     </span>
                 ))}
             </div>
             <div style={{ display:'flex', gap:6 }}>
                 <input value={input} onChange={e => setInput(e.target.value)}
-                       onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addToList(field, input, setInput); }}}
+                       onKeyDown={e => {
+                           if (e.key === 'Enter') {
+                               e.preventDefault();
+                               addToList();
+                           }
+                       }}
                        placeholder={placeholder}
                        style={{ flex:1, padding:'8px 12px', fontSize:12, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:8, outline:'none' }}/>
-                <button type="button" onClick={() => addToList(field, input, setInput)}
+                <button type="button" onClick={addToList}
                         style={{ padding:'8px 12px', background:'#1e3a8a', border:'none', borderRadius:8, color:'#fff', cursor:'pointer', fontSize:12, fontFamily:'inherit', display:'flex', alignItems:'center', gap:4 }}>
                     <Plus size={12}/> Ajouter
                 </button>
             </div>
         </div>
     );
+}
+
+// ── Formulaire partagé ────────────────────────────────────────
+export function ContractForm({ data, setData, errors, processing, onSubmit,
+    tenants, brokers, subscribers, incoterms, transportModes, currencies,
+    heroTitle, heroSub, submitLabel }: any) {
+
+    const [clauseInput, setClauseInput]       = useState('');
+    const [exclusionInput, setExclusionInput] = useState('');
+
+    const selectedBroker = brokers?.find((b: Broker) => b.id === data.broker_id);
 
     return (
         <>
@@ -156,7 +177,7 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                 .cf-label{font-size:10.5px !important;font-weight:600 !important;text-transform:uppercase !important;letter-spacing:.08em !important;color:#64748b !important;}
                 .cf-select{width:100%;height:44px;padding:0 12px;font-size:13px;font-family:inherit;color:#1e293b;background:#fff;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;cursor:pointer;}
                 .cf-textarea{width:100%;padding:10px 13px;font-size:13px;font-family:inherit;color:#1e293b;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;resize:vertical;box-sizing:border-box;}
-                .rate-group{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+                .rate-group{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
             `}</style>
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
@@ -198,13 +219,35 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                         </select>
                                     </div>
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label className="cf-label">Courtier (optionnel)</Label>
-                                    <select className="cf-select" value={data.broker_id ?? ''} onChange={e => setData('broker_id', e.target.value)}>
-                                        <option value="">Sans courtier</option>
-                                        {brokers?.map((b: Broker) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
-                                    </select>
+                                <div className="form-grid">
+                                    <div className="grid gap-2">
+                                        <Label className="cf-label">Courtier (optionnel)</Label>
+                                        <select className="cf-select" value={data.broker_id ?? ''} onChange={e => setData('broker_id', e.target.value)}>
+                                            <option value="">Sans courtier</option>
+                                            {brokers?.map((b: Broker) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label className="cf-label">Souscripteur (optionnel)</Label>
+                                        <select className="cf-select" value={data.subscriber_id ?? ''} onChange={e => setData('subscriber_id', e.target.value)}>
+                                            <option value="">Non assigné</option>
+                                            {subscribers?.map((s: Subscriber) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
+                                {data.broker_id && (
+                                    <div className="grid gap-2">
+                                        <Label className="cf-label">Commission courtier pour ce contrat — % (optionnel)</Label>
+                                        <Input className="h-11" type="number" step="0.01" min={0} max={100}
+                                               value={data.commission_rate ?? ''} onChange={e => setData('commission_rate', e.target.value)}
+                                               placeholder="Laisser vide = taux général du courtier"/>
+                                        <InputError message={errors.commission_rate}/>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                            Commission standard de {selectedBroker?.name ?? 'ce courtier'} : {selectedBroker?.commission_rate ?? '—'}%.
+                                            Si renseigné ci-dessus, ce taux remplace le taux standard pour ce contrat uniquement.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -300,11 +343,11 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                 </div>
                                 <div className="grid gap-2">
                                     <Label className="cf-label">Clauses</Label>
-                                    <TagList field="clauses" input={clauseInput} setInput={setClauseInput} placeholder="ex: Clause grève, Clause guerre…"/>
+                                    <TagList data={data} setData={setData} field="clauses" input={clauseInput} setInput={setClauseInput} placeholder="ex: Clause grève, Clause guerre…"/>
                                 </div>
                                 <div className="grid gap-2">
                                     <Label className="cf-label">Exclusions</Label>
-                                    <TagList field="exclusions" input={exclusionInput} setInput={setExclusionInput} placeholder="ex: Vice propre, Défaut d'emballage…"/>
+                                    <TagList data={data} setData={setData} field="exclusions" input={exclusionInput} setInput={setExclusionInput} placeholder="ex: Vice propre, Défaut d'emballage…"/>
                                 </div>
                             </div>
                         </div>
@@ -324,7 +367,7 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="cf-label">Plafond NN300</Label>
-                                        <Input className="h-11" type="number" min={0} value={data.subscription_limit ?? ''} onChange={e => setData('subscription_limit', e.target.value)} placeholder="Illimité si vide"/>
+                                        <AmountInput className="h-11" value={data.subscription_limit ?? ''} onChange={v => setData('subscription_limit', v)} placeholder="Illimité si vide"/>
                                     </div>
                                 </div>
                                 <div className="form-grid">
@@ -334,7 +377,7 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="cf-label">Franchise</Label>
-                                        <Input className="h-11" type="number" min={0} value={data.deductible ?? '0'} onChange={e => setData('deductible', e.target.value)}/>
+                                        <AmountInput className="h-11" value={data.deductible ?? '0'} onChange={v => setData('deductible', v)}/>
                                     </div>
                                 </div>
                                 <div>
@@ -345,7 +388,6 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                             { field:'rate_rg',          label:'R.G.' },
                                             { field:'rate_surprime',    label:'Surprime' },
                                             { field:'rate_accessories', label:'Access.' },
-                                            { field:'rate_tax',         label:'Taxe' },
                                         ].map(({ field, label }) => (
                                             <div key={field} className="grid gap-1">
                                                 <label style={{ fontSize:10, color:'#94a3b8', fontWeight:600, textTransform:'uppercase' }}>{label}</label>
@@ -356,11 +398,38 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                             </div>
                                         ))}
                                     </div>
+                                    <p style={{ fontSize:11, color:'#94a3b8', marginTop:6 }}>
+                                        La taxe n'est plus saisie ici — elle est calculée automatiquement à l'émission depuis le référentiel de taxes (Taxes &gt; Référentiel), selon le mode de transport et le pays de destination du certificat.
+                                    </p>
                                 </div>
                                 <div className="grid gap-2">
                                     <Label className="cf-label">Limite de certificats</Label>
                                     <Input className="h-11" type="number" min={1} value={data.certificates_limit ?? ''} onChange={e => setData('certificates_limit', e.target.value)} placeholder="Illimité si vide"/>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* ── Paramètres métiers & Escalade ── */}
+                        <div className="cf-card">
+                            <div className="cf-card-hdr">
+                                <div className="cf-card-ttl">Paramètres métiers & Escalade</div>
+                                <div className="cf-card-sub">Plafond par certificat et déclenchement automatique de la validation NN300</div>
+                            </div>
+                            <div className="cf-card-body">
+                                <div className="grid gap-2">
+                                    <Label className="cf-label">Plein du contrat</Label>
+                                    <AmountInput className="h-11" value={data.plein ?? ''} onChange={v => setData('plein', v)} placeholder="Plafond max assurable par certificat"/>
+                                    <InputError message={errors.plein}/>
+                                </div>
+                                <Toggle data={data} setData={setData} field="escalade_enabled" label="Escalade automatique activée"
+                                        hint="Déclenche une validation NN300 si la valeur assurée dépasse le seuil ci-dessous"/>
+                                {data.escalade_enabled && (
+                                    <div className="grid gap-2">
+                                        <Label className="cf-label">Seuil d'escalade (%)</Label>
+                                        <Input className="h-11" type="number" step="0.01" min={0} max={100} value={data.escalade_threshold_pct ?? ''} onChange={e => setData('escalade_threshold_pct', e.target.value)} placeholder="15% par défaut"/>
+                                        <InputError message={errors.escalade_threshold_pct}/>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -370,7 +439,7 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                 <div className="cf-card-ttl">Options & Notes</div>
                             </div>
                             <div className="cf-card-body">
-                                <Toggle field="requires_approval" label="Approbation requise"
+                                <Toggle data={data} setData={setData} field="requires_approval" label="Approbation requise"
                                         hint="Le contrat devra être approuvé par un superviseur avant activation"/>
                                 <div className="grid gap-2">
                                     <Label className="cf-label">Notes internes</Label>

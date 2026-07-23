@@ -1,5 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import { Award, BarChart2, FileText, TrendingDown, TrendingUp, Users, ArrowRight } from 'lucide-react';
+import {
+    Award, BarChart2, FileText, TrendingDown, TrendingUp, Users, ArrowRight,
+    Building2, Inbox, Clock, CheckCircle2,
+} from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -11,15 +14,23 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface KPI         { label: string; value: string; change: number; sub: string }
 interface RecentCert  { id: string; number: string; client: string; amount: string; status: string; date: string }
 interface TopBroker   { name: string; count: number; amount: string }
+interface TopEntry    { name: string; count: number; amount: string }
 interface MonthData   { month: string; issued: number; amount: number }
+interface OperationalStats { received: number; pending: number; processed: number }
 
 interface Props {
-    kpis:        KPI[];
-    recentCerts: RecentCert[];
-    topBrokers:  TopBroker[];
-    monthlyData: MonthData[];
-    period:      string;
-    tenantName:  string;
+    kpis:               KPI[];
+    recentCerts:        RecentCert[];
+    topBrokers:         TopBroker[];
+    topInsured:         TopEntry[];
+    topFiliales:        TopEntry[];
+    monthlyData:        MonthData[];
+    period:             string;
+    tenantName:         string;
+    isSA:               boolean;
+    brokersActiveTotal: number;
+    primeAllTime:       string;
+    operationalStats:   OperationalStats;
 }
 
 const STATUS: Record<string, { bg: string; color: string; label: string }> = {
@@ -48,7 +59,10 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
     );
 }
 
-export default function Dashboard({ kpis, recentCerts, topBrokers, monthlyData, period, tenantName }: Props) {
+export default function Dashboard({
+    kpis, recentCerts, topBrokers, topInsured, topFiliales, monthlyData, period, tenantName,
+    isSA, brokersActiveTotal, primeAllTime, operationalStats,
+}: Props) {
 
     const maxAmt     = Math.max(...monthlyData.map(m => m.amount), 1);
     const sparkData  = monthlyData.map(m => m.issued);
@@ -121,6 +135,18 @@ export default function Dashboard({ kpis, recentCerts, topBrokers, monthlyData, 
                 .b-bar      { height:100%; background:linear-gradient(90deg,#60a5fa,#1d4ed8); border-radius:2px; }
                 .b-amount   { font-size:11px; color:#1d4ed8; font-weight:600; flex-shrink:0; }
 
+                .row3 { display:grid; gap:12px; }
+
+                .mini-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+                .ops-stats  { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+                .mini-card  { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:14px 18px; display:flex; align-items:center; gap:12px; }
+                .mini-ico   { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+                .mini-val   { font-size:18px; font-weight:700; color:#1e293b; }
+                .mini-lbl   { font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:.08em; }
+
+                .section-ttl { font-size:13px; font-weight:600; color:#1e293b; display:flex; align-items:center; gap:6px; margin-bottom:2px; }
+                .section-sub { font-size:11px; color:#94a3b8; margin-bottom:12px; }
+
                 .tbl-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
                 .tbl-hdr  { padding:14px 18px; border-bottom:1px solid #f8fafc; display:flex; align-items:center; justify-content:space-between; }
                 .tbl-ttl  { font-size:13px; font-weight:600; color:#1e293b; }
@@ -134,8 +160,8 @@ export default function Dashboard({ kpis, recentCerts, topBrokers, monthlyData, 
 
                 .empty-state { padding:32px; text-align:center; color:#94a3b8; font-size:13px; }
 
-                @media(max-width:1024px) { .kpi-grid{grid-template-columns:repeat(2,1fr);} .row2{grid-template-columns:1fr;} }
-                @media(max-width:640px)  { .kpi-grid{grid-template-columns:1fr 1fr;} }
+                @media(max-width:1024px) { .kpi-grid{grid-template-columns:repeat(2,1fr);} .row2{grid-template-columns:1fr;} .row3{grid-template-columns:1fr !important;} .ops-stats{grid-template-columns:1fr;} }
+                @media(max-width:640px)  { .kpi-grid{grid-template-columns:1fr 1fr;} .mini-stats{grid-template-columns:1fr;} }
             `}</style>
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -183,6 +209,24 @@ export default function Dashboard({ kpis, recentCerts, topBrokers, monthlyData, 
                                 </div>
                             );
                         })}
+                    </div>
+
+                    {/* ── Indicateurs complémentaires ──────────── */}
+                    <div className="mini-stats">
+                        <div className="mini-card">
+                            <div className="mini-ico" style={{ background:'#eff6ff' }}><Users size={17} color="#3b82f6"/></div>
+                            <div>
+                                <div className="mini-val">{brokersActiveTotal}</div>
+                                <div className="mini-lbl">Courtiers actifs (total)</div>
+                            </div>
+                        </div>
+                        <div className="mini-card">
+                            <div className="mini-ico" style={{ background:'#f0fdf4' }}><Award size={17} color="#22c55e"/></div>
+                            <div>
+                                <div className="mini-val">{primeAllTime}</div>
+                                <div className="mini-lbl">Primes émises (cumul)</div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* ── Graphique mensuel + Top courtiers ───── */}
@@ -262,6 +306,73 @@ export default function Dashboard({ kpis, recentCerts, topBrokers, monthlyData, 
                         </div>
                     </div>
 
+                    {/* ── Top assurés + Top filiales ───────────── */}
+                    <div className="row3" style={{ gridTemplateColumns: isSA ? '1fr 1fr' : '1fr' }}>
+                        <div className="chart-card">
+                            <div className="chart-hdr">
+                                <span className="chart-ttl">Top assurés</span>
+                            </div>
+                            <p className="chart-sub">Par volume · ce mois</p>
+                            {topInsured.length === 0 ? (
+                                <div className="empty-state" style={{ padding: '16px 0' }}>
+                                    Aucune émission ce mois
+                                </div>
+                            ) : (
+                                <div className="brokers">
+                                    {topInsured.map((t, i) => (
+                                        <div key={i} className="broker-row">
+                                            <div className="b-rank">{i + 1}</div>
+                                            <div style={{ flex: 1, overflow: 'hidden' }}>
+                                                <div className="b-name">{t.name}</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                                                    <div className="b-bar-bg">
+                                                        <div className="b-bar"
+                                                             style={{ width: `${(t.count / (topInsured[0]?.count || 1)) * 100}%` }}/>
+                                                    </div>
+                                                    <span className="b-count">{t.count}</span>
+                                                </div>
+                                            </div>
+                                            <span className="b-amount">{t.amount}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {isSA && (
+                            <div className="chart-card">
+                                <div className="chart-hdr">
+                                    <span className="chart-ttl"><Building2 size={14} color="#1d4ed8"/> Top 3 filiales</span>
+                                </div>
+                                <p className="chart-sub">Par volume · ce mois</p>
+                                {topFiliales.length === 0 ? (
+                                    <div className="empty-state" style={{ padding: '16px 0' }}>
+                                        Aucune émission ce mois
+                                    </div>
+                                ) : (
+                                    <div className="brokers">
+                                        {topFiliales.map((t, i) => (
+                                            <div key={i} className="broker-row">
+                                                <div className="b-rank">{i + 1}</div>
+                                                <div style={{ flex: 1, overflow: 'hidden' }}>
+                                                    <div className="b-name">{t.name}</div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                                                        <div className="b-bar-bg">
+                                                            <div className="b-bar"
+                                                                 style={{ width: `${(t.count / (topFiliales[0]?.count || 1)) * 100}%` }}/>
+                                                        </div>
+                                                        <span className="b-count">{t.count}</span>
+                                                    </div>
+                                                </div>
+                                                <span className="b-amount">{t.amount}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     {/* ── Certificats récents ──────────────────── */}
                     <div className="tbl-card">
                         <div className="tbl-hdr">
@@ -312,6 +423,35 @@ export default function Dashboard({ kpis, recentCerts, topBrokers, monthlyData, 
                                 </tbody>
                             </table>
                         )}
+                    </div>
+
+                    {/* ── Suivi opérationnel ────────────────────── */}
+                    <div className="chart-card">
+                        <span className="section-ttl"><Inbox size={14} color="#1d4ed8"/> Suivi opérationnel</span>
+                        <p className="section-sub">Demandes de certificats — portail partenaires</p>
+                        <div className="ops-stats">
+                            <div className="mini-card">
+                                <div className="mini-ico" style={{ background:'#eff6ff' }}><Inbox size={17} color="#3b82f6"/></div>
+                                <div>
+                                    <div className="mini-val">{operationalStats.received}</div>
+                                    <div className="mini-lbl">Demandes reçues</div>
+                                </div>
+                            </div>
+                            <div className="mini-card">
+                                <div className="mini-ico" style={{ background:'#fffbeb' }}><Clock size={17} color="#d97706"/></div>
+                                <div>
+                                    <div className="mini-val">{operationalStats.pending}</div>
+                                    <div className="mini-lbl">Demandes en attente</div>
+                                </div>
+                            </div>
+                            <div className="mini-card">
+                                <div className="mini-ico" style={{ background:'#f0fdf4' }}><CheckCircle2 size={17} color="#22c55e"/></div>
+                                <div>
+                                    <div className="mini-val">{operationalStats.processed}</div>
+                                    <div className="mini-lbl">Demandes traitées</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>

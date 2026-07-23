@@ -21,6 +21,7 @@ interface GuceCertificate {
     transit_date: string | null;
     insured_value: string | null;
     currency: string;
+    net_premium: string | null;
     total_premium: string | null;
     file_original_name: string;
     file_mime_type: string | null;
@@ -176,11 +177,17 @@ export default function GuceCertificatesShow({ certificate: cert }: Props) {
                 {/* Valeurs financières */}
                 <div style={sectionStyle}>
                     <h2 style={titleStyle}><DollarSign size={15} />Valeurs financières</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
                         <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '6px', textAlign: 'center' }}>
                             <p style={{ ...fieldLabel, textAlign: 'center' }}>Valeur assurée</p>
                             <p style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                                 {formatCurrency(cert.insured_value)}
+                            </p>
+                        </div>
+                        <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '6px', textAlign: 'center' }}>
+                            <p style={{ ...fieldLabel, textAlign: 'center' }}>Prime nette</p>
+                            <p style={{ fontSize: '18px', fontWeight: 700, color: '#374151', margin: 0 }}>
+                                {formatCurrency(cert.net_premium)}
                             </p>
                         </div>
                         <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '6px', textAlign: 'center' }}>

@@ -2,6 +2,8 @@
 
 use App\Http\Middleware\CheckIpBlacklist;
 use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\EnsureModuleEnabled;
+use App\Http\Middleware\EnsureStaffAccess;
 use App\Http\Middleware\EnsureTenantIsolation;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -29,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission'       => CheckPermission::class,
             'tenant.isolation' => EnsureTenantIsolation::class,
+            'staff.only'       => EnsureStaffAccess::class,
+            'module'           => EnsureModuleEnabled::class,
             'tenant.context'   => SetTenantContext::class,   // US-052
             'role'             => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

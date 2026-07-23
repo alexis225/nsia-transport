@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\AsEncryptedString;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,10 +25,11 @@ class InsuranceContract extends Model
     protected $table = 'insurance_contracts';
 
     protected $fillable = [
-        'tenant_id', 'broker_id',
+        'tenant_id', 'broker_id', 'subscriber_id',
         'contract_number', 'type',
         'insured_name', 'insured_address', 'insured_email', 'insured_phone',
         'currency_code', 'subscription_limit', 'used_limit',
+        'plein', 'escalade_enabled', 'escalade_threshold_pct',
         'premium_rate', 'deductible',
         'rate_ro', 'rate_rg', 'rate_surprime', 'rate_accessories', 'rate_tax',
         'coverage_type', 'clauses', 'exclusions',
@@ -51,6 +51,9 @@ class InsuranceContract extends Model
         'requires_approval'  => 'boolean',
         'subscription_limit' => 'decimal:2',
         'used_limit'         => 'decimal:2',
+        'plein'              => 'decimal:2',
+        'escalade_enabled'   => 'boolean',
+        'escalade_threshold_pct' => 'decimal:2',
         'premium_rate'       => 'decimal:5',
         'deductible'         => 'decimal:2',
         'rate_ro'            => 'decimal:4',
@@ -65,8 +68,8 @@ class InsuranceContract extends Model
         'certificates_limit' => 'integer',
         'notice_period_days' => 'integer',
         // US-051 — Chiffrement données PII (non-queryables)
-        'insured_address'    => AsEncryptedString::class,
-        'insured_phone'      => AsEncryptedString::class,
+        'insured_address'    => 'encrypted',
+        'insured_phone'      => 'encrypted',
     ];
 
     // ── Constantes ────────────────────────────────────────────
@@ -93,6 +96,12 @@ class InsuranceContract extends Model
     public function broker(): BelongsTo
     {
         return $this->belongsTo(Broker::class);
+    }
+
+    // Souscripteur en charge du contrat
+    public function subscriber(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'subscriber_id');
     }
 
     public function transportMode(): BelongsTo
@@ -144,6 +153,29 @@ class InsuranceContract extends Model
             && ($this->subscription_limit === null || (float) $this->used_limit < (float) $this->subscription_limit);
     }
 
+    // Garde-fou minimal pour l'émission de certificats : ne vérifie que le
+    // statut du contrat, PAS les plafonds cumulés (ceux-ci déclenchent
+    // désormais une escalade NN300 au lieu d'un blocage — cf. canIssue()
+    // qui reste utilisé tel quel pour l'affichage du badge de statut).
+    public function isActiveAndValid(): bool
+    {
+        return $this->isActive() && ! $this->isExpired();
+    }
+
+    // Le certificat en cours de soumission ferait-il dépasser le plafond
+    // NN300 cumulé (subscription_limit) une fois sa valeur ajoutée ?
+    public function exceedsSubscriptionLimit(float $additionalValue = 0): bool
+    {
+        if ($this->subscription_limit === null) return false;
+        return ((float) $this->used_limit + $additionalValue) > (float) $this->subscription_limit;
+    }
+
+    public function reachedCertificatesLimit(): bool
+    {
+        if ($this->certificates_limit === null) return false;
+        return $this->certificates_count >= $this->certificates_limit;
+    }
+
     public function remainingLimit(): ?float
     {
         if ($this->subscription_limit === null) return null;
@@ -154,6 +186,14 @@ class InsuranceContract extends Model
     {
         if (! $this->subscription_limit || (float) $this->subscription_limit === 0.0) return 0;
         return min(100, round(((float) $this->used_limit / (float) $this->subscription_limit) * 100, 1));
+    }
+
+    // Le "plein" est le plafond assurable pour UN certificat (distinct du
+    // plafond NN300 cumulé ci-dessus). Null = pas de plein défini.
+    public function exceedsPlein(float $insuredValue): bool
+    {
+        if ($this->plein === null || (float) $this->plein <= 0) return false;
+        return $insuredValue > (float) $this->plein;
     }
 
     /**

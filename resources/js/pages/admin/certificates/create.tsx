@@ -1,23 +1,48 @@
 import { Head, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Award, Plus, Trash2, Check } from 'lucide-react';
+import { useEffect } from 'react';
+import { AmountInput } from '@/components/amount-input';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
+import { amountInWords } from '@/lib/number-to-words-fr';
 import type { BreadcrumbItem } from '@/types';
-import { Award, Plus, Trash2, Check } from 'lucide-react';
 
 interface Contract {
     id: string; contract_number: string; insured_name: string;
-    currency_code: string; rate_ro: string | null; rate_rg: string | null;
+    insured_address: string | null; insured_email: string | null; insured_phone: string | null;
+    currency_code: string; type: string; coverage_type: string | null;
+    rate_ro: string | null; rate_rg: string | null;
     rate_surprime: string | null; rate_accessories: string | null; rate_tax: string | null;
     subscription_limit: string | null; used_limit: string;
+    plein: string | null; certificates_limit: number | null; certificates_count: number;
+    active_certificates_count: number;
     tenant: { name: string; code: string } | null;
+    broker: { name: string; commission_rate: string | null } | null;
+    subscriber: { first_name: string; last_name: string } | null;
+    transport_mode: { code: string; name_fr: string } | null;
+    transport_mode_detail: string | null;
 }
+
+const CONTRACT_TYPE_LABELS: Record<string, string> = {
+    OPEN_POLICY:   'Police ouverte',
+    VOYAGE:        'Au voyage',
+    ANNUAL_VOYAGE: 'Annuel voyages',
+};
+
+const COVERAGE_LABELS: Record<string, string> = {
+    TOUS_RISQUES: 'Tous risques',
+    FAP_SAUF:     'FAP sauf',
+    FAP_ABSOLUE:  'FAP absolue',
+};
+interface Country { code: string; name_fr: string; }
 interface Props {
     contracts:        Contract[];
     selectedContract: Contract | null;
     defaultTenantId:  string | null;
+    countries:        Country[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -35,7 +60,7 @@ const emptyItem = (): ExpeditionItem => ({
     weight: '', nature: '', packaging: '', insured_value: '',
 });
 
-export default function CertificateCreate({ contracts, selectedContract, defaultTenantId }: Props) {
+export default function CertificateCreate({ contracts, selectedContract, defaultTenantId, countries }: Props) {
 
     const { data, setData, post, processing, errors } = useForm({
         contract_id:           selectedContract?.id ?? '',
@@ -45,6 +70,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
         voyage_from:           '',
         voyage_to:             '',
         voyage_via:            '',
+        destination_country_code: '',
         transport_type:        'SEA',
         vessel_name:           '',
         flight_number:         '',
@@ -59,10 +85,25 @@ export default function CertificateCreate({ contracts, selectedContract, default
 
     const selectedC = contracts.find(c => c.id === data.contract_id) ?? selectedContract;
 
+    // Un contrat "Au voyage" ne couvre qu'un seul déplacement — la création
+    // d'un 2e certificat est aussi bloquée côté serveur (store()).
+    const isVoyageLocked = selectedC?.type === 'VOYAGE' && selectedC.active_certificates_count > 0;
+
     // Recalcule la valeur totale depuis les items
     const totalValue = data.expedition_items.reduce((sum, item) => {
         return sum + (parseFloat(item.insured_value) || 0);
     }, 0);
+
+    // Nombre total de colis — aucune limite, autant de lignes que nécessaire
+    const totalPackages = data.expedition_items.reduce((sum, item) => {
+        return sum + (parseInt(item.package_count, 10) || 0);
+    }, 0);
+
+    // Conversion automatique du montant assuré en toutes lettres
+    useEffect(() => {
+        setData('insured_value_letters', totalValue > 0 ? amountInWords(totalValue, selectedC?.currency_code) : '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [totalValue, selectedC?.currency_code]);
 
     const updateItem = (i: number, field: keyof ExpeditionItem, value: string) => {
         const items = [...data.expedition_items];
@@ -144,8 +185,15 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                     <select className="cc-select" value={data.contract_id}
                                             onChange={e => {
                                                 const c = contracts.find(c => c.id === e.target.value);
+
                                                 setData('contract_id', e.target.value);
-                                                if (c) setData('insured_name', c.insured_name);
+
+                                                if (c) {
+                                                    setData('insured_name', c.insured_name);
+                                                    setData('guarantee_mode', COVERAGE_LABELS[c.coverage_type ?? ''] ?? '');
+                                                    setData('transport_type', c.transport_mode?.code ?? 'SEA');
+                                                    setData('voyage_mode', c.transport_mode_detail ?? '');
+                                                }
                                             }}>
                                         <option value="">Sélectionnez un contrat actif</option>
                                         {contracts.map(c => (
@@ -158,14 +206,48 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                 </div>
                                 {selectedC && (
                                     <div className="contract-info">
-                                        <div style={{ fontWeight:600, marginBottom:4 }}>{selectedC.contract_number}</div>
+                                        <div style={{ fontWeight:600, marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                                            {selectedC.contract_number}
+                                            <span style={{ fontWeight:500, fontSize:11, padding:'2px 8px', borderRadius:20, background:'#dbeafe', color:'#1e3a8a' }}>
+                                                {CONTRACT_TYPE_LABELS[selectedC.type] ?? selectedC.type}
+                                            </span>
+                                        </div>
                                         <div>Filiale : {selectedC.tenant?.name} · Devise : {selectedC.currency_code}</div>
+                                        <div style={{ marginTop:3 }}>Assuré : {selectedC.insured_name}</div>
+                                        <div style={{ marginTop:3 }}>
+                                            Souscripteur : {selectedC.subscriber ? `${selectedC.subscriber.first_name} ${selectedC.subscriber.last_name}` : '—'}
+                                        </div>
+                                        {selectedC.insured_address && <div style={{ marginTop:3 }}>Adresse : {selectedC.insured_address}</div>}
+                                        <div style={{ marginTop:3 }}>
+                                            Téléphone : {selectedC.insured_phone ?? '—'} · Email : {selectedC.insured_email ?? '—'}
+                                        </div>
+                                        <div style={{ marginTop:3 }}>
+                                            Commission courtier : {selectedC.broker ? `${selectedC.broker.name} (${selectedC.broker.commission_rate ?? 0} %)` : '—'}
+                                        </div>
                                         {selectedC.subscription_limit && (
                                             <div style={{ marginTop:3 }}>
-                                                Plafond : {parseFloat(selectedC.subscription_limit).toLocaleString('fr-FR')} {selectedC.currency_code}
+                                                Plafond NN300 : {parseFloat(selectedC.subscription_limit).toLocaleString('fr-FR')} {selectedC.currency_code}
                                                 {' · '}Utilisé : {parseFloat(selectedC.used_limit).toLocaleString('fr-FR')}
                                             </div>
                                         )}
+                                        <div style={{ marginTop:3 }}>
+                                            Certificats : {selectedC.certificates_count}{selectedC.certificates_limit ? ` / ${selectedC.certificates_limit}` : ''}
+                                        </div>
+                                        <div style={{ marginTop:3 }}>
+                                            Plein du contrat : {selectedC.plein ? `${parseFloat(selectedC.plein).toLocaleString('fr-FR')} ${selectedC.currency_code}` : 'Non défini'}
+                                        </div>
+                                    </div>
+                                )}
+                                {isVoyageLocked && (
+                                    <div style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#dc2626', display:'flex', alignItems:'center', gap:6 }}>
+                                        ⚠ Ce contrat « Au voyage » a déjà un certificat associé — il ne couvre qu'un seul déplacement.
+                                        Sélectionnez un autre contrat ou annulez le certificat existant.
+                                    </div>
+                                )}
+                                {selectedC?.plein && totalValue > parseFloat(selectedC.plein) && (
+                                    <div style={{ background:'#fff7ed', border:'1px solid #fed7aa', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#c2410c', display:'flex', alignItems:'center', gap:6 }}>
+                                        ⚠ La valeur assurée ({totalValue.toLocaleString('fr-FR')} {selectedC.currency_code}) dépasse le plein du contrat
+                                        ({parseFloat(selectedC.plein).toLocaleString('fr-FR')} {selectedC.currency_code}) — une validation NN300 sera requise à la soumission.
                                     </div>
                                 )}
                             </div>
@@ -237,11 +319,23 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                         <InputError message={errors.voyage_to}/>
                                     </div>
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label className="cc-label">Via</Label>
-                                    <Input className="h-11" value={data.voyage_via ?? ''}
-                                           onChange={e => setData('voyage_via', e.target.value)}
-                                           placeholder="Lieu de transit / transbordement"/>
+                                <div className="form-grid">
+                                    <div className="grid gap-2">
+                                        <Label className="cc-label">Via</Label>
+                                        <Input className="h-11" value={data.voyage_via ?? ''}
+                                               onChange={e => setData('voyage_via', e.target.value)}
+                                               placeholder="Lieu de transit / transbordement"/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label className="cc-label">Pays de destination</Label>
+                                        <select className="cc-select" value={data.destination_country_code ?? ''}
+                                                onChange={e => setData('destination_country_code', e.target.value)}>
+                                            <option value="">—</option>
+                                            {countries?.map(c => <option key={c.code} value={c.code}>{c.name_fr}</option>)}
+                                        </select>
+                                        <InputError message={errors.destination_country_code}/>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>Détermine le taux de taxe appliqué automatiquement.</p>
+                                    </div>
                                 </div>
                                 {(data.transport_type === 'SEA' || !data.transport_type) && (
                                     <div className="form-grid">
@@ -306,7 +400,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                                     <td style={{ width:80 }}><input className="exp-input" value={item.weight} onChange={e => updateItem(i, 'weight', e.target.value)} placeholder="500 kg"/></td>
                                                     <td><input className="exp-input" value={item.nature} onChange={e => updateItem(i, 'nature', e.target.value)} placeholder="Électronique"/></td>
                                                     <td><input className="exp-input" value={item.packaging} onChange={e => updateItem(i, 'packaging', e.target.value)} placeholder="Cartons"/></td>
-                                                    <td style={{ width:120 }}><input className="exp-input" type="number" min={0} value={item.insured_value} onChange={e => updateItem(i, 'insured_value', e.target.value)} placeholder="0"/></td>
+                                                    <td style={{ width:120 }}><AmountInput variant="plain" className="exp-input" value={item.insured_value} onChange={v => updateItem(i, 'insured_value', v)} placeholder="0"/></td>
                                                     <td style={{ width:36 }}>
                                                         {data.expedition_items.length > 1 && (
                                                             <button type="button" onClick={() => removeItem(i)}
@@ -328,6 +422,10 @@ export default function CertificateCreate({ contracts, selectedContract, default
 
                                 {/* Total */}
                                 <div className="total-bar">
+                                    <span className="total-label">Nombre total de colis</span>
+                                    <span className="total-value">{totalPackages.toLocaleString('fr-FR')}</span>
+                                </div>
+                                <div className="total-bar">
                                     <span className="total-label">Valeur totale d'assurance</span>
                                     <span className="total-value">
                                         {totalValue.toLocaleString('fr-FR')} {selectedC?.currency_code ?? ''}
@@ -336,9 +434,9 @@ export default function CertificateCreate({ contracts, selectedContract, default
 
                                 <div className="grid gap-2">
                                     <Label className="cc-label">Valeur totale en lettres</Label>
-                                    <Input className="h-11" value={data.insured_value_letters ?? ''}
-                                           onChange={e => setData('insured_value_letters', e.target.value)}
-                                           placeholder="ex: Cinq millions de francs CFA"/>
+                                    <Input className="h-11" readOnly value={data.insured_value_letters ?? ''}
+                                           style={{ background:'#f8fafc', color:'#475569', cursor:'default' }}
+                                           placeholder="Calculé automatiquement depuis la valeur assurée"/>
                                 </div>
                             </div>
                         </div>
@@ -377,7 +475,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
 
                         {/* Actions */}
                         <div style={{ display:'flex', gap:8 }}>
-                            <Button type="submit" disabled={processing}
+                            <Button type="submit" disabled={processing || isVoyageLocked}
                                     className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
                                 {processing ? 'Enregistrement…' : <><Award size={14}/> Créer le certificat</>}
                             </Button>

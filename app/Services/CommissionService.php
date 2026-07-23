@@ -36,27 +36,34 @@ class CommissionService
             ->first();
         if ($existing) return $existing;
 
-        // Trouver le taux applicable
+        // Trouver le taux applicable : règle contrat > règle générale courtier
         $rule = CommissionRule::findApplicable(
             $brokerId,
             $contract->id,
             $certificate->issued_at?->toDateString() ?? now()->toDateString()
         );
 
-        if (! $rule) return null; // pas de règle → pas de commission
+        // Dernier repli : taux standard du courtier (Broker::commission_rate)
+        // si aucune CommissionRule n'existe pour lui, ni générale ni contrat.
+        if (! $rule && $contract->broker?->commission_rate === null) {
+            return null; // vraiment aucun taux nulle part → pas de commission
+        }
+
+        $baseType          = $rule->base_type ?? CommissionRule::BASE_PRIME_TOTAL;
+        $customBaseAmount  = $rule?->custom_base_amount;
+        $ratePct           = (float) ($rule->rate_pct ?? $contract->broker->commission_rate);
 
         // ── Base de calcul configurable ──────────────────────────
-        $base = match ($rule->base_type) {
+        $base = match ($baseType) {
             'prime_total'   => (float) $certificate->prime_total,
             'insured_value' => (float) $certificate->insured_value,
-            'custom_amount' => (float) $rule->custom_base_amount,
+            'custom_amount' => (float) $customBaseAmount,
             default         => (float) $certificate->prime_total,
         };
 
         $primeBrute = $base; // prime brute = base choisie
         if ($primeBrute <= 0) return null;
 
-        $ratePct    = (float) $rule->rate_pct;
         $commission = round($primeBrute * $ratePct / 100, 2);
         $primeNette = round($primeBrute - $commission, 2);
         $period     = $certificate->issued_at?->format('Y-m') ?? now()->format('Y-m');
@@ -70,7 +77,7 @@ class CommissionService
                 'certificate_id'     => $certificate->id,
                 'contract_id'        => $contract->id,
                 'broker_id'          => $brokerId,
-                'commission_rule_id' => $rule->id,
+                'commission_rule_id' => $rule?->id,
                 'currency_code'      => $certificate->currency_code,
                 'prime_brute'        => $primeBrute,
                 'rate_pct'           => $ratePct,

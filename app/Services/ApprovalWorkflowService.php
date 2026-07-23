@@ -290,7 +290,7 @@ class ApprovalWorkflowService
 
         $approvers = $query->get();
 
-        Notification::notifyMany(
+        Notification::sendToMany(
             $approvers,
             'EscaladeNN300',
             "Escalade NN300 — {$label}",
@@ -326,7 +326,7 @@ class ApprovalWorkflowService
             ? "N° {$certificate->certificate_number} émis automatiquement."
             : "N° {$certificate->certificate_number}" . ($reason ? " — {$reason}" : '');
 
-        Notification::notify($creator, 'EscaladeDecision', $cfg['title'], $body, [
+        Notification::send($creator, 'EscaladeDecision', $cfg['title'], $body, [
             'icon'  => $cfg['icon'],
             'color' => $cfg['color'],
             'url'   => route('admin.certificates.show', $certificate),

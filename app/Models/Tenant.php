@@ -16,7 +16,7 @@ class Tenant extends Model
 
     protected $fillable = [
         'id', 'name', 'code', 'country_code','currency_code','is_active',
-        'settings', 'subscription_limit_config',
+        'settings', 'subscription_limit_config', 'modules',
         'logo_path',
     ];
 
@@ -24,7 +24,35 @@ class Tenant extends Model
         'is_active'                 => 'boolean',
         'settings'                  => 'array',
         'subscription_limit_config' => 'array',
+        'modules'                   => 'array',
     ];
+
+    // ── Modules métier activables/désactivables par filiale ────
+    // Une clé absente du JSON `modules` est considérée activée
+    // (permet d'ajouter de nouveaux modules sans migration de données).
+    const MODULES = [
+        'brokers'           => 'Courtiers & partenaires',
+        'coinsurers'        => 'Coassureurs',
+        'experts'           => 'Experts',
+        'contracts'         => 'Contrats',
+        'certificates'      => 'Certificats',
+        'guce_certificates' => 'Certificats GUCE',
+        'commissions'       => 'Commissions',
+        'taxes'             => 'Gestion des taxes',
+        'reports'           => 'Rapports',
+        'approvals'         => 'Escalades NN300',
+        'delegations'       => 'Délégations',
+        'certificate_templates' => 'Modèles de certificats',
+        'audit_logs'        => 'Audit Logs',
+        'notifications'     => 'Notifications',
+        'exports'           => 'Mes exports',
+        'kpi'               => 'KPI Filiale',
+    ];
+
+    public function hasModule(string $key): bool
+    {
+        return ($this->modules[$key] ?? true) !== false;
+    }
 
     protected static function newFactory(): TenantFactory
     {

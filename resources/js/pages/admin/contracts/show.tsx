@@ -19,6 +19,7 @@ interface Contract {
     incoterm_code: string | null; transport_mode_detail: string | null;
     currency_code: string; subscription_limit: string | null;
     used_limit: string; premium_rate: string | null; deductible: string;
+    plein: string | null; escalade_enabled: boolean; escalade_threshold_pct: string | null;
     rate_ro: string | null; rate_rg: string | null;
     rate_surprime: string | null; rate_accessories: string | null; rate_tax: string | null;
     effective_date: string; expiry_date: string; notice_period_days: number;
@@ -29,6 +30,7 @@ interface Contract {
     suspension_reason: string | null;
     tenant: { id: string; name: string; code: string; currency_code: string } | null;
     broker: { id: string; name: string; code: string; email: string | null; phone: string | null } | null;
+    subscriber: { id: string; first_name: string; last_name: string; email: string | null } | null;
     transport_mode: { code: string; name_fr: string } | null;
     created_by: { id: string; first_name: string; last_name: string } | null;
     approved_by: { id: string; first_name: string; last_name: string } | null;
@@ -300,6 +302,11 @@ export default function ContractShow({ contract, can }: Props) {
                                     <span className="info-value">{contract.broker?.name ?? '—'}</span>
                                     {contract.broker?.email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.broker.email}</span>}
                                 </div>
+                                <div className="info-item">
+                                    <span className="info-label">Souscripteur</span>
+                                    <span className="info-value">{contract.subscriber ? `${contract.subscriber.first_name} ${contract.subscriber.last_name}` : '—'}</span>
+                                    {contract.subscriber?.email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.subscriber.email}</span>}
+                                </div>
                                 {contract.insured_address && (
                                     <div className="info-item" style={{ gridColumn:'1/-1' }}>
                                         <span className="info-label">Adresse</span>
@@ -409,6 +416,22 @@ export default function ContractShow({ contract, can }: Props) {
                                 <div className="info-item">
                                     <span className="info-label">Franchise</span>
                                     <span className="info-value">{parseFloat(contract.deductible ?? '0').toLocaleString('fr-FR')} {contract.currency_code}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">Plein du contrat</span>
+                                    <span className="info-value">
+                                        {contract.plein
+                                            ? parseFloat(contract.plein).toLocaleString('fr-FR') + ' ' + contract.currency_code
+                                            : 'Non défini'}
+                                    </span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">Escalade NN300</span>
+                                    <span className="info-value">
+                                        {contract.escalade_enabled
+                                            ? `Activée · seuil ${contract.escalade_threshold_pct ?? '15'} %`
+                                            : 'Désactivée'}
+                                    </span>
                                 </div>
                             </div>
                             <div style={{ borderTop:'1px solid #f1f5f9', paddingTop:12 }}>

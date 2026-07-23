@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Broker;
 use App\Models\Certificate;
+use App\Models\CertificateRequest;
 use App\Models\InsuranceContract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -102,7 +104,7 @@ class DashboardController extends Controller
                 'sub'    => 'Ce mois',
             ],
             [
-                'label'  => 'Primes assurées',
+                'label'  => 'Primes émises',
                 'value'  => $this->fmtAmount($primeMonth),
                 'change' => $this->pctChange($primeMonth, $primePrev),
                 'sub'    => 'Ce mois',
@@ -191,13 +193,75 @@ class DashboardController extends Controller
                 'amount' => $this->fmtAmount((float) $b->total_prime),
             ]);
 
+        // ── Top assurés ce mois (fusionne "clients"/"assurés" — même
+        // donnée insured_name, il n'existe pas de compte client distinct) ──
+        $topInsured = (clone $certBase)->where('status', 'ISSUED')
+            ->whereMonth('issued_at', now()->month)
+            ->whereYear('issued_at', now()->year)
+            ->select('insured_name', DB::raw('COUNT(*) as count'), DB::raw('COALESCE(SUM(prime_total), 0) as total_prime'))
+            ->groupBy('insured_name')
+            ->orderByDesc('count')
+            ->limit(5)
+            ->get()
+            ->map(fn ($r) => [
+                'name'   => $r->insured_name,
+                'count'  => (int) $r->count,
+                'amount' => $this->fmtAmount((float) $r->total_prime),
+            ]);
+
+        // ── Top 3 filiales ce mois (super_admin uniquement — une
+        // filiale seule ne peut pas se classer par rapport à elle-même) ──
+        $topFiliales = $isSA
+            ? DB::table('certificates')
+                ->join('tenants', 'certificates.tenant_id', '=', 'tenants.id')
+                ->where('certificates.status', 'ISSUED')
+                ->whereMonth('certificates.issued_at', now()->month)
+                ->whereYear('certificates.issued_at', now()->year)
+                ->whereNull('certificates.deleted_at')
+                ->select('tenants.name', DB::raw('COUNT(certificates.id) as count'), DB::raw('COALESCE(SUM(certificates.prime_total), 0) as total_prime'))
+                ->groupBy('tenants.id', 'tenants.name')
+                ->orderByDesc('count')
+                ->limit(3)
+                ->get()
+                ->map(fn ($t) => [
+                    'name'   => $t->name,
+                    'count'  => (int) $t->count,
+                    'amount' => $this->fmtAmount((float) $t->total_prime),
+                ])
+            : collect();
+
+        // ── Indicateurs complémentaires (ajoutés à côté des KPIs
+        // existants, sans en changer la définition) ──────────────
+        $brokersActiveTotal = Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId))
+            ->active()->count();
+
+        $primeAllTime = (float) (clone $certBase)->where('status', 'ISSUED')->sum('prime_total');
+
+        // ── Suivi opérationnel — demandes de certificats (portail
+        // partenaires) : reçues (total), en attente (PENDING+IN_REVIEW,
+        // même définition que la file d'attente de la page Demandes),
+        // traitées (APPROVED+REJECTED) ─────────────────────────────
+        $requestBase = CertificateRequest::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId));
+
+        $operationalStats = [
+            'received'  => (clone $requestBase)->count(),
+            'pending'   => (clone $requestBase)->whereIn('status', ['PENDING', 'IN_REVIEW'])->count(),
+            'processed' => (clone $requestBase)->whereIn('status', ['APPROVED', 'REJECTED'])->count(),
+        ];
+
         return Inertia::render('dashboard', [
-            'kpis'        => $kpis,
-            'recentCerts' => $recentCerts,
-            'topBrokers'  => $topBrokers,
-            'monthlyData' => $monthlyData,
-            'period'      => now()->locale('fr')->isoFormat('MMMM YYYY'),
-            'tenantName'  => $user->tenant?->name ?? 'Toutes filiales',
+            'kpis'               => $kpis,
+            'recentCerts'        => $recentCerts,
+            'topBrokers'         => $topBrokers,
+            'topInsured'         => $topInsured,
+            'topFiliales'        => $topFiliales,
+            'monthlyData'        => $monthlyData,
+            'period'             => now()->locale('fr')->isoFormat('MMMM YYYY'),
+            'tenantName'         => $user->tenant?->name ?? 'Toutes filiales',
+            'isSA'               => $isSA,
+            'brokersActiveTotal' => $brokersActiveTotal,
+            'primeAllTime'       => $this->fmtAmount($primeAllTime),
+            'operationalStats'   => $operationalStats,
         ]);
     }
 

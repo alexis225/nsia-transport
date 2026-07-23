@@ -59,11 +59,19 @@ class BrokerController extends Controller
     // ── Formulaire création ──────────────────────────────────
     public function create(Request $request): Response
     {
+        $isSA = $request->user()->hasRole('super_admin');
+
         return Inertia::render('admin/brokers/create', [
-            'tenants' => $request->user()->hasRole('super_admin')
+            'tenants' => $isSA
                 ? Tenant::active()->orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
             'defaultTenantId' => $request->user()->tenant_id,
+            // Filiales supplémentaires sélectionnables — réservé au super_admin
+            // (un admin filiale ne doit pas pouvoir rattacher un courtier à
+            // une filiale qu'il ne gère pas).
+            'allTenants' => $isSA
+                ? Tenant::active()->orderBy('name')->get(['id', 'name', 'code'])
+                : collect(),
         ]);
     }
 
@@ -81,19 +89,28 @@ class BrokerController extends Controller
             'address'          => ['nullable', 'string', 'max:255'],
             'city'             => ['nullable', 'string', 'max:100'],
             'country_code'     => ['nullable', 'string', 'size:2'],
+            'commission_rate'  => ['nullable', 'numeric', 'min:0', 'max:100'],
             'is_active'        => ['boolean'],
             'tenant_id'        => ['nullable', 'uuid', 'exists:tenants,id'],
+            'additional_tenant_ids'   => ['nullable', 'array'],
+            'additional_tenant_ids.*' => ['uuid', 'exists:tenants,id'],
         ], [
             'code.regex'  => 'Le code doit être en majuscules, chiffres, tirets ou underscores.',
             'code.unique' => 'Ce code est déjà utilisé.',
         ]);
 
         $broker = Broker::create([
-            ...$validated,
+            ...collect($validated)->except('additional_tenant_ids')->toArray(),
             'tenant_id'  => $validated['tenant_id'] ?? $request->user()->tenant_id,
             'created_by' => $request->user()->id,
             'is_active'  => $validated['is_active'] ?? true,
         ]);
+
+        if ($request->user()->hasRole('super_admin')) {
+            $broker->syncTenants($validated['additional_tenant_ids'] ?? []);
+        } else {
+            $broker->syncTenants([]);
+        }
 
         AuditLog::create([
             'tenant_id'   => $broker->tenant_id,
@@ -114,7 +131,7 @@ class BrokerController extends Controller
     public function show(Broker $broker): Response
     {
         $this->authorizeTenant($broker);
-        $broker->load('tenant');
+        $broker->load(['tenant', 'tenants:id,name,code', 'user:id,email,first_name,last_name']);
 
         return Inertia::render('admin/brokers/show', [
             'broker' => $broker,
@@ -126,10 +143,17 @@ class BrokerController extends Controller
     {
         $this->authorizeTenant($broker);
         $broker->load('tenant');
+        $isSA = $request->user()->hasRole('super_admin');
 
         return Inertia::render('admin/brokers/edit', [
-            'broker'  => $broker,
-            'tenants' => $request->user()->hasRole('super_admin')
+            'broker'  => [
+                ...$broker->toArray(),
+                'additional_tenant_ids' => $broker->tenants()->where('tenant_id', '!=', $broker->tenant_id)->pluck('tenants.id'),
+            ],
+            'tenants' => $isSA
+                ? Tenant::active()->orderBy('name')->get(['id', 'name', 'code'])
+                : collect(),
+            'allTenants' => $isSA
                 ? Tenant::active()->orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
         ]);
@@ -151,11 +175,18 @@ class BrokerController extends Controller
             'address'          => ['nullable', 'string', 'max:255'],
             'city'             => ['nullable', 'string', 'max:100'],
             'country_code'     => ['nullable', 'string', 'size:2'],
+            'commission_rate'  => ['nullable', 'numeric', 'min:0', 'max:100'],
             'is_active'        => ['boolean'],
+            'additional_tenant_ids'   => ['nullable', 'array'],
+            'additional_tenant_ids.*' => ['uuid', 'exists:tenants,id'],
         ]);
 
         $oldValues = $broker->only(['name', 'code', 'is_active']);
-        $broker->update($validated);
+        $broker->update(collect($validated)->except('additional_tenant_ids')->toArray());
+
+        if ($request->user()->hasRole('super_admin')) {
+            $broker->syncTenants($validated['additional_tenant_ids'] ?? []);
+        }
 
         AuditLog::create([
             'tenant_id'   => $broker->tenant_id,

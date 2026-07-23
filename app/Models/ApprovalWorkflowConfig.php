@@ -67,9 +67,9 @@ class ApprovalWorkflowConfig extends Model
         // NULL = toujours déclenché
         if (empty($condition)) return true;
  
-        // Condition : % de la valeur du contrat
+        // Condition : % du plein du contrat (plafond assurable par certificat)
         if (isset($condition['insured_value_pct_of_contract'])) {
-            $contractValue = (float) $contract->insured_value;
+            $contractValue = (float) $contract->plein;
             if ($contractValue <= 0) return false;
  
             $pct = ((float) $certificate->insured_value / $contractValue) * 100;
@@ -102,7 +102,19 @@ class ApprovalWorkflowConfig extends Model
                 if (! $result) return false;
             }
         }
- 
+
+        // Condition : ce certificat ferait dépasser le plafond NN300 cumulé du contrat
+        if (! empty($condition['subscription_limit_exceeded'])
+            && ! $contract->exceedsSubscriptionLimit((float) $certificate->insured_value)) {
+            return false;
+        }
+
+        // Condition : le contrat a atteint son nombre maximal de certificats
+        if (! empty($condition['certificates_limit_reached'])
+            && ! $contract->reachedCertificatesLimit()) {
+            return false;
+        }
+
         return true;
     }
  

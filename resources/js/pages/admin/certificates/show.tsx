@@ -9,7 +9,7 @@ import {
     Ship, Plane, Truck, MapPin, DollarSign,
     AlertCircle, Printer, QrCode, ExternalLink, Download, Copy,
 } from 'lucide-react';
-import { PRINT_TEMPLATES } from './print-templates/registry';
+import { PRINT_TEMPLATES, getTemplateForTenantCode } from './print-templates/registry';
 
 interface ExpeditionItem {
     marks: string; package_numbers: string; package_count: number;
@@ -28,6 +28,8 @@ interface Certificate {
     expedition_items: ExpeditionItem[];
     currency_code: string; insured_value: string; insured_value_letters: string | null;
     guarantee_mode: string | null; prime_breakdown: PrimeLine[] | null; prime_total: string | null;
+    prime_nette: string | null; destination_country_code: string | null;
+    destination_country: { code: string; name_fr: string } | null;
     exchange_currency: string | null; exchange_rate: string | null;
     validation_notes: string | null; cancellation_reason: string | null;
     submitted_at: string | null; issued_at: string | null; cancelled_at: string | null;
@@ -93,7 +95,8 @@ function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose
 export default function CertificateShow({ certificate, can }: Props) {
     const [modal, setModal]               = useState<string | null>(null);
     const [printModal, setPrintModal]     = useState(false);
-    const [selectedTemplate, setSelected] = useState<string>(PRINT_TEMPLATES[0]?.id ?? '');
+    const autoTemplate = getTemplateForTenantCode(certificate.tenant?.code)?.id ?? PRINT_TEMPLATES[0]?.id ?? '';
+    const [selectedTemplate, setSelected] = useState<string>(autoTemplate);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Certificats', href: '/admin/certificates' },
@@ -158,7 +161,14 @@ export default function CertificateShow({ certificate, can }: Props) {
                                     <span style={{ fontSize:28, flexShrink:0 }}>{tpl.countryFlag}</span>
                                     {/* Infos */}
                                     <div style={{ flex:1 }}>
-                                        <p style={{ fontSize:13, fontWeight:700, color:'#1e293b', margin:'0 0 2px' }}>{tpl.name}</p>
+                                        <p style={{ fontSize:13, fontWeight:700, color:'#1e293b', margin:'0 0 2px', display:'flex', alignItems:'center', gap:6 }}>
+                                            {tpl.name}
+                                            {tpl.id === autoTemplate && (
+                                                <span style={{ fontSize:9, fontWeight:600, color:'#15803d', background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:20, padding:'1px 7px', textTransform:'uppercase', letterSpacing:'.04em' }}>
+                                                    Recommandé
+                                                </span>
+                                            )}
+                                        </p>
                                         <p style={{ fontSize:11, color:'#64748b', margin:0 }}>{tpl.description}</p>
                                         <p style={{ fontSize:10, color:'#94a3b8', margin:'2px 0 0' }}>
                                             {tpl.paperSize} {tpl.orientation} · {tpl.country}
@@ -391,6 +401,12 @@ export default function CertificateShow({ certificate, can }: Props) {
                                         <span className="info-value">{certificate.voyage_via}</span>
                                     </div>
                                 )}
+                                {certificate.destination_country && (
+                                    <div className="info-item">
+                                        <span className="info-label">Pays de destination</span>
+                                        <span className="info-value">{certificate.destination_country.name_fr}</span>
+                                    </div>
+                                )}
                                 {certificate.vessel_name && (
                                     <div className="info-item">
                                         <span className="info-label">Navire S/S</span>
@@ -486,8 +502,14 @@ export default function CertificateShow({ certificate, can }: Props) {
                                         </span>
                                     </div>
                                 ))}
+                                <div className="prime-row" style={{ borderTop:'1px solid #f1f5f9', paddingTop:10, marginTop:4 }}>
+                                    <span style={{ fontSize:12, fontWeight:600, color:'#64748b' }}>Prime nette (hors taxe)</span>
+                                    <span style={{ fontSize:13, fontFamily:'monospace', color:'#1e293b' }}>
+                                        {parseFloat(certificate.prime_nette ?? '0').toLocaleString('fr-FR')} {certificate.currency_code}
+                                    </span>
+                                </div>
                                 <div className="prime-row" style={{ borderTop:'2px solid #e2e8f0', paddingTop:10, marginTop:4 }}>
-                                    <span style={{ fontSize:13, fontWeight:700, color:'#1e293b' }}>TOTAL PRIME</span>
+                                    <span style={{ fontSize:13, fontWeight:700, color:'#1e293b' }}>PRIME TTC</span>
                                     <span style={{ fontSize:15, fontWeight:700, fontFamily:'monospace', color:'#1e3a8a' }}>
                                         {parseFloat(certificate.prime_total ?? '0').toLocaleString('fr-FR')} {certificate.currency_code}
                                     </span>

@@ -1,33 +1,46 @@
-import { useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import type { CertificateForPrint } from './print-templates/types';
-import { PRINT_TEMPLATES } from './print-templates/registry';
-import TemplateGuineeConakry from './print-templates/guinee-conakry';
+import { useEffect } from 'react';
+import TemplateCameroun      from './print-templates/cameroun';
+import TemplateCongo         from './print-templates/congo';
 import TemplateGabon         from './print-templates/gabon';
+import TemplateGuineeConakry from './print-templates/guinee-conakry';
+import { PRINT_TEMPLATES } from './print-templates/registry';
+import TemplateSenegal       from './print-templates/senegal';
 import TemplateTogo          from './print-templates/togo';
+import type { CertificateForPrint } from './print-templates/types';
 // ── Ajouter les imports des nouveaux templates ici ──
 
 interface Props {
     certificate: CertificateForPrint;
     templateId: string;
+    calibrate?: boolean;
 }
 
 /* Registre des composants — ajouter ici chaque nouveau template */
-const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<{ certificate: CertificateForPrint }>> = {
+const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<{ certificate: CertificateForPrint; calibrate?: boolean }>> = {
     'guinee-conakry': TemplateGuineeConakry,
     'gabon':          TemplateGabon,
     'togo':           TemplateTogo,
+    'senegal':        TemplateSenegal,
+    'cameroun':       TemplateCameroun,
+    'congo':          TemplateCongo,
     // ── Enregistrer ici les nouveaux templates ──
 };
 
-export default function CertificatePrint({ certificate: cert, templateId }: Props) {
+export default function CertificatePrint({ certificate: cert, templateId, calibrate = false }: Props) {
     const TemplateComponent = TEMPLATE_COMPONENTS[templateId];
     const templateMeta      = PRINT_TEMPLATES.find(t => t.id === templateId);
 
     useEffect(() => {
+        // Pas d'impression auto en mode calibration
+        if (calibrate) {
+            return;
+        }
+
         const timer = setTimeout(() => window.print(), 600);
+
         return () => clearTimeout(timer);
-    }, []);
+    }, [calibrate]);
 
     return (
         <>
@@ -36,8 +49,13 @@ export default function CertificatePrint({ certificate: cert, templateId }: Prop
             {/* Boutons (masqués à l'impression) */}
             <div className="no-print" style={{
                 position: 'fixed', top: 12, right: 12, zIndex: 9999,
-                display: 'flex', gap: 8,
+                display: 'flex', gap: 8, alignItems: 'center',
             }}>
+                {calibrate && (
+                    <span style={{ fontSize: 12, color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '6px 10px' }}>
+                        Mode calibration — grille de repère (mm) affichée, impression auto désactivée
+                    </span>
+                )}
                 <button onClick={() => window.print()} style={{
                     padding: '8px 18px', background: '#1e3a5f', color: '#fff',
                     border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 14,
@@ -55,7 +73,7 @@ export default function CertificatePrint({ certificate: cert, templateId }: Prop
             <style>{`
                 @page {
                     size: ${templateMeta?.paperSize ?? 'A4'} ${templateMeta?.orientation ?? 'portrait'};
-                    margin: 8mm 10mm;
+                    margin: 0;
                 }
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { background: #fff; font-family: Arial, Helvetica, sans-serif; }
@@ -67,31 +85,43 @@ export default function CertificatePrint({ certificate: cert, templateId }: Prop
                     html, body { width: 210mm; }
                 }
 
-                /* Conteneur A4 */
-                .cert-page {
-                    width: 190mm;
-                    min-height: 277mm;
-                    margin: 8mm auto;
+                /* Page de souche — AUCUNE bordure/fond : imprimée par-dessus
+                   un papier déjà pré-imprimé (numérotation, cadres, mentions
+                   légales). Seuls les champs variables sont positionnés. */
+                .stub-page {
+                    position: relative;
+                    width: 210mm;
+                    height: 297mm;
+                    margin: 0 auto;
                     background: #fff;
-                    font-size: 9pt;
                     color: #000;
-                    border: 1px solid #aaa;
-                    padding: 0;
                 }
-                @media print {
-                    .cert-page { margin: 0; width: 190mm; border: none; }
+                .stub-field {
+                    position: absolute;
+                    white-space: pre-wrap;
+                    line-height: 1.25;
+                }
+                .stub-field--calibrate {
+                    outline: 0.5pt dashed #dc2626;
+                    background: rgba(220,38,38,0.05);
+                    min-height: 4mm;
+                    min-width: 4mm;
+                }
+                .stub-field-key {
+                    display: block;
+                    font-size: 5pt;
+                    color: #dc2626;
+                    font-family: monospace;
                 }
 
-                /* Cellules grille communes à tous les templates */
-                .cell {
-                    border: 0.5pt solid #666;
-                    padding: 3pt 5pt;
-                    vertical-align: top;
-                    min-height: 18pt;
-                }
-                .cell-label     { font-size: 7.5pt; color: #333; line-height: 1.3; }
-                .cell-label-en  { font-size: 6.5pt; color: #666; font-style: italic; }
-                .cell-value     { font-size: 9.5pt; font-weight: 600; color: #000; margin-top: 2pt; line-height: 1.35; }
+                /* Grille de calibration (mode ?calibrate=1 uniquement) */
+                .calibration-grid { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+                .grid-line { position: absolute; }
+                .grid-line--v { top: 0; bottom: 0; border-left: 0.5pt solid rgba(29,78,216,0.25); }
+                .grid-line--h { left: 0; right: 0; border-top: 0.5pt solid rgba(29,78,216,0.25); }
+                .grid-line span { position: absolute; font-size: 5pt; color: #1d4ed8; background: #fff; }
+                .grid-line--v span { top: 0; left: 1pt; }
+                .grid-line--h span { top: -6pt; left: 1pt; }
 
                 /* Filigrane brouillon */
                 .watermark {
@@ -117,7 +147,7 @@ export default function CertificatePrint({ certificate: cert, templateId }: Prop
             )}
 
             {/* Rendu du template sélectionné */}
-            {TemplateComponent && <TemplateComponent certificate={cert} />}
+            {TemplateComponent && <TemplateComponent certificate={cert} calibrate={calibrate}/>}
         </>
     );
 }

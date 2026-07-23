@@ -1,9 +1,24 @@
-import { useRef, useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Upload, FileText, X, AlertCircle, ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Upload, FileText, X, AlertCircle, ChevronLeft } from 'lucide-react';
+
+// Champs GuceCertificate que l'extraction automatique (Mindee) sait
+// pré-remplir — cf. config('services.mindee.field_map') côté backend.
+const EXTRACTABLE_FIELDS = [
+    'guce_reference', 'certificate_number', 'policy_number', 'fdi_reference',
+    'insured_name', 'insured_address', 'cargo_description', 'weight', 'marks',
+    'vessel', 'origin', 'destination', 'transit_date',
+    'insured_value', 'currency', 'net_premium', 'total_premium',
+] as const;
+
+function readCookie(name: string): string | null {
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+
+    return match ? decodeURIComponent(match[1]) : null;
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Certificats GUCE', href: '/admin/guce-certificates' },
@@ -14,6 +29,9 @@ export default function GuceCertificatesCreate() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [dragOver, setDragOver] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [extracting, setExtracting] = useState(false);
+    const [extractionStatus, setExtractionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [extractionMessage, setExtractionMessage] = useState<string | null>(null);
 
     const { data, setData, post, processing, errors } = useForm({
         guce_reference: '',
@@ -31,6 +49,7 @@ export default function GuceCertificatesCreate() {
         transit_date: '',
         insured_value: '',
         currency: 'XOF',
+        net_premium: '',
         total_premium: '',
         notes: '',
         file: null as File | null,
@@ -39,19 +58,83 @@ export default function GuceCertificatesCreate() {
     function handleFile(file: File) {
         setSelectedFile(file);
         setData('file', file);
+        void extractFromFile(file);
+    }
+
+    // Extraction automatique des données du PDF (Mindee) pour
+    // pré-remplir le formulaire — purement indicative, l'utilisateur
+    // reste libre de corriger ou compléter chaque champ avant envoi.
+    async function extractFromFile(file: File) {
+        setExtracting(true);
+        setExtractionStatus('idle');
+        setExtractionMessage(null);
+
+        const body = new FormData();
+        body.append('file', file);
+
+        try {
+            const res = await fetch('/admin/guce-certificates/extract', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': readCookie('XSRF-TOKEN') ?? '',
+                },
+                body,
+            });
+
+            const json = await res.json();
+
+            if (!res.ok || !json.success) {
+                setExtractionStatus('error');
+                setExtractionMessage(json.message ?? "Extraction automatique indisponible.");
+
+                return;
+            }
+
+            let filled = 0;
+
+            for (const field of EXTRACTABLE_FIELDS) {
+                const value = json.data?.[field];
+
+                if (value !== null && value !== undefined && value !== '') {
+                    setData(field, field === 'transit_date' ? String(value).slice(0, 10) : String(value));
+                    filled++;
+                }
+            }
+
+            setExtractionStatus('success');
+            setExtractionMessage(filled > 0
+                ? `${filled} champ(s) pré-rempli(s) automatiquement — vérifiez les valeurs avant de valider.`
+                : "Aucune donnée reconnue dans ce document — merci de compléter manuellement.");
+        } catch {
+            setExtractionStatus('error');
+            setExtractionMessage("Extraction automatique indisponible — merci de compléter le formulaire manuellement.");
+        } finally {
+            setExtracting(false);
+        }
     }
 
     function handleDrop(e: React.DragEvent) {
         e.preventDefault();
         setDragOver(false);
         const file = e.dataTransfer.files[0];
-        if (file) handleFile(file);
+
+        if (file) {
+handleFile(file);
+}
     }
 
     function removeFile() {
         setSelectedFile(null);
         setData('file', null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        setExtractionStatus('idle');
+        setExtractionMessage(null);
+
+        if (fileInputRef.current) {
+fileInputRef.current.value = '';
+}
     }
 
     function submit(e: React.FormEvent) {
@@ -139,7 +222,9 @@ export default function GuceCertificatesCreate() {
                             </div>
                         ) : (
                             <div
-                                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                                onDragOver={e => {
+ e.preventDefault(); setDragOver(true); 
+}}
                                 onDragLeave={() => setDragOver(false)}
                                 onDrop={handleDrop}
                                 onClick={() => fileInputRef.current?.click()}
@@ -163,9 +248,34 @@ export default function GuceCertificatesCreate() {
                             type="file"
                             accept=".pdf,.doc,.docx"
                             style={{ display: 'none' }}
-                            onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+                            onChange={e => {
+ const f = e.target.files?.[0];
+
+ if (f) {
+handleFile(f);
+} 
+}}
                         />
                         {errors.file && <p style={errorStyle}><AlertCircle size={12} />{errors.file}</p>}
+
+                        {extracting && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', padding: '10px 12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '13px', color: '#1d4ed8' }}>
+                                <Loader2 size={14} className="animate-spin" />
+                                Extraction automatique des données en cours…
+                            </div>
+                        )}
+                        {!extracting && extractionStatus === 'success' && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', padding: '10px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '13px', color: '#15803d' }}>
+                                <Sparkles size={14} />
+                                {extractionMessage}
+                            </div>
+                        )}
+                        {!extracting && extractionStatus === 'error' && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', padding: '10px 12px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px', fontSize: '13px', color: '#c2410c' }}>
+                                <AlertCircle size={14} />
+                                {extractionMessage}
+                            </div>
+                        )}
                     </div>
 
                     {/* Références GUCE */}
@@ -233,8 +343,9 @@ export default function GuceCertificatesCreate() {
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
                             Valeurs financières
                         </h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                             <Field label="Valeur assurée" name="insured_value" type="number" placeholder="ex: 1181398.24" />
+                            <Field label="Prime nette" name="net_premium" type="number" placeholder="ex: 1251283" />
                             <Field label="Prime totale" name="total_premium" type="number" placeholder="ex: 7500" />
                             <div>
                                 <label style={labelStyle}>Devise</label>
@@ -283,7 +394,3 @@ export default function GuceCertificatesCreate() {
         </AppLayout>
     );
 }
-
-const errorStyle: React.CSSProperties = {
-    color: '#dc2626', fontSize: '12px', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '4px',
-};

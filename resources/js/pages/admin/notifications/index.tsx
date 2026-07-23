@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import {
     Bell, CheckCircle, XCircle, Clock,
-    AlertTriangle, TrendingUp, Shield,
+    AlertTriangle, TrendingUp, Shield, Inbox,
     Check, Trash2, Settings, X,
     Mail, Smartphone, Filter,
 } from 'lucide-react';
@@ -50,6 +50,7 @@ const ICON_MAP: Record<string, any> = {
     'bell':           Bell,
     'shield':         Shield,
     'user-check':     CheckCircle,
+    'inbox':          Inbox,
 };
 
 const fmtDt = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });

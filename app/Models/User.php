@@ -66,6 +66,11 @@ class User extends Authenticatable
         return $this->belongsTo(Tenant::class);
     }
 
+    public function broker()
+    {
+        return $this->hasOne(Broker::class);
+    }
+
     // ── Helpers ───────────────────────────────────────────
     public function isSuperAdmin(): bool
     {
