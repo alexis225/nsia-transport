@@ -33,7 +33,9 @@
       "Bash(yarn build *)",
       "Bash(php -l app/Services/CertificatePdfService.php)",
       "Bash(php -l app/Services/CertificateQrService.php)",
-      "Bash(grep -rn \"CertificatePdfService::class\\\\|CertificatePdfService \\\\$\" app resources)"
+      "Bash(grep -rn \"CertificatePdfService::class\\\\|CertificatePdfService \\\\$\" app resources)",
+      "Bash(php -l resources/views/pdf/certificate.blade.php)",
+      "Bash(choco --version)"
     ],
     "additionalDirectories": [
       "c:\\wamp64\\www\\nsia-transport\\resources\\js\\pages\\admin",

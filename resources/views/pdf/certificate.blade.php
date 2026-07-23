@@ -73,8 +73,8 @@
             margin-bottom: 5mm;
         }
         .header-logo  { display: table-cell; width: 35%; vertical-align: top; }
-        .header-title { display: table-cell; width: 40%; vertical-align: middle; text-align: center; }
-        .header-num   { display: table-cell; width: 25%; vertical-align: top; text-align: right; }
+        .header-title { display: table-cell; width: 35%; vertical-align: middle; text-align: center; }
+        .header-num   { display: table-cell; width: 30%; vertical-align: top; text-align: right; }
 
         .logo-img { max-width: 100px; max-height: 55px; }
         .logo-placeholder {
@@ -113,7 +113,7 @@
         .cert-city { font-size: 9pt; margin-top: 4pt; }
         .cert-police { font-size: 8.5pt; margin-top: 3pt; }
 
-        .cert-num { font-size: 18pt; font-weight: 700; color: #1e3a8a; letter-spacing: 0.1em; }
+        .cert-num { font-size: 14pt; font-weight: 700; color: #1e3a8a; letter-spacing: 0.02em; word-break: break-all; }
         .cert-num-label { font-size: 7.5pt; color: #64748b; }
         .cert-original { font-size: 7pt; color: #64748b; font-style: italic; margin-top: 3pt; line-height: 1.4; border: 0.5pt solid #e2e8f0; padding: 2pt 4pt; }
 
@@ -177,7 +177,12 @@
         .mode-option { margin-right: 8pt; font-size: 8pt; }
 
         /* ── Tableau expédition ── */
-        .exp-table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+        /* table-layout:fixed impose que les 5 colonnes se partagent
+           strictement 100% de la largeur de page — sans ça, DomPDF
+           dimensionne les colonnes selon leur contenu (nature de la
+           marchandise, valeur en monospace...) et laisse le tableau
+           déborder de la page au lieu de le contraindre. */
+        .exp-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 8pt; }
         .exp-table th {
             background: #f1f5f9;
             border: 0.5pt solid #e2e8f0;
@@ -186,11 +191,14 @@
             font-weight: 700;
             color: #475569;
             text-align: left;
+            overflow-wrap: break-word;
         }
         .exp-table td {
             border: 0.5pt solid #e2e8f0;
             padding: 4pt 4pt;
             vertical-align: top;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
         .exp-table .total-row td {
             font-weight: 700;
@@ -512,11 +520,11 @@
                 <table class="exp-table">
                     <thead>
                         <tr>
-                            <th>{{ $template?->is_bilingual ? 'Marques / Marks' : 'Marques' }}</th>
-                            <th>{{ $template?->is_bilingual ? 'Numéros colis / Packages' : 'Numéros et nombres de colis' }}</th>
-                            <th>{{ $template?->is_bilingual ? 'Poids / Weight' : 'Poids' }}</th>
-                            <th>{{ $template?->is_bilingual ? 'Nature marchandises / Description of cargo' : 'Nature des marchandises et de l\'emballage' }}</th>
-                            <th style="text-align: right;">{{ $template?->is_bilingual ? 'Valeur / Insured value' : 'Valeur d\'assurance' }}</th>
+                            <th style="width: 13%;">{{ $template?->is_bilingual ? 'Marques / Marks' : 'Marques' }}</th>
+                            <th style="width: 17%;">{{ $template?->is_bilingual ? 'Numéros colis / Packages' : 'Numéros et nombres de colis' }}</th>
+                            <th style="width: 10%;">{{ $template?->is_bilingual ? 'Poids / Weight' : 'Poids' }}</th>
+                            <th style="width: 40%;">{{ $template?->is_bilingual ? 'Nature marchandises / Description of cargo' : 'Nature des marchandises et de l\'emballage' }}</th>
+                            <th style="width: 20%; text-align: right;">{{ $template?->is_bilingual ? 'Valeur / Insured value' : 'Valeur d\'assurance' }}</th>
                         </tr>
                     </thead>
                     <tbody>
