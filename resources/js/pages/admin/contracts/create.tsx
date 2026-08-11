@@ -43,6 +43,7 @@ export default function ContractCreate({ tenants, brokers, subscribers, incoterm
         insured_phone:          '',
         currency_code:          'XOF',
         subscription_limit:     '',
+        treaty_limit:           '',
         plein:                  '',
         escalade_enabled:       true,
         escalade_threshold_pct: '',
@@ -61,7 +62,7 @@ export default function ContractCreate({ tenants, brokers, subscribers, incoterm
         covered_countries:      [] as string[],
         effective_date:         new Date().toISOString().slice(0,10),
         expiry_date:            '',
-        notice_period_days:     30,
+        notice_period_days:     60,
         requires_approval:      false,
         certificates_limit:     '',
         notes:                  '',
@@ -203,9 +204,14 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                     {tenants?.length > 0 && (
                                         <div className="grid gap-2">
                                             <Label className="cf-label">Filiale *</Label>
-                                            <select className="cf-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
+                                            <select className="cf-select" value={data.tenant_id} onChange={e => {
+                                                const tenantId = e.target.value;
+                                                setData('tenant_id', tenantId);
+                                                const tenant = tenants.find((t: Tenant) => t.id === tenantId);
+                                                if (tenant) setData('currency_code', tenant.currency_code);
+                                            }}>
                                                 <option value="">Sélectionnez une filiale</option>
-                                                {tenants.map((t: Tenant) => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                                {tenants.map((t: Tenant) => <option key={t.id} value={t.id}>{t.name} ({t.code}) — {t.currency_code}</option>)}
                                             </select>
                                             <InputError message={errors.tenant_id}/>
                                         </div>
@@ -216,6 +222,7 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                             <option value="OPEN_POLICY">Police ouverte (plusieurs voyages)</option>
                                             <option value="VOYAGE">Au voyage (unique)</option>
                                             <option value="ANNUAL_VOYAGE">Annuel voyages</option>
+                                            <option value="TIERS_CHARGEUR">Police tiers chargeur (plusieurs voyages)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -360,14 +367,28 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                             <div className="cf-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Devise *</Label>
-                                        <select className="cf-select" value={data.currency_code} onChange={e => setData('currency_code', e.target.value)}>
-                                            {currencies?.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                        </select>
+                                        <Label className="cf-label">Devise</Label>
+                                        <Input className="h-11" value={data.currency_code} readOnly disabled
+                                               style={{ background:'#f8fafc', fontFamily:'monospace', fontWeight:600 }}/>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                            Devise du pays de la filiale — tous les montants du contrat et de ses certificats y sont exprimés.
+                                        </p>
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="cf-label">Plafond NN300</Label>
-                                        <AmountInput className="h-11" value={data.subscription_limit ?? ''} onChange={v => setData('subscription_limit', v)} placeholder="Illimité si vide"/>
+                                        <AmountInput className="h-11" value={data.subscription_limit ?? ''} onChange={v => setData('subscription_limit', v)} placeholder="2 000 000 000 par défaut"/>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                            Au-delà de 2 Mds FCFA (seuil standard groupe), le contrat requiert une validation DTAG avant activation.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="form-grid">
+                                    <div className="grid gap-2">
+                                        <Label className="cf-label">Plafond ou limite Traité</Label>
+                                        <AmountInput className="h-11" value={data.treaty_limit ?? ''} onChange={v => setData('treaty_limit', v)} placeholder="6 000 000 000 par défaut"/>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                            Au-delà, alerte pour placement en réassurance facultative.
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="form-grid">

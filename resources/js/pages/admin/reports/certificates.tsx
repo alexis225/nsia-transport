@@ -292,7 +292,7 @@ export default function CertificatesReport({
                         {showAdv && (
                             <div className="adv-section">
                                 <div className="filter-row">
-                                    <input className="fin fin-search" placeholder="Rechercher N°, assuré…"
+                                    <input className="fin fin-search" placeholder="N° certificat, client ou assuré…"
                                            value={local.search ?? ''}
                                            onChange={e => setLocal(p => ({ ...p, search: e.target.value }))}/>
                                     <select className="fin fin-sel"

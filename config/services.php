@@ -66,11 +66,11 @@ return [
         // app.mindee.com, avec un label anglais dont le slug généré
         // correspond exactement à la clé ci-dessous (ex: label "Cargo
         // Description" → slug "cargo_description").
-        // NB (2026-07-21) : seul le champ 'marks' a été créé côté Mindee
-        // sous son nom français ("marques" — cf. "Nom du champ" dans
-        // Mindee). Tous les autres, y compris guce_reference et
-        // currency, utilisent bien leur slug anglais — vérifié via les
-        // clés brutes journalisées dans storage/logs/laravel.log.
+        // NB (2026-08-04) : correction — les clés brutes journalisées dans
+        // storage/logs/laravel.log montrent que le champ Mindee est bien
+        // slugué 'marks' (pas 'marques'). L'ancien mapping 'marks' =>
+        // 'marques' pointait vers un slug inexistant et renvoyait null à
+        // chaque extraction.
         'field_map' => [
             'guce_reference'     => 'guce_reference',
             'certificate_number' => 'certificate_number',
@@ -79,7 +79,7 @@ return [
             'insured_address'    => 'insured_address',
             'cargo_description'  => 'cargo_description',
             'weight'             => 'weight',
-            'marks'              => 'marques',
+            'marks'              => 'marks',
             'vessel'             => 'vessel',
             'origin'             => 'origin',
             'destination'        => 'destination',
@@ -90,6 +90,17 @@ return [
             'total_premium'      => 'premium_amount',
             'fdi_reference'      => 'fdi_reference',
         ],
+    ],
+
+    // Taux de change du jour pour la "Devise cotation" des certificats
+    // (conversion vers la devise locale de la filiale). API OANDA Exchange
+    // Rates — https://developer.oanda.com/exchange-rates-api/. Nécessite
+    // un compte OANDA + une clé API (non fournie par défaut : sans clé,
+    // l'endpoint /admin/certificates/exchange-rate répond simplement
+    // "indisponible" et l'utilisateur saisit le taux manuellement).
+    'oanda' => [
+        'api_key' => env('OANDA_API_KEY'),
+        'api_url' => env('OANDA_API_URL', 'https://api-fxtrade.oanda.com/v3'),
     ],
 
 ];

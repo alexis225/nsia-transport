@@ -26,6 +26,10 @@ export function buildFieldValues(cert: CertificateForPrint): Record<string, stri
     const rg = row('rg');
     const surprime = row('surprime');
     const divers = row('divers');
+    // Les lignes de décompte prime des modèles filiale sont en français
+    // (accessoires/taxe) — cf. CertificateTemplateSeeder.
+    const accessoires = row('accessoires');
+    const taxe = row('taxe');
     const primeNette = row('prime_nette');
 
     return {
@@ -59,6 +63,8 @@ export function buildFieldValues(cert: CertificateForPrint): Record<string, stri
         rate_rg: rg.rate, amount_rg: rg.amount,
         rate_surprime: surprime.rate, amount_surprime: surprime.amount,
         rate_divers: divers.rate, amount_divers: divers.amount,
+        rate_accessoires: accessoires.rate, amount_accessoires: accessoires.amount,
+        rate_taxe: taxe.rate, amount_taxe: taxe.amount,
         rate_prime_nette: primeNette.rate, amount_prime_nette: primeNette.amount,
         prime_total: fmt(cert.prime_total, cert.currency_code),
         currency_code: cert.currency_code ?? '',

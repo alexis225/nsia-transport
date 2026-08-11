@@ -9,6 +9,8 @@ import { Building2, Check, Camera, Trash2, FileText } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface TenantSettings {
+    locale?: string;
+    timezone?: string;
     siege_social?: string;
     phone?: string;
     website?: string;
@@ -23,7 +25,7 @@ interface TenantSettings {
 }
 interface Tenant {
     id: string; name: string; code: string; country_code: string;
-    currency: string; locale: string; timezone: string; is_active: boolean;
+    currency_code: string; is_active: boolean;
     logo_path: string | null;
     subscription_limit_config: { nn300_limit: number };
     settings: TenantSettings | null;
@@ -56,9 +58,9 @@ export default function TenantEdit({ tenant }: Props) {
         name:         tenant.name,
         code:         tenant.code,
         country_code: tenant.country_code,
-        currency:     tenant.currency,
-        locale:       tenant.locale,
-        timezone:     tenant.timezone,
+        currency_code: tenant.currency_code,
+        locale:       tenant.settings?.locale   ?? 'fr',
+        timezone:     tenant.settings?.timezone ?? 'Africa/Abidjan',
         is_active:    tenant.is_active,
         subscription_limit_config: tenant.subscription_limit_config ?? { nn300_limit: 0 },
         settings: {
@@ -160,7 +162,7 @@ export default function TenantEdit({ tenant }: Props) {
                         </div>
                         <div className="te-hero-info">
                             <div className="te-hero-title">Modifier {tenant.name}</div>
-                            <div className="te-hero-sub">Code : {tenant.code} · {tenant.currency}</div>
+                            <div className="te-hero-sub">Code : {tenant.code} · {tenant.currency_code}</div>
                         </div>
                     </div>
 
@@ -240,9 +242,10 @@ export default function TenantEdit({ tenant }: Props) {
                                 <div className="form-grid">
                                     <div className="grid gap-2">
                                         <Label className="te-label">Devise *</Label>
-                                        <select className="te-select" value={data.currency} onChange={e => setData('currency', e.target.value)}>
+                                        <select className="te-select" value={data.currency_code} onChange={e => setData('currency_code', e.target.value)}>
                                             {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                                         </select>
+                                        <InputError message={errors.currency_code}/>
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="te-label">Langue *</Label>

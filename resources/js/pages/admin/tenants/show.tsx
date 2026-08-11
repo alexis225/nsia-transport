@@ -2,11 +2,12 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
-import { Edit2, ArrowLeft, Users, Building2, Globe, DollarSign, Clock, ToggleLeft, ToggleRight, Shield } from 'lucide-react';
+import { Edit2, ArrowLeft, Users, Building2, Globe, DollarSign, Clock, ToggleLeft, ToggleRight, Shield, FileBadge, Plus } from 'lucide-react';
 
 interface Tenant {
     id: string; name: string; code: string; country_code: string;
-    currency: string; locale: string; timezone: string;
+    currency_code: string;
+    settings: { locale?: string; timezone?: string } | null;
     is_active: boolean; users_count: number; created_at: string;
     logo_path: string | null;
     subscription_limit_config: { nn300_limit: number };
@@ -16,15 +17,23 @@ interface User {
     email: string; is_active: boolean;
     roles: { name: string }[];
 }
-interface Props { tenant: Tenant; users: User[]; }
+interface CertificateTemplate { id: string; name: string; type: string; is_active: boolean; }
+interface Props { tenant: Tenant; users: User[]; certificateTemplate: CertificateTemplate | null; }
 
 const FLAG: Record<string, string> = {
     CI:'🇨🇮', SN:'🇸🇳', ML:'🇲🇱', BF:'🇧🇫', GN:'🇬🇳',
     TG:'🇹🇬', BJ:'🇧🇯', CM:'🇨🇲', CG:'🇨🇬', GA:'🇬🇦',
-    MG:'🇲🇬', GW:'🇬🇼', NG:'🇳🇬',
+    MG:'🇲🇬', GW:'🇬🇼', NG:'🇳🇬', GH:'🇬🇭',
 };
 
-export default function TenantShow({ tenant, users }: Props) {
+const TEMPLATE_TYPE_LABELS: Record<string, string> = {
+    certificat_assurance: "Certificat d'Assurance",
+    certificat_etatique:  'Certificat Étatique (GUCE, GUOT, etc.)',
+    carnet_ordre:         "Certificat Carnet d'Ordre",
+    ordre_assurance:      "Certificat Carnet d'Ordre",
+};
+
+export default function TenantShow({ tenant, users, certificateTemplate }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Filiales', href: '/admin/tenants' },
         { title: tenant.name },
@@ -75,7 +84,7 @@ export default function TenantShow({ tenant, users }: Props) {
                         <div className="ts-flag">{tenant.logo_path ? <img src={`/storage/${tenant.logo_path}`} alt={tenant.name} style={{ width:"100%", height:"100%", objectFit:"contain", padding:4 }}/> : (FLAG[tenant.code] ?? "🏢")}</div>
                         <div className="ts-hero-info">
                             <div className="ts-hero-name">{tenant.name}</div>
-                            <div className="ts-hero-sub">{tenant.code} · {tenant.currency} · {tenant.timezone}</div>
+                            <div className="ts-hero-sub">{tenant.code} · {tenant.currency_code} · {tenant.settings?.timezone ?? '—'}</div>
                             <div className="ts-hero-badges">
                                 <span className="ts-badge" style={{ background: tenant.is_active ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)', color: tenant.is_active ? '#86efac' : '#fca5a5', border:`1px solid ${tenant.is_active ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
                                     {tenant.is_active ? '● Active' : '● Inactive'}
@@ -111,20 +120,20 @@ export default function TenantShow({ tenant, users }: Props) {
                                 </div>
                                 <div className="info-item">
                                     <span className="info-label"><DollarSign size={10}/>Devise</span>
-                                    <span className="info-value">{tenant.currency}</span>
+                                    <span className="info-value">{tenant.currency_code}</span>
                                 </div>
                                 <div className="info-item">
                                     <span className="info-label"><Globe size={10}/>Langue</span>
-                                    <span className="info-value">{tenant.locale === 'fr' ? 'Français' : 'English'}</span>
+                                    <span className="info-value">{tenant.settings?.locale === 'fr' ? 'Français' : 'English'}</span>
                                 </div>
                                 <div className="info-item">
                                     <span className="info-label"><Clock size={10}/>Fuseau horaire</span>
-                                    <span className="info-value">{tenant.timezone}</span>
+                                    <span className="info-value">{tenant.settings?.timezone ?? '—'}</span>
                                 </div>
                                 <div className="info-item">
                                     <span className="info-label"><Shield size={10}/>Plafond NN300</span>
                                     <span className="info-value">
-                                        {(tenant.subscription_limit_config?.nn300_limit ?? 0).toLocaleString('fr-FR')} {tenant.currency}
+                                        {(tenant.subscription_limit_config?.nn300_limit ?? 0).toLocaleString('fr-FR')} {tenant.currency_code}
                                     </span>
                                 </div>
                                 <div className="info-item">
@@ -132,6 +141,43 @@ export default function TenantShow({ tenant, users }: Props) {
                                     <span className="info-value">{fmt(tenant.created_at)}</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Modèle de certificat */}
+                    <div className="ts-card">
+                        <div className="ts-card-hdr">
+                            <div className="ts-card-ico" style={{ background:'#fdf4ff' }}><FileBadge size={15} color="#7c3aed"/></div>
+                            <span className="ts-card-ttl">Modèle de certificat</span>
+                        </div>
+                        <div className="ts-card-body">
+                            {certificateTemplate ? (
+                                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+                                    <div>
+                                        <div style={{ fontSize:13, fontWeight:500, color:'#1e293b', marginBottom:3 }}>{certificateTemplate.name}</div>
+                                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                            <span style={{ fontSize:11, color:'#64748b' }}>
+                                                {TEMPLATE_TYPE_LABELS[certificateTemplate.type] ?? certificateTemplate.type}
+                                            </span>
+                                            <span style={{ fontSize:11, fontWeight:500, padding:'2px 7px', borderRadius:8, background: certificateTemplate.is_active ? '#f0fdf4' : '#f8fafc', color: certificateTemplate.is_active ? '#15803d' : '#94a3b8' }}>
+                                                {certificateTemplate.is_active ? 'Activé' : 'Désactivé'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Link href={route('admin.certificate-templates.edit', { certificateTemplate: certificateTemplate.id })}>
+                                        <Button variant="outline" className="h-9 px-4 text-sm"><Edit2 size={13}/> Configurer</Button>
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+                                    <div style={{ fontSize:12, color:'#94a3b8' }}>
+                                        Aucun modèle configuré — les certificats de cette filiale sortent sans en-tête ni numérotation officielle.
+                                    </div>
+                                    <Link href={route('admin.certificate-templates.create', { tenant_id: tenant.id })} style={{ flexShrink:0 }}>
+                                        <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-9 px-4 text-sm"><Plus size={13}/> Activer un modèle</Button>
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </div>
 

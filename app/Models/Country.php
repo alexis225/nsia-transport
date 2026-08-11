@@ -11,5 +11,5 @@ class Country extends Model
     protected $keyType  = 'string';
     protected $primaryKey = 'code';
 
-    protected $fillable = ['code', 'name_fr', 'name_en', 'region'];
+    protected $fillable = ['code', 'name_fr', 'name_en', 'region', 'calling_code'];
 }

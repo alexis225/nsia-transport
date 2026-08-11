@@ -8,7 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 interface Tenant {
-    id: string; name: string; code: string; currency: string;
+    id: string; name: string; code: string; currency_code: string;
     modules: Record<string, boolean> | null;
     subscription_limit_config: {
         nn300_limit:          number;
@@ -184,7 +184,7 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                                                     nn300_limit: Number(e.target.value),
                                                 })}
                                             />
-                                            <span className="suffix-label">{tenant.currency}</span>
+                                            <span className="suffix-label">{tenant.currency_code}</span>
                                         </div>
                                         <InputError message={errors['subscription_limit_config.nn300_limit']}/>
                                     </div>

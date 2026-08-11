@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\CertificateTemplate;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,12 +77,25 @@ class TenantController extends Controller
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('logos/tenants', 'public');
         }
+
+        // locale/timezone sont des réglages libres stockés dans settings
+        // (JSON) — il n'existe pas de colonne dédiée sur tenants (cf.
+        // Tenant::$fillable). Les valider en top-level puis les fusionner
+        // ici est plus simple côté formulaire que des clés "settings.locale".
+        $settings = array_merge($validated['settings'] ?? [], [
+            'locale'   => $validated['locale'],
+            'timezone' => $validated['timezone'],
+        ]);
+
         $tenant = Tenant::create([
-            ...$validated,
-            'logo_path'                 => $logoPath,
-            'settings'                  => $validated['settings'] ?? [],
-            'subscription_limit_config' => $validated['subscription_limit_config'] ?? ['nn300_limit' => 0],
-            'is_active'                 => $validated['is_active'] ?? true,
+            'name'                       => $validated['name'],
+            'code'                       => $validated['code'],
+            'country_code'               => $validated['country_code'],
+            'currency_code'              => $validated['currency_code'],
+            'logo_path'                  => $logoPath,
+            'settings'                   => $settings,
+            'subscription_limit_config'  => $validated['subscription_limit_config'] ?? ['nn300_limit' => 0],
+            'is_active'                  => $validated['is_active'] ?? true,
         ]);
 
         AuditLog::create([
@@ -110,8 +124,9 @@ class TenantController extends Controller
             ->get();
 
         return Inertia::render('admin/tenants/show', [
-            'tenant' => $tenant,
-            'users'  => $users,
+            'tenant'             => $tenant,
+            'users'              => $users,
+            'certificateTemplate'=> CertificateTemplate::where('tenant_id', $tenant->id)->first(['id', 'name', 'type', 'is_active']),
         ]);
     }
 
@@ -130,7 +145,7 @@ class TenantController extends Controller
             'name'         => ['required', 'string', 'max:150'],
             'code'         => ['required', 'string', 'max:10', Rule::unique('tenants', 'code')->ignore($tenant->id), 'regex:/^[A-Z]{2,10}$/'],
             'country_code' => ['required', 'string', 'size:2'],
-            'currency'     => ['required', 'string', 'size:3'],
+            'currency_code'=> ['required', 'string', 'size:3'],
             'locale'       => ['required', 'string', 'in:fr,en'],
             'timezone'     => ['required', 'string', 'max:50'],
             'is_active'    => ['boolean'],
@@ -148,6 +163,14 @@ class TenantController extends Controller
             'settings.surveyor_address' => ['nullable', 'string', 'max:300'],
             'settings.city'             => ['nullable', 'string', 'max:100'],
         ]);
+
+        // locale/timezone n'ont pas de colonne dédiée — ce sont des clés du
+        // JSON settings (cf. Tenant::$fillable / store() ci-dessus).
+        $validated['settings'] = array_merge($validated['settings'] ?? [], [
+            'locale'   => $validated['locale'],
+            'timezone' => $validated['timezone'],
+        ]);
+        unset($validated['locale'], $validated['timezone']);
 
         $oldValues = $tenant->only(['name', 'code', 'is_active']);
         $tenant->update($validated);

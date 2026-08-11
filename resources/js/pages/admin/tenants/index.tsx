@@ -15,7 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Tenant {
     id: string; name: string; code: string; country_code: string;
-    currency: string; locale: string; timezone: string;
+    currency_code: string;
     is_active: boolean; users_count: number; created_at: string;
 }
 interface Paginated<T> {
@@ -185,7 +185,7 @@ export default function TenantsIndex({ tenants, filters }: Props) {
                                                     </td>
 
                                                     {/* Devise */}
-                                                    <td><span className="curr-badge">{tenant.currency}</span></td>
+                                                    <td><span className="curr-badge">{tenant.currency_code}</span></td>
 
                                                     {/* Utilisateurs */}
                                                     <td>

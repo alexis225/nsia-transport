@@ -233,6 +233,7 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
                 Route::get('/certificates',[CertificateController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificates.index');
                 // ── US-016 : Soumission ───────────────────────────────
                 Route::get('/certificates/create',[CertificateController::class, 'create'])->middleware('permission:certificates.create')->name('admin.certificates.create');
+                Route::get('/certificates/exchange-rate',[CertificateController::class, 'exchangeRate'])->middleware('permission:certificates.create')->name('admin.certificates.exchange-rate');
                 Route::get('/certificates/print-models',[CertificateController::class, 'printModels'])->middleware('permission:certificates.view')->name('admin.certificates.print-models');
 
                 Route::post('/certificates/{certificate}/duplicate',[CertificateController::class, 'duplicate'])->middleware('permission:certificates.create')->name('admin.certificates.duplicate');

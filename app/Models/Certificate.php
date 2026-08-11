@@ -25,7 +25,8 @@ class Certificate extends Model
         'tenant_id', 'contract_id', 'template_id',
         'certificate_number', 'policy_number',
         'insured_name', 'insured_ref',
-        'voyage_date', 'voyage_from', 'voyage_to', 'voyage_via', 'destination_country_code',
+        'voyage_date', 'voyage_from', 'voyage_to', 'voyage_via',
+        'origin_country_code', 'destination_country_code',
         'transport_type', 'vessel_name', 'flight_number', 'voyage_mode',
         'expedition_items',
         'currency_code', 'insured_value', 'insured_value_letters',
@@ -87,6 +88,11 @@ class Certificate extends Model
     public function destinationCountry(): BelongsTo
     {
         return $this->belongsTo(Country::class, 'destination_country_code', 'code');
+    }
+
+    public function originCountry(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'origin_country_code', 'code');
     }
 
     public function issuedBy(): BelongsTo

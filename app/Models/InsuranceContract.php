@@ -28,7 +28,7 @@ class InsuranceContract extends Model
         'tenant_id', 'broker_id', 'subscriber_id',
         'contract_number', 'type',
         'insured_name', 'insured_address', 'insured_email', 'insured_phone',
-        'currency_code', 'subscription_limit', 'used_limit',
+        'currency_code', 'subscription_limit', 'used_limit', 'treaty_limit',
         'plein', 'escalade_enabled', 'escalade_threshold_pct',
         'premium_rate', 'deductible',
         'rate_ro', 'rate_rg', 'rate_surprime', 'rate_accessories', 'rate_tax',
@@ -51,6 +51,7 @@ class InsuranceContract extends Model
         'requires_approval'  => 'boolean',
         'subscription_limit' => 'decimal:2',
         'used_limit'         => 'decimal:2',
+        'treaty_limit'       => 'decimal:2',
         'plein'              => 'decimal:2',
         'escalade_enabled'   => 'boolean',
         'escalade_threshold_pct' => 'decimal:2',
@@ -76,6 +77,9 @@ class InsuranceContract extends Model
     const TYPE_OPEN_POLICY    = 'OPEN_POLICY';
     const TYPE_VOYAGE         = 'VOYAGE';
     const TYPE_ANNUAL_VOYAGE  = 'ANNUAL_VOYAGE';
+    // Police tiers chargeur — fonctionnement identique à la police ouverte
+    // (pas de verrou "un seul certificat" contrairement au type VOYAGE).
+    const TYPE_TIERS_CHARGEUR = 'TIERS_CHARGEUR';
 
     const STATUS_DRAFT     = 'DRAFT';
     const STATUS_ACTIVE    = 'ACTIVE';
@@ -86,6 +90,13 @@ class InsuranceContract extends Model
     const COVERAGE_TOUS_RISQUES  = 'TOUS_RISQUES';
     const COVERAGE_FAP_SAUF      = 'FAP_SAUF';
     const COVERAGE_FAP_ABSOLUE   = 'FAP_ABSOLUE';
+
+    // Plafond NN300 standard groupe : au-delà, un contrat requiert une
+    // validation DTAG (super_admin) avant activation — cf. store()/update()
+    // dans InsuranceContractController. Plafond Traité : au-delà, alerte
+    // informative pour placement en réassurance facultative (non bloquant).
+    const NN300_STANDARD_CEILING = 2000000000.00;
+    const TREATY_DEFAULT_LIMIT   = 6000000000.00;
 
     // ── Relations ────────────────────────────────────────────
     public function tenant(): BelongsTo
@@ -174,6 +185,23 @@ class InsuranceContract extends Model
     {
         if ($this->certificates_limit === null) return false;
         return $this->certificates_count >= $this->certificates_limit;
+    }
+
+    // Le plafond NN300 déclaré/importé pour ce contrat dépasse-t-il le
+    // seuil standard groupe (2 Mds FCFA) ? Détermine si une validation
+    // DTAG est requise avant activation.
+    public function exceedsNn300StandardCeiling(): bool
+    {
+        return (float) ($this->subscription_limit ?? self::NN300_STANDARD_CEILING) > self::NN300_STANDARD_CEILING;
+    }
+
+    // Le certificat en cours de soumission ferait-il dépasser le Plafond
+    // Traité cumulé (au-delà : alerte de placement en réassurance
+    // facultative, non bloquant — cf. CertificateController::submit()).
+    public function exceedsTreatyLimit(float $additionalValue = 0): bool
+    {
+        if ($this->treaty_limit === null) return false;
+        return ((float) $this->used_limit + $additionalValue) > (float) $this->treaty_limit;
     }
 
     public function remainingLimit(): ?float

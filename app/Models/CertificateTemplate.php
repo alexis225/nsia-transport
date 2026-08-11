@@ -43,6 +43,17 @@ class CertificateTemplate extends Model
         'last_number'            => 'integer',
     ];
 
+    // ── Types de modèle — référentiel officiel ─────────────────
+    const TYPE_CERTIFICAT_ASSURANCE = 'certificat_assurance';
+    const TYPE_CERTIFICAT_ETATIQUE  = 'certificat_etatique';
+    const TYPE_CARNET_ORDRE         = 'carnet_ordre';
+
+    const TYPES = [
+        self::TYPE_CERTIFICAT_ASSURANCE => "Certificat d'Assurance",
+        self::TYPE_CERTIFICAT_ETATIQUE  => 'Certificat Étatique (GUCE, GUOT, etc.)',
+        self::TYPE_CARNET_ORDRE         => "Certificat Carnet d'Ordre",
+    ];
+
     // ── Relations ────────────────────────────────────────────
     public function tenant(): BelongsTo
     {

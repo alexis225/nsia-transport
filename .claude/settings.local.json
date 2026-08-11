@@ -35,7 +35,19 @@
       "Bash(php -l app/Services/CertificateQrService.php)",
       "Bash(grep -rn \"CertificatePdfService::class\\\\|CertificatePdfService \\\\$\" app resources)",
       "Bash(php -l resources/views/pdf/certificate.blade.php)",
-      "Bash(choco --version)"
+      "Bash(choco --version)",
+      "Bash(python -c \"import pptx; print\\('python-pptx', pptx.__version__\\)\")",
+      "Bash(pip install *)",
+      "Bash(python build_decks.py)",
+      "Bash(ls \"/c/Program Files/Microsoft Office\" 2>&1 | head -5 *)",
+      "Read(//c/Program Files/Microsoft Office/**)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files \\\\\\(x86\\\\\\)/**)",
+      "PowerShell(Write-Output $env:USERPROFILE)",
+      "Bash(python -c ' *)",
+      "PowerShell([Environment]::GetFolderPath\\(\"Desktop\"\\))",
+      "Bash(grep -i \"nsia-transport-presentation\\\\|~\\\\$\")",
+      "Bash(powershell.exe -Command \"Get-Item 'C:\\\\Users\\\\jean-louis.goueguy\\\\OneDrive - Nsia Assurances\\\\Bureau\\\\NSIA-Transport-Presentation-Courte.pptx' | Select-Object Name, Length, Attributes, LastWriteTime\")"
     ],
     "additionalDirectories": [
       "c:\\wamp64\\www\\nsia-transport\\resources\\js\\pages\\admin",

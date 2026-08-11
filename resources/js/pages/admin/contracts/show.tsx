@@ -17,7 +17,7 @@ interface Contract {
     insured_email: string | null; insured_phone: string | null;
     coverage_type: string | null; clauses: string[]; exclusions: string[];
     incoterm_code: string | null; transport_mode_detail: string | null;
-    currency_code: string; subscription_limit: string | null;
+    currency_code: string; subscription_limit: string | null; treaty_limit: string | null;
     used_limit: string; premium_rate: string | null; deductible: string;
     plein: string | null; escalade_enabled: boolean; escalade_threshold_pct: string | null;
     rate_ro: string | null; rate_rg: string | null;
@@ -50,9 +50,10 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; 
 };
 
 const TYPE_LABELS: Record<string, string> = {
-    OPEN_POLICY:   'Police ouverte',
-    VOYAGE:        'Au voyage',
-    ANNUAL_VOYAGE: 'Annuel voyages',
+    OPEN_POLICY:    'Police ouverte',
+    VOYAGE:         'Au voyage',
+    ANNUAL_VOYAGE:  'Annuel voyages',
+    TIERS_CHARGEUR: 'Police tiers chargeur',
 };
 
 const COVERAGE_LABELS: Record<string, string> = {
@@ -407,6 +408,14 @@ export default function ContractShow({ contract, can }: Props) {
                                         {contract.subscription_limit
                                             ? parseFloat(contract.subscription_limit).toLocaleString('fr-FR') + ' ' + contract.currency_code
                                             : 'Illimité'}
+                                    </span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">Plafond ou limite Traité</span>
+                                    <span className="info-value">
+                                        {contract.treaty_limit
+                                            ? parseFloat(contract.treaty_limit).toLocaleString('fr-FR') + ' ' + contract.currency_code
+                                            : 'Non défini'}
                                     </span>
                                 </div>
                                 <div className="info-item">

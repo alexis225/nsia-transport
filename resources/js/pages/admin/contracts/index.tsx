@@ -48,9 +48,10 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; 
 };
 
 const TYPE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-    OPEN_POLICY:   { bg:'#eff6ff', color:'#1d4ed8', label:'Police ouverte'  },
-    VOYAGE:        { bg:'#fdf4ff', color:'#7c3aed', label:'Au voyage'       },
-    ANNUAL_VOYAGE: { bg:'#f0fdf4', color:'#15803d', label:'Annuel voyages'  },
+    OPEN_POLICY:    { bg:'#eff6ff', color:'#1d4ed8', label:'Police ouverte'       },
+    VOYAGE:         { bg:'#fdf4ff', color:'#7c3aed', label:'Au voyage'            },
+    ANNUAL_VOYAGE:  { bg:'#f0fdf4', color:'#15803d', label:'Annuel voyages'       },
+    TIERS_CHARGEUR: { bg:'#fff7ed', color:'#c2410c', label:'Police tiers chargeur' },
 };
 
 const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });

@@ -31,6 +31,7 @@ export default function UserEdit({ user, roles, tenants }: Props) {
         email:      user.email,
         phone:      user.phone ?? '',
         role:       user.roles?.[0]?.name ?? '',
+        tenant_id:  user.tenant?.id ?? '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -125,6 +126,18 @@ export default function UserEdit({ user, roles, tenants }: Props) {
                                     </select>
                                     <InputError message={errors.role}/>
                                 </div>
+
+                                {/* Filiale — réservé au super_admin */}
+                                {tenants.length > 0 && (
+                                    <div className="grid gap-2">
+                                        <Label className="ue-label">Filiale</Label>
+                                        <select className="ue-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
+                                            <option value="">Sans filiale</option>
+                                            {tenants.map(t => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                        </select>
+                                        <InputError message={errors.tenant_id}/>
+                                    </div>
+                                )}
 
                                 {/* Actions */}
                                 <div style={{ display:'flex', gap:8, paddingTop:4, borderTop:'1px solid #f8fafc', marginTop:4 }}>

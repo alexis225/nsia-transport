@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Award, Plus, Trash2, Check } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput } from '@/components/amount-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -27,9 +27,10 @@ interface Contract {
 }
 
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
-    OPEN_POLICY:   'Police ouverte',
-    VOYAGE:        'Au voyage',
-    ANNUAL_VOYAGE: 'Annuel voyages',
+    OPEN_POLICY:    'Police ouverte',
+    VOYAGE:         'Au voyage',
+    ANNUAL_VOYAGE:  'Annuel voyages',
+    TIERS_CHARGEUR: 'Police tiers chargeur',
 };
 
 const COVERAGE_LABELS: Record<string, string> = {
@@ -38,11 +39,13 @@ const COVERAGE_LABELS: Record<string, string> = {
     FAP_ABSOLUE:  'FAP absolue',
 };
 interface Country { code: string; name_fr: string; }
+interface Currency { code: string; name: string; symbol: string | null; }
 interface Props {
     contracts:        Contract[];
     selectedContract: Contract | null;
     defaultTenantId:  string | null;
     countries:        Country[];
+    currencies:       Currency[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -51,16 +54,20 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 type ExpeditionItem = {
-    marks: string; package_numbers: string; package_count: string;
+    marks: string; package_count: string;
     weight: string; nature: string; packaging: string; insured_value: string;
 };
 
 const emptyItem = (): ExpeditionItem => ({
-    marks: '', package_numbers: '', package_count: '',
+    marks: '', package_count: '',
     weight: '', nature: '', packaging: '', insured_value: '',
 });
 
-export default function CertificateCreate({ contracts, selectedContract, defaultTenantId, countries }: Props) {
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+export default function CertificateCreate({ contracts, selectedContract, defaultTenantId, countries, currencies }: Props) {
+    const [rateStatus, setRateStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+    const [rateMessage, setRateMessage] = useState<string | null>(null);
 
     const { data, setData, post, processing, errors } = useForm({
         contract_id:           selectedContract?.id ?? '',
@@ -70,15 +77,16 @@ export default function CertificateCreate({ contracts, selectedContract, default
         voyage_from:           '',
         voyage_to:             '',
         voyage_via:            '',
+        origin_country_code:      '',
         destination_country_code: '',
-        transport_type:        'SEA',
+        transport_type:        selectedContract?.transport_mode?.code ?? 'SEA',
         vessel_name:           '',
         flight_number:         '',
-        voyage_mode:           '',
+        voyage_mode:           selectedContract?.transport_mode_detail ?? '',
         expedition_items:      [emptyItem()] as ExpeditionItem[],
         insured_value:         '',
         insured_value_letters: '',
-        guarantee_mode:        '',
+        guarantee_mode:        COVERAGE_LABELS[selectedContract?.coverage_type ?? ''] ?? '',
         exchange_currency:     '',
         exchange_rate:         '',
     });
@@ -116,6 +124,48 @@ export default function CertificateCreate({ contracts, selectedContract, default
 
     const addItem    = () => setData('expedition_items', [...data.expedition_items, emptyItem()]);
     const removeItem = (i: number) => setData('expedition_items', data.expedition_items.filter((_, idx) => idx !== i));
+
+    // Taux du jour OANDA (devise cotation → devise locale du contrat) —
+    // purement indicatif, l'utilisateur peut toujours corriger le champ.
+    async function fetchExchangeRate(fromCurrency: string) {
+        if (!fromCurrency || !selectedC?.currency_code) return;
+
+        setRateStatus('loading');
+        setRateMessage(null);
+
+        try {
+            const res = await fetch(`${route('admin.certificates.exchange-rate')}?from=${fromCurrency}&to=${selectedC.currency_code}`, {
+                headers: { Accept: 'application/json' },
+            });
+            const json = await res.json();
+
+            if (!res.ok || !json.success) {
+                setRateStatus('error');
+                setRateMessage(json.message ?? "Taux indisponible — merci de le saisir manuellement.");
+
+                return;
+            }
+
+            setData('exchange_rate', String(json.rate));
+            setRateStatus('idle');
+        } catch {
+            setRateStatus('error');
+            setRateMessage("Conversion automatique indisponible — merci de saisir le taux manuellement.");
+        }
+    }
+
+    // Aperçu en direct de la prime — mêmes taux et même formule que le
+    // calcul serveur (CertificateController::buildPrimeBreakdown), à
+    // l'exception de la taxe qui dépend du référentiel filiale × mode de
+    // transport × pays et n'est calculée qu'à l'enregistrement.
+    const premiumPreview = selectedC ? [
+        { label: 'R.O.',    rate: parseFloat(selectedC.rate_ro ?? '0') },
+        { label: 'R.G.',    rate: parseFloat(selectedC.rate_rg ?? '0') },
+        { label: 'Surprime', rate: parseFloat(selectedC.rate_surprime ?? '0') },
+        { label: 'Accessoires', rate: parseFloat(selectedC.rate_accessories ?? '0') },
+    ].map(l => ({ ...l, amount: l.rate > 0 ? round2(totalValue * l.rate / 100) : 0 })) : [];
+
+    const premiumPreviewTotal = premiumPreview.reduce((s, l) => s + l.amount, 0);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -285,7 +335,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                             <div className="cc-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Date d'expédition *</Label>
+                                        <Label className="cc-label">Date de début du voyage *</Label>
                                         <Input className="h-11" type="date" value={data.voyage_date}
                                                onChange={e => setData('voyage_date', e.target.value)}/>
                                         <InputError message={errors.voyage_date}/>
@@ -300,6 +350,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                             <option value="ROAD">Routier</option>
                                             <option value="RAIL">Ferroviaire</option>
                                             <option value="MULTIMODAL">Multimodal</option>
+                                            <option value="RIVER">Fluvial / Lagunaire</option>
                                         </select>
                                     </div>
                                 </div>
@@ -325,6 +376,17 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                         <Input className="h-11" value={data.voyage_via ?? ''}
                                                onChange={e => setData('voyage_via', e.target.value)}
                                                placeholder="Lieu de transit / transbordement"/>
+                                    </div>
+                                </div>
+                                <div className="form-grid">
+                                    <div className="grid gap-2">
+                                        <Label className="cc-label">Pays de provenance</Label>
+                                        <select className="cc-select" value={data.origin_country_code ?? ''}
+                                                onChange={e => setData('origin_country_code', e.target.value)}>
+                                            <option value="">—</option>
+                                            {countries?.map(c => <option key={c.code} value={c.code}>{c.name_fr}</option>)}
+                                        </select>
+                                        <InputError message={errors.origin_country_code}/>
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="cc-label">Pays de destination</Label>
@@ -382,11 +444,10 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                         <thead>
                                             <tr>
                                                 <th>Marques</th>
-                                                <th>N° Colis</th>
                                                 <th>Nbre</th>
                                                 <th>Poids</th>
-                                                <th>Nature marchandises</th>
-                                                <th>Emballage</th>
+                                                <th style={{ minWidth:220 }}>Description des marchandises</th>
+                                                <th>Type de colis</th>
                                                 <th>Valeur assurance</th>
                                                 <th></th>
                                             </tr>
@@ -395,11 +456,10 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                             {data.expedition_items.map((item, i) => (
                                                 <tr key={i}>
                                                     <td><input className="exp-input" value={item.marks} onChange={e => updateItem(i, 'marks', e.target.value)} placeholder="NSIA-001"/></td>
-                                                    <td><input className="exp-input" value={item.package_numbers} onChange={e => updateItem(i, 'package_numbers', e.target.value)} placeholder="1 à 10"/></td>
                                                     <td style={{ width:60 }}><input className="exp-input" type="number" min={0} value={item.package_count} onChange={e => updateItem(i, 'package_count', e.target.value)} placeholder="10"/></td>
                                                     <td style={{ width:80 }}><input className="exp-input" value={item.weight} onChange={e => updateItem(i, 'weight', e.target.value)} placeholder="500 kg"/></td>
-                                                    <td><input className="exp-input" value={item.nature} onChange={e => updateItem(i, 'nature', e.target.value)} placeholder="Électronique"/></td>
-                                                    <td><input className="exp-input" value={item.packaging} onChange={e => updateItem(i, 'packaging', e.target.value)} placeholder="Cartons"/></td>
+                                                    <td><textarea className="exp-input" rows={3} style={{ resize:'vertical', minHeight:64 }} value={item.nature} onChange={e => updateItem(i, 'nature', e.target.value)} placeholder="Description détaillée des marchandises (jusqu'à un paragraphe)"/></td>
+                                                    <td><input className="exp-input" value={item.packaging} onChange={e => updateItem(i, 'packaging', e.target.value)} placeholder="Cartons, palettes, fûts…"/></td>
                                                     <td style={{ width:120 }}><AmountInput variant="plain" className="exp-input" value={item.insured_value} onChange={v => updateItem(i, 'insured_value', v)} placeholder="0"/></td>
                                                     <td style={{ width:36 }}>
                                                         {data.expedition_items.length > 1 && (
@@ -450,24 +510,64 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                 <div className="form-grid">
                                     <div className="grid gap-2">
                                         <Label className="cc-label">Mode de garantie</Label>
-                                        <Input className="h-11" value={data.guarantee_mode ?? ''}
-                                               onChange={e => setData('guarantee_mode', e.target.value)}
-                                               placeholder="ex: Tous risques, FAP sauf…"/>
+                                        <Input className="h-11" readOnly disabled value={data.guarantee_mode || 'Non défini sur le contrat'}
+                                               style={{ background:'#f8fafc', color:'#475569', cursor:'default' }}/>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                            Repris automatiquement des options de garantie définies à la création du contrat.
+                                        </p>
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="cc-label">Devise cotation</Label>
-                                        <Input className="h-11" value={data.exchange_currency ?? ''}
-                                               onChange={e => setData('exchange_currency', e.target.value)}
-                                               placeholder="ex: USD"/>
+                                        <select className="cc-select" value={data.exchange_currency ?? ''}
+                                                onChange={e => {
+                                                    const currency = e.target.value;
+                                                    setData('exchange_currency', currency);
+                                                    setData('exchange_rate', '');
+                                                    if (currency) void fetchExchangeRate(currency);
+                                                }}>
+                                            <option value="">Aucune (montants en devise du contrat)</option>
+                                            {currencies?.map(c => (
+                                                <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                                 {data.exchange_currency && (
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Cours ({data.exchange_currency})</Label>
+                                        <Label className="cc-label">
+                                            Cours du jour ({data.exchange_currency} → {selectedC?.currency_code ?? '—'})
+                                        </Label>
                                         <Input className="h-11" type="number" step="0.000001" min={0}
                                                value={data.exchange_rate ?? ''}
                                                onChange={e => setData('exchange_rate', e.target.value)}
                                                placeholder="ex: 600"/>
+                                        {rateStatus === 'loading' && (
+                                            <p style={{ fontSize:11, color:'#1d4ed8' }}>Récupération du taux du jour (OANDA)…</p>
+                                        )}
+                                        {rateStatus === 'error' && (
+                                            <p style={{ fontSize:11, color:'#c2410c' }}>{rateMessage}</p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {selectedC && (
+                                    <div className="grid gap-2" style={{ marginTop:4 }}>
+                                        <Label className="cc-label">Aperçu de la prime (taux du contrat)</Label>
+                                        <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:9, padding:'10px 14px', display:'flex', flexDirection:'column', gap:4 }}>
+                                            {premiumPreview.map(l => (
+                                                <div key={l.label} style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#475569' }}>
+                                                    <span>{l.label} ({l.rate}%)</span>
+                                                    <span style={{ fontFamily:'monospace' }}>{l.amount.toLocaleString('fr-FR')} {selectedC.currency_code}</span>
+                                                </div>
+                                            ))}
+                                            <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, fontWeight:700, color:'#1e293b', paddingTop:6, marginTop:2, borderTop:'1px solid #e2e8f0' }}>
+                                                <span>Sous-total (hors taxe)</span>
+                                                <span style={{ fontFamily:'monospace' }}>{premiumPreviewTotal.toLocaleString('fr-FR')} {selectedC.currency_code}</span>
+                                            </div>
+                                            <p style={{ fontSize:10.5, color:'#94a3b8', margin:0 }}>
+                                                La taxe (référentiel filiale × mode de transport × pays) est calculée à l'enregistrement.
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
                             </div>

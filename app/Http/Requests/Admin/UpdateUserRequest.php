@@ -24,6 +24,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'phone'      => ['nullable', 'string', 'max:30'],
             'role'       => ['nullable', 'string', 'exists:roles,name'],
+            'tenant_id'  => ['nullable', 'uuid', 'exists:tenants,id'],
         ];
     }
 }

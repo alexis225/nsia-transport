@@ -7,6 +7,7 @@ use App\Models\Broker;
 use App\Models\Coinsurer;
 use App\Models\CommissionTransaction;
 use App\Models\Expert;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -32,8 +33,16 @@ class IntermediaryReportController extends Controller
 
         $tab = $request->input('tab', 'brokers'); // brokers | coinsurers | experts
 
+        // ── Filtres partagés ───────────────────────────────────────
+        $filterTenant = $isSA ? $request->input('tenant_id') : null;
+        $brokerType   = $request->input('broker_type');   // LOCAL | FOREIGN
+        $contractType = $request->input('contract_type'); // OPEN_POLICY | VOYAGE | ANNUAL_VOYAGE | TIERS_CHARGEUR
+
         // ── COURTIERS ─────────────────────────────────────────────
         $brokersQuery = Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId))
+            ->when($filterTenant, fn ($q) => $q->where('tenant_id', $filterTenant))
+            ->when($brokerType, fn ($q) => $q->where('type', $brokerType))
+            ->when($contractType, fn ($q) => $q->whereHas('contracts', fn ($q) => $q->where('type', $contractType)))
             ->with('tenant:id,name,code')
             ->withCount([
                 'contracts',
@@ -111,6 +120,8 @@ class IntermediaryReportController extends Controller
 
         // ── COASSUREURS ───────────────────────────────────────────
         $coinsurers = Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId))
+            ->when($filterTenant, fn ($q) => $q->where('tenant_id', $filterTenant))
+            ->when($contractType, fn ($q) => $q->whereHas('contracts', fn ($q) => $q->where('type', $contractType)))
             ->with('tenant:id,name,code')
             ->withCount([
                 'contracts',
@@ -126,7 +137,10 @@ class IntermediaryReportController extends Controller
         ];
 
         // ── EXPERTS ───────────────────────────────────────────────
+        // Pas de filtre "type de contrat" — les experts ne sont pas liés
+        // à des contrats (intervention sur sinistres, cf. Expert model).
         $experts = Expert::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId))
+            ->when($filterTenant, fn ($q) => $q->where('tenant_id', $filterTenant))
             ->with('tenant:id,name,code')
             ->orderBy('name')
             ->get();
@@ -146,6 +160,12 @@ class IntermediaryReportController extends Controller
             'expertStats'     => $expertStats,
             'tab'             => $tab,
             'isSA'            => $isSA,
+            'tenants'         => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']) : collect(),
+            'filters'         => [
+                'tenant_id'     => $filterTenant,
+                'broker_type'   => $brokerType,
+                'contract_type' => $contractType,
+            ],
             'currentMonth'    => now()->locale('fr')->isoFormat('MMMM YYYY'),
             'currentYear'     => (int) now()->year,
         ]);

@@ -35,6 +35,8 @@ class ContractReportController extends Controller
         $dateFrom     = $request->input('date_from');
         $dateTo       = $request->input('date_to');
         $dateField    = $request->input('date_field', 'effective_date'); // effective_date | expiry_date | created_at
+        $limitMin     = $request->input('limit_min');
+        $limitMax     = $request->input('limit_max');
 
         // ── Base (sans filtre statut) pour stats globales ─────────
         $base = InsuranceContract::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId))
@@ -46,7 +48,9 @@ class ContractReportController extends Controller
                 ->orWhere('insured_name',  'ilike', "%{$search}%")
             ))
             ->when($dateFrom, fn ($q) => $q->whereDate($dateField, '>=', $dateFrom))
-            ->when($dateTo,   fn ($q) => $q->whereDate($dateField, '<=', $dateTo));
+            ->when($dateTo,   fn ($q) => $q->whereDate($dateField, '<=', $dateTo))
+            ->when($limitMin, fn ($q) => $q->where('subscription_limit', '>=', $limitMin))
+            ->when($limitMax, fn ($q) => $q->where('subscription_limit', '<=', $limitMax));
 
         // ── Stats globales ────────────────────────────────────────
         $stats = [
@@ -131,6 +135,8 @@ class ContractReportController extends Controller
                 'date_from'  => $dateFrom,
                 'date_to'    => $dateTo,
                 'date_field' => $dateField,
+                'limit_min'  => $limitMin,
+                'limit_max'  => $limitMax,
             ],
             'isSA'       => $isSA,
         ]);

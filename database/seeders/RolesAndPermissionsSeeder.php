@@ -27,6 +27,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'users.block', 'users.unblock', 'users.delete',
             // Courtiers
             'brokers.view', 'brokers.create', 'brokers.edit', 'brokers.delete',
+            // Coassureurs
+            'coinsurers.view', 'coinsurers.create', 'coinsurers.edit', 'coinsurers.delete',
+            // Experts
+            'experts.view', 'experts.create', 'experts.edit', 'experts.delete',
             // Filiales
             'tenants.view', 'tenants.create', 'tenants.edit', 'tenants.delete',
             // Référentiel
@@ -92,6 +96,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $adminFiliale->syncPermissions([
             'users.view', 'users.create', 'users.edit', 'users.block',
             'brokers.view', 'brokers.create', 'brokers.edit', 'brokers.delete',
+            'coinsurers.view', 'coinsurers.create', 'coinsurers.edit', 'coinsurers.delete',
+            'experts.view', 'experts.create', 'experts.edit', 'experts.delete',
             'referential.view',
             'contracts.view', 'contracts.create', 'contracts.edit',
             'contracts.activate', 'contracts.suspend', 'contracts.cancel', 'contracts.amend',

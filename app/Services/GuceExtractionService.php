@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Mindee\ClientOptions\PollingOptions;
 use Mindee\Input\PathInput;
@@ -62,7 +63,23 @@ class GuceExtractionService
 
         $data = [];
         foreach (config('services.mindee.field_map') as $localField => $mindeeField) {
-            $data[$localField] = $this->readSimpleField($fields, $mindeeField);
+            $value = $this->readSimpleField($fields, $mindeeField);
+
+            // Les champs date/montant sont normalisés ici (avant de repartir
+            // vers le front) car le format brut renvoyé par Mindee pour un
+            // champ personnalisé de type "Texte" varie selon le document
+            // scanné (ex: "18/02/2026" au lieu de l'ISO, ou "1 251 283,50"
+            // avec séparateurs de milliers/décimale locaux). Sans cette
+            // normalisation, un <input type="date"> ou type="number"> rejette
+            // silencieusement une valeur qu'il ne reconnaît pas et retombe
+            // sur son placeholder — ce qui ressemble à un champ "en
+            // filigrane" jamais vraiment rempli, alors que la donnée brute
+            // était bien extraite.
+            $data[$localField] = match ($localField) {
+                'transit_date' => $this->normalizeDate($value),
+                'insured_value', 'net_premium', 'total_premium' => $this->normalizeNumber($value),
+                default => $value,
+            };
         }
 
         // Journalise à chaque appel les champs bruts renvoyés par Mindee
@@ -93,5 +110,80 @@ class GuceExtractionService
         }
 
         return (string) $value;
+    }
+
+    /**
+     * Ramène une date brute (ISO, avec heure, ou jj/mm/aaaa — formats
+     * observés selon le document) au format strict Y-m-d attendu par un
+     * <input type="date">. Retourne null plutôt qu'une valeur non
+     * interprétable, pour laisser le champ vide au lieu de le corrompre.
+     */
+    private function normalizeDate(?string $raw): ?string
+    {
+        if ($raw === null || trim($raw) === '') {
+            return null;
+        }
+
+        $raw = trim($raw);
+
+        if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $raw, $matches)) {
+            return $matches[1];
+        }
+
+        foreach (['d/m/Y', 'd-m-Y', 'd.m.Y', 'm/d/Y'] as $format) {
+            try {
+                return Carbon::createFromFormat($format, $raw)->format('Y-m-d');
+            } catch (Throwable) {
+                continue;
+            }
+        }
+
+        try {
+            return Carbon::parse($raw)->format('Y-m-d');
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Ramène un montant brut (espaces/points de milliers, virgule
+     * décimale, symbole de devise éventuel) à une chaîne décimale simple
+     * ("1251283.5") exploitable par un <input type="number">. Retourne
+     * null plutôt qu'une valeur non numérique, pour laisser le champ vide
+     * au lieu de le corrompre.
+     */
+    private function normalizeNumber(?string $raw): ?string
+    {
+        if ($raw === null || trim($raw) === '') {
+            return null;
+        }
+
+        $cleaned = preg_replace('/[^\d,.\-]/', '', $raw) ?? '';
+
+        if ($cleaned === '') {
+            return null;
+        }
+
+        $hasComma = str_contains($cleaned, ',');
+        $hasDot   = str_contains($cleaned, '.');
+
+        if ($hasComma && $hasDot) {
+            // Le séparateur décimal est celui qui apparaît en dernier,
+            // l'autre est un séparateur de milliers à retirer.
+            if (strrpos($cleaned, ',') > strrpos($cleaned, '.')) {
+                $cleaned = str_replace('.', '', $cleaned);
+                $cleaned = str_replace(',', '.', $cleaned);
+            } else {
+                $cleaned = str_replace(',', '', $cleaned);
+            }
+        } elseif ($hasComma) {
+            // "1251283,50" (décimale) vs "1,251,283" (milliers, rare ici).
+            $decimals = strlen($cleaned) - strrpos($cleaned, ',') - 1;
+            $cleaned = $decimals === 3
+                ? str_replace(',', '', $cleaned)
+                : str_replace(',', '.', $cleaned);
+        }
+
+        return is_numeric($cleaned) ? $cleaned : null;
     }
 }

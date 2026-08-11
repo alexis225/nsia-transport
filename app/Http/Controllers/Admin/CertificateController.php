@@ -9,18 +9,23 @@ use App\Models\Broker;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\Country;
+use App\Models\Currency;
 use App\Models\InsuranceContract;
 use App\Models\Notification;
 use App\Models\TaxRule;
 use App\Models\TransportMode;
+use App\Models\User;
 use App\Services\ApprovalWorkflowService;
 use App\Services\CertificatePdfService;
 use App\Services\CertificateQrService;
+use App\Services\ExchangeRateService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 /**
  * ============================================================
@@ -157,10 +162,32 @@ class CertificateController extends Controller
 
         return Inertia::render('admin/certificates/create', [
             'countries'        => Country::orderBy('name_fr')->get(['code', 'name_fr']),
+            'currencies'       => Currency::active()->orderBy('code')->get(['code', 'name', 'symbol']),
             'contracts'        => $contracts,
             'selectedContract' => $selectedContract,
             'defaultTenantId'  => $user->tenant_id,
         ]);
+    }
+
+    // ── Taux de change du jour (Devise cotation → devise locale) ──
+    public function exchangeRate(Request $request, ExchangeRateService $exchangeRates): JsonResponse
+    {
+        $request->validate([
+            'from' => ['required', 'string', 'size:3'],
+            'to'   => ['required', 'string', 'size:3'],
+        ]);
+
+        try {
+            $rate = $exchangeRates->dailyRate(strtoupper($request->from), strtoupper($request->to));
+
+            if ($rate === null) {
+                return response()->json(['success' => false, 'message' => "Taux indisponible — merci de le saisir manuellement."], 422);
+            }
+
+            return response()->json(['success' => true, 'rate' => $rate]);
+        } catch (Throwable) {
+            return response()->json(['success' => false, 'message' => "Conversion automatique indisponible — merci de saisir le taux manuellement."], 422);
+        }
     }
 
     // ── US-016 : Stocker (brouillon) ─────────────────────────
@@ -369,6 +396,13 @@ class CertificateController extends Controller
         $contract   = InsuranceContract::find($certificate->contract_id);
         $escalated  = $contract && $approvalWorkflow->triggerIfNeeded($certificate, $contract, $request->user());
 
+        // Plafond Traité dépassé : alerte informative (placement en
+        // réassurance facultative à envisager) — non bloquant, distinct de
+        // l'escalade NN300 ci-dessus.
+        if ($contract && $contract->exceedsTreatyLimit((float) $certificate->insured_value)) {
+            $this->alertTreatyLimitExceeded($certificate, $contract);
+        }
+
         return back()->with('status', $escalated
             ? 'Certificat soumis — une limite contractuelle est dépassée, une validation NN300 est requise avant émission.'
             : 'Certificat soumis pour émission.');
@@ -499,12 +533,18 @@ class CertificateController extends Controller
             $destinationCountryCode
         );
 
+        // Alias FR/EN : les lignes des templates filiale utilisent des clés
+        // françaises (accessoires/taxe) alors que les lignes par défaut
+        // ci-dessus utilisent l'anglais (accessories/tax) — les deux doivent
+        // résoudre vers le même taux, sans quoi la ligne affiche 0.
         $rateMap = [
             'ro'          => (float) ($contract->rate_ro ?? 0),
             'rg'          => (float) ($contract->rate_rg ?? 0),
             'surprime'    => (float) ($contract->rate_surprime ?? 0),
             'accessories' => (float) ($contract->rate_accessories ?? 0),
+            'accessoires' => (float) ($contract->rate_accessories ?? 0),
             'tax'         => (float) ($taxRule->rate_pct ?? 0),
+            'taxe'        => (float) ($taxRule->rate_pct ?? 0),
         ];
 
         foreach ($lines as $line) {
@@ -534,14 +574,14 @@ class CertificateController extends Controller
             'voyage_from'           => ['required', 'string', 'max:150'],
             'voyage_to'             => ['required', 'string', 'max:150'],
             'voyage_via'            => ['nullable', 'string', 'max:150'],
+            'origin_country_code'      => ['nullable', 'string', 'size:2', 'exists:countries,code'],
             'destination_country_code' => ['nullable', 'string', 'size:2', 'exists:countries,code'],
-            'transport_type'        => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL'],
+            'transport_type'        => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL,RIVER'],
             'vessel_name'           => ['nullable', 'string', 'max:150'],
             'flight_number'         => ['nullable', 'string', 'max:50'],
             'voyage_mode'           => ['nullable', 'string', 'max:50'],
             'expedition_items'      => ['required', 'array', 'min:1'],
             'expedition_items.*.marks'          => ['nullable', 'string'],
-            'expedition_items.*.package_numbers'=> ['nullable', 'string'],
             'expedition_items.*.package_count'  => ['nullable', 'integer', 'min:0'],
             'expedition_items.*.weight'         => ['nullable', 'string'],
             'expedition_items.*.nature'         => ['required', 'string'],
@@ -568,6 +608,33 @@ class CertificateController extends Controller
             'user_agent'  => $request->userAgent(),
             'new_values'  => $extra ?: null,
         ]);
+    }
+
+    // Alerte informative (non bloquante) : le cumul du contrat dépasse le
+    // Plafond Traité — signale un besoin potentiel de placement en
+    // réassurance facultative, à la charge des approbateurs de la filiale.
+    private function alertTreatyLimitExceeded(Certificate $certificate, InsuranceContract $contract): void
+    {
+        $approvers = User::whereHas('roles', fn ($q) => $q->whereIn('name', ['admin_filiale', 'super_admin']))
+            ->where(fn ($q) => $q->where('tenant_id', $contract->tenant_id)->orWhereHas('roles', fn ($q) => $q->where('name', 'super_admin')))
+            ->get()
+            ->filter(fn ($u) => ! Notification::alreadySentToday($u, 'PlafondTraiteAlert', $contract->id));
+
+        if ($approvers->isEmpty()) return;
+
+        Notification::sendToMany(
+            $approvers,
+            'PlafondTraiteAlert',
+            'Plafond Traité dépassé',
+            "Contrat {$contract->contract_number} — le cumul assuré dépasse le Plafond Traité, un placement en réassurance facultative est à envisager.",
+            [
+                'icon'            => 'alert-triangle',
+                'color'           => 'warning',
+                'url'             => route('admin.contracts.show', $contract),
+                'entity_id'       => $contract->id,
+                'contract_number' => $contract->contract_number,
+            ]
+        );
     }
 
     private function authorizeTenant(string $tenantId): void

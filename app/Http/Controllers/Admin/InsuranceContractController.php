@@ -101,9 +101,14 @@ class InsuranceContractController extends Controller
         $validated['contract_number'] = InsuranceContract::generateContractNumber(
             $tenant->code, $validated['type']
         );
+        // Devise imposée par la filiale — tous les montants du contrat et
+        // de ses certificats doivent être exprimés dans cette monnaie.
+        $validated['currency_code'] = $tenant->currency_code;
         $validated['status']     = InsuranceContract::STATUS_DRAFT;
         $validated['created_by'] = $request->user()->id;
         $validated['updated_by'] = $request->user()->id;
+
+        $exceedsNn300 = $this->applyNn300Defaults($validated);
 
         $contract = InsuranceContract::create($validated);
 
@@ -120,8 +125,35 @@ class InsuranceContractController extends Controller
             'new_values'  => ['contract_number' => $contract->contract_number, 'type' => $contract->type],
         ]);
 
+        $status = "Contrat {$contract->contract_number} créé.";
+        if ($exceedsNn300) {
+            $status .= ' Ce contrat dépasse le plafond NN300 standard ('
+                . number_format(InsuranceContract::NN300_STANDARD_CEILING, 0, ',', ' ') . ' ' . $contract->currency_code
+                . ') — une validation du Groupe (DTAG) sera requise avant activation.';
+        }
+
         return redirect()->route('admin.contracts.show', $contract)
-            ->with('status', "Contrat {$contract->contract_number} créé.");
+            ->with('status', $status);
+    }
+
+    // ── Défauts NN300 / Plafond Traité ───────────────────────
+    // Applique les valeurs par défaut (2 Mds / 6 Mds FCFA) quand non
+    // renseignées, et force requires_approval si le plafond NN300
+    // déclaré/importé dépasse le seuil standard groupe — le contrat ne
+    // pourra alors être activé (submit()) que via une validation DTAG
+    // (approve(), réservé au rôle super_admin — cf. contracts.validate).
+    // Retourne true si le dépassement a été détecté.
+    private function applyNn300Defaults(array &$validated): bool
+    {
+        $validated['subscription_limit'] = $validated['subscription_limit'] ?? InsuranceContract::NN300_STANDARD_CEILING;
+        $validated['treaty_limit']       = $validated['treaty_limit'] ?? InsuranceContract::TREATY_DEFAULT_LIMIT;
+
+        $exceedsNn300 = (float) $validated['subscription_limit'] > InsuranceContract::NN300_STANDARD_CEILING;
+        if ($exceedsNn300) {
+            $validated['requires_approval'] = true;
+        }
+
+        return $exceedsNn300;
     }
 
     // ── Détail ───────────────────────────────────────────────
@@ -182,12 +214,24 @@ class InsuranceContractController extends Controller
         $commissionRate = $validated['commission_rate'] ?? null;
         unset($validated['commission_rate']);
         $validated['updated_by'] = $request->user()->id;
+
+        // Devise imposée par la filiale — tous les montants du contrat et
+        // de ses certificats doivent être exprimés dans cette monnaie.
+        $validated['currency_code'] = Tenant::find($validated['tenant_id'])->currency_code;
+
+        $exceedsNn300 = $this->applyNn300Defaults($validated);
+
         $contract->update($validated);
 
         $this->syncCommissionRate($contract, $commissionRate, $request->user());
 
+        $status = 'Contrat mis à jour.';
+        if ($exceedsNn300) {
+            $status .= ' Ce contrat dépasse le plafond NN300 standard — validation DTAG requise avant activation.';
+        }
+
         return redirect()->route('admin.contracts.show', $contract)
-            ->with('status', 'Contrat mis à jour.');
+            ->with('status', $status);
     }
 
     // ── Taux de commission spécifique au contrat ─────────────
@@ -369,13 +413,14 @@ class InsuranceContractController extends Controller
             'broker_id'            => ['nullable', 'uuid', 'exists:brokers,id'],
             'commission_rate'      => ['nullable', 'numeric', 'min:0', 'max:100'],
             'subscriber_id'        => ['nullable', 'uuid', 'exists:users,id'],
-            'type'                 => ['required', 'in:OPEN_POLICY,VOYAGE,ANNUAL_VOYAGE'],
+            'type'                 => ['required', 'in:OPEN_POLICY,VOYAGE,ANNUAL_VOYAGE,TIERS_CHARGEUR'],
             'insured_name'         => ['required', 'string', 'max:200'],
             'insured_address'      => ['nullable', 'string'],
             'insured_email'        => ['nullable', 'email'],
             'insured_phone'        => ['nullable', 'string', 'max:30'],
             'currency_code'        => ['required', 'size:3'],
             'subscription_limit'   => ['nullable', 'numeric', 'min:0'],
+            'treaty_limit'         => ['nullable', 'numeric', 'min:0'],
             'plein'                => ['nullable', 'numeric', 'min:0'],
             'escalade_enabled'     => ['boolean'],
             'escalade_threshold_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],

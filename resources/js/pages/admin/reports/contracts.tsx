@@ -48,6 +48,7 @@ interface Props {
         status: string; type: string | null; broker_id: string | null;
         tenant_id: string | null; search: string | null;
         date_from: string | null; date_to: string | null; date_field: string;
+        limit_min: string | null; limit_max: string | null;
     };
     isSA: boolean;
 }
@@ -62,9 +63,10 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
 };
 
 const TYPE_LABELS: Record<string, string> = {
-    OPEN_POLICY:   'Police ouverte',
-    VOYAGE:        'Voyage',
-    ANNUAL_VOYAGE: 'Voyage annuel',
+    OPEN_POLICY:    'Police ouverte',
+    VOYAGE:         'Voyage',
+    ANNUAL_VOYAGE:  'Voyage annuel',
+    TIERS_CHARGEUR: 'Police tiers chargeur',
 };
 
 const DATE_FIELD_LABELS: Record<string, string> = {
@@ -126,7 +128,7 @@ export default function ContractsReport({
     contracts, stats, avgUsagePct, byType, byStatus, brokers, tenants, filters, isSA,
 }: Props) {
     const [local, setLocal] = useState({ ...filters });
-    const [showAdv, setShowAdv] = useState(!!(filters.broker_id || filters.tenant_id || filters.date_from));
+    const [showAdv, setShowAdv] = useState(!!(filters.broker_id || filters.tenant_id || filters.date_from || filters.limit_min || filters.limit_max));
 
     const apply = () => {
         const p: Record<string, string> = { status: local.status, date_field: local.date_field };
@@ -136,6 +138,8 @@ export default function ContractsReport({
         if (local.search)     p.search     = local.search;
         if (local.date_from)  p.date_from  = local.date_from;
         if (local.date_to)    p.date_to    = local.date_to;
+        if (local.limit_min)  p.limit_min  = local.limit_min;
+        if (local.limit_max)  p.limit_max  = local.limit_max;
         router.get(route('admin.reports.contracts'), p, { preserveState: false });
     };
 
@@ -144,7 +148,7 @@ export default function ContractsReport({
     const paginateTo = (url: string | null) => url && router.visit(url, { preserveState: true });
 
     const hasActive = !!(filters.type || filters.broker_id || filters.tenant_id || filters.search
-        || filters.date_from || filters.status !== 'ALL');
+        || filters.date_from || filters.limit_min || filters.limit_max || filters.status !== 'ALL');
 
     const usageRemaining = stats.total_limit > 0
         ? Math.round(((stats.total_limit - stats.total_used) / stats.total_limit) * 100)
@@ -231,6 +235,7 @@ export default function ContractsReport({
                                 <option value="OPEN_POLICY">Police ouverte</option>
                                 <option value="VOYAGE">Voyage</option>
                                 <option value="ANNUAL_VOYAGE">Voyage annuel</option>
+                                <option value="TIERS_CHARGEUR">Police tiers chargeur</option>
                             </select>
                             <input className="fin fin-search" placeholder="Rechercher N°, assuré…"
                                    value={local.search ?? ''}
@@ -279,6 +284,16 @@ export default function ContractsReport({
                                             ))}
                                         </select>
                                     )}
+                                </div>
+                                <div className="filter-row">
+                                    <span style={{ fontSize: 11, color: '#94a3b8' }}>Plafond NN300</span>
+                                    <input type="number" min={0} className="fin fin-sel" placeholder="Seuil minimum"
+                                           value={local.limit_min ?? ''}
+                                           onChange={e => setLocal(p => ({ ...p, limit_min: e.target.value || null }))}/>
+                                    <span style={{ fontSize: 11, color: '#94a3b8' }}>→</span>
+                                    <input type="number" min={0} className="fin fin-sel" placeholder="Seuil maximum"
+                                           value={local.limit_max ?? ''}
+                                           onChange={e => setLocal(p => ({ ...p, limit_max: e.target.value || null }))}/>
                                 </div>
                             </div>
                         )}

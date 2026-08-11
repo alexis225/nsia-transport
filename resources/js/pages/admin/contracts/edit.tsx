@@ -8,7 +8,7 @@ interface Contract {
     broker_id: string | null; subscriber_id: string | null; type: string;
     insured_name: string; insured_address: string | null;
     insured_email: string | null; insured_phone: string | null;
-    currency_code: string; subscription_limit: string | null;
+    currency_code: string; subscription_limit: string | null; treaty_limit: string | null;
     plein: string | null; escalade_enabled: boolean; escalade_threshold_pct: string | null;
     premium_rate: string | null; deductible: string;
     rate_ro: string | null; rate_rg: string | null;
@@ -49,6 +49,7 @@ export default function ContractEdit({ contract, tenants, brokers, subscribers, 
         insured_phone:          contract.insured_phone ?? '',
         currency_code:          contract.currency_code,
         subscription_limit:     contract.subscription_limit ?? '',
+        treaty_limit:           contract.treaty_limit ?? '',
         plein:                  contract.plein ?? '',
         escalade_enabled:       contract.escalade_enabled ?? true,
         escalade_threshold_pct: contract.escalade_threshold_pct ?? '',

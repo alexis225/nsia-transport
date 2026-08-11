@@ -21,9 +21,12 @@ interface Template {
     tenant: { name: string; code: string } | null;
 }
 interface Tenant { id: string; name: string; code: string; }
-interface Props   { template: Template; tenants: Tenant[]; }
+interface Props   {
+    template: Template; tenants: Tenant[]; types: Record<string, string>;
+    tenantsWithOtherTemplate: Record<string, string>;
+}
 
-export default function CertificateTemplateEdit({ template, tenants }: Props) {
+export default function CertificateTemplateEdit({ template, tenants, types, tenantsWithOtherTemplate }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Modèles de certificats', href: '/admin/certificate-templates' },
         { title: template.name },
@@ -166,7 +169,8 @@ export default function CertificateTemplateEdit({ template, tenants }: Props) {
             <TemplateForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
-                tenants={tenants}
+                tenants={tenants} types={types}
+                tenantsWithOtherTemplate={tenantsWithOtherTemplate}
                 heroTitle={`Modifier — ${template.name}`}
                 heroSub={`${template.tenant?.name ?? ''} · ${template.currency_code}`}
                 submitLabel="Enregistrer les modifications"

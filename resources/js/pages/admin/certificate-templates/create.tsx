@@ -9,21 +9,21 @@ import { FileText, Plus, Trash2, Check, Camera } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface Tenant { id: string; name: string; code: string; }
-interface Props   { tenants: Tenant[]; }
+interface Props   { tenants: Tenant[]; types: Record<string, string>; defaultTenantId: string | null; }
 
 const CURRENCIES = ['XOF','XAF','GNF','MGA','NGN','EUR','USD'];
 
-export default function CertificateTemplateCreate({ tenants }: Props) {
+export default function CertificateTemplateCreate({ tenants, types, defaultTenantId }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Modèles de certificats', href: '/admin/certificate-templates' },
         { title: 'Nouveau modèle' },
     ];
 
     const { data, setData, post, processing, errors } = useForm({
-        tenant_id:             '',
+        tenant_id:             defaultTenantId ?? '',
         name:                  '',
         code:                  '',
-        type:                  'ordre_assurance',
+        type:                  Object.keys(types)[0] ?? '',
         company_name:          '',
         company_address:       '',
         company_phone:         '',
@@ -43,10 +43,14 @@ export default function CertificateTemplateCreate({ tenants }: Props) {
         has_currency_rate:     false,
         footer_text:           '',
         prime_breakdown_lines: [
-            { key:'ro',          label:'R.O./C.F.A',   label_en:'' },
-            { key:'rg',          label:'R.G./C.F.A',   label_en:'' },
-            { key:'surprime',    label:'SURPRIME',      label_en:'' },
-            { key:'prime_nette', label:'PRIME NETTE',   label_en:'' },
+            { key:'ro',           label:'R.O',          label_en:'O.R' },
+            { key:'rg',           label:'R.G',          label_en:'W.R' },
+            { key:'divers',       label:'Divers',       label_en:'Miscellaneous' },
+            { key:'surprime',     label:'Surprime',     label_en:'Surprime' },
+            { key:'accessoires',  label:'Accessoires',  label_en:'Accessories' },
+            { key:'taxe',         label:'Taxe',         label_en:'Tax' },
+            { key:'prime_nette',  label:'Prime Nette',  label_en:'Net Premium' },
+            { key:'prime_totale', label:'Prime Total',  label_en:'Total Premium' },
         ] as { key: string; label: string; label_en: string }[],
         is_active: true,
         logo: null as File | null,
@@ -82,7 +86,7 @@ export default function CertificateTemplateCreate({ tenants }: Props) {
             <TemplateForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
-                tenants={tenants}
+                tenants={tenants} types={types}
                 heroTitle="Nouveau modèle de certificat"
                 heroSub="Configurez le template selon la filiale"
                 submitLabel="Créer le modèle"
@@ -92,7 +96,8 @@ export default function CertificateTemplateCreate({ tenants }: Props) {
 }
 
 // ── Formulaire partagé ────────────────────────────────────────
-export function TemplateForm({ data, setData, errors, processing, onSubmit, tenants, heroTitle, heroSub, submitLabel, logoCard }: any) {
+export function TemplateForm({ data, setData, errors, processing, onSubmit, tenants, types, tenantsWithOtherTemplate, heroTitle, heroSub, submitLabel, logoCard }: any) {
+    const conflictingTemplateName = tenantsWithOtherTemplate?.[data.tenant_id];
 
     const fileRef                       = useRef<HTMLInputElement>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(
@@ -231,13 +236,19 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                                             ))}
                                         </select>
                                         <InputError message={errors.tenant_id}/>
+                                        {conflictingTemplateName && (
+                                            <p style={{ fontSize:11, color:'#c2410c', background:'#fff7ed', border:'1px solid #fed7aa', borderRadius:7, padding:'6px 10px' }}>
+                                                ⚠ Cette filiale a déjà un modèle actif (« {conflictingTemplateName} ») — le réassigner ici échouera tant que l'autre modèle n'est pas supprimé ou déplacé vers une autre filiale.
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="tf-label">Type *</Label>
                                         <select className="tf-select" value={data.type}
                                                 onChange={e => setData('type', e.target.value)}>
-                                            <option value="ordre_assurance">Ordre d'assurance</option>
-                                            <option value="certificat_assurance">Certificat d'assurance</option>
+                                            {Object.entries(types || {}).map(([value, label]: [string, any]) => (
+                                                <option key={value} value={value}>{label}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>

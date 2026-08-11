@@ -25,7 +25,7 @@ interface Workflow {
     triggered_at: string; expires_at: string;
     hours_left: number; is_overdue: boolean;
     certificate: { id: string; certificate_number: string; insured_name: string; insured_value: number; currency_code: string } | null;
-    contract: { id: string; contract_number: string; insured_name: string; insured_value: number; threshold_pct: number } | null;
+    contract: { id: string; contract_number: string; insured_name: string; declared_max_value: number; treaty_limit: number | null; threshold_pct: number } | null;
     tenant: { name: string; code: string } | null;
     triggered_by: { name: string } | null;
     decisions: Decision[];
@@ -112,7 +112,8 @@ export default function ApprovalShow({ workflow, can }: Props) {
     const contr = workflow.contract;
 
     const excessAmount = cert && workflow.threshold_amount != null ? cert.insured_value - workflow.threshold_amount : 0;
-    const excessPct    = contr ? ((cert?.insured_value ?? 0) / (contr.insured_value) * 100).toFixed(1) : '0';
+    const excessPct    = contr && contr.declared_max_value ? ((cert?.insured_value ?? 0) / contr.declared_max_value * 100).toFixed(1) : '0';
+    const exceedsTreaty = contr?.treaty_limit != null && (cert?.insured_value ?? 0) > contr.treaty_limit;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -250,11 +251,20 @@ export default function ApprovalShow({ workflow, can }: Props) {
                                 </span>
                             </div>
                             <div className="ap-row">
-                                <span className="ap-label">Valeur du contrat</span>
+                                <span className="ap-label">Valeur maximum déclarée ou importée</span>
                                 <span className="ap-value">
-                                    {fmt(contr?.insured_value ?? 0, cert?.currency_code ?? 'XOF')}
+                                    {fmt(contr?.declared_max_value ?? 0, cert?.currency_code ?? 'XOF')}
                                 </span>
                             </div>
+                            {contr?.treaty_limit != null && (
+                                <div className="ap-row">
+                                    <span className="ap-label">Seuil Plafond Traité</span>
+                                    <span className="ap-value" style={{ color: exceedsTreaty ? '#dc2626' : undefined }}>
+                                        {fmt(contr.treaty_limit, cert?.currency_code ?? 'XOF')}
+                                        {exceedsTreaty && ' — dépassé'}
+                                    </span>
+                                </div>
+                            )}
                             <div>
                                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
                                     <span style={{ fontSize:11, color:'#64748b' }}>Ratio certificat / contrat</span>

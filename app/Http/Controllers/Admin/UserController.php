@@ -166,14 +166,30 @@ class UserController extends Controller
     {
         $this->authorizeTenantAccess($user);
 
-        $oldValues = $user->only(['first_name', 'last_name', 'email', 'phone']);
+        $oldValues = $user->only(['first_name', 'last_name', 'email', 'phone', 'tenant_id']);
 
-        $user->update([
+        $user->fill([
             'first_name' => $request->first_name,
             'last_name'  => $request->last_name,
             'email'      => $request->email,
             'phone'      => $request->phone,
         ]);
+
+        // Seul un super_admin peut déplacer un utilisateur vers une autre
+        // filiale — un admin_filiale reste cantonné à la sienne (voir
+        // authorizeTenantAccess ci-dessous).
+        if ($request->user()->hasRole('super_admin')
+            && $request->filled('tenant_id')
+            && (string) $request->tenant_id !== (string) $user->tenant_id) {
+            // Un courtier rattaché à ce compte ne doit pas rester lié après
+            // un transfert vers une autre filiale (incohérence tenant_id).
+            if ($user->broker && (string) $user->broker->tenant_id !== (string) $request->tenant_id) {
+                $user->broker->update(['user_id' => null]);
+            }
+            $user->tenant_id = $request->tenant_id;
+        }
+
+        $user->save();
 
         if ($request->role) {
             $user->syncRoles([$request->role]);
@@ -189,10 +205,10 @@ class UserController extends Controller
             'ip_address'  => $request->ip(),
             'user_agent'  => $request->userAgent(),
             'old_values'  => $oldValues,
-            'new_values'  => $user->only(['first_name', 'last_name', 'email', 'phone']),
+            'new_values'  => $user->only(['first_name', 'last_name', 'email', 'phone', 'tenant_id']),
         ]);
 
-        return redirect()->route('admin.users')
+        return redirect()->route('admin.users.index')
             ->with('status', "Utilisateur {$user->first_name} {$user->last_name} mis à jour.");
     }
 
@@ -222,7 +238,7 @@ class UserController extends Controller
             'user_agent'  => $request->userAgent(),
         ]);
 
-        return redirect()->route('admin.users')
+        return redirect()->route('admin.users.index')
             ->with('status', "Utilisateur {$name} supprimé.");
     }
 

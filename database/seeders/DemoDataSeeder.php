@@ -91,7 +91,7 @@ class DemoDataSeeder extends Seeder
         'TROPICAL GOODS SA', 'ATLANTIC TRADE CORP', 'SAHEL DISTRIBUTION',
     ];
 
-    private array $transportTypes = ['SEA', 'AIR', 'ROAD', 'MULTIMODAL'];
+    private array $transportTypes = ['SEA', 'AIR', 'ROAD', 'MULTIMODAL', 'RIVER'];
     private array $voyageModes    = ['CONTAINER', 'GROUPAGE', 'CONVENTIONNEL', 'BOUT_EN_BOUT'];
 
     private int $escaladeCertSeq = 900000;
@@ -208,12 +208,11 @@ class DemoDataSeeder extends Seeder
     private function seedContracts(Tenant $tenant, $brokers, ?User $subscriber): \Illuminate\Support\Collection
     {
         $existing = InsuranceContract::where('tenant_id', $tenant->id)->count();
-        if ($existing >= 8) {
+        if ($existing >= 12) {
             return InsuranceContract::where('tenant_id', $tenant->id)->get();
         }
 
         $contracts = collect();
-        $currencies = ['XOF', 'EUR', 'USD'];
 
         for ($i = 1; $i <= 10; $i++) {
             $companyName = $this->companyNames[array_rand($this->companyNames)];
@@ -236,10 +235,13 @@ class DemoDataSeeder extends Seeder
                 'insured_name'           => $companyName,
                 'type'                   => match (true) {
                     $i % 5 === 0 => InsuranceContract::TYPE_VOYAGE,
+                    $i === 7     => InsuranceContract::TYPE_TIERS_CHARGEUR, // fonctionne comme une police ouverte
                     $i % 3 === 0 => InsuranceContract::TYPE_ANNUAL_VOYAGE,
                     default      => InsuranceContract::TYPE_OPEN_POLICY,
                 },
-                'currency_code'          => $currencies[array_rand($currencies)],
+                // Devise imposée par la filiale (Renforcement — plus de
+                // choix libre de devise sur le contrat).
+                'currency_code'          => $tenant->currency_code,
                 'plein'                  => $plein,
                 'subscription_limit'     => $plein * 3, // ~3 certificats avant le plafond cumulé
                 'used_limit'             => 0,
@@ -253,6 +255,61 @@ class DemoDataSeeder extends Seeder
                 'created_by'             => $subscriber?->id,
                 'updated_by'             => $subscriber?->id,
                 'created_at'             => $startDate,
+            ]));
+        }
+
+        // ── Contrat 11 — Dépassement du plafond NN300 standard (2 Mds
+        // FCFA), en attente de validation Groupe/DTAG (Renforcement
+        // escalade NN300). Visible dans /admin/contracts (statut "En
+        // attente d'approbation") — seul super_admin peut l'approuver.
+        $nn300Number = 'CT-' . $tenant->code . '-' . now()->format('y') . '-0011';
+        if (InsuranceContract::where('tenant_id', $tenant->id)->where('contract_number', $nn300Number)->doesntExist()) {
+            $contracts->push(InsuranceContract::create([
+                'tenant_id'              => $tenant->id,
+                'broker_id'              => $brokers->isNotEmpty() ? $brokers->random()->id : null,
+                'subscriber_id'          => $subscriber?->id,
+                'contract_number'        => $nn300Number,
+                'insured_name'           => 'GROUPE INDUSTRIEL PANAFRICAIN',
+                'type'                   => InsuranceContract::TYPE_OPEN_POLICY,
+                'currency_code'          => $tenant->currency_code,
+                'plein'                  => 800_000_000,
+                'subscription_limit'     => 3_000_000_000, // > 2 Mds standard groupe → validation DTAG requise
+                'treaty_limit'           => 6_000_000_000,
+                'used_limit'             => 0,
+                'requires_approval'      => true,
+                'escalade_enabled'       => true,
+                'status'                 => 'PENDING_APPROVAL',
+                'effective_date'         => now(),
+                'expiry_date'            => now()->addYear(),
+                'created_by'             => $subscriber?->id,
+                'updated_by'             => $subscriber?->id,
+            ]));
+        }
+
+        // ── Contrat 12 — Contrat Abonnement (police ouverte) arrivant à
+        // échéance dans 2 mois — démontre l'alerte 3 mois + rappel
+        // mensuel (nsia:check-contracts).
+        $abonnementNumber = 'CT-' . $tenant->code . '-' . now()->format('y') . '-0012';
+        if (InsuranceContract::where('tenant_id', $tenant->id)->where('contract_number', $abonnementNumber)->doesntExist()) {
+            $contracts->push(InsuranceContract::create([
+                'tenant_id'              => $tenant->id,
+                'broker_id'              => $brokers->isNotEmpty() ? $brokers->random()->id : null,
+                'subscriber_id'          => $subscriber?->id,
+                'contract_number'        => $abonnementNumber,
+                'insured_name'           => 'COMPTOIR COMMERCIAL ABIDJAN',
+                'type'                   => InsuranceContract::TYPE_OPEN_POLICY,
+                'currency_code'          => $tenant->currency_code,
+                'plein'                  => 50_000_000,
+                'subscription_limit'     => 2_000_000_000,
+                'treaty_limit'           => 6_000_000_000,
+                'used_limit'             => 0,
+                'escalade_enabled'       => true,
+                'status'                 => InsuranceContract::STATUS_ACTIVE,
+                'effective_date'         => now()->subMonths(10),
+                'expiry_date'            => now()->addMonths(2), // dans la fenêtre d'alerte 3 mois
+                'notice_period_days'     => 60,
+                'created_by'             => $subscriber?->id,
+                'updated_by'             => $subscriber?->id,
             ]));
         }
 
@@ -353,7 +410,7 @@ class DemoDataSeeder extends Seeder
 
             $primeBreakdown = $this->buildDemoPrimeBreakdown($contract, $insuredValue);
             $primeTotal     = collect($primeBreakdown)->sum('amount');
-            $taxAmount      = collect($primeBreakdown)->firstWhere('key', 'tax')['amount'] ?? 0;
+            $taxAmount      = collect($primeBreakdown)->firstWhere('key', 'taxe')['amount'] ?? 0;
             $primeNette     = round($primeTotal - $taxAmount, 2);
 
             $cert = Certificate::create([
@@ -368,6 +425,7 @@ class DemoDataSeeder extends Seeder
                 'voyage_from'      => "{$fromCity}, {$fromCountry}",
                 'voyage_to'        => "{$toCity}, {$toCountry}",
                 'voyage_via'       => null,
+                'origin_country_code'      => $this->countryIsoCodes[$fromCountry] ?? null,
                 'destination_country_code' => $this->countryIsoCodes[$toCountry] ?? null,
                 'transport_type'   => $this->transportTypes[array_rand($this->transportTypes)],
                 'voyage_mode'      => $this->voyageModes[array_rand($this->voyageModes)],
@@ -433,26 +491,29 @@ class DemoDataSeeder extends Seeder
         return $certificates;
     }
 
-    // Décompte de prime — mêmes clés que CertificateController::buildPrimeBreakdown()
-    // (ro/rg/surprime/accessories/tax), pour un rendu cohérent avec les
-    // certificats réellement émis par l'application.
+    // Décompte de prime — mêmes clés que les modèles de certificat réels
+    // (CertificateTemplateSeeder : ro/rg/divers/surprime/accessoires/taxe,
+    // en français) pour un rendu cohérent sur les gabarits d'impression
+    // pays (print-templates/build-field-values.ts).
     private function buildDemoPrimeBreakdown(InsuranceContract $contract, float $insuredValue): array
     {
         $rates = [
             'ro'          => (float) ($contract->rate_ro ?: 0.35),
             'rg'          => (float) ($contract->rate_rg ?: 0.10),
+            'divers'      => 0,
             'surprime'    => (float) ($contract->rate_surprime ?: 0),
-            'accessories' => (float) ($contract->rate_accessories ?: 0.05),
-            'tax'         => 5.00, // taux indicatif de démo — le référentiel réel passe par TaxRule
+            'accessoires' => (float) ($contract->rate_accessories ?: 0.05),
+            'taxe'        => 5.00, // taux indicatif de démo — le référentiel réel passe par TaxRule
         ];
 
         $breakdown = [];
         foreach ([
             ['key' => 'ro',          'label' => 'R.O.'],
             ['key' => 'rg',          'label' => 'R.G.'],
+            ['key' => 'divers',      'label' => 'Divers'],
             ['key' => 'surprime',    'label' => 'Surprime'],
-            ['key' => 'accessories', 'label' => 'Access.'],
-            ['key' => 'tax',         'label' => 'Taxe'],
+            ['key' => 'accessoires', 'label' => 'Accessoires'],
+            ['key' => 'taxe',        'label' => 'Taxe'],
         ] as $line) {
             $rate   = $rates[$line['key']];
             $amount = $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
@@ -538,6 +599,7 @@ class DemoDataSeeder extends Seeder
             'voyage_date'        => $now->copy()->subDays(2),
             'voyage_from'        => 'Abidjan, Côte d\'Ivoire',
             'voyage_to'          => 'Le Havre, France',
+            'origin_country_code'      => 'CI',
             'destination_country_code' => 'FR',
             'transport_type'     => 'SEA',
             'voyage_mode'        => 'CONTAINER',
@@ -957,6 +1019,8 @@ class DemoDataSeeder extends Seeder
                 ['  - dont DUPLICATA',     Certificate::where('document_type', Certificate::DOC_TYPE_DUPLICATA)->count()],
                 ['Avenants',               class_exists(ContractAmendment::class) ? ContractAmendment::count() : 0],
                 ['Escalades NN300 (3 types)', class_exists(ApprovalRequest::class) ? ApprovalRequest::count() : 0],
+                ['  - dont contrats en attente DTAG (> 2 Mds)', InsuranceContract::where('status', 'PENDING_APPROVAL')->count()],
+                ['  - dont Abonnement < 3 mois avant échéance', InsuranceContract::whereIn('type', [InsuranceContract::TYPE_OPEN_POLICY, InsuranceContract::TYPE_TIERS_CHARGEUR])->where('status', 'ACTIVE')->whereBetween('expiry_date', [now(), now()->addMonths(3)])->count()],
                 ['Règles de commission',   class_exists(CommissionRule::class) ? CommissionRule::count() : 0],
                 ['Transactions commission', class_exists(CommissionTransaction::class) ? CommissionTransaction::count() : 0],
                 ['Taux de taxe',           class_exists(TaxRule::class) ? TaxRule::count() : 0],
@@ -970,10 +1034,14 @@ class DemoDataSeeder extends Seeder
         $this->command->info('');
         $this->command->info('🎯 Pages clés à montrer pour la démo :');
         $this->command->line('   • /admin/certificates            → Liste avec tous les statuts');
-        $this->command->line('   • /admin/contracts                → Contrats + plein / plafond NN300');
-        $this->command->line('   • /admin/contracts/limits          → Suivi plafonds');
-        $this->command->line('   • /admin/approvals                 → Escalades NN300 — les 3 types de déclencheur');
-        $this->command->line('   • /admin/approvals/configs         → Gestion des seuils par filiale (nouveau)');
+        $this->command->line('   • /admin/certificates/create        → Pays de provenance/destination, mode fluvial/lagunaire, devise cotation + aperçu prime (nouveau)');
+        $this->command->line('   • /admin/contracts                → Contrats + plein / plafond NN300, filtrez "En attente d\'approbation" → contrat #0011 (> 2 Mds, réservé DTAG)');
+        $this->command->line('   • /admin/contracts/limits          → Suivi plafonds + recherche rapide (nouveau)');
+        $this->command->line('   • /admin/approvals                 → Escalades NN300 — les 3 types de déclencheur + libellé "Valeur maximum déclarée ou importée" (nouveau)');
+        $this->command->line('   • /admin/approvals/configs         → Gestion des seuils par filiale');
+        $this->command->line('   • /admin/reports/contracts          → Filtre par plafond NN300 (nouveau)');
+        $this->command->line('   • /admin/reports/intermediaries     → Filtres filiale / type de contrat / type de courtier (nouveau)');
+        $this->command->line('   • Contrat #0012 (Abonnement, échéance dans 2 mois) → `php artisan nsia:check-contracts` déclenche l\'alerte 3 mois (nouveau)');
         $this->command->line('   • /admin/certificate-requests      → Demandes partenaires (nouveau)');
         $this->command->line('   • /admin/taxes/rules               → Référentiel de taxes (nouveau)');
         $this->command->line('   • /admin/guce-certificates         → Certificats GUCE importés (nouveau)');

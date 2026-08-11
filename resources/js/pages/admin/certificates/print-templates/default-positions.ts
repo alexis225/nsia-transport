@@ -47,8 +47,12 @@ export const DEFAULT_FIELD_POSITIONS: FieldPosition[] = [
     { key: 'amount_surprime',       top: 145, left: 172, width: 25, align: 'right' },
     { key: 'rate_divers',           top: 150, left: 150, width: 20, align: 'right' },
     { key: 'amount_divers',         top: 150, left: 172, width: 25, align: 'right' },
-    { key: 'amount_prime_nette',    top: 156, left: 172, width: 25, align: 'right', bold: true },
-    { key: 'prime_total',           top: 163, left: 172, width: 25, align: 'right', bold: true, fontSize: 11 },
+    { key: 'rate_accessoires',      top: 155, left: 150, width: 20, align: 'right' },
+    { key: 'amount_accessoires',    top: 155, left: 172, width: 25, align: 'right' },
+    { key: 'rate_taxe',             top: 160, left: 150, width: 20, align: 'right' },
+    { key: 'amount_taxe',           top: 160, left: 172, width: 25, align: 'right' },
+    { key: 'amount_prime_nette',    top: 165, left: 172, width: 25, align: 'right', bold: true },
+    { key: 'prime_total',           top: 172, left: 172, width: 25, align: 'right', bold: true, fontSize: 11 },
 
-    { key: 'issued_by',             top: 175, left: 20,  width: 80 },
+    { key: 'issued_by',             top: 184, left: 20,  width: 80 },
 ];

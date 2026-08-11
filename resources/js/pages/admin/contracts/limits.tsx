@@ -1,7 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { TrendingUp, AlertTriangle, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle, XCircle, Eye, Search } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Contrats', href: '/admin/contracts' },
@@ -33,6 +34,20 @@ const fmt = (n: number, currency: string) =>
     n.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' ' + currency;
 
 export default function ContractLimits({ contracts, stats, isSA }: Props) {
+    const [search, setSearch] = useState('');
+
+    const filteredContracts = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (! q) return contracts;
+
+        return contracts.filter(c =>
+            c.contract_number.toLowerCase().includes(q)
+            || c.insured_name.toLowerCase().includes(q)
+            || (c.tenant?.name.toLowerCase().includes(q) ?? false)
+            || (c.tenant?.code.toLowerCase().includes(q) ?? false)
+        );
+    }, [contracts, search]);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Suivi plafonds NN300 — NSIA Transport"/>
@@ -124,15 +139,32 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                         </div>
                     </div>
 
+                    {/* Recherche rapide */}
+                    <div style={{ position:'relative', maxWidth:340 }}>
+                        <Search size={14} color="#94a3b8" style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)' }}/>
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Rechercher un contrat, un assuré…"
+                            style={{ width:'100%', padding:'8px 12px 8px 34px', fontSize:13, border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', boxSizing:'border-box' }}
+                        />
+                    </div>
+
                     {/* Grille de cards */}
                     {contracts.length === 0 ? (
                         <div className="empty">
                             <TrendingUp size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
                             <div>Aucun contrat avec plafond NN300 actif.</div>
                         </div>
+                    ) : filteredContracts.length === 0 ? (
+                        <div className="empty">
+                            <Search size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
+                            <div>Aucun contrat ne correspond à « {search} ».</div>
+                        </div>
                     ) : (
                         <div className="cards-grid">
-                            {contracts.map(contract => {
+                            {filteredContracts.map(contract => {
                                 const as = ALERT_STYLES[contract.alert_level];
                                 return (
                                     <div key={contract.id} className={`lm-card ${contract.alert_level}`}>

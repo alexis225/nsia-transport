@@ -7,6 +7,7 @@ use App\Models\CertificateTemplate;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,11 +33,12 @@ class CertificateTemplateController extends Controller
         return Inertia::render('admin/certificate-templates/index', [
             'templates'              => $templates,
             'tenantsWithoutTemplate' => $tenantsWithoutTemplate,
+            'types'                  => CertificateTemplate::TYPES,
         ]);
     }
 
     // ── Formulaire création ──────────────────────────────────
-    public function create(): Response
+    public function create(Request $request): Response
     {
         $tenants = Tenant::whereNotIn(
             'id',
@@ -44,7 +46,9 @@ class CertificateTemplateController extends Controller
         )->orderBy('name')->get(['id', 'name', 'code']);
 
         return Inertia::render('admin/certificate-templates/create', [
-            'tenants' => $tenants,
+            'tenants'         => $tenants,
+            'types'           => CertificateTemplate::TYPES,
+            'defaultTenantId' => $request->query('tenant_id'),
         ]);
     }
 
@@ -110,9 +114,18 @@ class CertificateTemplateController extends Controller
     {
         $certificateTemplate->load('tenant');
 
+        // Filiales déjà associées à un AUTRE modèle — un seul modèle actif
+        // par filiale (contrainte unique tenant_id). Permet au front
+        // d'avertir avant l'enregistrement plutôt que de laisser échouer
+        // la contrainte en base.
+        $tenantsWithOtherTemplate = CertificateTemplate::where('id', '!=', $certificateTemplate->id)
+            ->pluck('name', 'tenant_id');
+
         return Inertia::render('admin/certificate-templates/edit', [
             'template' => $certificateTemplate,
             'tenants'  => Tenant::orderBy('name')->get(['id', 'name', 'code']),
+            'types'    => CertificateTemplate::TYPES,
+            'tenantsWithOtherTemplate' => $tenantsWithOtherTemplate,
         ]);
     }
 
@@ -156,10 +169,16 @@ class CertificateTemplateController extends Controller
     private function validateTemplate(Request $request, ?string $ignoreId = null): array
     {
         return $request->validate([
-            'tenant_id'              => ['required', 'uuid', 'exists:tenants,id'],
+            // Un seul modèle actif par filiale (contrainte unique en base) —
+            // ignore la ligne en cours d'édition pour permettre de garder
+            // la même filiale, mais bloque la réassignation vers une
+            // filiale déjà associée à un AUTRE modèle.
+            'tenant_id'              => ['required', 'uuid', 'exists:tenants,id',
+                Rule::unique('certificate_templates', 'tenant_id')->ignore($ignoreId)],
             'name'                   => ['required', 'string', 'max:150'],
-            'code'                   => ['required', 'string', 'max:20'],
-            'type'                   => ['required', 'in:ordre_assurance,certificat_assurance'],
+            'code'                   => ['required', 'string', 'max:20',
+                Rule::unique('certificate_templates', 'code')->ignore($ignoreId)],
+            'type'                   => ['required', Rule::in(array_keys(CertificateTemplate::TYPES))],
             'company_name'           => ['required', 'string', 'max:150'],
             'company_address'        => ['nullable', 'string', 'max:255'],
             'company_phone'          => ['nullable', 'string', 'max:100'],
@@ -187,6 +206,9 @@ class CertificateTemplateController extends Controller
             'number_padding'         => ['integer', 'min:4', 'max:10'],
             'is_active'              => ['boolean'],
             'logo'                   => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
+        ], [
+            'tenant_id.unique' => "Cette filiale a déjà un modèle actif — libérez-le (suppression ou réassignation) avant d'en réassigner un nouveau.",
+            'code.unique'      => "Ce code de modèle est déjà utilisé par un autre modèle.",
         ]);
     }
 }

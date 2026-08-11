@@ -1,9 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import {
     Users, Briefcase, UserCheck, Award,
-    CheckCircle, XCircle, Globe, Phone, Mail,
+    CheckCircle, XCircle, Globe, Phone, Mail, Filter, X,
 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -43,9 +44,18 @@ interface Props {
     expertStats:     Stats;
     tab:             string;
     isSA:            boolean;
+    tenants:         { id: string; name: string; code: string }[];
+    filters:         { tenant_id: string | null; broker_type: string | null; contract_type: string | null };
     currentMonth:    string;
     currentYear:     number;
 }
+
+const CONTRACT_TYPE_LABELS: Record<string, string> = {
+    OPEN_POLICY:    'Police ouverte',
+    VOYAGE:         'Voyage',
+    ANNUAL_VOYAGE:  'Voyage annuel',
+    TIERS_CHARGEUR: 'Police tiers chargeur',
+};
 
 // ── Helpers ──────────────────────────────────────────────────
 const fmtAmt = (v: number) => {
@@ -98,11 +108,31 @@ const TABS = [
 // ── Main Component ───────────────────────────────────────────
 export default function IntermediariesReport({
     brokersData, brokerStats, coinsurers, coinsurersStats, experts, expertStats,
-    tab, isSA, currentMonth, currentYear,
+    tab, isSA, tenants, filters, currentMonth, currentYear,
 }: Props) {
 
+    const [local, setLocal] = useState({ ...filters });
+
     const switchTab = (t: string) =>
-        router.get(route('admin.reports.intermediaries'), { tab: t }, { preserveState: false });
+        router.get(route('admin.reports.intermediaries'), { ...cleanParams(local), tab: t }, { preserveState: false });
+
+    const cleanParams = (f: typeof local) => {
+        const p: Record<string, string> = {};
+        if (f.tenant_id)     p.tenant_id     = f.tenant_id;
+        if (f.broker_type)   p.broker_type   = f.broker_type;
+        if (f.contract_type) p.contract_type = f.contract_type;
+        return p;
+    };
+
+    const applyFilters = () =>
+        router.get(route('admin.reports.intermediaries'), { ...cleanParams(local), tab }, { preserveState: false });
+
+    const resetFilters = () => {
+        setLocal({ tenant_id: null, broker_type: null, contract_type: null });
+        router.get(route('admin.reports.intermediaries'), { tab }, { preserveState: false });
+    };
+
+    const hasActiveFilters = !!(filters.tenant_id || filters.broker_type || filters.contract_type);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -124,6 +154,7 @@ export default function IntermediariesReport({
                 tr:hover td { background:#fafafa; }
                 .empty { padding:32px; text-align:center; color:#94a3b8; font-size:13px; }
                 .type-badge { display:inline-block; padding:2px 7px; border-radius:6px; font-size:10px; font-weight:600; }
+                .int-filter-sel { height:32px; padding:0 10px; font-size:12px; font-family:inherit; color:#1e293b; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:7px; outline:none; cursor:pointer; }
             `}</style>
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
@@ -161,6 +192,42 @@ export default function IntermediariesReport({
                                 </button>
                             );
                         })}
+                    </div>
+
+                    {/* ── Filtres ──────────────────────────────── */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+                                  background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '10px 14px' }}>
+                        <Filter size={13} color="#94a3b8"/>
+                        {isSA && tenants.length > 0 && (
+                            <select className="int-filter-sel" value={local.tenant_id ?? ''}
+                                    onChange={e => setLocal(p => ({ ...p, tenant_id: e.target.value || null }))}>
+                                <option value="">Toutes les filiales</option>
+                                {tenants.map(t => <option key={t.id} value={t.id}>[{t.code}] {t.name}</option>)}
+                            </select>
+                        )}
+                        {tab === 'brokers' && (
+                            <select className="int-filter-sel" value={local.broker_type ?? ''}
+                                    onChange={e => setLocal(p => ({ ...p, broker_type: e.target.value || null }))}>
+                                <option value="">Tous types de courtier</option>
+                                <option value="LOCAL">Courtier local</option>
+                                <option value="FOREIGN">Partenaire étranger</option>
+                            </select>
+                        )}
+                        {(tab === 'brokers' || tab === 'coinsurers') && (
+                            <select className="int-filter-sel" value={local.contract_type ?? ''}
+                                    onChange={e => setLocal(p => ({ ...p, contract_type: e.target.value || null }))}>
+                                <option value="">Tous types de contrat</option>
+                                {Object.entries(CONTRACT_TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                            </select>
+                        )}
+                        <button className="tab-btn" style={{ background: '#1d4ed8', color: '#fff' }} onClick={applyFilters}>
+                            Appliquer
+                        </button>
+                        {hasActiveFilters && (
+                            <button className="tab-btn" onClick={resetFilters} title="Réinitialiser">
+                                <X size={12}/>
+                            </button>
+                        )}
                     </div>
 
                     {/* ── Onglet Courtiers ─────────────────────── */}

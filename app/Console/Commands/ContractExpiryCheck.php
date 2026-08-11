@@ -24,6 +24,7 @@ class ContractExpiryCheck extends Command
     public function handle(): void
     {
         $this->checkExpiring();
+        $this->checkAbonnementExpiring();
         $this->checkLimit();
         $this->info('Vérification contrats terminée.');
     }
@@ -56,6 +57,48 @@ class ContractExpiryCheck extends Command
         }
     }
 
+    // Contrats Abonnement (police ouverte / tiers chargeur) : alerte dès
+    // 3 mois avant échéance, puis rappel mensuel jusqu'à l'échéance —
+    // distinct des seuils fixes J-30/15/7 de checkExpiring() ci-dessus,
+    // qui s'appliquent à tous les types de contrat.
+    private function checkAbonnementExpiring(): void
+    {
+        $contracts = InsuranceContract::with('tenant')
+            ->where('status', 'ACTIVE')
+            ->whereIn('type', [InsuranceContract::TYPE_OPEN_POLICY, InsuranceContract::TYPE_TIERS_CHARGEUR])
+            ->whereBetween('expiry_date', [now()->toDateString(), now()->addMonths(3)->toDateString()])
+            ->get();
+
+        foreach ($contracts as $contract) {
+            $daysLeft = (int) now()->startOfDay()->diffInDays($contract->expiry_date, false);
+
+            $users = User::where('tenant_id', $contract->tenant_id)
+                ->whereHas('roles', fn ($q) =>
+                    $q->whereIn('name', ['admin_filiale', 'souscripteur', 'super_admin'])
+                )
+                ->get();
+
+            foreach ($users as $user) {
+                // Rappel mensuel : un seul envoi par contrat et par mois
+                // calendaire, jusqu'à l'échéance. "data" est stocké en
+                // colonne text (cf. migration) — cast explicite ::jsonb
+                // requis pour l'opérateur ->> sous Postgres.
+                $alreadyNotifiedThisMonth = $user->notifications()
+                    ->whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->whereRaw("data::jsonb ->> 'type' = ?", ['contract.expiring'])
+                    ->whereRaw("data::jsonb ->> 'contract_number' = ?", [$contract->contract_number])
+                    ->exists();
+
+                if (! $alreadyNotifiedThisMonth) {
+                    $user->notify(new ContractExpiring($contract, $daysLeft));
+                }
+            }
+
+            $this->info("Rappel abonnement envoyé pour {$contract->contract_number} (J-{$daysLeft})");
+        }
+    }
+
     private function checkLimit(): void
     {
         // Contrats ayant dépassé 90% du plafond NN300
@@ -73,10 +116,11 @@ class ContractExpiryCheck extends Command
 
                 foreach ($users as $user) {
                     // Éviter les doublons — vérifier si déjà notifié aujourd'hui
+                    // ("data" est en colonne text — cast ::jsonb requis).
                     $alreadyNotified = $user->notifications()
                         ->whereDate('created_at', today())
-                        ->where('data->type', 'contract.limit_reached')
-                        ->where('data->contract_id', $contract->id)
+                        ->whereRaw("data::jsonb ->> 'type' = ?", ['contract.limit_reached'])
+                        ->whereRaw("data::jsonb ->> 'contract_id' = ?", [$contract->id])
                         ->exists();
 
                     if (! $alreadyNotified) {

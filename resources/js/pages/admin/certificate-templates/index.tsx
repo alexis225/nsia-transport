@@ -23,16 +23,21 @@ interface Template {
 interface Props {
     templates:              Template[];
     tenantsWithoutTemplate: Tenant[];
+    types:                  Record<string, string>;
 }
 
-const TYPE_STYLES = {
-    ordre_assurance:      { label:'Ordre d\'assurance',    bg:'#eff6ff', color:'#1d4ed8' },
-    certificat_assurance: { label:'Certificat d\'assurance', bg:'#f0fdf4', color:'#15803d' },
+const TYPE_STYLES: Record<string, { label: string; bg: string; color: string }> = {
+    carnet_ordre:          { label: 'Certificat Carnet d\'Ordre',              bg:'#eff6ff', color:'#1d4ed8' },
+    certificat_assurance:  { label: 'Certificat d\'Assurance',                 bg:'#f0fdf4', color:'#15803d' },
+    certificat_etatique:   { label: 'Certificat Étatique (GUCE, GUOT, etc.)', bg:'#fdf4ff', color:'#7c3aed' },
+    // Rétro-compatibilité : anciennes lignes non encore migrées.
+    ordre_assurance:       { label: 'Certificat Carnet d\'Ordre',              bg:'#eff6ff', color:'#1d4ed8' },
 };
 
 const FLAG: Record<string, string> = {
     GA:'🇬🇦', GN:'🇬🇳', TG:'🇹🇬', BJ:'🇧🇯', CM:'🇨🇲',
-    CG:'🇨🇬', CI:'🇨🇮', SN:'🇸🇳', ML:'🇲🇱', MG:'🇲🇬',
+    CG:'🇨🇬', CI:'🇨🇮', SN:'🇸🇳', ML:'🇲🇱',
+    GH:'🇬🇭', NG:'🇳🇬', GW:'🇬🇼',
 };
 
 export default function CertificateTemplatesIndex({ templates, tenantsWithoutTemplate }: Props) {
@@ -70,6 +75,8 @@ export default function CertificateTemplatesIndex({ templates, tenantsWithoutTem
                 .ct-alert{background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:14px 18px;display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#92400e;}
                 .ct-alert-tenants{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
                 .ct-tenant-chip{padding:3px 9px;background:#fff;border:1px solid #fde68a;border-radius:8px;font-size:11px;color:#92400e;}
+                .ct-tenant-chip-link{display:inline-flex;align-items:center;gap:4px;text-decoration:none;cursor:pointer;transition:all .13s;}
+                .ct-tenant-chip-link:hover{background:#fffbeb;border-color:#f59e0b;}
                 .num-badge{font-family:monospace;font-size:11px;padding:2px 7px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;color:#475569;}
             `}</style>
 
@@ -99,9 +106,10 @@ export default function CertificateTemplatesIndex({ templates, tenantsWithoutTem
                                 </div>
                                 <div className="ct-alert-tenants">
                                     {tenantsWithoutTemplate.map(t => (
-                                        <span key={t.id} className="ct-tenant-chip">
-                                            {FLAG[t.code] ?? '🏢'} {t.name}
-                                        </span>
+                                        <Link key={t.id} className="ct-tenant-chip ct-tenant-chip-link"
+                                              href={route('admin.certificate-templates.create', { tenant_id: t.id })}>
+                                            {FLAG[t.code] ?? '🏢'} {t.name} <Plus size={11}/>
+                                        </Link>
                                     ))}
                                 </div>
                             </div>
