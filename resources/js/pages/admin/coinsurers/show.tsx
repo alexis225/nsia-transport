@@ -8,7 +8,9 @@ interface Tenant { id: string; name: string; code: string; }
 interface Coinsurer {
     id: string; name: string;
     country_code: string | null;
-    share_rate: string | null;
+    address: string | null;
+    email: string | null;
+    phone: string | null;
     is_active: boolean;
     created_at: string;
     updated_at: string;
@@ -92,12 +94,16 @@ export default function CoinsurersShow({ coinsurer }: Props) {
                                 <div className="cs-field-value">{coinsurer.country_code ?? '—'}</div>
                             </div>
                             <div className="cs-field">
-                                <div className="cs-field-label">Taux de participation par défaut</div>
-                                <div className="cs-field-value">
-                                    {coinsurer.share_rate !== null
-                                        ? <span style={{ fontFamily:'monospace' }}>{coinsurer.share_rate}%</span>
-                                        : '—'}
-                                </div>
+                                <div className="cs-field-label">Email</div>
+                                <div className="cs-field-value">{coinsurer.email ?? '—'}</div>
+                            </div>
+                            <div className="cs-field">
+                                <div className="cs-field-label">Téléphone</div>
+                                <div className="cs-field-value">{coinsurer.phone ?? '—'}</div>
+                            </div>
+                            <div className="cs-field">
+                                <div className="cs-field-label">Adresse</div>
+                                <div className="cs-field-value">{coinsurer.address ?? '—'}</div>
                             </div>
                             <div className="cs-field">
                                 <div className="cs-field-label">Filiale</div>

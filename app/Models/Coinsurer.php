@@ -17,15 +17,16 @@ class Coinsurer extends Model
         'tenant_id',
         'name',
         'country_code',
-        'share_rate',
+        'address',
+        'email',
+        'phone',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'share_rate' => 'decimal:2',
-            'is_active'  => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -31,7 +32,7 @@ class InsuranceContract extends Model
         'currency_code', 'subscription_limit', 'used_limit', 'treaty_limit',
         'plein', 'escalade_enabled', 'escalade_threshold_pct',
         'premium_rate', 'deductible',
-        'rate_ro', 'rate_rg', 'rate_surprime', 'rate_accessories', 'rate_tax',
+        'rate_ro', 'rate_rg', 'rate_divers', 'rate_surprime', 'rate_accessories', 'rate_tax',
         'coverage_type', 'clauses', 'exclusions',
         'incoterm_code', 'transport_mode_id', 'transport_mode_detail',
         'covered_countries',
@@ -59,6 +60,7 @@ class InsuranceContract extends Model
         'deductible'         => 'decimal:2',
         'rate_ro'            => 'decimal:4',
         'rate_rg'            => 'decimal:4',
+        'rate_divers'        => 'decimal:4',
         'rate_surprime'      => 'decimal:4',
         'rate_accessories'   => 'decimal:4',
         'rate_tax'           => 'decimal:4',
@@ -107,6 +109,19 @@ class InsuranceContract extends Model
     public function broker(): BelongsTo
     {
         return $this->belongsTo(Broker::class);
+    }
+
+    // Coassureurs participant à ce contrat, chacun avec sa propre part de
+    // coassurance PROPRE à ce contrat (contract_coinsurers.share_rate) —
+    // un même coassureur peut avoir un taux différent sur un autre contrat.
+    public function coinsurers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Coinsurer::class,
+            'contract_coinsurers',
+            'contract_id',
+            'coinsurer_id'
+        )->withPivot('share_rate');
     }
 
     // Souscripteur en charge du contrat

@@ -24,7 +24,7 @@ interface BrokerRow {
 }
 interface CoinsurerRow {
     id: string; name: string; country_code: string;
-    share_rate: string; is_active: boolean;
+    email: string | null; phone: string | null; is_active: boolean;
     contracts_count: number; active_contracts_count: number;
     tenant: { name: string; code: string } | null;
 }
@@ -358,7 +358,7 @@ export default function IntermediariesReport({
                                             <tr>
                                                 <th>Nom</th>
                                                 <th>Pays</th>
-                                                <th>Taux de participation défaut</th>
+                                                <th>Contact</th>
                                                 <th>Contrats actifs</th>
                                                 <th>Total contrats</th>
                                                 {isSA && <th>Filiale</th>}
@@ -373,15 +373,10 @@ export default function IntermediariesReport({
                                                         <div style={{ fontWeight: 600, color: '#1e293b' }}>{c.name}</div>
                                                     </td>
                                                     <td style={{ fontSize: 11, color: '#64748b' }}>{c.country_code}</td>
-                                                    <td>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                            <div style={{ fontWeight: 700, color: '#1d4ed8', fontSize: 14 }}>
-                                                                {parseFloat(c.share_rate).toFixed(1)}%
-                                                            </div>
-                                                            <div style={{ flex: 1, height: 5, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden', maxWidth: 80 }}>
-                                                                <div style={{ height: '100%', width: `${Math.min(parseFloat(c.share_rate), 100)}%`, background: '#1d4ed8', borderRadius: 3 }}/>
-                                                            </div>
-                                                        </div>
+                                                    <td style={{ fontSize: 11, color: '#64748b' }}>
+                                                        {c.email && <div>{c.email}</div>}
+                                                        {c.phone && <div>{c.phone}</div>}
+                                                        {!c.email && !c.phone && '—'}
                                                     </td>
                                                     <td>
                                                         <div style={{ fontWeight: 600, color: c.active_contracts_count > 0 ? '#15803d' : '#94a3b8' }}>

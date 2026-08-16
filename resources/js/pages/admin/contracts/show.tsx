@@ -7,7 +7,7 @@ import {
     ArrowLeft, Edit2, FileText, Calendar, Shield,
     Building2, Briefcase, DollarSign, TrendingUp,
     CheckCircle, XCircle, PauseCircle, StopCircle,
-    PlayCircle, Send, X, AlertCircle, Tag,
+    PlayCircle, Send, X, AlertCircle, Tag, Users,
 } from 'lucide-react';
 import ContractLimitWidget from '@/components/contract-limit-widget';
 
@@ -20,8 +20,9 @@ interface Contract {
     currency_code: string; subscription_limit: string | null; treaty_limit: string | null;
     used_limit: string; premium_rate: string | null; deductible: string;
     plein: string | null; escalade_enabled: boolean; escalade_threshold_pct: string | null;
-    rate_ro: string | null; rate_rg: string | null;
+    rate_ro: string | null; rate_rg: string | null; rate_divers: string | null;
     rate_surprime: string | null; rate_accessories: string | null; rate_tax: string | null;
+    coinsurers: { id: string; name: string; email: string | null; phone: string | null; pivot: { share_rate: string } }[];
     effective_date: string; expiry_date: string; notice_period_days: number;
     requires_approval: boolean; validation_notes: string | null;
     certificates_count: number; certificates_limit: number | null;
@@ -318,6 +319,27 @@ export default function ContractShow({ contract, can }: Props) {
                         </div>
                     </div>
 
+                    {/* Coassureurs */}
+                    {contract.coinsurers?.length > 0 && (
+                        <div className="cs-card">
+                            <div className="cs-card-hdr">
+                                <div className="cs-card-ico" style={{ background:'#fdf4ff' }}><Users size={15} color="#a855f7"/></div>
+                                <span className="cs-card-ttl">Coassureurs</span>
+                            </div>
+                            <div className="cs-card-body">
+                                <div className="info-grid">
+                                    {contract.coinsurers.map(ci => (
+                                        <div key={ci.id} className="info-item">
+                                            <span className="info-label">{ci.name}</span>
+                                            <span className="info-value" style={{ fontFamily:'monospace' }}>{ci.pivot.share_rate} %</span>
+                                            {ci.email && <span style={{ fontSize:11, color:'#64748b' }}>{ci.email}</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Période + Garanties */}
                     <div className="info-grid">
                         <div className="cs-card">
@@ -448,6 +470,7 @@ export default function ContractShow({ contract, can }: Props) {
                                 {[
                                     { label:'R.O.',        value: contract.rate_ro },
                                     { label:'R.G.',        value: contract.rate_rg },
+                                    { label:'Divers',      value: contract.rate_divers },
                                     { label:'Surprime',    value: contract.rate_surprime },
                                     { label:'Accessoires', value: contract.rate_accessories },
                                     { label:'Taxe',        value: contract.rate_tax },

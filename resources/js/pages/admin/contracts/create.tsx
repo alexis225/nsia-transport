@@ -11,6 +11,7 @@ import type { BreadcrumbItem } from '@/types';
 
 interface Tenant        { id: string; name: string; code: string; currency_code: string; }
 interface Broker        { id: string; name: string; code: string; type: string; commission_rate: string | null; }
+interface CoinsurerOption { id: string; name: string; }
 interface Incoterm      { code: string; name: string; }
 interface TransportMode { id: number; code: string; name_fr: string; }
 interface Subscriber    { id: string; first_name: string; last_name: string; }
@@ -18,6 +19,7 @@ interface Subscriber    { id: string; first_name: string; last_name: string; }
 interface Props {
     tenants:         Tenant[];
     brokers:         Broker[];
+    coinsurers:      CoinsurerOption[];
     subscribers:     Subscriber[];
     incoterms:       Incoterm[];
     transportModes:  TransportMode[];
@@ -30,11 +32,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Nouveau contrat' },
 ];
 
-export default function ContractCreate({ tenants, brokers, subscribers, incoterms, transportModes, currencies, defaultTenantId }: Props) {
+export default function ContractCreate({ tenants, brokers, coinsurers, subscribers, incoterms, transportModes, currencies, defaultTenantId }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         tenant_id:              defaultTenantId ?? '',
         broker_id:              '',
         commission_rate:        '',
+        coinsurers:             [] as { coinsurer_id: string; share_rate: string }[],
         subscriber_id:          '',
         type:                   'OPEN_POLICY',
         insured_name:           '',
@@ -51,6 +54,7 @@ export default function ContractCreate({ tenants, brokers, subscribers, incoterm
         deductible:             '0',
         rate_ro:                '',
         rate_rg:                '',
+        rate_divers:            '',
         rate_surprime:          '',
         rate_accessories:       '',
         coverage_type:          'TOUS_RISQUES',
@@ -79,7 +83,7 @@ export default function ContractCreate({ tenants, brokers, subscribers, incoterm
             <ContractForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
-                tenants={tenants} brokers={brokers} subscribers={subscribers}
+                tenants={tenants} brokers={brokers} coinsurers={coinsurers} subscribers={subscribers}
                 incoterms={incoterms} transportModes={transportModes}
                 currencies={currencies}
                 heroTitle="Nouveau contrat d'assurance transport"
@@ -150,13 +154,31 @@ function TagList({ data, setData, field, input, setInput, placeholder }: any) {
 
 // ── Formulaire partagé ────────────────────────────────────────
 export function ContractForm({ data, setData, errors, processing, onSubmit,
-    tenants, brokers, subscribers, incoterms, transportModes, currencies,
+    tenants, brokers, coinsurers, subscribers, incoterms, transportModes, currencies,
     heroTitle, heroSub, submitLabel }: any) {
 
     const [clauseInput, setClauseInput]       = useState('');
     const [exclusionInput, setExclusionInput] = useState('');
 
     const selectedBroker = brokers?.find((b: Broker) => b.id === data.broker_id);
+
+    const contractCoinsurers: { coinsurer_id: string; share_rate: string }[] = data.coinsurers ?? [];
+    const selectedCoinsurerIds = new Set(contractCoinsurers.map(c => c.coinsurer_id));
+    const availableCoinsurers = (coinsurers ?? []).filter((c: CoinsurerOption) => !selectedCoinsurerIds.has(c.id));
+    const totalShareRate = contractCoinsurers.reduce((sum, c) => sum + (parseFloat(c.share_rate) || 0), 0);
+
+    const addCoinsurerRow = () => {
+        if (!availableCoinsurers.length) return;
+        setData('coinsurers', [...contractCoinsurers, { coinsurer_id: availableCoinsurers[0].id, share_rate: '' }]);
+    };
+    const updateCoinsurerRow = (i: number, field: 'coinsurer_id' | 'share_rate', value: string) => {
+        const rows = [...contractCoinsurers];
+        rows[i] = { ...rows[i], [field]: value };
+        setData('coinsurers', rows);
+    };
+    const removeCoinsurerRow = (i: number) => {
+        setData('coinsurers', contractCoinsurers.filter((_, idx) => idx !== i));
+    };
 
     return (
         <>
@@ -178,7 +200,7 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                 .cf-label{font-size:10.5px !important;font-weight:600 !important;text-transform:uppercase !important;letter-spacing:.08em !important;color:#64748b !important;}
                 .cf-select{width:100%;height:44px;padding:0 12px;font-size:13px;font-family:inherit;color:#1e293b;background:#fff;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;cursor:pointer;}
                 .cf-textarea{width:100%;padding:10px 13px;font-size:13px;font-family:inherit;color:#1e293b;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;outline:none;resize:vertical;box-sizing:border-box;}
-                .rate-group{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+                .rate-group{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
             `}</style>
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
@@ -254,6 +276,59 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                             Si renseigné ci-dessus, ce taux remplace le taux standard pour ce contrat uniquement.
                                         </p>
                                     </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* ── Coassureurs ── */}
+                        <div className="cf-card">
+                            <div className="cf-card-hdr">
+                                <div className="cf-card-ttl">Coassureurs (optionnel)</div>
+                                <div className="cf-card-sub">Part de coassurance propre à ce contrat — un même coassureur peut avoir un taux différent sur un autre contrat</div>
+                            </div>
+                            <div className="cf-card-body">
+                                {contractCoinsurers.length > 0 && (
+                                    <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                                        {contractCoinsurers.map((row, i) => {
+                                            const rowOptions = (coinsurers ?? []).filter((c: CoinsurerOption) =>
+                                                c.id === row.coinsurer_id || !selectedCoinsurerIds.has(c.id));
+
+                                            return (
+                                                <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
+                                                    <select className="cf-select" style={{ flex:2 }} value={row.coinsurer_id}
+                                                            onChange={e => updateCoinsurerRow(i, 'coinsurer_id', e.target.value)}>
+                                                        {rowOptions.map((c: CoinsurerOption) => (
+                                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <div style={{ flex:1 }}>
+                                                        <Input className="h-11" type="number" step="0.01" min={0.01} max={100}
+                                                               value={row.share_rate}
+                                                               onChange={e => updateCoinsurerRow(i, 'share_rate', e.target.value)}
+                                                               placeholder="Part %"/>
+                                                        <InputError message={errors[`coinsurers.${i}.share_rate`]}/>
+                                                    </div>
+                                                    <button type="button" onClick={() => removeCoinsurerRow(i)}
+                                                            style={{ width:44, height:44, background:'#fef2f2', border:'1px solid #fecaca', borderRadius:9, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#dc2626', flexShrink:0 }}>
+                                                        <X size={14}/>
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                        <p style={{ fontSize:11, color: totalShareRate > 100 ? '#dc2626' : '#94a3b8' }}>
+                                            Total des parts : {totalShareRate.toFixed(2)}%
+                                            {totalShareRate > 100 && ' — dépasse 100%'}
+                                        </p>
+                                    </div>
+                                )}
+                                <button type="button" onClick={addCoinsurerRow} disabled={!availableCoinsurers.length}
+                                        style={{ padding:'8px 14px', background:'#f8fafc', border:'1.5px dashed #cbd5e1', borderRadius:8, cursor: availableCoinsurers.length ? 'pointer' : 'not-allowed', opacity: availableCoinsurers.length ? 1 : 0.5, fontSize:12, color:'#475569', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit', marginTop: contractCoinsurers.length ? 10 : 0 }}>
+                                    <Plus size={12}/> Ajouter un coassureur
+                                </button>
+                                {!coinsurers?.length && (
+                                    <p style={{ fontSize:11, color:'#94a3b8', marginTop:8 }}>
+                                        Aucun coassureur créé pour cette filiale — créez-en un depuis le module Coassureurs.
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -407,6 +482,7 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                         {[
                                             { field:'rate_ro',          label:'R.O.' },
                                             { field:'rate_rg',          label:'R.G.' },
+                                            { field:'rate_divers',      label:'Divers' },
                                             { field:'rate_surprime',    label:'Surprime' },
                                             { field:'rate_accessories', label:'Access.' },
                                         ].map(({ field, label }) => (

@@ -230,9 +230,7 @@ class CertificateController extends Controller
             $contract, $validated['insured_value'], $template,
             $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null
         );
-        $primeTotal = collect($primeBreakdown)->sum('amount');
-        $taxAmount  = collect($primeBreakdown)->firstWhere('key', 'tax')['amount'] ?? 0;
-        $primeNette = round($primeTotal - $taxAmount, 2);
+        [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
 
         $certificate = Certificate::create([
             ...$validated,
@@ -346,9 +344,7 @@ class CertificateController extends Controller
             $contract, $validated['insured_value'], $certificate->template,
             $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null
         );
-        $primeTotal = collect($primeBreakdown)->sum('amount');
-        $taxAmount  = collect($primeBreakdown)->firstWhere('key', 'tax')['amount'] ?? 0;
-        $primeNette = round($primeTotal - $taxAmount, 2);
+        [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
 
         $certificate->update([
             ...$validated,
@@ -501,7 +497,27 @@ class CertificateController extends Controller
         return back()->with('status', 'Certificat annulé.');
     }
 
+    // Extrait (Prime TTC, Prime Nette) depuis le décompte — ce sont des
+    // sous-totaux portés par leurs propres lignes ('prime_total'/
+    // 'prime_totale' et 'prime_nette'), PAS la somme de toutes les lignes
+    // du tableau (qui compterait ces sous-totaux en double).
+    private function extractPrimeTotals(array $primeBreakdown): array
+    {
+        $byKey = collect($primeBreakdown)->keyBy('key');
+
+        $primeTotal = $byKey->get('prime_total')['amount'] ?? $byKey->get('prime_totale')['amount'] ?? 0;
+        $primeNette = $byKey->get('prime_nette')['amount'] ?? 0;
+
+        return [$primeTotal, $primeNette];
+    }
+
     // ── Calcul décompte prime ─────────────────────────────────
+    // Formule :
+    //   Prime Nette = Prime(RO) + Prime(RG) + Prime(Divers) + Prime(Surprime)
+    //   Taxe        = Taux de taxe × (Prime Nette + Accessoires)
+    //   Prime TTC   = Prime Nette + Accessoires + Taxe
+    // Prime Nette et Prime TTC sont donc des sous-totaux, pas des lignes
+    // "taux × valeur assurée" comme RO/RG/Divers/Surprime/Accessoires.
     private function buildPrimeBreakdown(
         InsuranceContract $contract,
         float $insuredValue,
@@ -509,15 +525,17 @@ class CertificateController extends Controller
         ?string $transportType = null,
         ?string $destinationCountryCode = null
     ): array {
-        $breakdown = [];
-
-        // Utiliser les lignes du template si disponibles
+        // Utiliser les lignes du template si disponibles — Prime Nette
+        // positionnée juste avant Accessoires (cf. modèles filiale).
         $lines = $template?->prime_breakdown_lines ?? [
-            ['key' => 'ro',          'label' => 'R.O.',       'label_en' => null],
-            ['key' => 'rg',          'label' => 'R.G.',       'label_en' => null],
-            ['key' => 'surprime',    'label' => 'Surprime',   'label_en' => null],
-            ['key' => 'accessories', 'label' => 'Access.',    'label_en' => null],
-            ['key' => 'tax',         'label' => 'Taxe',       'label_en' => null],
+            ['key' => 'ro',           'label' => 'R.O.',        'label_en' => null],
+            ['key' => 'rg',           'label' => 'R.G.',        'label_en' => null],
+            ['key' => 'divers',       'label' => 'Divers',      'label_en' => null],
+            ['key' => 'surprime',     'label' => 'Surprime',    'label_en' => null],
+            ['key' => 'prime_nette',  'label' => 'Prime Nette', 'label_en' => null],
+            ['key' => 'accessories',  'label' => 'Access.',     'label_en' => null],
+            ['key' => 'tax',          'label' => 'Taxe',        'label_en' => null],
+            ['key' => 'prime_total',  'label' => 'Prime Totale','label_en' => null],
         ];
 
         // Taxe résolue automatiquement depuis le référentiel filiale ×
@@ -527,36 +545,51 @@ class CertificateController extends Controller
             ? TransportMode::where('code', $transportType)->first()
             : null;
 
-        $taxRule = TaxRule::findApplicable(
-            $contract->tenant_id,
-            $transportMode?->id,
-            $destinationCountryCode
-        );
+        $taxRule    = TaxRule::findApplicable($contract->tenant_id, $transportMode?->id, $destinationCountryCode);
+        $taxRatePct = (float) ($taxRule->rate_pct ?? 0);
+
+        $rateOf = fn (string $field): float => (float) ($contract->{$field} ?? 0);
+        $lineAmount = fn (float $rate): float => $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
+
+        $ro       = $lineAmount($rateOf('rate_ro'));
+        $rg       = $lineAmount($rateOf('rate_rg'));
+        $divers   = $lineAmount($rateOf('rate_divers'));
+        $surprime = $lineAmount($rateOf('rate_surprime'));
+        $primeNette = round($ro + $rg + $divers + $surprime, 2);
+
+        $accessoires = $lineAmount($rateOf('rate_accessories'));
+        $taxe        = round(($primeNette + $accessoires) * $taxRatePct / 100, 2);
+        $primeTotale = round($primeNette + $accessoires + $taxe, 2);
 
         // Alias FR/EN : les lignes des templates filiale utilisent des clés
-        // françaises (accessoires/taxe) alors que les lignes par défaut
-        // ci-dessus utilisent l'anglais (accessories/tax) — les deux doivent
-        // résoudre vers le même taux, sans quoi la ligne affiche 0.
-        $rateMap = [
-            'ro'          => (float) ($contract->rate_ro ?? 0),
-            'rg'          => (float) ($contract->rate_rg ?? 0),
-            'surprime'    => (float) ($contract->rate_surprime ?? 0),
-            'accessories' => (float) ($contract->rate_accessories ?? 0),
-            'accessoires' => (float) ($contract->rate_accessories ?? 0),
-            'tax'         => (float) ($taxRule->rate_pct ?? 0),
-            'taxe'        => (float) ($taxRule->rate_pct ?? 0),
+        // françaises (divers/accessoires/taxe/prime_totale) alors que les
+        // lignes par défaut ci-dessus utilisent l'anglais — les deux
+        // doivent résoudre vers le même montant, sans quoi la ligne
+        // affiche 0.
+        $amounts = [
+            'ro'          => ['rate' => $rateOf('rate_ro'),          'amount' => $ro],
+            'rg'          => ['rate' => $rateOf('rate_rg'),          'amount' => $rg],
+            'divers'      => ['rate' => $rateOf('rate_divers'),      'amount' => $divers],
+            'surprime'    => ['rate' => $rateOf('rate_surprime'),    'amount' => $surprime],
+            'prime_nette' => ['rate' => null,                        'amount' => $primeNette],
+            'accessories' => ['rate' => $rateOf('rate_accessories'), 'amount' => $accessoires],
+            'accessoires' => ['rate' => $rateOf('rate_accessories'), 'amount' => $accessoires],
+            'tax'         => ['rate' => $taxRatePct,                 'amount' => $taxe],
+            'taxe'        => ['rate' => $taxRatePct,                 'amount' => $taxe],
+            'prime_total'  => ['rate' => null, 'amount' => $primeTotale],
+            'prime_totale' => ['rate' => null, 'amount' => $primeTotale],
         ];
 
+        $breakdown = [];
         foreach ($lines as $line) {
-            $rate   = $rateMap[$line['key']] ?? 0;
-            $amount = $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
+            $entry = $amounts[$line['key']] ?? ['rate' => 0, 'amount' => 0];
 
             $breakdown[] = [
                 'key'      => $line['key'],
                 'label'    => $line['label'],
                 'label_en' => $line['label_en'] ?? null,
-                'rate'     => $rate,
-                'amount'   => $amount,
+                'rate'     => $entry['rate'],
+                'amount'   => $entry['amount'],
             ];
         }
 

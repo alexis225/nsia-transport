@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Broker;
+use App\Models\Coinsurer;
 use App\Models\CommissionRule;
 use App\Models\Incoterm;
 use App\Models\InsuranceContract;
@@ -73,6 +74,8 @@ class InsuranceContractController extends Controller
             'tenants'         => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'currency_code']) : collect(),
             'brokers'         => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
                                        ->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'type', 'commission_rate']),
+            'coinsurers'      => Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                                       ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'subscribers'     => $this->subscribers($user, $isSA),
             'incoterms'       => Incoterm::orderBy('code')->get(['code', 'name']),
             'transportModes'  => TransportMode::orderBy('name_fr')->get(['id', 'code', 'name_fr']),
@@ -96,6 +99,8 @@ class InsuranceContractController extends Controller
         $validated = $this->validateContract($request);
         $commissionRate = $validated['commission_rate'] ?? null;
         unset($validated['commission_rate']);
+        $coinsurers = $validated['coinsurers'] ?? [];
+        unset($validated['coinsurers']);
 
         $tenant  = Tenant::find($validated['tenant_id']);
         $validated['contract_number'] = InsuranceContract::generateContractNumber(
@@ -113,6 +118,7 @@ class InsuranceContractController extends Controller
         $contract = InsuranceContract::create($validated);
 
         $this->syncCommissionRate($contract, $commissionRate, $request->user());
+        $this->syncCoinsurers($contract, $coinsurers);
 
         AuditLog::create([
             'tenant_id'   => $contract->tenant_id,
@@ -168,6 +174,7 @@ class InsuranceContractController extends Controller
             'transportMode:id,code,name_fr',
             'createdBy:id,first_name,last_name',
             'approvedBy:id,first_name,last_name',
+            'coinsurers:id,name,email,phone',
         ]);
 
         return Inertia::render('admin/contracts/show', [
@@ -186,7 +193,7 @@ class InsuranceContractController extends Controller
         $this->authorizeTenant($contract);
         abort_if($contract->status === InsuranceContract::STATUS_ACTIVE, 403, 'Un contrat actif ne peut pas être modifié directement.');
 
-        $contract->load(['broker', 'transportMode', 'tenant']);
+        $contract->load(['broker', 'transportMode', 'tenant', 'coinsurers']);
         $user = auth()->user();
         $isSA = $user->hasRole('super_admin');
 
@@ -195,6 +202,8 @@ class InsuranceContractController extends Controller
             'tenants'        => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id','name','code','currency_code']) : collect(),
             'brokers'        => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
                                       ->where('is_active', true)->orderBy('name')->get(['id','name','code','type','commission_rate']),
+            'coinsurers'     => Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                                      ->where('is_active', true)->orderBy('name')->get(['id','name']),
             'subscribers'    => $this->subscribers($user, $isSA),
             'incoterms'      => Incoterm::orderBy('code')->get(['code','name']),
             'transportModes' => TransportMode::orderBy('name_fr')->get(['id','code','name_fr']),
@@ -213,6 +222,8 @@ class InsuranceContractController extends Controller
         $validated = $this->validateContract($request);
         $commissionRate = $validated['commission_rate'] ?? null;
         unset($validated['commission_rate']);
+        $coinsurers = $validated['coinsurers'] ?? [];
+        unset($validated['coinsurers']);
         $validated['updated_by'] = $request->user()->id;
 
         // Devise imposée par la filiale — tous les montants du contrat et
@@ -224,6 +235,7 @@ class InsuranceContractController extends Controller
         $contract->update($validated);
 
         $this->syncCommissionRate($contract, $commissionRate, $request->user());
+        $this->syncCoinsurers($contract, $coinsurers);
 
         $status = 'Contrat mis à jour.';
         if ($exceedsNn300) {
@@ -268,6 +280,21 @@ class InsuranceContractController extends Controller
             'notes'           => 'Taux défini depuis le formulaire du contrat.',
             'created_by'      => $user->id,
         ]);
+    }
+
+    // ── Coassureurs du contrat ────────────────────────────────
+    // Un même coassureur peut être associé à plusieurs contrats avec un
+    // taux de coassurance différent d'un contrat à l'autre — le taux se
+    // précise ici, au cas par cas, jamais au niveau du coassureur lui-même
+    // (cf. Coinsurer, qui ne porte plus que ses coordonnées).
+    private function syncCoinsurers(InsuranceContract $contract, array $coinsurers): void
+    {
+        $sync = collect($coinsurers)
+            ->filter(fn ($c) => ! empty($c['coinsurer_id']))
+            ->mapWithKeys(fn ($c) => [$c['coinsurer_id'] => ['share_rate' => $c['share_rate']]])
+            ->toArray();
+
+        $contract->coinsurers()->sync($sync);
     }
 
     // ── Supprimer ────────────────────────────────────────────
@@ -412,6 +439,9 @@ class InsuranceContractController extends Controller
             'tenant_id'            => ['required', 'uuid', 'exists:tenants,id'],
             'broker_id'            => ['nullable', 'uuid', 'exists:brokers,id'],
             'commission_rate'      => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'coinsurers'                    => ['nullable', 'array'],
+            'coinsurers.*.coinsurer_id'     => ['required', 'uuid', 'exists:coinsurers,id', 'distinct'],
+            'coinsurers.*.share_rate'       => ['required', 'numeric', 'min:0.01', 'max:100'],
             'subscriber_id'        => ['nullable', 'uuid', 'exists:users,id'],
             'type'                 => ['required', 'in:OPEN_POLICY,VOYAGE,ANNUAL_VOYAGE,TIERS_CHARGEUR'],
             'insured_name'         => ['required', 'string', 'max:200'],
@@ -428,6 +458,7 @@ class InsuranceContractController extends Controller
             'deductible'           => ['nullable', 'numeric', 'min:0'],
             'rate_ro'              => ['nullable', 'numeric', 'min:0', 'max:100'],
             'rate_rg'              => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'rate_divers'          => ['nullable', 'numeric', 'min:0', 'max:100'],
             'rate_surprime'        => ['nullable', 'numeric', 'min:0', 'max:100'],
             'rate_accessories'     => ['nullable', 'numeric', 'min:0', 'max:100'],
             'rate_tax'             => ['nullable', 'numeric', 'min:0', 'max:100'],

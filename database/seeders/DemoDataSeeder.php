@@ -409,9 +409,9 @@ class DemoDataSeeder extends Seeder
             $certNumber++;
 
             $primeBreakdown = $this->buildDemoPrimeBreakdown($contract, $insuredValue);
-            $primeTotal     = collect($primeBreakdown)->sum('amount');
-            $taxAmount      = collect($primeBreakdown)->firstWhere('key', 'taxe')['amount'] ?? 0;
-            $primeNette     = round($primeTotal - $taxAmount, 2);
+            $primeBreakdownByKey = collect($primeBreakdown)->keyBy('key');
+            $primeTotal = $primeBreakdownByKey->get('prime_totale')['amount'] ?? 0;
+            $primeNette = $primeBreakdownByKey->get('prime_nette')['amount'] ?? 0;
 
             $cert = Certificate::create([
                 'tenant_id'        => $tenant->id,
@@ -491,43 +491,45 @@ class DemoDataSeeder extends Seeder
         return $certificates;
     }
 
-    // Décompte de prime — mêmes clés que les modèles de certificat réels
-    // (CertificateTemplateSeeder : ro/rg/divers/surprime/accessoires/taxe,
-    // en français) pour un rendu cohérent sur les gabarits d'impression
-    // pays (print-templates/build-field-values.ts).
+    // Décompte de prime — même formule et mêmes clés que le calcul réel
+    // (CertificateController::buildPrimeBreakdown) :
+    //   Prime Nette = Prime(RO) + Prime(RG) + Prime(Divers) + Prime(Surprime)
+    //   Taxe        = Taux de taxe × (Prime Nette + Accessoires)
+    //   Prime TTC   = Prime Nette + Accessoires + Taxe
+    // Prime Nette positionnée juste avant Accessoires (cf. CertificateTemplateSeeder).
     private function buildDemoPrimeBreakdown(InsuranceContract $contract, float $insuredValue): array
     {
-        $rates = [
-            'ro'          => (float) ($contract->rate_ro ?: 0.35),
-            'rg'          => (float) ($contract->rate_rg ?: 0.10),
-            'divers'      => 0,
-            'surprime'    => (float) ($contract->rate_surprime ?: 0),
-            'accessoires' => (float) ($contract->rate_accessories ?: 0.05),
-            'taxe'        => 5.00, // taux indicatif de démo — le référentiel réel passe par TaxRule
+        $lineAmount = fn (float $rate): float => $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
+
+        $rateRo       = (float) ($contract->rate_ro ?: 0.35);
+        $rateRg       = (float) ($contract->rate_rg ?: 0.10);
+        $rateDivers   = (float) ($contract->rate_divers ?: 0);
+        $rateSurprime = (float) ($contract->rate_surprime ?: 0);
+        $rateAcc      = (float) ($contract->rate_accessories ?: 0.05);
+        $taxRatePct   = 5.00; // taux indicatif de démo — le référentiel réel passe par TaxRule
+
+        $ro = $lineAmount($rateRo);
+        $rg = $lineAmount($rateRg);
+        $divers = $lineAmount($rateDivers);
+        $surprime = $lineAmount($rateSurprime);
+        $primeNette = round($ro + $rg + $divers + $surprime, 2);
+
+        $accessoires = $lineAmount($rateAcc);
+        $taxe        = round(($primeNette + $accessoires) * $taxRatePct / 100, 2);
+        $primeTotale = round($primeNette + $accessoires + $taxe, 2);
+
+        $lines = [
+            ['key' => 'ro',           'label' => 'R.O.',        'rate' => $rateRo,       'amount' => $ro],
+            ['key' => 'rg',           'label' => 'R.G.',        'rate' => $rateRg,       'amount' => $rg],
+            ['key' => 'divers',       'label' => 'Divers',      'rate' => $rateDivers,   'amount' => $divers],
+            ['key' => 'surprime',     'label' => 'Surprime',    'rate' => $rateSurprime, 'amount' => $surprime],
+            ['key' => 'prime_nette',  'label' => 'Prime Nette', 'rate' => null,          'amount' => $primeNette],
+            ['key' => 'accessoires',  'label' => 'Accessoires', 'rate' => $rateAcc,      'amount' => $accessoires],
+            ['key' => 'taxe',         'label' => 'Taxe',        'rate' => $taxRatePct,   'amount' => $taxe],
+            ['key' => 'prime_totale', 'label' => 'Prime Total', 'rate' => null,          'amount' => $primeTotale],
         ];
 
-        $breakdown = [];
-        foreach ([
-            ['key' => 'ro',          'label' => 'R.O.'],
-            ['key' => 'rg',          'label' => 'R.G.'],
-            ['key' => 'divers',      'label' => 'Divers'],
-            ['key' => 'surprime',    'label' => 'Surprime'],
-            ['key' => 'accessoires', 'label' => 'Accessoires'],
-            ['key' => 'taxe',        'label' => 'Taxe'],
-        ] as $line) {
-            $rate   = $rates[$line['key']];
-            $amount = $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
-
-            $breakdown[] = [
-                'key'      => $line['key'],
-                'label'    => $line['label'],
-                'label_en' => null,
-                'rate'     => $rate,
-                'amount'   => $amount,
-            ];
-        }
-
-        return $breakdown;
+        return array_map(fn ($line) => [...$line, 'label_en' => null], $lines);
     }
 
     // ════════════════════════════════════════════════════════

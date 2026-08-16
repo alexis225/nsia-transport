@@ -18,7 +18,7 @@ interface Tenant { id: string; name: string; code: string; }
 interface Coinsurer {
     id: string; name: string;
     country_code: string | null;
-    share_rate: string | null;
+    email: string | null; phone: string | null;
     is_active: boolean; created_at: string;
     tenant: Tenant | null;
 }
@@ -149,7 +149,7 @@ export default function CoinsurerIndex({ coinsurers, filters, isSA, can }: Props
                                         <tr>
                                             <th>Coassureur</th>
                                             <th>Pays</th>
-                                            <th>Taux par défaut</th>
+                                            <th>Contact</th>
                                             {isSA && <th>Filiale</th>}
                                             <th>Statut</th>
                                             <th>Actions</th>
@@ -171,8 +171,8 @@ export default function CoinsurerIndex({ coinsurers, filters, isSA, can }: Props
                                                         {ci.country_code ?? <span style={{ color:'#cbd5e1' }}>—</span>}
                                                     </td>
                                                     <td style={{ fontSize:12, color:'#64748b' }}>
-                                                        {ci.share_rate !== null
-                                                            ? <span style={{ fontFamily:'monospace' }}>{ci.share_rate}%</span>
+                                                        {ci.email || ci.phone
+                                                            ? <>{ci.email && <div>{ci.email}</div>}{ci.phone && <div>{ci.phone}</div>}</>
                                                             : <span style={{ color:'#cbd5e1' }}>—</span>}
                                                     </td>
                                                     {isSA && (

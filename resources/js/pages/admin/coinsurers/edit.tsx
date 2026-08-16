@@ -7,7 +7,9 @@ interface Tenant { id: string; name: string; code: string; }
 interface Coinsurer {
     id: string; name: string;
     country_code: string | null;
-    share_rate: string | null;
+    address: string | null;
+    email: string | null;
+    phone: string | null;
     is_active: boolean;
     tenant_id: string;
     tenant: Tenant | null;
@@ -27,7 +29,9 @@ export default function CoinsurersEdit({ coinsurer, tenants }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         name:         coinsurer.name,
         country_code: coinsurer.country_code ?? '',
-        share_rate:   coinsurer.share_rate ?? '',
+        address:      coinsurer.address ?? '',
+        email:        coinsurer.email ?? '',
+        phone:        coinsurer.phone ?? '',
         is_active:    coinsurer.is_active,
     });
 

@@ -34,7 +34,9 @@ export default function CoinsurersCreate({ tenants, defaultTenantId }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name:         '',
         country_code: 'CI',
-        share_rate:   '',
+        address:      '',
+        email:        '',
+        phone:        '',
         is_active:    true,
         tenant_id:    defaultTenantId ?? '',
     });
@@ -120,14 +122,28 @@ export function CoinsurersForm({ data, setData, errors, processing, onSubmit, te
                                         <InputError message={errors.country_code}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">Taux de participation par défaut (%)</Label>
-                                        <Input className="h-11" type="number" min="0" max="100" step="0.01"
-                                               value={data.share_rate}
-                                               onChange={e => setData('share_rate', e.target.value)}
-                                               placeholder="ex: 30.00"/>
-                                        <InputError message={errors.share_rate}/>
+                                        <Label className="cif-label">Téléphone</Label>
+                                        <Input className="h-11" value={data.phone ?? ''} onChange={e => setData('phone', e.target.value)} placeholder="+225 XX XX XX XX XX"/>
+                                        <InputError message={errors.phone}/>
                                     </div>
                                 </div>
+
+                                <div className="form-grid">
+                                    <div className="grid gap-2">
+                                        <Label className="cif-label">Email</Label>
+                                        <Input className="h-11" type="email" value={data.email ?? ''} onChange={e => setData('email', e.target.value)} placeholder="contact@coassureur.com"/>
+                                        <InputError message={errors.email}/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label className="cif-label">Adresse</Label>
+                                        <Input className="h-11" value={data.address ?? ''} onChange={e => setData('address', e.target.value)} placeholder="Adresse du siège"/>
+                                        <InputError message={errors.address}/>
+                                    </div>
+                                </div>
+
+                                <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                    Le taux de coassurance ne se saisit pas ici — il se précise au cas par cas lors de l'association du coassureur à un contrat.
+                                </p>
 
                                 {tenants?.length > 0 && (
                                     <div className="grid gap-2">

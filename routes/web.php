@@ -189,7 +189,7 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
         Route::get('/admin/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->middleware('permission:audit_logs.view')->name('admin.audit-logs.show');
     });
     // ── INSURANCE CONTRACTS ─────────────────────────────────────────────
-    Route::middleware('module:contracts')->group(function () {
+    Route::prefix('admin')->middleware('module:contracts')->group(function () {
         Route::get('/contracts',[InsuranceContractController::class, 'index'])->middleware('permission:contracts.view')->name('admin.contracts.index');
 
         Route::get('/contracts/create',[InsuranceContractController::class, 'create'])->middleware('permission:contracts.create')->name('admin.contracts.create');

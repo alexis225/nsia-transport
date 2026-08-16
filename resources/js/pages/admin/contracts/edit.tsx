@@ -11,18 +11,20 @@ interface Contract {
     currency_code: string; subscription_limit: string | null; treaty_limit: string | null;
     plein: string | null; escalade_enabled: boolean; escalade_threshold_pct: string | null;
     premium_rate: string | null; deductible: string;
-    rate_ro: string | null; rate_rg: string | null;
+    rate_ro: string | null; rate_rg: string | null; rate_divers: string | null;
     rate_surprime: string | null; rate_accessories: string | null;
     coverage_type: string | null; clauses: string[]; exclusions: string[];
     incoterm_code: string | null; transport_mode_id: number | null;
     transport_mode_detail: string | null; covered_countries: string[];
     effective_date: string; expiry_date: string; notice_period_days: number;
     requires_approval: boolean; certificates_limit: number | null; notes: string | null;
+    coinsurers: { id: string; name: string; pivot: { share_rate: string } }[];
 }
 interface Props {
     contract:       Contract;
     tenants:        any[];
     brokers:        any[];
+    coinsurers:     any[];
     subscribers:    any[];
     incoterms:      any[];
     transportModes: any[];
@@ -30,7 +32,7 @@ interface Props {
     commissionRate: string | null;
 }
 
-export default function ContractEdit({ contract, tenants, brokers, subscribers, incoterms, transportModes, currencies, commissionRate }: Props) {
+export default function ContractEdit({ contract, tenants, brokers, coinsurers, subscribers, incoterms, transportModes, currencies, commissionRate }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Contrats', href: '/admin/contracts' },
         { title: contract.contract_number },
@@ -41,6 +43,7 @@ export default function ContractEdit({ contract, tenants, brokers, subscribers, 
         tenant_id:              contract.tenant_id,
         broker_id:              contract.broker_id ?? '',
         commission_rate:        commissionRate ?? '',
+        coinsurers:             (contract.coinsurers ?? []).map(c => ({ coinsurer_id: c.id, share_rate: c.pivot.share_rate })),
         subscriber_id:          contract.subscriber_id ?? '',
         type:                   contract.type,
         insured_name:           contract.insured_name,
@@ -57,6 +60,7 @@ export default function ContractEdit({ contract, tenants, brokers, subscribers, 
         deductible:             contract.deductible ?? '0',
         rate_ro:                contract.rate_ro ?? '',
         rate_rg:                contract.rate_rg ?? '',
+        rate_divers:            contract.rate_divers ?? '',
         rate_surprime:          contract.rate_surprime ?? '',
         rate_accessories:       contract.rate_accessories ?? '',
         coverage_type:          contract.coverage_type ?? '',
@@ -85,7 +89,7 @@ export default function ContractEdit({ contract, tenants, brokers, subscribers, 
             <ContractForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
-                tenants={tenants} brokers={brokers} subscribers={subscribers}
+                tenants={tenants} brokers={brokers} coinsurers={coinsurers} subscribers={subscribers}
                 incoterms={incoterms} transportModes={transportModes}
                 currencies={currencies}
                 heroTitle={`Modifier — ${contract.contract_number}`}

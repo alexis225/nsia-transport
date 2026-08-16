@@ -65,7 +65,9 @@ class CoinsurersController extends Controller
         $validated = $request->validate([
             'name'         => ['required', 'string', 'max:200'],
             'country_code' => ['nullable', 'string', 'size:2'],
-            'share_rate'   => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'address'      => ['nullable', 'string', 'max:255'],
+            'email'        => ['nullable', 'email', 'max:150'],
+            'phone'        => ['nullable', 'string', 'max:50'],
             'is_active'    => ['boolean'],
             'tenant_id'    => ['nullable', 'uuid', 'exists:tenants,id'],
         ]);
@@ -124,11 +126,13 @@ class CoinsurersController extends Controller
         $validated = $request->validate([
             'name'         => ['required', 'string', 'max:200'],
             'country_code' => ['nullable', 'string', 'size:2'],
-            'share_rate'   => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'address'      => ['nullable', 'string', 'max:255'],
+            'email'        => ['nullable', 'email', 'max:150'],
+            'phone'        => ['nullable', 'string', 'max:50'],
             'is_active'    => ['boolean'],
         ]);
 
-        $oldValues = $coinsurer->only(['name', 'share_rate', 'is_active']);
+        $oldValues = $coinsurer->only(['name', 'is_active']);
         $coinsurer->update($validated);
 
         AuditLog::create([
@@ -140,7 +144,7 @@ class CoinsurersController extends Controller
             'ip_address'  => $request->ip(),
             'user_agent'  => $request->userAgent(),
             'old_values'  => $oldValues,
-            'new_values'  => $coinsurer->only(['name', 'share_rate', 'is_active']),
+            'new_values'  => $coinsurer->only(['name', 'is_active']),
         ]);
 
         return redirect()->route('admin.coinsurers.index')
