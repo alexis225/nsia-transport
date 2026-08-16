@@ -15,7 +15,7 @@ interface Contract {
     insured_address: string | null; insured_email: string | null; insured_phone: string | null;
     currency_code: string; type: string; coverage_type: string | null;
     rate_ro: string | null; rate_rg: string | null;
-    rate_surprime: string | null; rate_accessories: string | null; rate_tax: string | null;
+    accessories_amount: string | null; rate_tax: string | null;
     subscription_limit: string | null; used_limit: string;
     plein: string | null; certificates_limit: number | null; certificates_count: number;
     active_certificates_count: number;
@@ -23,8 +23,16 @@ interface Contract {
     broker: { name: string; commission_rate: string | null } | null;
     subscriber: { first_name: string; last_name: string } | null;
     transport_mode: { code: string; name_fr: string } | null;
-    transport_mode_detail: string | null;
+    conditioning_types: string[] | null;
 }
+
+const CONDITIONING_LABELS: Record<string, string> = {
+    CONTAINER:      'Container',
+    GROUPAGE:       'Groupage',
+    CONVENTIONNEL:  'Conventionnel',
+    BOUT_EN_BOUT:   'Bout en bout',
+    VRAC:           'Vrac',
+};
 
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
     OPEN_POLICY:    'Police ouverte',
@@ -82,13 +90,15 @@ export default function CertificateCreate({ contracts, selectedContract, default
         transport_type:        selectedContract?.transport_mode?.code ?? 'SEA',
         vessel_name:           '',
         flight_number:         '',
-        voyage_mode:           selectedContract?.transport_mode_detail ?? '',
+        voyage_mode:           selectedContract?.conditioning_types?.[0] ?? '',
         expedition_items:      [emptyItem()] as ExpeditionItem[],
         insured_value:         '',
         insured_value_letters: '',
         guarantee_mode:        COVERAGE_LABELS[selectedContract?.coverage_type ?? ''] ?? '',
         exchange_currency:     '',
         exchange_rate:         '',
+        rate_divers:           '',
+        rate_surprime:         '',
     });
 
     const selectedC = contracts.find(c => c.id === data.contract_id) ?? selectedContract;
@@ -154,18 +164,21 @@ export default function CertificateCreate({ contracts, selectedContract, default
         }
     }
 
-    // Aperçu en direct de la prime — mêmes taux et même formule que le
-    // calcul serveur (CertificateController::buildPrimeBreakdown), à
-    // l'exception de la taxe qui dépend du référentiel filiale × mode de
-    // transport × pays et n'est calculée qu'à l'enregistrement.
-    const premiumPreview = selectedC ? [
-        { label: 'R.O.',    rate: parseFloat(selectedC.rate_ro ?? '0') },
-        { label: 'R.G.',    rate: parseFloat(selectedC.rate_rg ?? '0') },
-        { label: 'Surprime', rate: parseFloat(selectedC.rate_surprime ?? '0') },
-        { label: 'Accessoires', rate: parseFloat(selectedC.rate_accessories ?? '0') },
+    // Aperçu en direct de la prime nette — mêmes taux et même formule que le
+    // calcul serveur (CertificateController::buildPrimeBreakdown) : R.O./R.G.
+    // viennent du contrat, Divers/Surprime sont saisis sur ce certificat,
+    // Accessoires est un montant fixe porté par le contrat (pas un taux). La
+    // taxe dépend du référentiel filiale × mode de transport × pays et n'est
+    // calculée qu'à l'enregistrement.
+    const primeRatePreview = selectedC ? [
+        { label: 'R.O.',      rate: parseFloat(selectedC.rate_ro ?? '0') },
+        { label: 'R.G.',      rate: parseFloat(selectedC.rate_rg ?? '0') },
+        { label: 'Divers',    rate: parseFloat(data.rate_divers || '0') },
+        { label: 'Surprime',  rate: parseFloat(data.rate_surprime || '0') },
     ].map(l => ({ ...l, amount: l.rate > 0 ? round2(totalValue * l.rate / 100) : 0 })) : [];
 
-    const premiumPreviewTotal = premiumPreview.reduce((s, l) => s + l.amount, 0);
+    const accessoiresPreview = round2(parseFloat(selectedC?.accessories_amount ?? '0'));
+    const primeNettePreview  = round2(primeRatePreview.reduce((s, l) => s + l.amount, 0));
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -242,7 +255,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                                     setData('insured_name', c.insured_name);
                                                     setData('guarantee_mode', COVERAGE_LABELS[c.coverage_type ?? ''] ?? '');
                                                     setData('transport_type', c.transport_mode?.code ?? 'SEA');
-                                                    setData('voyage_mode', c.transport_mode_detail ?? '');
+                                                    setData('voyage_mode', c.conditioning_types?.[0] ?? '');
                                                 }
                                             }}>
                                         <option value="">Sélectionnez un contrat actif</option>
@@ -265,7 +278,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                         <div>Filiale : {selectedC.tenant?.name} · Devise : {selectedC.currency_code}</div>
                                         <div style={{ marginTop:3 }}>Assuré : {selectedC.insured_name}</div>
                                         <div style={{ marginTop:3 }}>
-                                            Souscripteur : {selectedC.subscriber ? `${selectedC.subscriber.first_name} ${selectedC.subscriber.last_name}` : '—'}
+                                            Gestionnaire du dossier : {selectedC.subscriber ? `${selectedC.subscriber.first_name} ${selectedC.subscriber.last_name}` : '—'}
                                         </div>
                                         {selectedC.insured_address && <div style={{ marginTop:3 }}>Adresse : {selectedC.insured_address}</div>}
                                         <div style={{ marginTop:3 }}>
@@ -412,12 +425,15 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                             <select className="cc-select" value={data.voyage_mode ?? ''}
                                                     onChange={e => setData('voyage_mode', e.target.value)}>
                                                 <option value="">—</option>
-                                                <option value="CONTAINER">Container</option>
-                                                <option value="GROUPAGE">Groupage</option>
-                                                <option value="CONVENTIONNEL">Conventionnel</option>
-                                                <option value="BOUT_EN_BOUT">Bout en bout</option>
-                                                <option value="VRAC">Vrac</option>
+                                                {(selectedC?.conditioning_types?.length ? selectedC.conditioning_types : Object.keys(CONDITIONING_LABELS)).map(code => (
+                                                    <option key={code} value={code}>{CONDITIONING_LABELS[code] ?? code}</option>
+                                                ))}
                                             </select>
+                                            {!!selectedC?.conditioning_types?.length && (
+                                                <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                                    Options limitées aux types de conditionnement définis sur le contrat.
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -550,22 +566,50 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                     </div>
                                 )}
 
+                                <div className="form-grid">
+                                    <div className="grid gap-2">
+                                        <Label className="cc-label">Taux Divers (%)</Label>
+                                        <Input className="h-11" type="number" step="0.0001" min={0} max={100}
+                                               value={data.rate_divers}
+                                               onChange={e => setData('rate_divers', e.target.value)}
+                                               placeholder="0"/>
+                                        <InputError message={errors.rate_divers}/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label className="cc-label">Taux Surprime (%)</Label>
+                                        <Input className="h-11" type="number" step="0.0001" min={0} max={100}
+                                               value={data.rate_surprime}
+                                               onChange={e => setData('rate_surprime', e.target.value)}
+                                               placeholder="0"/>
+                                        <InputError message={errors.rate_surprime}/>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>Divers et Surprime se précisent au cas par cas sur ce certificat.</p>
+                                    </div>
+                                </div>
+
                                 {selectedC && (
                                     <div className="grid gap-2" style={{ marginTop:4 }}>
-                                        <Label className="cc-label">Aperçu de la prime (taux du contrat)</Label>
+                                        <Label className="cc-label">Aperçu de la Prime Nette</Label>
                                         <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:9, padding:'10px 14px', display:'flex', flexDirection:'column', gap:4 }}>
-                                            {premiumPreview.map(l => (
+                                            {primeRatePreview.map(l => (
                                                 <div key={l.label} style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#475569' }}>
                                                     <span>{l.label} ({l.rate}%)</span>
                                                     <span style={{ fontFamily:'monospace' }}>{l.amount.toLocaleString('fr-FR')} {selectedC.currency_code}</span>
                                                 </div>
                                             ))}
                                             <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, fontWeight:700, color:'#1e293b', paddingTop:6, marginTop:2, borderTop:'1px solid #e2e8f0' }}>
+                                                <span>Prime Nette</span>
+                                                <span style={{ fontFamily:'monospace' }}>{primeNettePreview.toLocaleString('fr-FR')} {selectedC.currency_code}</span>
+                                            </div>
+                                            <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#475569' }}>
+                                                <span>Accessoires (montant fixe)</span>
+                                                <span style={{ fontFamily:'monospace' }}>{accessoiresPreview.toLocaleString('fr-FR')} {selectedC.currency_code}</span>
+                                            </div>
+                                            <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, fontWeight:700, color:'#1e293b', paddingTop:6, marginTop:2, borderTop:'1px solid #e2e8f0' }}>
                                                 <span>Sous-total (hors taxe)</span>
-                                                <span style={{ fontFamily:'monospace' }}>{premiumPreviewTotal.toLocaleString('fr-FR')} {selectedC.currency_code}</span>
+                                                <span style={{ fontFamily:'monospace' }}>{(primeNettePreview + accessoiresPreview).toLocaleString('fr-FR')} {selectedC.currency_code}</span>
                                             </div>
                                             <p style={{ fontSize:10.5, color:'#94a3b8', margin:0 }}>
-                                                La taxe (référentiel filiale × mode de transport × pays) est calculée à l'enregistrement.
+                                                La taxe (référentiel filiale × mode de transport × pays) est calculée à l'enregistrement — Prime TTC = Prime Nette + Accessoires + Taxe.
                                             </p>
                                         </div>
                                     </div>

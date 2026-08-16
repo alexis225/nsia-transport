@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Expert extends Model
@@ -46,5 +47,10 @@ class Expert extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function contracts(): BelongsToMany
+    {
+        return $this->belongsToMany(InsuranceContract::class, 'contract_experts', 'expert_id', 'contract_id');
     }
 }

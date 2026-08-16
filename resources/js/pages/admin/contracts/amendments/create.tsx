@@ -11,9 +11,9 @@ import { useState } from 'react';
 interface Contract {
     id: string; contract_number: string; insured_name: string;
     currency_code: string; status: string;
-    premium_rate: string | null; rate_ro: string | null; rate_rg: string | null;
-    rate_surprime: string | null; rate_accessories: string | null; rate_tax: string | null;
-    subscription_limit: string | null; effective_date: string; expiry_date: string;
+    rate_ro: string | null; rate_rg: string | null;
+    accessories_amount: string | null; rate_tax: string | null;
+    effective_date: string; expiry_date: string;
     notice_period_days: number; clauses: string[]; exclusions: string[];
     broker_id: string | null; incoterm_code: string | null;
     transport_mode_id: number | null; coverage_type: string | null;
@@ -23,22 +23,22 @@ interface Contract {
 }
 interface Props { contract: Contract; }
 
+// Taux prime global (somme R.O.+R.G.), Surprime (désormais par
+// certificat) et Plafond NN300 (paramètre général de l'application) ne
+// sont plus amendables au niveau du contrat.
 const FIELD_LABELS: Record<string, string> = {
-    premium_rate:       'Taux prime global (%)',
-    rate_ro:            'Taux R.O. (%)',
-    rate_rg:            'Taux R.G. (%)',
-    rate_surprime:      'Surprime (%)',
-    rate_accessories:   'Accessoires (%)',
-    rate_tax:           'Taxe (%)',
-    subscription_limit: 'Plafond NN300',
-    effective_date:     'Date d\'effet',
-    expiry_date:        'Date d\'expiration',
-    notice_period_days: 'Délai de préavis (jours)',
-    clauses:            'Clauses',
-    exclusions:         'Exclusions',
-    broker_id:          'Courtier',
-    incoterm_code:      'Incoterm',
-    coverage_type:      'Type de couverture',
+    rate_ro:             'Taux R.O. (%)',
+    rate_rg:             'Taux R.G. (%)',
+    accessories_amount:  'Accessoires (montant)',
+    rate_tax:            'Taxe (%)',
+    effective_date:      'Date d\'effet',
+    expiry_date:         'Date d\'expiration',
+    notice_period_days:  'Délai de préavis (jours)',
+    clauses:             'Clauses',
+    exclusions:          'Exclusions',
+    broker_id:           'Courtier',
+    incoterm_code:       'Incoterm',
+    coverage_type:       'Type de couverture',
 };
 
 export default function AmendmentCreate({ contract }: Props) {
@@ -57,13 +57,10 @@ export default function AmendmentCreate({ contract }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         reason:             '',
         description:        '',
-        premium_rate:       contract.premium_rate       ?? '',
         rate_ro:            contract.rate_ro            ?? '',
         rate_rg:            contract.rate_rg            ?? '',
-        rate_surprime:      contract.rate_surprime      ?? '',
-        rate_accessories:   contract.rate_accessories   ?? '',
+        accessories_amount: contract.accessories_amount ?? '',
         rate_tax:           contract.rate_tax           ?? '',
-        subscription_limit: contract.subscription_limit ?? '',
         effective_date:     contract.effective_date,
         expiry_date:        contract.expiry_date,
         notice_period_days: contract.notice_period_days,
@@ -94,9 +91,9 @@ export default function AmendmentCreate({ contract }: Props) {
         post(route('admin.contracts.amendments.store', { contract: contract.id }));
     };
 
-    const rateFields = ['premium_rate', 'rate_ro', 'rate_rg', 'rate_surprime', 'rate_accessories', 'rate_tax'];
+    const rateFields = ['rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax'];
     const dateFields  = ['effective_date', 'expiry_date'];
-    const otherFields = ['subscription_limit', 'notice_period_days', 'incoterm_code', 'coverage_type'];
+    const otherFields = ['notice_period_days', 'incoterm_code', 'coverage_type'];
     const listFields  = ['clauses', 'exclusions'];
 
     return (
@@ -201,17 +198,20 @@ export default function AmendmentCreate({ contract }: Props) {
                                 </div>
                                 <div className="am-card-body">
                                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
-                                        {rateFields.filter(f => selectedFields.includes(f)).map(field => (
-                                            <div key={field} className="grid gap-1">
-                                                <Label className="am-label">{FIELD_LABELS[field]}</Label>
-                                                <Input className="h-11" type="number" step="0.0001" min={0}
-                                                       value={(data as any)[field]}
-                                                       onChange={e => setData(field as any, e.target.value)}/>
-                                                <div className="current-val">
-                                                    Actuel : {(contract as any)[field] ?? '—'} %
+                                        {rateFields.filter(f => selectedFields.includes(f)).map(field => {
+                                            const isAmount = field === 'accessories_amount';
+                                            return (
+                                                <div key={field} className="grid gap-1">
+                                                    <Label className="am-label">{FIELD_LABELS[field]}</Label>
+                                                    <Input className="h-11" type="number" step={isAmount ? '1' : '0.0001'} min={isAmount ? 500 : 0}
+                                                           value={(data as any)[field]}
+                                                           onChange={e => setData(field as any, e.target.value)}/>
+                                                    <div className="current-val">
+                                                        Actuel : {(contract as any)[field] ?? '—'} {isAmount ? contract.currency_code : '%'}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -248,26 +248,6 @@ export default function AmendmentCreate({ contract }: Props) {
                                                 <div className="current-val">Actuel : {contract.notice_period_days} jours</div>
                                             </div>
                                         )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Plafond NN300 */}
-                        {selectedFields.includes('subscription_limit') && (
-                            <div className="am-card">
-                                <div className="am-card-hdr"><div className="am-card-ttl">Plafond NN300</div></div>
-                                <div className="am-card-body">
-                                    <div className="grid gap-2">
-                                        <Label className="am-label">Nouveau plafond ({contract.currency_code})</Label>
-                                        <Input className="h-11" type="number" min={0}
-                                               value={data.subscription_limit}
-                                               onChange={e => setData('subscription_limit', e.target.value)}/>
-                                        <div className="current-val">
-                                            Actuel : {contract.subscription_limit
-                                                ? parseFloat(contract.subscription_limit).toLocaleString('fr-FR') + ' ' + contract.currency_code
-                                                : 'Illimité'}
-                                        </div>
                                     </div>
                                 </div>
                             </div>

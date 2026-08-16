@@ -442,6 +442,8 @@ class DemoDataSeeder extends Seeder
                 'insured_value'        => $insuredValue,
                 'insured_value_letters'=> $this->numberToFrenchWords($insuredValue) . ' ' . $contract->currency_code,
                 'guarantee_mode'       => 'Tous risques',
+                'rate_divers'          => 0.05,
+                'rate_surprime'        => 0.02,
                 'prime_breakdown'      => $primeBreakdown,
                 'prime_total'          => $primeTotal,
                 'prime_nette'          => $primeNette,
@@ -497,16 +499,13 @@ class DemoDataSeeder extends Seeder
     //   Taxe        = Taux de taxe × (Prime Nette + Accessoires)
     //   Prime TTC   = Prime Nette + Accessoires + Taxe
     // Prime Nette positionnée juste avant Accessoires (cf. CertificateTemplateSeeder).
-    private function buildDemoPrimeBreakdown(InsuranceContract $contract, float $insuredValue): array
+    private function buildDemoPrimeBreakdown(InsuranceContract $contract, float $insuredValue, float $rateDivers = 0.05, float $rateSurprime = 0.02): array
     {
         $lineAmount = fn (float $rate): float => $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
 
-        $rateRo       = (float) ($contract->rate_ro ?: 0.35);
-        $rateRg       = (float) ($contract->rate_rg ?: 0.10);
-        $rateDivers   = (float) ($contract->rate_divers ?: 0);
-        $rateSurprime = (float) ($contract->rate_surprime ?: 0);
-        $rateAcc      = (float) ($contract->rate_accessories ?: 0.05);
-        $taxRatePct   = 5.00; // taux indicatif de démo — le référentiel réel passe par TaxRule
+        $rateRo     = (float) ($contract->rate_ro ?: 0.35);
+        $rateRg     = (float) ($contract->rate_rg ?: 0.10);
+        $taxRatePct = 5.00; // taux indicatif de démo — le référentiel réel passe par TaxRule
 
         $ro = $lineAmount($rateRo);
         $rg = $lineAmount($rateRg);
@@ -514,7 +513,8 @@ class DemoDataSeeder extends Seeder
         $surprime = $lineAmount($rateSurprime);
         $primeNette = round($ro + $rg + $divers + $surprime, 2);
 
-        $accessoires = $lineAmount($rateAcc);
+        // Accessoires : montant fixe porté par le contrat (pas un taux).
+        $accessoires = (float) ($contract->accessories_amount ?: 0);
         $taxe        = round(($primeNette + $accessoires) * $taxRatePct / 100, 2);
         $primeTotale = round($primeNette + $accessoires + $taxe, 2);
 
@@ -524,7 +524,7 @@ class DemoDataSeeder extends Seeder
             ['key' => 'divers',       'label' => 'Divers',      'rate' => $rateDivers,   'amount' => $divers],
             ['key' => 'surprime',     'label' => 'Surprime',    'rate' => $rateSurprime, 'amount' => $surprime],
             ['key' => 'prime_nette',  'label' => 'Prime Nette', 'rate' => null,          'amount' => $primeNette],
-            ['key' => 'accessoires',  'label' => 'Accessoires', 'rate' => $rateAcc,      'amount' => $accessoires],
+            ['key' => 'accessoires',  'label' => 'Accessoires', 'rate' => null,          'amount' => $accessoires],
             ['key' => 'taxe',         'label' => 'Taxe',        'rate' => $taxRatePct,   'amount' => $taxe],
             ['key' => 'prime_totale', 'label' => 'Prime Total', 'rate' => null,          'amount' => $primeTotale],
         ];

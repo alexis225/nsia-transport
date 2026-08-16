@@ -27,14 +27,15 @@ class InsuranceContract extends Model
 
     protected $fillable = [
         'tenant_id', 'broker_id', 'subscriber_id',
+        'subscriber_name', 'subscriber_address', 'subscriber_email', 'subscriber_phone',
         'contract_number', 'type',
         'insured_name', 'insured_address', 'insured_email', 'insured_phone',
         'currency_code', 'subscription_limit', 'used_limit', 'treaty_limit',
         'plein', 'escalade_enabled', 'escalade_threshold_pct',
         'premium_rate', 'deductible',
-        'rate_ro', 'rate_rg', 'rate_divers', 'rate_surprime', 'rate_accessories', 'rate_tax',
+        'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
         'coverage_type', 'clauses', 'exclusions',
-        'incoterm_code', 'transport_mode_id', 'transport_mode_detail',
+        'incoterm_code', 'transport_mode_id', 'conditioning_types',
         'covered_countries',
         'effective_date', 'expiry_date', 'notice_period_days',
         'requires_approval', 'approved_by', 'approved_at',
@@ -60,19 +61,20 @@ class InsuranceContract extends Model
         'deductible'         => 'decimal:2',
         'rate_ro'            => 'decimal:4',
         'rate_rg'            => 'decimal:4',
-        'rate_divers'        => 'decimal:4',
-        'rate_surprime'      => 'decimal:4',
-        'rate_accessories'   => 'decimal:4',
+        'accessories_amount' => 'decimal:2',
         'rate_tax'           => 'decimal:4',
         'clauses'            => 'array',
         'exclusions'         => 'array',
         'covered_countries'  => 'array',
+        'conditioning_types' => 'array',
         'certificates_count' => 'integer',
         'certificates_limit' => 'integer',
         'notice_period_days' => 'integer',
         // US-051 — Chiffrement données PII (non-queryables)
         'insured_address'    => 'encrypted',
         'insured_phone'      => 'encrypted',
+        'subscriber_address' => 'encrypted',
+        'subscriber_phone'   => 'encrypted',
     ];
 
     // ── Constantes ────────────────────────────────────────────
@@ -93,10 +95,12 @@ class InsuranceContract extends Model
     const COVERAGE_FAP_SAUF      = 'FAP_SAUF';
     const COVERAGE_FAP_ABSOLUE   = 'FAP_ABSOLUE';
 
-    // Plafond NN300 standard groupe : au-delà, un contrat requiert une
-    // validation DTAG (super_admin) avant activation — cf. store()/update()
-    // dans InsuranceContractController. Plafond Traité : au-delà, alerte
-    // informative pour placement en réassurance facultative (non bloquant).
+    // Valeurs de repli si le paramètre général (Setting, /admin/settings)
+    // n'existe pas encore — la vraie valeur active est toujours lue via
+    // Setting::get(). Plafond NN300 : au-delà, un contrat requiert une
+    // validation DTAG (super_admin) avant activation. Plafond Traité :
+    // au-delà, alerte informative pour placement en réassurance
+    // facultative (non bloquant).
     const NN300_STANDARD_CEILING = 2000000000.00;
     const TREATY_DEFAULT_LIMIT   = 6000000000.00;
 
@@ -122,6 +126,13 @@ class InsuranceContract extends Model
             'contract_id',
             'coinsurer_id'
         )->withPivot('share_rate');
+    }
+
+    // Experts mandatés sur ce contrat (expertise/suivi sinistres) — simple
+    // liaison, pas de part financière contrairement aux coassureurs.
+    public function experts(): BelongsToMany
+    {
+        return $this->belongsToMany(Expert::class, 'contract_experts', 'contract_id', 'expert_id');
     }
 
     // Souscripteur en charge du contrat
@@ -202,12 +213,15 @@ class InsuranceContract extends Model
         return $this->certificates_count >= $this->certificates_limit;
     }
 
-    // Le plafond NN300 déclaré/importé pour ce contrat dépasse-t-il le
-    // seuil standard groupe (2 Mds FCFA) ? Détermine si une validation
-    // DTAG est requise avant activation.
+    // Le Plein d'Assurance de ce contrat (valeur maximum assurée par
+    // voyage et par moyen de transport) dépasse-t-il le plafond NN300
+    // (paramètre général de l'application, cf. Setting) ? Détermine si
+    // une validation DTAG est requise avant activation.
     public function exceedsNn300StandardCeiling(): bool
     {
-        return (float) ($this->subscription_limit ?? self::NN300_STANDARD_CEILING) > self::NN300_STANDARD_CEILING;
+        $nn300Ceiling = (float) Setting::get(Setting::KEY_NN300_CEILING, self::NN300_STANDARD_CEILING);
+
+        return (float) $this->plein > $nn300Ceiling;
     }
 
     // Le certificat en cours de soumission ferait-il dépasser le Plafond

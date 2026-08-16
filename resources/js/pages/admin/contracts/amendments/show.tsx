@@ -38,13 +38,17 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; 
 };
 
 const FIELD_LABELS: Record<string, string> = {
-    premium_rate:       'Taux prime global',
-    rate_ro:            'Taux R.O.',
-    rate_rg:            'Taux R.G.',
-    rate_surprime:      'Surprime',
-    rate_accessories:   'Accessoires',
-    rate_tax:           'Taxe',
-    subscription_limit: 'Plafond NN300',
+    // premium_rate/rate_surprime/rate_accessories/subscription_limit :
+    // conservés uniquement pour l'affichage lisible des avenants
+    // historiques — ne sont plus amendables (cf. create.tsx).
+    premium_rate:        'Taux prime global',
+    rate_ro:             'Taux R.O.',
+    rate_rg:             'Taux R.G.',
+    rate_surprime:       'Surprime',
+    rate_accessories:    'Accessoires (ancien, %)',
+    accessories_amount:  'Accessoires',
+    rate_tax:            'Taxe',
+    subscription_limit:  'Plafond NN300',
     effective_date:     'Date d\'effet',
     expiry_date:        'Date d\'expiration',
     notice_period_days: 'Délai de préavis',
@@ -94,6 +98,7 @@ const formatValue = (field: string, value: any): string => {
     if (value === null || value === undefined || value === '') return '—';
     if (Array.isArray(value)) return value.length > 0 ? value.join(', ') : '—';
     if (field.includes('_date')) return new Date(value).toLocaleDateString('fr-FR');
+    if (field === 'accessories_amount') return parseFloat(value).toLocaleString('fr-FR');
     if (field.includes('rate') || field === 'premium_rate') return `${value} %`;
     if (field === 'subscription_limit') return parseFloat(value).toLocaleString('fr-FR');
     return String(value);

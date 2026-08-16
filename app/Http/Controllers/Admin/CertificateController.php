@@ -140,8 +140,8 @@ class CertificateController extends Controller
             ->orderBy('contract_number')
             ->get(['id', 'contract_number', 'insured_name', 'insured_address', 'insured_email', 'insured_phone',
                    'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
-                   'transport_mode_id', 'transport_mode_detail',
-                   'rate_ro', 'rate_rg', 'rate_surprime', 'rate_accessories', 'rate_tax',
+                   'transport_mode_id', 'conditioning_types',
+                   'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
                    'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
 
         // Pré-sélection contrat depuis query string — mêmes relations/colonnes
@@ -224,11 +224,13 @@ class CertificateController extends Controller
             ? Certificate::generateNumber($template)
             : 'CERT-' . now()->format('YmdHis');
 
-        // Construire le décompte de prime depuis les taux du contrat +
-        // le référentiel de taxes (filiale × mode de transport × pays)
+        // Construire le décompte de prime depuis les taux du contrat (R.O./
+        // R.G.) + Divers/Surprime saisis sur ce certificat + le référentiel
+        // de taxes (filiale × mode de transport × pays)
         $primeBreakdown = $this->buildPrimeBreakdown(
             $contract, $validated['insured_value'], $template,
-            $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null
+            $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null,
+            (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0)
         );
         [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
 
@@ -284,7 +286,7 @@ class CertificateController extends Controller
 
         $certificate->load([
             'tenant',
-            'contract:id,contract_number,insured_name,insured_address,coverage_type,rate_ro,rate_rg,rate_surprime,rate_accessories,rate_tax',
+            'contract:id,contract_number,insured_name,insured_address,coverage_type,rate_ro,rate_rg,accessories_amount,rate_tax',
             'template:id,name,is_bilingual',
             'issuedBy:id,first_name,last_name',
         ]);
@@ -342,7 +344,8 @@ class CertificateController extends Controller
         $contract       = InsuranceContract::find($certificate->contract_id);
         $primeBreakdown = $this->buildPrimeBreakdown(
             $contract, $validated['insured_value'], $certificate->template,
-            $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null
+            $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null,
+            (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0)
         );
         [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
 
@@ -518,12 +521,18 @@ class CertificateController extends Controller
     //   Prime TTC   = Prime Nette + Accessoires + Taxe
     // Prime Nette et Prime TTC sont donc des sous-totaux, pas des lignes
     // "taux × valeur assurée" comme RO/RG/Divers/Surprime/Accessoires.
+    // R.O. et R.G. viennent du CONTRAT (taux fixes pour toute sa durée).
+    // Divers et Surprime se saisissent au cas par cas à l'établissement du
+    // CERTIFICAT ($rateDivers/$rateSurprime). Accessoires n'est plus un
+    // taux mais un montant fixe porté par le contrat (accessories_amount).
     private function buildPrimeBreakdown(
         InsuranceContract $contract,
         float $insuredValue,
         ?CertificateTemplate $template,
         ?string $transportType = null,
-        ?string $destinationCountryCode = null
+        ?string $destinationCountryCode = null,
+        float $rateDivers = 0,
+        float $rateSurprime = 0
     ): array {
         // Utiliser les lignes du template si disponibles — Prime Nette
         // positionnée juste avant Accessoires (cf. modèles filiale).
@@ -553,11 +562,12 @@ class CertificateController extends Controller
 
         $ro       = $lineAmount($rateOf('rate_ro'));
         $rg       = $lineAmount($rateOf('rate_rg'));
-        $divers   = $lineAmount($rateOf('rate_divers'));
-        $surprime = $lineAmount($rateOf('rate_surprime'));
+        $divers   = $lineAmount($rateDivers);
+        $surprime = $lineAmount($rateSurprime);
         $primeNette = round($ro + $rg + $divers + $surprime, 2);
 
-        $accessoires = $lineAmount($rateOf('rate_accessories'));
+        // Accessoires : montant fixe défini sur le contrat (pas un taux).
+        $accessoires = (float) ($contract->accessories_amount ?? 0);
         $taxe        = round(($primeNette + $accessoires) * $taxRatePct / 100, 2);
         $primeTotale = round($primeNette + $accessoires + $taxe, 2);
 
@@ -567,15 +577,15 @@ class CertificateController extends Controller
         // doivent résoudre vers le même montant, sans quoi la ligne
         // affiche 0.
         $amounts = [
-            'ro'          => ['rate' => $rateOf('rate_ro'),          'amount' => $ro],
-            'rg'          => ['rate' => $rateOf('rate_rg'),          'amount' => $rg],
-            'divers'      => ['rate' => $rateOf('rate_divers'),      'amount' => $divers],
-            'surprime'    => ['rate' => $rateOf('rate_surprime'),    'amount' => $surprime],
-            'prime_nette' => ['rate' => null,                        'amount' => $primeNette],
-            'accessories' => ['rate' => $rateOf('rate_accessories'), 'amount' => $accessoires],
-            'accessoires' => ['rate' => $rateOf('rate_accessories'), 'amount' => $accessoires],
-            'tax'         => ['rate' => $taxRatePct,                 'amount' => $taxe],
-            'taxe'        => ['rate' => $taxRatePct,                 'amount' => $taxe],
+            'ro'          => ['rate' => $rateOf('rate_ro'), 'amount' => $ro],
+            'rg'          => ['rate' => $rateOf('rate_rg'), 'amount' => $rg],
+            'divers'      => ['rate' => $rateDivers,        'amount' => $divers],
+            'surprime'    => ['rate' => $rateSurprime,      'amount' => $surprime],
+            'prime_nette' => ['rate' => null,               'amount' => $primeNette],
+            'accessories' => ['rate' => null,               'amount' => $accessoires],
+            'accessoires' => ['rate' => null,               'amount' => $accessoires],
+            'tax'         => ['rate' => $taxRatePct,        'amount' => $taxe],
+            'taxe'        => ['rate' => $taxRatePct,        'amount' => $taxe],
             'prime_total'  => ['rate' => null, 'amount' => $primeTotale],
             'prime_totale' => ['rate' => null, 'amount' => $primeTotale],
         ];
@@ -623,6 +633,10 @@ class CertificateController extends Controller
             'insured_value'         => ['required', 'numeric', 'min:0'],
             'insured_value_letters' => ['nullable', 'string'],
             'guarantee_mode'        => ['nullable', 'string', 'max:100'],
+            // Divers et Surprime se précisent au cas par cas sur chaque
+            // certificat (plus au niveau du contrat).
+            'rate_divers'           => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'rate_surprime'         => ['nullable', 'numeric', 'min:0', 'max:100'],
             'exchange_currency'     => ['nullable', 'size:3'],
             'exchange_rate'         => ['nullable', 'numeric', 'min:0'],
         ]);

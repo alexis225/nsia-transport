@@ -87,8 +87,7 @@ class ContractAmendment extends Model
     public static function computeChanges(InsuranceContract $contract, array $newValues): array
     {
         $trackableFields = [
-            'premium_rate', 'rate_ro', 'rate_rg', 'rate_surprime',
-            'rate_accessories', 'rate_tax', 'subscription_limit',
+            'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
             'effective_date', 'expiry_date', 'notice_period_days',
             'clauses', 'exclusions', 'broker_id',
             'incoterm_code', 'transport_mode_id', 'coverage_type',

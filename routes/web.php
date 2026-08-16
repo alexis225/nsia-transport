@@ -151,6 +151,10 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
     // US-048 — Dashboard DTAG multi-filiales
     Route::get('/admin/dashboard/dtag', [DtagDashboardController::class, 'index'])->middleware('role:super_admin')->name('admin.dashboard.dtag');
     // US-050 — IP Blacklist
+    Route::prefix('admin/settings')->name('admin.settings.')->middleware('role:super_admin')->group(function () {
+        Route::get('/',    [\App\Http\Controllers\Admin\SettingsController::class, 'index']) ->name('index');
+        Route::put('/',    [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('update');
+    });
     Route::prefix('admin/security/ip-blacklist')->name('admin.security.ip-blacklist.')->middleware('role:super_admin')->group(function () {
         Route::get('/',          [IpBlacklistController::class, 'index'])  ->name('index');
         Route::post('/',         [IpBlacklistController::class, 'store'])  ->name('store');

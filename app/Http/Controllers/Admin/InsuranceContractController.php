@@ -7,8 +7,10 @@ use App\Models\AuditLog;
 use App\Models\Broker;
 use App\Models\Coinsurer;
 use App\Models\CommissionRule;
+use App\Models\Expert;
 use App\Models\Incoterm;
 use App\Models\InsuranceContract;
+use App\Models\Setting;
 use App\Models\Tenant;
 use App\Models\TransportMode;
 use App\Models\User;
@@ -76,6 +78,8 @@ class InsuranceContractController extends Controller
                                        ->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'type', 'commission_rate']),
             'coinsurers'      => Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
                                        ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'experts'         => Expert::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                                       ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'subscribers'     => $this->subscribers($user, $isSA),
             'incoterms'       => Incoterm::orderBy('code')->get(['code', 'name']),
             'transportModes'  => TransportMode::orderBy('name_fr')->get(['id', 'code', 'name_fr']),
@@ -101,6 +105,8 @@ class InsuranceContractController extends Controller
         unset($validated['commission_rate']);
         $coinsurers = $validated['coinsurers'] ?? [];
         unset($validated['coinsurers']);
+        $expertIds = $validated['expert_ids'] ?? [];
+        unset($validated['expert_ids']);
 
         $tenant  = Tenant::find($validated['tenant_id']);
         $validated['contract_number'] = InsuranceContract::generateContractNumber(
@@ -119,6 +125,7 @@ class InsuranceContractController extends Controller
 
         $this->syncCommissionRate($contract, $commissionRate, $request->user());
         $this->syncCoinsurers($contract, $coinsurers);
+        $contract->experts()->sync($expertIds);
 
         AuditLog::create([
             'tenant_id'   => $contract->tenant_id,
@@ -133,8 +140,8 @@ class InsuranceContractController extends Controller
 
         $status = "Contrat {$contract->contract_number} créé.";
         if ($exceedsNn300) {
-            $status .= ' Ce contrat dépasse le plafond NN300 standard ('
-                . number_format(InsuranceContract::NN300_STANDARD_CEILING, 0, ',', ' ') . ' ' . $contract->currency_code
+            $status .= ' Le Plein d\'Assurance de ce contrat dépasse le plafond NN300 ('
+                . number_format((float) Setting::get(Setting::KEY_NN300_CEILING, 2_000_000_000), 0, ',', ' ') . ' ' . $contract->currency_code
                 . ') — une validation du Groupe (DTAG) sera requise avant activation.';
         }
 
@@ -142,22 +149,33 @@ class InsuranceContractController extends Controller
             ->with('status', $status);
     }
 
-    // ── Défauts NN300 / Plafond Traité ───────────────────────
-    // Applique les valeurs par défaut (2 Mds / 6 Mds FCFA) quand non
-    // renseignées, et force requires_approval si le plafond NN300
-    // déclaré/importé dépasse le seuil standard groupe — le contrat ne
-    // pourra alors être activé (submit()) que via une validation DTAG
+    // ── Plafonds NN300 / Traité (paramètres généraux) ────────
+    // Le plafond NN300 et le Plafond Traité ne se saisissent plus par
+    // contrat — ce sont des paramètres généraux de l'Application
+    // (/admin/settings). Chaque contrat hérite systématiquement de ces
+    // deux valeurs ; seul le « Plein d'Assurance » (valeur maximum
+    // assurée par voyage et par moyen de transport, cf. plein) est
+    // propre à chaque contrat/client. Si le Plein dépasse le plafond
+    // NN300, le contrat requiert une validation DTAG avant activation
     // (approve(), réservé au rôle super_admin — cf. contracts.validate).
     // Retourne true si le dépassement a été détecté.
     private function applyNn300Defaults(array &$validated): bool
     {
-        $validated['subscription_limit'] = $validated['subscription_limit'] ?? InsuranceContract::NN300_STANDARD_CEILING;
-        $validated['treaty_limit']       = $validated['treaty_limit'] ?? InsuranceContract::TREATY_DEFAULT_LIMIT;
+        $nn300Ceiling = (float) Setting::get(Setting::KEY_NN300_CEILING, 2_000_000_000);
+        $treatyLimit  = (float) Setting::get(Setting::KEY_TREATY_LIMIT, 6_000_000_000);
 
-        $exceedsNn300 = (float) $validated['subscription_limit'] > InsuranceContract::NN300_STANDARD_CEILING;
+        $validated['subscription_limit'] = $nn300Ceiling;
+        $validated['treaty_limit']       = $treatyLimit;
+
+        $plein = (float) ($validated['plein'] ?? 0);
+        $exceedsNn300 = $plein > $nn300Ceiling;
         if ($exceedsNn300) {
             $validated['requires_approval'] = true;
         }
+
+        // Taux prime global = simple somme des taux R.O. + R.G. (les seuls
+        // saisis au niveau du contrat) — jamais saisi directement.
+        $validated['premium_rate'] = (float) ($validated['rate_ro'] ?? 0) + (float) ($validated['rate_rg'] ?? 0);
 
         return $exceedsNn300;
     }
@@ -175,6 +193,7 @@ class InsuranceContractController extends Controller
             'createdBy:id,first_name,last_name',
             'approvedBy:id,first_name,last_name',
             'coinsurers:id,name,email,phone',
+            'experts:id,name,email,phone',
         ]);
 
         return Inertia::render('admin/contracts/show', [
@@ -193,7 +212,7 @@ class InsuranceContractController extends Controller
         $this->authorizeTenant($contract);
         abort_if($contract->status === InsuranceContract::STATUS_ACTIVE, 403, 'Un contrat actif ne peut pas être modifié directement.');
 
-        $contract->load(['broker', 'transportMode', 'tenant', 'coinsurers']);
+        $contract->load(['broker', 'transportMode', 'tenant', 'coinsurers', 'experts']);
         $user = auth()->user();
         $isSA = $user->hasRole('super_admin');
 
@@ -203,6 +222,8 @@ class InsuranceContractController extends Controller
             'brokers'        => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
                                       ->where('is_active', true)->orderBy('name')->get(['id','name','code','type','commission_rate']),
             'coinsurers'     => Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                                      ->where('is_active', true)->orderBy('name')->get(['id','name']),
+            'experts'        => Expert::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
                                       ->where('is_active', true)->orderBy('name')->get(['id','name']),
             'subscribers'    => $this->subscribers($user, $isSA),
             'incoterms'      => Incoterm::orderBy('code')->get(['code','name']),
@@ -224,6 +245,8 @@ class InsuranceContractController extends Controller
         unset($validated['commission_rate']);
         $coinsurers = $validated['coinsurers'] ?? [];
         unset($validated['coinsurers']);
+        $expertIds = $validated['expert_ids'] ?? [];
+        unset($validated['expert_ids']);
         $validated['updated_by'] = $request->user()->id;
 
         // Devise imposée par la filiale — tous les montants du contrat et
@@ -236,6 +259,7 @@ class InsuranceContractController extends Controller
 
         $this->syncCommissionRate($contract, $commissionRate, $request->user());
         $this->syncCoinsurers($contract, $coinsurers);
+        $contract->experts()->sync($expertIds);
 
         $status = 'Contrat mis à jour.';
         if ($exceedsNn300) {
@@ -442,32 +466,43 @@ class InsuranceContractController extends Controller
             'coinsurers'                    => ['nullable', 'array'],
             'coinsurers.*.coinsurer_id'     => ['required', 'uuid', 'exists:coinsurers,id', 'distinct'],
             'coinsurers.*.share_rate'       => ['required', 'numeric', 'min:0.01', 'max:100'],
+            'expert_ids'                    => ['nullable', 'array'],
+            'expert_ids.*'                  => ['uuid', 'exists:experts,id', 'distinct'],
             'subscriber_id'        => ['nullable', 'uuid', 'exists:users,id'],
+            // Souscripteur (contractant) — le payeur des primes, identifié
+            // au même titre que l'Assuré. Distinct de subscriber_id
+            // (utilisateur NSIA en charge du dossier).
+            'subscriber_name'      => ['nullable', 'string', 'max:200'],
+            'subscriber_address'   => ['nullable', 'string'],
+            'subscriber_email'     => ['nullable', 'email'],
+            'subscriber_phone'     => ['nullable', 'string', 'max:30'],
             'type'                 => ['required', 'in:OPEN_POLICY,VOYAGE,ANNUAL_VOYAGE,TIERS_CHARGEUR'],
             'insured_name'         => ['required', 'string', 'max:200'],
             'insured_address'      => ['nullable', 'string'],
             'insured_email'        => ['nullable', 'email'],
             'insured_phone'        => ['nullable', 'string', 'max:30'],
             'currency_code'        => ['required', 'size:3'],
-            'subscription_limit'   => ['nullable', 'numeric', 'min:0'],
-            'treaty_limit'         => ['nullable', 'numeric', 'min:0'],
+            // Plafonds NN300 / Traité : paramètres généraux de l'application
+            // (/admin/settings) — plus saisis par contrat, cf. applyNn300Defaults().
             'plein'                => ['nullable', 'numeric', 'min:0'],
             'escalade_enabled'     => ['boolean'],
             'escalade_threshold_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'premium_rate'         => ['nullable', 'numeric', 'min:0', 'max:100'],
             'deductible'           => ['nullable', 'numeric', 'min:0'],
+            // Seuls R.O. et R.G. se saisissent au niveau du contrat — Divers
+            // et Surprime se précisent à l'établissement du certificat.
             'rate_ro'              => ['nullable', 'numeric', 'min:0', 'max:100'],
             'rate_rg'              => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'rate_divers'          => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'rate_surprime'        => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'rate_accessories'     => ['nullable', 'numeric', 'min:0', 'max:100'],
+            // Accessoires n'est plus un taux mais un montant fixe (à partir
+            // de 500 FCFA).
+            'accessories_amount'   => ['nullable', 'numeric', 'min:500'],
             'rate_tax'             => ['nullable', 'numeric', 'min:0', 'max:100'],
             'coverage_type'        => ['nullable', 'in:TOUS_RISQUES,FAP_SAUF,FAP_ABSOLUE'],
             'clauses'              => ['nullable', 'array'],
             'exclusions'           => ['nullable', 'array'],
             'incoterm_code'        => ['nullable', 'string', 'exists:incoterms,code'],
             'transport_mode_id'    => ['nullable', 'exists:transport_modes,id'],
-            'transport_mode_detail'=> ['nullable', 'string', 'max:100'],
+            'conditioning_types'   => ['nullable', 'array'],
+            'conditioning_types.*' => ['string', 'in:CONTAINER,GROUPAGE,CONVENTIONNEL,BOUT_EN_BOUT,VRAC'],
             'covered_countries'    => ['nullable', 'array'],
             'effective_date'       => ['required', 'date'],
             'expiry_date'          => ['required', 'date', 'after:effective_date'],

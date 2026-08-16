@@ -68,13 +68,14 @@ class ContractAmendmentController extends Controller
         $request->validate([
             'reason'               => ['required', 'string', 'max:255'],
             'description'          => ['nullable', 'string'],
-            'premium_rate'         => ['nullable', 'numeric', 'min:0', 'max:100'],
+            // Taux prime global = somme R.O.+R.G., non amendable directement.
+            // Surprime se saisit désormais par certificat, plus par contrat.
+            // Plafond NN300 (subscription_limit) est un paramètre général de
+            // l'application (/admin/settings), plus amendable par contrat.
             'rate_ro'              => ['nullable', 'numeric', 'min:0', 'max:100'],
             'rate_rg'              => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'rate_surprime'        => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'rate_accessories'     => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'accessories_amount'   => ['nullable', 'numeric', 'min:500'],
             'rate_tax'             => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'subscription_limit'   => ['nullable', 'numeric', 'min:0'],
             'effective_date'       => ['nullable', 'date'],
             'expiry_date'          => ['nullable', 'date'],
             'notice_period_days'   => ['nullable', 'integer', 'min:0'],
@@ -193,6 +194,12 @@ class ContractAmendmentController extends Controller
             $updates = [];
             foreach ($amendment->changes as $field => $change) {
                 $updates[$field] = $change['after'];
+            }
+            // Taux prime global = somme R.O.+R.G. — à recalculer si l'un des
+            // deux est amendé (cf. InsuranceContractController::applyNn300Defaults()).
+            if (array_key_exists('rate_ro', $updates) || array_key_exists('rate_rg', $updates)) {
+                $updates['premium_rate'] = (float) ($updates['rate_ro'] ?? $contract->rate_ro ?? 0)
+                    + (float) ($updates['rate_rg'] ?? $contract->rate_rg ?? 0);
             }
             $contract->update($updates);
 

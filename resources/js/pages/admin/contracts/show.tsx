@@ -15,14 +15,17 @@ interface Contract {
     id: string; contract_number: string; type: string; status: string;
     insured_name: string; insured_address: string | null;
     insured_email: string | null; insured_phone: string | null;
+    subscriber_name: string | null; subscriber_address: string | null;
+    subscriber_email: string | null; subscriber_phone: string | null;
     coverage_type: string | null; clauses: string[]; exclusions: string[];
-    incoterm_code: string | null; transport_mode_detail: string | null;
+    incoterm_code: string | null; conditioning_types: string[] | null;
     currency_code: string; subscription_limit: string | null; treaty_limit: string | null;
     used_limit: string; premium_rate: string | null; deductible: string;
     plein: string | null; escalade_enabled: boolean; escalade_threshold_pct: string | null;
-    rate_ro: string | null; rate_rg: string | null; rate_divers: string | null;
-    rate_surprime: string | null; rate_accessories: string | null; rate_tax: string | null;
+    rate_ro: string | null; rate_rg: string | null;
+    accessories_amount: string | null; rate_tax: string | null;
     coinsurers: { id: string; name: string; email: string | null; phone: string | null; pivot: { share_rate: string } }[];
+    experts: { id: string; name: string; email: string | null; phone: string | null }[];
     effective_date: string; expiry_date: string; notice_period_days: number;
     requires_approval: boolean; validation_notes: string | null;
     certificates_count: number; certificates_limit: number | null;
@@ -61,6 +64,14 @@ const COVERAGE_LABELS: Record<string, string> = {
     TOUS_RISQUES: 'Tous risques',
     FAP_SAUF:     'FAP sauf',
     FAP_ABSOLUE:  'FAP absolue',
+};
+
+const CONDITIONING_LABELS: Record<string, string> = {
+    CONTAINER:      'Conteneur',
+    GROUPAGE:       'Groupage',
+    CONVENTIONNEL:  'Conventionnel',
+    BOUT_EN_BOUT:   'Bout en bout',
+    VRAC:           'Vrac',
 };
 
 function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose, requireReason = true }: any) {
@@ -305,7 +316,7 @@ export default function ContractShow({ contract, can }: Props) {
                                     {contract.broker?.email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.broker.email}</span>}
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">Souscripteur</span>
+                                    <span className="info-label">Gestionnaire du dossier</span>
                                     <span className="info-value">{contract.subscriber ? `${contract.subscriber.first_name} ${contract.subscriber.last_name}` : '—'}</span>
                                     {contract.subscriber?.email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.subscriber.email}</span>}
                                 </div>
@@ -318,6 +329,32 @@ export default function ContractShow({ contract, can }: Props) {
                             </div>
                         </div>
                     </div>
+
+                    {/* Souscripteur (contractant) */}
+                    {(contract.subscriber_name || contract.subscriber_email || contract.subscriber_phone || contract.subscriber_address) && (
+                        <div className="cs-card">
+                            <div className="cs-card-hdr">
+                                <div className="cs-card-ico" style={{ background:'#eef2ff' }}><Briefcase size={15} color="#4f46e5"/></div>
+                                <span className="cs-card-ttl">Souscripteur (contractant)</span>
+                            </div>
+                            <div className="cs-card-body">
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <span className="info-label">Nom</span>
+                                        <span className="info-value" style={{ fontWeight:500 }}>{contract.subscriber_name ?? '—'}</span>
+                                        {contract.subscriber_email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.subscriber_email}</span>}
+                                        {contract.subscriber_phone && <span style={{ fontSize:11, color:'#64748b' }}>{contract.subscriber_phone}</span>}
+                                    </div>
+                                    {contract.subscriber_address && (
+                                        <div className="info-item" style={{ gridColumn:'1/-1' }}>
+                                            <span className="info-label">Adresse</span>
+                                            <span className="info-value">{contract.subscriber_address}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Coassureurs */}
                     {contract.coinsurers?.length > 0 && (
@@ -333,6 +370,27 @@ export default function ContractShow({ contract, can }: Props) {
                                             <span className="info-label">{ci.name}</span>
                                             <span className="info-value" style={{ fontFamily:'monospace' }}>{ci.pivot.share_rate} %</span>
                                             {ci.email && <span style={{ fontSize:11, color:'#64748b' }}>{ci.email}</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Experts */}
+                    {contract.experts?.length > 0 && (
+                        <div className="cs-card">
+                            <div className="cs-card-hdr">
+                                <div className="cs-card-ico" style={{ background:'#fffbeb' }}><Users size={15} color="#d97706"/></div>
+                                <span className="cs-card-ttl">Experts</span>
+                            </div>
+                            <div className="cs-card-body">
+                                <div className="info-grid">
+                                    {contract.experts.map(ex => (
+                                        <div key={ex.id} className="info-item">
+                                            <span className="info-label">{ex.name}</span>
+                                            {ex.email && <span style={{ fontSize:11, color:'#64748b' }}>{ex.email}</span>}
+                                            {ex.phone && <span style={{ fontSize:11, color:'#64748b' }}>{ex.phone}</span>}
                                         </div>
                                     ))}
                                 </div>
@@ -376,10 +434,20 @@ export default function ContractShow({ contract, can }: Props) {
                                     <span className="info-label">Incoterm</span>
                                     <span className="info-value">{contract.incoterm_code ?? '—'}</span>
                                 </div>
-                                <div className="info-item">
+                                <div className="info-item" style={{ marginBottom: (contract.conditioning_types?.length ?? 0) > 0 ? 10 : 0 }}>
                                     <span className="info-label">Mode transport</span>
                                     <span className="info-value">{contract.transport_mode?.name_fr ?? '—'}</span>
                                 </div>
+                                {(contract.conditioning_types?.length ?? 0) > 0 && (
+                                    <div className="info-item">
+                                        <span className="info-label">Type de conditionnement</span>
+                                        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>
+                                            {contract.conditioning_types!.map((ct, i) => (
+                                                <span key={i} className="tag-chip">{CONDITIONING_LABELS[ct] ?? ct}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -468,18 +536,26 @@ export default function ContractShow({ contract, can }: Props) {
                             <div style={{ borderTop:'1px solid #f1f5f9', paddingTop:12 }}>
                                 <div style={{ fontSize:10.5, fontWeight:600, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:8 }}>Taux détaillés</div>
                                 {[
-                                    { label:'R.O.',        value: contract.rate_ro },
-                                    { label:'R.G.',        value: contract.rate_rg },
-                                    { label:'Divers',      value: contract.rate_divers },
-                                    { label:'Surprime',    value: contract.rate_surprime },
-                                    { label:'Accessoires', value: contract.rate_accessories },
-                                    { label:'Taxe',        value: contract.rate_tax },
+                                    { label:'R.O.', value: contract.rate_ro },
+                                    { label:'R.G.', value: contract.rate_rg },
+                                    { label:'Taxe', value: contract.rate_tax },
                                 ].map(({ label, value }) => value ? (
                                     <div key={label} className="rate-row">
                                         <span style={{ fontSize:12, color:'#64748b' }}>{label}</span>
                                         <span style={{ fontSize:13, fontWeight:600, color:'#1e293b', fontFamily:'monospace' }}>{value} %</span>
                                     </div>
                                 ) : null)}
+                                {contract.accessories_amount && (
+                                    <div className="rate-row">
+                                        <span style={{ fontSize:12, color:'#64748b' }}>Accessoires</span>
+                                        <span style={{ fontSize:13, fontWeight:600, color:'#1e293b', fontFamily:'monospace' }}>
+                                            {parseFloat(contract.accessories_amount).toLocaleString('fr-FR')} {contract.currency_code}
+                                        </span>
+                                    </div>
+                                )}
+                                <p style={{ fontSize:11, color:'#94a3b8', marginTop:6 }}>
+                                    Divers et Surprime se précisent au cas par cas sur chaque certificat.
+                                </p>
                             </div>
                         </div>
                     </div>
