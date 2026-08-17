@@ -85,6 +85,8 @@ class CertificateController extends Controller
             'issued'    => $statsQuery->where('status', Certificate::STATUS_ISSUED)->count(),
             'submitted' => (clone $statsQuery)->where('status', Certificate::STATUS_SUBMITTED)->count(),
             'draft'     => (clone $statsQuery)->where('status', Certificate::STATUS_DRAFT)->count(),
+            'rejected'  => (clone $statsQuery)->where('status', Certificate::STATUS_REJECTED)->count(),
+            'replaced'  => (clone $statsQuery)->where('status', Certificate::STATUS_REPLACED)->count(),
             'cancelled' => (clone $statsQuery)->where('status', Certificate::STATUS_CANCELLED)->count(),
         ];
     
@@ -254,6 +256,58 @@ class CertificateController extends Controller
             ->with('status', "Certificat {$certificate->certificate_number} créé.");
     }
 
+    // ── Stocker le Certificat — brouillon à validation allégée (permet
+    // d'enregistrer même avec des informations manquantes, pour y revenir
+    // plus tard). Statut Stocké (DRAFT), identique à store() sur ce point.
+    public function storeDraft(Request $request): RedirectResponse
+    {
+        $validated = $this->validateCertificate($request, null, draft: true);
+
+        $contract = InsuranceContract::with('tenant')->findOrFail($validated['contract_id']);
+        $this->authorizeTenant($contract->tenant_id);
+
+        $template  = CertificateTemplate::where('tenant_id', $contract->tenant_id)
+            ->where('is_active', true)->first();
+        $certNumber = $template
+            ? Certificate::generateNumber($template)
+            : 'CERT-' . now()->format('YmdHis');
+
+        // Valeur assurée manquante → pas de décompte de prime calculable
+        // pour l'instant, laissé null (complété plus tard à l'édition).
+        $hasInsuredValue = isset($validated['insured_value']);
+        $primeBreakdown  = null;
+        $primeTotal      = null;
+        $primeNette      = null;
+
+        if ($hasInsuredValue) {
+            $primeBreakdown = $this->buildPrimeBreakdown(
+                $contract, (float) $validated['insured_value'], $template,
+                $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null,
+                (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0)
+            );
+            [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
+        }
+
+        $certificate = Certificate::create([
+            ...$validated,
+            'tenant_id'          => $contract->tenant_id,
+            'certificate_number' => $certNumber,
+            'policy_number'      => $contract->contract_number,
+            'template_id'        => $template?->id,
+            'currency_code'      => $contract->currency_code,
+            'prime_breakdown'    => $primeBreakdown,
+            'prime_total'        => $primeTotal,
+            'prime_nette'        => $primeNette,
+            'status'             => Certificate::STATUS_DRAFT,
+            'created_by'         => $request->user()->id,
+        ]);
+
+        $this->log($certificate, $request, 'certificate.stored_draft');
+
+        return redirect()->route('admin.certificates.edit', $certificate)
+            ->with('status', "Certificat {$certificate->certificate_number} enregistré en brouillon (Stocké) — complétez-le puis soumettez-le quand vous serez prêt.");
+    }
+
     // ── US-017 : Détail ──────────────────────────────────────
     public function show(Certificate $certificate): Response
     {
@@ -267,6 +321,8 @@ class CertificateController extends Controller
             'submittedBy:id,first_name,last_name',
             'issuedBy:id,first_name,last_name',
             'createdBy:id,first_name,last_name',
+            'replacement:id,certificate_number',
+            'replaces:id,certificate_number,replaced_at',
         ]);
 
         return Inertia::render('admin/certificates/show', [
@@ -318,16 +374,42 @@ class CertificateController extends Controller
     }
 
     // ── US-017 : Formulaire modification ─────────────────────
-    public function edit(Certificate $certificate): Response
+    // Éditable en Stocké (DRAFT) ou Rejeté (REJECTED) — corriger un
+    // certificat rejeté puis le sauvegarder le repasse en Stocké (cf.
+    // update() ci-dessous) pour permettre une nouvelle soumission.
+    public function edit(Request $request, Certificate $certificate): Response
     {
         $this->authorizeTenant($certificate->tenant_id);
-        abort_if(! in_array($certificate->status, [Certificate::STATUS_DRAFT]), 403,
-            'Seul un certificat en brouillon peut être modifié.');
+        abort_if(! in_array($certificate->status, [Certificate::STATUS_DRAFT, Certificate::STATUS_REJECTED]), 403,
+            'Seul un certificat Stocké ou Rejeté peut être modifié.');
 
         $certificate->load(['contract', 'template']);
+        $user = $request->user();
+        $isSA = $user->hasRole('super_admin');
+
+        $contracts = InsuranceContract::with([
+                'tenant:id,name,code',
+                'broker:id,name,code,commission_rate',
+                'subscriber:id,first_name,last_name',
+                'transportMode:id,code,name_fr',
+            ])
+            ->withCount(['certificates as active_certificates_count' => function ($q) {
+                $q->where('status', '!=', Certificate::STATUS_CANCELLED);
+            }])
+            ->where('status', InsuranceContract::STATUS_ACTIVE)
+            ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+            ->orderBy('contract_number')
+            ->get(['id', 'contract_number', 'insured_name', 'insured_address', 'insured_email', 'insured_phone',
+                   'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
+                   'transport_mode_id', 'conditioning_types',
+                   'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
+                   'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
 
         return Inertia::render('admin/certificates/edit', [
             'certificate' => $certificate,
+            'contracts'   => $contracts,
+            'countries'   => Country::orderBy('name_fr')->get(['code', 'name_fr']),
+            'currencies'  => Currency::active()->orderBy('code')->get(['code', 'name', 'symbol']),
         ]);
     }
 
@@ -335,13 +417,13 @@ class CertificateController extends Controller
     public function update(Request $request, Certificate $certificate): RedirectResponse
     {
         $this->authorizeTenant($certificate->tenant_id);
-        abort_if($certificate->status !== Certificate::STATUS_DRAFT, 403);
+        abort_if(! in_array($certificate->status, [Certificate::STATUS_DRAFT, Certificate::STATUS_REJECTED]), 403);
 
         $validated = $this->validateCertificate($request, $certificate->id);
 
         // Recalculer la prime (+ taxe depuis le référentiel filiale ×
         // mode de transport × pays)
-        $contract       = InsuranceContract::find($certificate->contract_id);
+        $contract       = InsuranceContract::find($validated['contract_id']);
         $primeBreakdown = $this->buildPrimeBreakdown(
             $contract, $validated['insured_value'], $certificate->template,
             $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null,
@@ -349,22 +431,31 @@ class CertificateController extends Controller
         );
         [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
 
+        $wasRejected = $certificate->status === Certificate::STATUS_REJECTED;
+
         $certificate->update([
             ...$validated,
             'prime_breakdown' => $primeBreakdown,
             'prime_total'     => $primeTotal,
             'prime_nette'     => $primeNette,
+            // Corriger un certificat rejeté le repasse en Stocké, prêt à
+            // être resoumis.
+            ...($wasRejected ? [
+                'status'           => Certificate::STATUS_DRAFT,
+                'rejection_reason' => null,
+                'rejected_at'      => null,
+            ] : []),
         ]);
 
         return redirect()->route('admin.certificates.show', $certificate)
-            ->with('status', 'Certificat mis à jour.');
+            ->with('status', $wasRejected ? 'Certificat corrigé et repassé en Stocké.' : 'Certificat mis à jour.');
     }
 
     // ── US-017 : Supprimer ───────────────────────────────────
     public function destroy(Certificate $certificate): RedirectResponse
     {
         $this->authorizeTenant($certificate->tenant_id);
-        abort_if($certificate->status !== Certificate::STATUS_DRAFT, 403);
+        abort_if(! in_array($certificate->status, [Certificate::STATUS_DRAFT, Certificate::STATUS_REJECTED]), 403);
 
         $number = $certificate->certificate_number;
         $certificate->delete();
@@ -459,14 +550,85 @@ class CertificateController extends Controller
         $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
         $certificate->update([
-            'status'           => Certificate::STATUS_DRAFT,
-            'submitted_at'     => null,
-            'validation_notes' => 'REJETÉ : ' . $request->reason,
+            'status'           => Certificate::STATUS_REJECTED,
+            'rejected_at'      => now(),
+            'rejection_reason' => $request->reason,
         ]);
 
         $this->log($certificate, $request, 'certificate.rejected', ['reason' => $request->reason], 'WARNING');
 
-        return back()->with('status', 'Certificat rejeté — renvoyé en brouillon.');
+        return back()->with('status', 'Certificat rejeté.');
+    }
+
+    // ── Remplacement — certificat Approuvé (ISSUED) modifié après coup :
+    // génère un nouveau certificat (nouveau numéro, statut Stocké) et
+    // marque l'ancien Remplacé avec une référence vers le nouveau.
+    public function replace(Request $request, Certificate $certificate): RedirectResponse
+    {
+        $this->authorizeTenant($certificate->tenant_id);
+        abort_if(! $request->user()->can('certificates.create'), 403);
+        abort_if($certificate->status !== Certificate::STATUS_ISSUED, 422,
+            'Seul un certificat Approuvé peut être remplacé.');
+
+        $template  = $certificate->template_id ? CertificateTemplate::find($certificate->template_id) : null;
+        $newNumber = $template ? Certificate::generateNumber($template) : 'CERT-' . now()->format('YmdHis');
+
+        $replacement = DB::transaction(function () use ($certificate, $newNumber, $request) {
+            $new = Certificate::create([
+                'tenant_id'                 => $certificate->tenant_id,
+                'contract_id'               => $certificate->contract_id,
+                'template_id'               => $certificate->template_id,
+                'certificate_number'        => $newNumber,
+                'policy_number'             => $certificate->policy_number,
+                'insured_name'              => $certificate->insured_name,
+                'insured_ref'               => $certificate->insured_ref,
+                'voyage_date'               => $certificate->voyage_date,
+                'voyage_from'               => $certificate->voyage_from,
+                'voyage_to'                 => $certificate->voyage_to,
+                'voyage_via'                => $certificate->voyage_via,
+                'origin_country_code'       => $certificate->origin_country_code,
+                'destination_country_code'  => $certificate->destination_country_code,
+                'transport_type'            => $certificate->transport_type,
+                'vessel_name'               => $certificate->vessel_name,
+                'flight_number'             => $certificate->flight_number,
+                'voyage_mode'               => $certificate->voyage_mode,
+                'expedition_items'          => $certificate->expedition_items,
+                'currency_code'             => $certificate->currency_code,
+                'insured_value'             => $certificate->insured_value,
+                'insured_value_letters'     => $certificate->insured_value_letters,
+                'guarantee_mode'            => $certificate->guarantee_mode,
+                'rate_divers'               => $certificate->rate_divers,
+                'rate_surprime'             => $certificate->rate_surprime,
+                'prime_breakdown'           => $certificate->prime_breakdown,
+                'prime_total'               => $certificate->prime_total,
+                'prime_nette'               => $certificate->prime_nette,
+                'exchange_currency'         => $certificate->exchange_currency,
+                'exchange_rate'             => $certificate->exchange_rate,
+                'status'                    => Certificate::STATUS_DRAFT,
+                'created_by'                => $request->user()->id,
+            ]);
+
+            $certificate->update([
+                'status'                     => Certificate::STATUS_REPLACED,
+                'replaced_at'                => now(),
+                'replaced_by_certificate_id' => $new->id,
+            ]);
+
+            // Le certificat remplacé n'est plus comptabilisé dans le cumul
+            // du contrat — libéré comme lors d'une annulation, pour éviter
+            // un double comptage si le remplaçant est ensuite approuvé.
+            InsuranceContract::where('id', $certificate->contract_id)->update([
+                'certificates_count' => DB::raw('GREATEST(0, certificates_count - 1)'),
+                'used_limit'         => DB::raw("GREATEST(0, used_limit - {$certificate->insured_value})"),
+            ]);
+
+            return $new;
+        });
+
+        $this->log($certificate, $request, 'certificate.replaced', ['replacement_id' => $replacement->id], 'WARNING');
+
+        return redirect()->route('admin.certificates.edit', $replacement)
+            ->with('status', "Certificat {$certificate->certificate_number} remplacé — modifiez le nouveau certificat {$replacement->certificate_number}.");
     }
 
     public function cancel(Request $request, Certificate $certificate): RedirectResponse
@@ -607,15 +769,20 @@ class CertificateController extends Controller
     }
 
     // ── Validation ───────────────────────────────────────────
-    private function validateCertificate(Request $request, ?string $ignoreId = null): array
+    // $draft = true (bouton « Stocker le Certificat ») : validation allégée,
+    // seul le contrat est requis, pour permettre d'enregistrer un brouillon
+    // avec des informations manquantes et le compléter plus tard.
+    private function validateCertificate(Request $request, ?string $ignoreId = null, bool $draft = false): array
     {
+        $req = fn (string $strict) => $draft ? 'nullable' : $strict;
+
         return $request->validate([
             'contract_id'           => ['required', 'uuid', 'exists:insurance_contracts,id'],
-            'insured_name'          => ['required', 'string', 'max:200'],
+            'insured_name'          => [$req('required'), 'string', 'max:200'],
             'insured_ref'           => ['nullable', 'string', 'max:200'],
-            'voyage_date'           => ['required', 'date'],
-            'voyage_from'           => ['required', 'string', 'max:150'],
-            'voyage_to'             => ['required', 'string', 'max:150'],
+            'voyage_date'           => [$req('required'), 'date'],
+            'voyage_from'           => [$req('required'), 'string', 'max:150'],
+            'voyage_to'             => [$req('required'), 'string', 'max:150'],
             'voyage_via'            => ['nullable', 'string', 'max:150'],
             'origin_country_code'      => ['nullable', 'string', 'size:2', 'exists:countries,code'],
             'destination_country_code' => ['nullable', 'string', 'size:2', 'exists:countries,code'],
@@ -623,14 +790,14 @@ class CertificateController extends Controller
             'vessel_name'           => ['nullable', 'string', 'max:150'],
             'flight_number'         => ['nullable', 'string', 'max:50'],
             'voyage_mode'           => ['nullable', 'string', 'max:50'],
-            'expedition_items'      => ['required', 'array', 'min:1'],
+            'expedition_items'      => [$req('required'), 'array', $draft ? 'min:0' : 'min:1'],
             'expedition_items.*.marks'          => ['nullable', 'string'],
             'expedition_items.*.package_count'  => ['nullable', 'integer', 'min:0'],
             'expedition_items.*.weight'         => ['nullable', 'string'],
-            'expedition_items.*.nature'         => ['required', 'string'],
+            'expedition_items.*.nature'         => [$req('required'), 'string'],
             'expedition_items.*.packaging'      => ['nullable', 'string'],
-            'expedition_items.*.insured_value'  => ['required', 'numeric', 'min:0'],
-            'insured_value'         => ['required', 'numeric', 'min:0'],
+            'expedition_items.*.insured_value'  => [$req('required'), 'numeric', 'min:0'],
+            'insured_value'         => [$req('required'), 'numeric', 'min:0'],
             'insured_value_letters' => ['nullable', 'string'],
             'guarantee_mode'        => ['nullable', 'string', 'max:100'],
             // Divers et Surprime se précisent au cas par cas sur chaque

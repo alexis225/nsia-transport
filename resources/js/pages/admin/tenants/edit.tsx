@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import type { BreadcrumbItem } from '@/types';
 import { Building2, Check, Camera, Trash2, FileText } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface TenantSettings {
     locale?: string;
@@ -77,6 +77,40 @@ export default function TenantEdit({ tenant }: Props) {
             city:             tenant.settings?.city             ?? '',
         } as TenantSettings,
     });
+
+    // Inertia ne démonte pas ce composant en passant de la fiche d'une
+    // filiale à celle d'une autre (même route/composant `admin/tenants/edit`,
+    // seules les props changent) — sans ce reset explicite, `useState`/
+    // `useForm` gardent leurs valeurs initiales (logo, coordonnées…) de la
+    // PRÉCÉDENTE filiale éditée au lieu de celles de `tenant`.
+    useEffect(() => {
+        setLogoPreview(tenant.logo_path ? `/storage/${tenant.logo_path}` : null);
+        setLogoFile(null);
+        setData({
+            name:         tenant.name,
+            code:         tenant.code,
+            country_code: tenant.country_code,
+            currency_code: tenant.currency_code,
+            locale:       tenant.settings?.locale   ?? 'fr',
+            timezone:     tenant.settings?.timezone ?? 'Africa/Abidjan',
+            is_active:    tenant.is_active,
+            subscription_limit_config: tenant.subscription_limit_config ?? { nn300_limit: 0 },
+            settings: {
+                siege_social:     tenant.settings?.siege_social     ?? '',
+                phone:            tenant.settings?.phone            ?? '',
+                website:          tenant.settings?.website          ?? '',
+                email:            tenant.settings?.email            ?? '',
+                capital:          tenant.settings?.capital          ?? '',
+                rccm:             tenant.settings?.rccm             ?? '',
+                regulator:        tenant.settings?.regulator        ?? '',
+                payment_address:  tenant.settings?.payment_address  ?? '',
+                surveyor_name:    tenant.settings?.surveyor_name    ?? '',
+                surveyor_address: tenant.settings?.surveyor_address ?? '',
+                city:             tenant.settings?.city             ?? '',
+            } as TenantSettings,
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tenant.id]);
 
     function setSetting(key: keyof TenantSettings, value: string) {
         setData('settings', { ...data.settings, [key]: value });

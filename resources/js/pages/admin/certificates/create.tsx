@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Award, Plus, Trash2, Check } from 'lucide-react';
+import { Award, Plus, Trash2, Check, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { AmountInput } from '@/components/amount-input';
 import InputError from '@/components/input-error';
@@ -26,7 +26,7 @@ interface Contract {
     conditioning_types: string[] | null;
 }
 
-const CONDITIONING_LABELS: Record<string, string> = {
+export const CONDITIONING_LABELS: Record<string, string> = {
     CONTAINER:      'Container',
     GROUPAGE:       'Groupage',
     CONVENTIONNEL:  'Conventionnel',
@@ -41,7 +41,7 @@ const CONTRACT_TYPE_LABELS: Record<string, string> = {
     TIERS_CHARGEUR: 'Police tiers chargeur',
 };
 
-const COVERAGE_LABELS: Record<string, string> = {
+export const COVERAGE_LABELS: Record<string, string> = {
     TOUS_RISQUES: 'Tous risques',
     FAP_SAUF:     'FAP sauf',
     FAP_ABSOLUE:  'FAP absolue',
@@ -61,12 +61,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Nouveau certificat' },
 ];
 
-type ExpeditionItem = {
+export type ExpeditionItem = {
     marks: string; package_count: string;
     weight: string; nature: string; packaging: string; insured_value: string;
 };
 
-const emptyItem = (): ExpeditionItem => ({
+export const emptyItem = (): ExpeditionItem => ({
     marks: '', package_count: '',
     weight: '', nature: '', packaging: '', insured_value: '',
 });
@@ -74,9 +74,6 @@ const emptyItem = (): ExpeditionItem => ({
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export default function CertificateCreate({ contracts, selectedContract, defaultTenantId, countries, currencies }: Props) {
-    const [rateStatus, setRateStatus] = useState<'idle' | 'loading' | 'error'>('idle');
-    const [rateMessage, setRateMessage] = useState<string | null>(null);
-
     const { data, setData, post, processing, errors } = useForm({
         contract_id:           selectedContract?.id ?? '',
         insured_name:          selectedContract?.insured_name ?? '',
@@ -101,19 +98,52 @@ export default function CertificateCreate({ contracts, selectedContract, default
         rate_surprime:         '',
     });
 
-    const selectedC = contracts.find(c => c.id === data.contract_id) ?? selectedContract;
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('admin.certificates.store'));
+    };
+
+    const saveDraft = (e: React.MouseEvent) => {
+        e.preventDefault();
+        post(route('admin.certificates.store-draft'));
+    };
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Nouveau certificat — NSIA Transport"/>
+            <CertificateForm
+                data={data} setData={setData} errors={errors} processing={processing}
+                onSubmit={submit} onSaveDraft={saveDraft}
+                contracts={contracts} countries={countries} currencies={currencies}
+                heroTitle="Nouveau certificat d'assurance" heroSub="Saisissez les détails de l'expédition"
+                submitLabel="Créer le certificat"
+            />
+        </AppLayout>
+    );
+}
+
+// ── Formulaire partagé (création + édition) ───────────────────
+export function CertificateForm({ data, setData, errors, processing, onSubmit, onSaveDraft,
+    contracts, countries, currencies, heroTitle, heroSub, submitLabel, isEditing, banner }: any) {
+
+    const [rateStatus, setRateStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+    const [rateMessage, setRateMessage] = useState<string | null>(null);
+
+    const selectedC: Contract | undefined = contracts.find((c: Contract) => c.id === data.contract_id);
 
     // Un contrat "Au voyage" ne couvre qu'un seul déplacement — la création
-    // d'un 2e certificat est aussi bloquée côté serveur (store()).
-    const isVoyageLocked = selectedC?.type === 'VOYAGE' && selectedC.active_certificates_count > 0;
+    // d'un 2e certificat est aussi bloquée côté serveur (store()). Non
+    // pertinent en édition (on modifie le certificat existant, pas un
+    // nouveau).
+    const isVoyageLocked = !isEditing && selectedC?.type === 'VOYAGE' && selectedC.active_certificates_count > 0;
 
     // Recalcule la valeur totale depuis les items
-    const totalValue = data.expedition_items.reduce((sum, item) => {
+    const totalValue = data.expedition_items.reduce((sum: number, item: ExpeditionItem) => {
         return sum + (parseFloat(item.insured_value) || 0);
     }, 0);
 
     // Nombre total de colis — aucune limite, autant de lignes que nécessaire
-    const totalPackages = data.expedition_items.reduce((sum, item) => {
+    const totalPackages = data.expedition_items.reduce((sum: number, item: ExpeditionItem) => {
         return sum + (parseInt(item.package_count, 10) || 0);
     }, 0);
 
@@ -128,12 +158,12 @@ export default function CertificateCreate({ contracts, selectedContract, default
         items[i] = { ...items[i], [field]: value };
         setData('expedition_items', items);
         // Sync valeur totale
-        const total = items.reduce((s, it) => s + (parseFloat(it.insured_value) || 0), 0);
+        const total = items.reduce((s: number, it: ExpeditionItem) => s + (parseFloat(it.insured_value) || 0), 0);
         setData('insured_value', String(total));
     };
 
     const addItem    = () => setData('expedition_items', [...data.expedition_items, emptyItem()]);
-    const removeItem = (i: number) => setData('expedition_items', data.expedition_items.filter((_, idx) => idx !== i));
+    const removeItem = (i: number) => setData('expedition_items', data.expedition_items.filter((_: ExpeditionItem, idx: number) => idx !== i));
 
     // Taux du jour OANDA (devise cotation → devise locale du contrat) —
     // purement indicatif, l'utilisateur peut toujours corriger le champ.
@@ -180,14 +210,8 @@ export default function CertificateCreate({ contracts, selectedContract, default
     const accessoiresPreview = round2(parseFloat(selectedC?.accessories_amount ?? '0'));
     const primeNettePreview  = round2(primeRatePreview.reduce((s, l) => s + l.amount, 0));
 
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(route('admin.certificates.store'));
-    };
-
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouveau certificat — NSIA Transport"/>
+        <>
             <style>{`
                 .cc-wrap{width:100%;max-width:100%;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .cc-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
@@ -229,12 +253,14 @@ export default function CertificateCreate({ contracts, selectedContract, default
                     <div className="cc-hero">
                         <div className="cc-hero-ico"><Award size={22} color="rgba(255,255,255,0.8)"/></div>
                         <div className="cc-hero-info">
-                            <div className="cc-hero-title">Nouveau certificat d'assurance</div>
-                            <div className="cc-hero-sub">Saisissez les détails de l'expédition</div>
+                            <div className="cc-hero-title">{heroTitle}</div>
+                            <div className="cc-hero-sub">{heroSub}</div>
                         </div>
                     </div>
 
-                    <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                    {banner}
+
+                    <form onSubmit={onSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
                         {/* ── Contrat ── */}
                         <div className="cc-card">
@@ -247,7 +273,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                     <Label className="cc-label">Contrat *</Label>
                                     <select className="cc-select" value={data.contract_id}
                                             onChange={e => {
-                                                const c = contracts.find(c => c.id === e.target.value);
+                                                const c = contracts.find((c: Contract) => c.id === e.target.value);
 
                                                 setData('contract_id', e.target.value);
 
@@ -259,7 +285,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                                 }
                                             }}>
                                         <option value="">Sélectionnez un contrat actif</option>
-                                        {contracts.map(c => (
+                                        {contracts.map((c: Contract) => (
                                             <option key={c.id} value={c.id}>
                                                 {c.contract_number} — {c.insured_name} ({c.tenant?.code})
                                             </option>
@@ -397,7 +423,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                         <select className="cc-select" value={data.origin_country_code ?? ''}
                                                 onChange={e => setData('origin_country_code', e.target.value)}>
                                             <option value="">—</option>
-                                            {countries?.map(c => <option key={c.code} value={c.code}>{c.name_fr}</option>)}
+                                            {countries?.map((c: Country) => <option key={c.code} value={c.code}>{c.name_fr}</option>)}
                                         </select>
                                         <InputError message={errors.origin_country_code}/>
                                     </div>
@@ -406,7 +432,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                         <select className="cc-select" value={data.destination_country_code ?? ''}
                                                 onChange={e => setData('destination_country_code', e.target.value)}>
                                             <option value="">—</option>
-                                            {countries?.map(c => <option key={c.code} value={c.code}>{c.name_fr}</option>)}
+                                            {countries?.map((c: Country) => <option key={c.code} value={c.code}>{c.name_fr}</option>)}
                                         </select>
                                         <InputError message={errors.destination_country_code}/>
                                         <p style={{ fontSize:11, color:'#94a3b8' }}>Détermine le taux de taxe appliqué automatiquement.</p>
@@ -425,7 +451,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                             <select className="cc-select" value={data.voyage_mode ?? ''}
                                                     onChange={e => setData('voyage_mode', e.target.value)}>
                                                 <option value="">—</option>
-                                                {(selectedC?.conditioning_types?.length ? selectedC.conditioning_types : Object.keys(CONDITIONING_LABELS)).map(code => (
+                                                {(selectedC?.conditioning_types?.length ? selectedC.conditioning_types : Object.keys(CONDITIONING_LABELS)).map((code: string) => (
                                                     <option key={code} value={code}>{CONDITIONING_LABELS[code] ?? code}</option>
                                                 ))}
                                             </select>
@@ -469,7 +495,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {data.expedition_items.map((item, i) => (
+                                            {data.expedition_items.map((item: ExpeditionItem, i: number) => (
                                                 <tr key={i}>
                                                     <td><input className="exp-input" value={item.marks} onChange={e => updateItem(i, 'marks', e.target.value)} placeholder="NSIA-001"/></td>
                                                     <td style={{ width:60 }}><input className="exp-input" type="number" min={0} value={item.package_count} onChange={e => updateItem(i, 'package_count', e.target.value)} placeholder="10"/></td>
@@ -542,7 +568,7 @@ export default function CertificateCreate({ contracts, selectedContract, default
                                                     if (currency) void fetchExchangeRate(currency);
                                                 }}>
                                             <option value="">Aucune (montants en devise du contrat)</option>
-                                            {currencies?.map(c => (
+                                            {currencies?.map((c: Currency) => (
                                                 <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
                                             ))}
                                         </select>
@@ -621,13 +647,24 @@ export default function CertificateCreate({ contracts, selectedContract, default
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing || isVoyageLocked}
                                     className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><Award size={14}/> Créer le certificat</>}
+                                {processing ? 'Enregistrement…' : <><Check size={14}/> {submitLabel}</>}
                             </Button>
+                            {onSaveDraft && (
+                                <Button type="button" variant="outline" disabled={processing || isVoyageLocked} onClick={onSaveDraft}
+                                        className="h-10 px-5">
+                                    <Save size={14}/> Stocker le Certificat
+                                </Button>
+                            )}
                             <Button type="button" variant="outline" onClick={() => window.history.back()}>Annuler</Button>
                         </div>
+                        {onSaveDraft && (
+                            <p style={{ fontSize:11, color:'#94a3b8', marginTop:-8 }}>
+                                « Stocker le Certificat » enregistre un brouillon même incomplet (statut Stocké) — vous pourrez le retrouver et terminer sa saisie plus tard.
+                            </p>
+                        )}
                     </form>
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }

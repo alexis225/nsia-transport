@@ -34,10 +34,12 @@ interface Props {
 }
 
 const STATUS: Record<string, { bg: string; color: string; label: string }> = {
-    ISSUED:    { bg: '#f0fdf4', color: '#15803d', label: 'Émis' },
+    ISSUED:    { bg: '#f0fdf4', color: '#15803d', label: 'Approuvé' },
     SUBMITTED: { bg: '#eff6ff', color: '#1d4ed8', label: 'Soumis' },
-    DRAFT:     { bg: '#f8fafc', color: '#64748b', label: 'Brouillon' },
-    CANCELLED: { bg: '#fef2f2', color: '#dc2626', label: 'Annulé' },
+    DRAFT:     { bg: '#f8fafc', color: '#64748b', label: 'Stocké' },
+    REJECTED:  { bg: '#fef2f2', color: '#dc2626', label: 'Rejeté' },
+    REPLACED:  { bg: '#f1f5f9', color: '#475569', label: 'Remplacé' },
+    CANCELLED: { bg: '#fef2f2', color: '#991b1b', label: 'Annulé' },
 };
 
 // ── Sparkline SVG ─────────────────────────────────────────────

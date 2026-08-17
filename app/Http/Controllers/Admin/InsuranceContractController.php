@@ -370,16 +370,27 @@ class InsuranceContractController extends Controller
 
         $request->validate(['notes' => ['nullable', 'string', 'max:500']]);
 
+        // Un contrat qui requérait une validation DTAG (plein > plafond
+        // NN300) voit, dès son approbation, son plafond effectif relevé
+        // automatiquement jusqu'au plafond Traité — toutes les valeurs de
+        // certificats ultérieurs comprises entre les deux plafonds sont
+        // ainsi autorisées sans étape supplémentaire (cf.
+        // InsuranceContract::effectiveCeiling()).
+        $unlocksNn300 = $contract->requires_approval;
+
         $contract->update([
-            'status'           => InsuranceContract::STATUS_ACTIVE,
-            'approved_by'      => $request->user()->id,
-            'approved_at'      => now(),
-            'validation_notes' => $request->notes,
+            'status'            => InsuranceContract::STATUS_ACTIVE,
+            'approved_by'       => $request->user()->id,
+            'approved_at'       => now(),
+            'validation_notes'  => $request->notes,
+            ...($unlocksNn300 ? ['nn300_unlocked_at' => now()] : []),
         ]);
 
-        $this->log($contract, $request, 'contract.approved', ['notes' => $request->notes]);
+        $this->log($contract, $request, 'contract.approved', ['notes' => $request->notes, 'nn300_unlocked' => $unlocksNn300]);
 
-        return back()->with('status', "Contrat {$contract->contract_number} approuvé et activé.");
+        return back()->with('status', $unlocksNn300
+            ? "Contrat {$contract->contract_number} approuvé et activé — certificats désormais autorisés jusqu'au plafond Traité."
+            : "Contrat {$contract->contract_number} approuvé et activé.");
     }
 
     // ── Rejeter ──────────────────────────────────────────────

@@ -38,7 +38,7 @@ class InsuranceContract extends Model
         'incoterm_code', 'transport_mode_id', 'conditioning_types',
         'covered_countries',
         'effective_date', 'expiry_date', 'notice_period_days',
-        'requires_approval', 'approved_by', 'approved_at',
+        'requires_approval', 'approved_by', 'approved_at', 'nn300_unlocked_at',
         'validation_notes', 'suspended_at', 'suspension_reason',
         'status', 'notes',
         'certificates_count', 'certificates_limit',
@@ -49,6 +49,7 @@ class InsuranceContract extends Model
         'effective_date'     => 'date',
         'expiry_date'        => 'date',
         'approved_at'        => 'datetime',
+        'nn300_unlocked_at'  => 'datetime',
         'suspended_at'       => 'datetime',
         'requires_approval'  => 'boolean',
         'subscription_limit' => 'decimal:2',
@@ -184,10 +185,32 @@ class InsuranceContract extends Model
 
     public function canIssue(): bool
     {
+        $ceiling = $this->effectiveCeiling();
+
         return $this->isActive()
             && ! $this->isExpired()
             && ($this->certificates_limit === null || $this->certificates_count < $this->certificates_limit)
-            && ($this->subscription_limit === null || (float) $this->used_limit < (float) $this->subscription_limit);
+            && ($ceiling === null || (float) $this->used_limit < $ceiling);
+    }
+
+    // Une fois qu'un contrat ayant dépassé le plafond NN300 est approuvé
+    // par le Groupe (DTAG, cf. InsuranceContractController::approve()),
+    // toutes les valeurs de certificats ultérieurs situées entre le
+    // plafond NN300 et le plafond Traité sont automatiquement autorisées —
+    // le plafond effectivement opposable au contrat devient le plafond
+    // Traité au lieu du plafond NN300.
+    public function isNn300Unlocked(): bool
+    {
+        return $this->nn300_unlocked_at !== null;
+    }
+
+    public function effectiveCeiling(): ?float
+    {
+        if ($this->isNn300Unlocked() && $this->treaty_limit !== null) {
+            return (float) $this->treaty_limit;
+        }
+
+        return $this->subscription_limit !== null ? (float) $this->subscription_limit : null;
     }
 
     // Garde-fou minimal pour l'émission de certificats : ne vérifie que le
@@ -200,11 +223,13 @@ class InsuranceContract extends Model
     }
 
     // Le certificat en cours de soumission ferait-il dépasser le plafond
-    // NN300 cumulé (subscription_limit) une fois sa valeur ajoutée ?
+    // effectivement opposable au contrat (NN300, ou Traité si le contrat a
+    // été débloqué — cf. effectiveCeiling()) une fois sa valeur ajoutée ?
     public function exceedsSubscriptionLimit(float $additionalValue = 0): bool
     {
-        if ($this->subscription_limit === null) return false;
-        return ((float) $this->used_limit + $additionalValue) > (float) $this->subscription_limit;
+        $ceiling = $this->effectiveCeiling();
+        if ($ceiling === null) return false;
+        return ((float) $this->used_limit + $additionalValue) > $ceiling;
     }
 
     public function reachedCertificatesLimit(): bool
@@ -235,14 +260,16 @@ class InsuranceContract extends Model
 
     public function remainingLimit(): ?float
     {
-        if ($this->subscription_limit === null) return null;
-        return max(0, (float) $this->subscription_limit - (float) $this->used_limit);
+        $ceiling = $this->effectiveCeiling();
+        if ($ceiling === null) return null;
+        return max(0, $ceiling - (float) $this->used_limit);
     }
 
     public function usagePercent(): float
     {
-        if (! $this->subscription_limit || (float) $this->subscription_limit === 0.0) return 0;
-        return min(100, round(((float) $this->used_limit / (float) $this->subscription_limit) * 100, 1));
+        $ceiling = $this->effectiveCeiling();
+        if (! $ceiling) return 0;
+        return min(100, round(((float) $this->used_limit / $ceiling) * 100, 1));
     }
 
     // Le "plein" est le plafond assurable pour UN certificat (distinct du

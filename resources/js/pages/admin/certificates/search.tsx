@@ -37,10 +37,12 @@ interface Props {
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-    ISSUED:    { label: 'Émis',       color: '#15803d', bg: '#f0fdf4' },
-    SUBMITTED: { label: 'En attente', color: '#d97706', bg: '#fef3c7' },
-    DRAFT:     { label: 'Brouillon',  color: '#64748b', bg: '#f8fafc' },
-    CANCELLED: { label: 'Annulé',     color: '#dc2626', bg: '#fef2f2' },
+    ISSUED:    { label: 'Approuvé', color: '#15803d', bg: '#f0fdf4' },
+    SUBMITTED: { label: 'Soumis',   color: '#d97706', bg: '#fef3c7' },
+    DRAFT:     { label: 'Stocké',   color: '#64748b', bg: '#f8fafc' },
+    REJECTED:  { label: 'Rejeté',   color: '#dc2626', bg: '#fef2f2' },
+    REPLACED:  { label: 'Remplacé', color: '#475569', bg: '#f1f5f9' },
+    CANCELLED: { label: 'Annulé',   color: '#991b1b', bg: '#fef2f2' },
 };
 
 const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -147,9 +149,11 @@ export default function CertificateSearch({
                                 <label className="field-label">Statut</label>
                                 <select style={selStyle} value={f.status ?? ''} onChange={e => set('status', e.target.value)}>
                                     <option value="">Tous</option>
-                                    <option value="ISSUED">Émis</option>
-                                    <option value="SUBMITTED">En attente</option>
-                                    <option value="DRAFT">Brouillon</option>
+                                    <option value="ISSUED">Approuvé</option>
+                                    <option value="SUBMITTED">Soumis</option>
+                                    <option value="DRAFT">Stocké</option>
+                                    <option value="REJECTED">Rejeté</option>
+                                    <option value="REPLACED">Remplacé</option>
                                     <option value="CANCELLED">Annulé</option>
                                 </select>
                             </div>

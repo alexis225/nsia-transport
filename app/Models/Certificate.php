@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Certificate Model — US-016/017/018
  * ============================================================
  * Table : certificates
- * Statuts : DRAFT | SUBMITTED | ISSUED | CANCELLED
+ * Statuts : DRAFT (Stocké) | SUBMITTED (Soumis) | REJECTED (Rejeté) |
+ *           ISSUED (Approuvé) | REPLACED (Remplacé) | CANCELLED (Annulé)
  * ============================================================
  */
 class Certificate extends Model
@@ -34,6 +35,7 @@ class Certificate extends Model
         'exchange_currency', 'exchange_rate',
         'status', 'submitted_at', 'issued_at', 'cancelled_at',
         'cancellation_reason', 'issued_by', 'submitted_by', 'validation_notes',
+        'rejection_reason', 'rejected_at', 'replaced_at', 'replaced_by_certificate_id',
         'pdf_path', 'pdf_generated_at', 'created_by',
         // Duplicata — US-032
         'parent_id', 'document_type', 'duplicate_count',
@@ -45,6 +47,8 @@ class Certificate extends Model
         'submitted_at'      => 'datetime',
         'issued_at'         => 'datetime',
         'cancelled_at'      => 'datetime',
+        'rejected_at'       => 'datetime',
+        'replaced_at'       => 'datetime',
         'pdf_generated_at'  => 'datetime',
         'expedition_items'  => 'array',
         'prime_breakdown'   => 'array',
@@ -58,10 +62,12 @@ class Certificate extends Model
     ];
 
     // ── Constantes ────────────────────────────────────────────
-    const STATUS_DRAFT     = 'DRAFT';
-    const STATUS_SUBMITTED = 'SUBMITTED';
-    const STATUS_ISSUED    = 'ISSUED';
-    const STATUS_CANCELLED = 'CANCELLED';
+    const STATUS_DRAFT     = 'DRAFT';     // Stocké
+    const STATUS_SUBMITTED = 'SUBMITTED'; // Soumis
+    const STATUS_REJECTED  = 'REJECTED';  // Rejeté
+    const STATUS_ISSUED    = 'ISSUED';    // Approuvé
+    const STATUS_REPLACED  = 'REPLACED';  // Remplacé
+    const STATUS_CANCELLED = 'CANCELLED'; // Annulé
 
     const TRANSPORT_SEA       = 'SEA';
     const TRANSPORT_AIR       = 'AIR';
@@ -128,6 +134,20 @@ class Certificate extends Model
         return $this->belongsTo(User::class, 'reissued_by');
     }
 
+    // ── Relations remplacement ─────────────────────────────────
+    // Le NOUVEAU certificat qui a remplacé celui-ci (sur CE certificat, une
+    // fois REPLACED).
+    public function replacement(): BelongsTo
+    {
+        return $this->belongsTo(Certificate::class, 'replaced_by_certificate_id');
+    }
+
+    // L'ANCIEN certificat que celui-ci remplace (sur le NOUVEAU certificat).
+    public function replaces(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Certificate::class, 'replaced_by_certificate_id');
+    }
+
     // ── Scopes ───────────────────────────────────────────────
     public function scopeIssued($query)    { return $query->where('status', self::STATUS_ISSUED); }
     public function scopePending($query)   { return $query->where('status', self::STATUS_SUBMITTED); }
@@ -136,7 +156,9 @@ class Certificate extends Model
     // ── Helpers ───────────────────────────────────────────────
     public function isDraft(): bool     { return $this->status === self::STATUS_DRAFT; }
     public function isSubmitted(): bool { return $this->status === self::STATUS_SUBMITTED; }
+    public function isRejected(): bool  { return $this->status === self::STATUS_REJECTED; }
     public function isIssued(): bool    { return $this->status === self::STATUS_ISSUED; }
+    public function isReplaced(): bool  { return $this->status === self::STATUS_REPLACED; }
     public function isCancelled(): bool { return $this->status === self::STATUS_CANCELLED; }
     public function hasPdf(): bool      { return ! empty($this->pdf_path); }
     public function isDuplicate(): bool { return $this->document_type === self::DOC_TYPE_DUPLICATA; }

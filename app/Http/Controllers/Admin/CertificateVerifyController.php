@@ -31,6 +31,7 @@ class CertificateVerifyController extends Controller
                 'contract:id,contract_number',
                 'issuedBy:id,first_name,last_name',
                 'template:id,company_name,logo_path,company_address',
+                'replacement:id,certificate_number',
             ])
             ->first();
 
@@ -68,13 +69,18 @@ class CertificateVerifyController extends Controller
                 ? asset('storage/' . $certificate->template->logo_path)
                 : null,
             'verification_count' => $certificate->verification_count,
+            'replaced_by'         => $certificate->replacement?->certificate_number,
         ];
 
-        $isValid = $certificate->status === Certificate::STATUS_ISSUED
-            && $certificate->cancelled_at === null;
+        $derivedStatus = match (true) {
+            $certificate->status === Certificate::STATUS_ISSUED    => 'valid',
+            $certificate->status === Certificate::STATUS_CANCELLED => 'cancelled',
+            $certificate->status === Certificate::STATUS_REPLACED  => 'replaced',
+            default => 'invalid',
+        };
 
         return Inertia::render('public/verify', [
-            'status'      => $isValid ? 'valid' : ($certificate->status === 'CANCELLED' ? 'cancelled' : 'invalid'),
+            'status'      => $derivedStatus,
             'certificate' => $publicData,
             'verifiedAt'  => now()->format('d/m/Y à H:i'),
         ]);

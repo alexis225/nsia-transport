@@ -7,7 +7,7 @@ import {
     ArrowLeft, Edit2, Award, Send, CheckCircle,
     XCircle, StopCircle, X, FileText,
     Ship, Plane, Truck, MapPin, DollarSign,
-    AlertCircle, Printer, QrCode, ExternalLink, Download, Copy,
+    AlertCircle, Printer, QrCode, ExternalLink, Download, Copy, Repeat,
 } from 'lucide-react';
 import { PRINT_TEMPLATES, getTemplateForTenantCode } from './print-templates/registry';
 
@@ -32,13 +32,17 @@ interface Certificate {
     destination_country: { code: string; name_fr: string } | null;
     exchange_currency: string | null; exchange_rate: string | null;
     validation_notes: string | null; cancellation_reason: string | null;
+    rejection_reason: string | null;
     submitted_at: string | null; issued_at: string | null; cancelled_at: string | null;
+    rejected_at: string | null; replaced_at: string | null;
     pdf_path: string | null; qr_token: string | null; created_at: string;
     document_type: string; parent_id: string | null; duplicate_count: number;
     reissued_at: string | null; reissue_reason: string | null;
     parent: { certificate_number: string } | null;
     duplicates: { id: string; certificate_number: string; reissued_at: string | null }[];
     reissued_by: { first_name: string; last_name: string } | null;
+    replacement: { id: string; certificate_number: string } | null;
+    replaces:    { id: string; certificate_number: string; replaced_at: string | null } | null;
     tenant: { id: string; name: string; code: string } | null;
     contract: { id: string; contract_number: string; insured_name: string } | null;
     template: { name: string; is_bilingual: boolean } | null;
@@ -51,11 +55,13 @@ interface Props {
     can: { edit: boolean; validate: boolean; cancel: boolean };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
-    DRAFT:     { bg:'#f8fafc', color:'#64748b', label:'Brouillon',  dot:'#94a3b8' },
-    SUBMITTED: { bg:'#fffbeb', color:'#92400e', label:'Soumis',     dot:'#f59e0b' },
-    ISSUED:    { bg:'#f0fdf4', color:'#15803d', label:'Émis',       dot:'#22c55e' },
-    CANCELLED: { bg:'#fef2f2', color:'#dc2626', label:'Annulé',     dot:'#ef4444' },
+export const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
+    DRAFT:     { bg:'#f8fafc', color:'#64748b', label:'Stocké',   dot:'#94a3b8' },
+    SUBMITTED: { bg:'#fffbeb', color:'#92400e', label:'Soumis',   dot:'#f59e0b' },
+    REJECTED:  { bg:'#fef2f2', color:'#dc2626', label:'Rejeté',   dot:'#ef4444' },
+    ISSUED:    { bg:'#f0fdf4', color:'#15803d', label:'Approuvé', dot:'#22c55e' },
+    REPLACED:  { bg:'#f1f5f9', color:'#475569', label:'Remplacé', dot:'#94a3b8' },
+    CANCELLED: { bg:'#fef2f2', color:'#991b1b', label:'Annulé',   dot:'#dc2626' },
 };
 
 const TRANSPORT_LABELS: Record<string, string> = {
@@ -295,10 +301,17 @@ export default function CertificateShow({ certificate, can }: Props) {
                                                 <Copy size={13}/> Duplicata
                                             </Button>
                                         )}
+                                        {can.edit && (
+                                            <Button variant="outline"
+                                                    onClick={() => setModal('replace')}
+                                                    className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
+                                                <Repeat size={13}/> Remplacer
+                                            </Button>
+                                        )}
                                     </>
                                 )}
                             </div>
-                            {can.edit && certificate.status === 'DRAFT' && (
+                            {can.edit && ['DRAFT', 'REJECTED'].includes(certificate.status) && (
                                 <Link href={route('admin.certificates.edit', { certificate: certificate.id })}>
                                     <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
                                         <Edit2 size={13}/> Modifier
@@ -326,10 +339,15 @@ export default function CertificateShow({ certificate, can }: Props) {
                                     <Send size={12}/> Soumettre pour émission
                                 </button>
                             )}
+                            {certificate.status === 'REJECTED' && can.edit && (
+                                <Link href={route('admin.certificates.edit', { certificate: certificate.id })} className="btn-wf btn-submit" style={{ textDecoration:'none' }}>
+                                    <Edit2 size={12}/> Corriger et resoumettre
+                                </Link>
+                            )}
                             {certificate.status === 'SUBMITTED' && can.validate && (
                                 <>
                                     <button className="btn-wf btn-issue" onClick={() => setModal('issue')}>
-                                        <CheckCircle size={12}/> Émettre le certificat
+                                        <CheckCircle size={12}/> Approuver le certificat
                                     </button>
                                     <button className="btn-wf btn-reject" onClick={() => setModal('reject')}>
                                         <XCircle size={12}/> Rejeter
@@ -345,13 +363,40 @@ export default function CertificateShow({ certificate, can }: Props) {
                     </div>
 
                     {/* Notes */}
-                    {certificate.validation_notes && (
-                        <div className={certificate.validation_notes.startsWith('REJETÉ') ? 'notes-ko' : 'notes-ok'}>
+                    {certificate.status === 'REJECTED' && certificate.rejection_reason && (
+                        <div className="notes-ko">
                             <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
                                 <AlertCircle size={13}/>
-                                <span style={{ fontWeight:600, fontSize:11 }}>
-                                    {certificate.validation_notes.startsWith('REJETÉ') ? 'Motif de rejet' : 'Notes'}
-                                </span>
+                                <span style={{ fontWeight:600, fontSize:11 }}>Motif de rejet</span>
+                                {certificate.rejected_at && <span style={{ fontSize:10, color:'#94a3b8' }}>· {fmtDt(certificate.rejected_at)}</span>}
+                            </div>
+                            {certificate.rejection_reason}
+                        </div>
+                    )}
+                    {certificate.status === 'REPLACED' && certificate.replacement && (
+                        <div style={{ background:'#f1f5f9', border:'1px solid #e2e8f0', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#475569', display:'flex', alignItems:'center', gap:6 }}>
+                            <Repeat size={13}/>
+                            Ce certificat a été remplacé par le certificat{' '}
+                            <a href={route('admin.certificates.show', { certificate: certificate.replacement.id })} style={{ fontWeight:600, color:'#1d4ed8', textDecoration:'none' }}>
+                                N° {certificate.replacement.certificate_number}
+                            </a>
+                            {certificate.replaced_at && <span style={{ fontSize:10, color:'#94a3b8' }}>· {fmtDt(certificate.replaced_at)}</span>}
+                        </div>
+                    )}
+                    {certificate.replaces && (
+                        <div style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#1d4ed8', display:'flex', alignItems:'center', gap:6 }}>
+                            <Repeat size={13}/>
+                            Ce certificat remplace le certificat{' '}
+                            <a href={route('admin.certificates.show', { certificate: certificate.replaces.id })} style={{ fontWeight:600, textDecoration:'none' }}>
+                                N° {certificate.replaces.certificate_number}
+                            </a>
+                        </div>
+                    )}
+                    {certificate.validation_notes && (
+                        <div className="notes-ok">
+                            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+                                <AlertCircle size={13}/>
+                                <span style={{ fontWeight:600, fontSize:11 }}>Notes</span>
                             </div>
                             {certificate.validation_notes}
                         </div>
@@ -625,9 +670,37 @@ export default function CertificateShow({ certificate, can }: Props) {
             </div>
 
             {/* Modals workflow */}
-            {modal === 'issue'  && <ActionModal title="Émettre le certificat" icon={CheckCircle} color="#15803d" actionLabel="Émettre"   requireReason={false} onConfirm={(n: string) => action('admin.certificates.issue', { notes: n })} onClose={() => setModal(null)}/>}
+            {modal === 'issue'  && <ActionModal title="Approuver le certificat" icon={CheckCircle} color="#15803d" actionLabel="Approuver" requireReason={false} onConfirm={(n: string) => action('admin.certificates.issue', { notes: n })} onClose={() => setModal(null)}/>}
             {modal === 'reject' && <ActionModal title="Rejeter le certificat"  icon={XCircle}    color="#dc2626" actionLabel="Rejeter"   onConfirm={(r: string) => action('admin.certificates.reject',  { reason: r })} onClose={() => setModal(null)}/>}
             {modal === 'cancel' && <ActionModal title="Annuler le certificat"  icon={StopCircle}  color="#dc2626" actionLabel="Annuler"   onConfirm={(r: string) => action('admin.certificates.cancel',  { reason: r })} onClose={() => setModal(null)}/>}
+            {modal === 'replace' && (
+                <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+                    <div style={{ background:'#fff', borderRadius:14, width:'100%', maxWidth:440, border:'1.5px solid #e2e8f0', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
+                        <div style={{ padding:'16px 20px', borderBottom:'1px solid #f1f5f9', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                                <div style={{ width:34, height:34, borderRadius:8, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                    <Repeat size={16} color="#3b82f6"/>
+                                </div>
+                                <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Remplacer le certificat</p>
+                            </div>
+                            <button onClick={() => setModal(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
+                        </div>
+                        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
+                            <div style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#1d4ed8' }}>
+                                Un nouveau certificat (Stocké) sera créé à partir des données de <strong>{certificate.certificate_number}</strong> avec un nouveau numéro, prêt à être modifié.
+                                Ce certificat passera au statut <strong>Remplacé</strong> avec une référence vers le nouveau.
+                            </div>
+                            <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                                <Button variant="outline" onClick={() => setModal(null)}>Annuler</Button>
+                                <Button onClick={() => router.post(route('admin.certificates.replace', { certificate: certificate.id }))}
+                                        style={{ background:'#1e3a8a', color:'#fff', border:'none' }}>
+                                    Créer le remplaçant
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         {/* Modal Duplicata — US-032 */}
             {modal === 'duplicate' && (
                 <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>

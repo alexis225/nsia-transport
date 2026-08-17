@@ -56,7 +56,7 @@ class ApprovalWorkflowController extends Controller
             ->get();
 
         // Chargement en masse des certificats/contrats concernés (évite le N+1)
-        $certificates = Certificate::with('contract:id,contract_number')
+        $certificates = Certificate::with('contract:id,contract_number,plein,treaty_limit,escalade_threshold_pct')
             ->whereIn('id', $requests->pluck('entity_id'))
             ->get()
             ->keyBy('id');
@@ -370,8 +370,10 @@ class ApprovalWorkflowController extends Controller
                     : null,
             ])->toArray(),
             'contract'     => $contract ? [
-                'id'              => $contract->id,
-                'contract_number' => $contract->contract_number,
+                'id'                   => $contract->id,
+                'contract_number'      => $contract->contract_number,
+                'declared_max_value'   => $contract->plein !== null ? (float) $contract->plein : null,
+                'treaty_limit'         => $contract->treaty_limit !== null ? (float) $contract->treaty_limit : null,
             ] : null,
             'certificate'  => $certificate ? [
                 'id'                 => $certificate->id,

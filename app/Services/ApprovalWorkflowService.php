@@ -172,8 +172,9 @@ class ApprovalWorkflowService
 
             $certificate = $request->certificate();
             $certificate->update([
-                'status'           => Certificate::STATUS_DRAFT,
-                'validation_notes' => "Escalade rejetée (étape {$request->current_step}) : {$reason}",
+                'status'           => Certificate::STATUS_REJECTED,
+                'rejected_at'      => now(),
+                'rejection_reason' => "Escalade NN300 rejetée (étape {$request->current_step}) : {$reason}",
             ]);
 
             $this->notifyCreator($request, 'rejected', $reason);
@@ -238,8 +239,9 @@ class ApprovalWorkflowService
                     $certificate = $request->certificate();
                     if ($certificate) {
                         $certificate->update([
-                            'status'           => Certificate::STATUS_DRAFT,
-                            'validation_notes' => 'Escalade NN300 expirée — aucun approbateur n\'a répondu.',
+                            'status'           => Certificate::STATUS_REJECTED,
+                            'rejected_at'      => now(),
+                            'rejection_reason' => 'Escalade NN300 expirée — aucun approbateur n\'a répondu dans le délai imparti.',
                         ]);
                         $this->notifyCreator($request, 'expired', null);
                     }
@@ -260,7 +262,7 @@ class ApprovalWorkflowService
             'status'           => Certificate::STATUS_ISSUED,
             'issued_at'        => now(),
             'issued_by'        => $approver->id,
-            'validation_notes' => 'Émis automatiquement suite à l\'approbation de l\'escalade NN300.',
+            'validation_notes' => 'Approuvé automatiquement suite à la validation de l\'escalade NN300.',
         ]);
 
         app(\App\Services\CertificatePdfService::class)->generate($certificate);

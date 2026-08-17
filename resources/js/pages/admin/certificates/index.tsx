@@ -49,15 +49,17 @@ interface Props {
     tenants:   Tenant[];
     brokers:   Broker[];
     contracts: Contract[];
-    stats:     { total: number; issued: number; submitted: number; draft: number; cancelled: number; };
+    stats:     { total: number; issued: number; submitted: number; draft: number; rejected: number; replaced: number; cancelled: number; };
     can:       { create: boolean; validate: boolean; cancel: boolean; export: boolean; };
 }
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
-    DRAFT:     { bg:'#f8fafc', color:'#64748b', label:'Brouillon',  dot:'#94a3b8' },
-    SUBMITTED: { bg:'#fffbeb', color:'#92400e', label:'Soumis',     dot:'#f59e0b' },
-    ISSUED:    { bg:'#f0fdf4', color:'#15803d', label:'Émis',       dot:'#22c55e' },
-    CANCELLED: { bg:'#fef2f2', color:'#dc2626', label:'Annulé',     dot:'#ef4444' },
+    DRAFT:     { bg:'#f8fafc', color:'#64748b', label:'Stocké',   dot:'#94a3b8' },
+    SUBMITTED: { bg:'#fffbeb', color:'#92400e', label:'Soumis',   dot:'#f59e0b' },
+    REJECTED:  { bg:'#fef2f2', color:'#dc2626', label:'Rejeté',   dot:'#ef4444' },
+    ISSUED:    { bg:'#f0fdf4', color:'#15803d', label:'Approuvé', dot:'#22c55e' },
+    REPLACED:  { bg:'#f1f5f9', color:'#475569', label:'Remplacé', dot:'#94a3b8' },
+    CANCELLED: { bg:'#fef2f2', color:'#991b1b', label:'Annulé',   dot:'#dc2626' },
 };
 
 const TRANSPORT_LABELS: Record<string, string> = {
@@ -193,18 +195,22 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'ISSUED' })}>
                             <div className="stat-value" style={{ color:'#15803d' }}>{stats.issued}</div>
-                            <div className="stat-label">Émis</div>
+                            <div className="stat-label">Approuvés</div>
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'SUBMITTED' })}>
                             <div className="stat-value" style={{ color:'#92400e' }}>{stats.submitted}</div>
-                            <div className="stat-label">En attente</div>
+                            <div className="stat-label">Soumis</div>
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'DRAFT' })}>
                             <div className="stat-value" style={{ color:'#64748b' }}>{stats.draft}</div>
-                            <div className="stat-label">Brouillons</div>
+                            <div className="stat-label">Stockés</div>
+                        </div>
+                        <div className="stat-card clickable" onClick={() => applyFilter({ status:'REJECTED' })}>
+                            <div className="stat-value" style={{ color:'#dc2626' }}>{stats.rejected}</div>
+                            <div className="stat-label">Rejetés</div>
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'CANCELLED' })}>
-                            <div className="stat-value" style={{ color:'#dc2626' }}>{stats.cancelled}</div>
+                            <div className="stat-value" style={{ color:'#991b1b' }}>{stats.cancelled}</div>
                             <div className="stat-label">Annulés</div>
                         </div>
                     </div>
@@ -441,7 +447,7 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                                                   className="btn-act btn-view">
                                                                 <Eye size={12}/> Voir
                                                             </Link>
-                                                            {can.create && cert.status === 'DRAFT' && (
+                                                            {can.create && ['DRAFT', 'REJECTED'].includes(cert.status) && (
                                                                 <button className="btn-act btn-del"
                                                                         onClick={() => handleDelete(cert)}>
                                                                     <Trash2 size={12}/> Suppr.

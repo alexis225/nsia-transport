@@ -13,7 +13,7 @@ interface Workflow {
     hours_left: number; is_overdue: boolean;
     triggered_at: string; expires_at: string;
     certificate: { id: string; certificate_number: string; insured_name: string; insured_value: number; currency_code: string } | null;
-    contract: { id: string; contract_number: string } | null;
+    contract: { id: string; contract_number: string; declared_max_value: number | null; treaty_limit: number | null } | null;
     tenant: { name: string; code: string } | null;
     triggered_by: { name: string } | null;
 }
@@ -103,8 +103,9 @@ export default function ApprovalsIndex({ workflows, isSA }: Props) {
                                     <tr>
                                         <th>Certificat</th>
                                         <th>Assuré</th>
-                                        <th>Valeur</th>
+                                        <th>Valeur maximum déclarée ou importée</th>
                                         <th>Seuil dépassé</th>
+                                        <th>Seuil Plafond Traité</th>
                                         {isSA && <th>Filiale</th>}
                                         <th>Niveau</th>
                                         <th>Délai restant</th>
@@ -133,6 +134,11 @@ export default function ApprovalsIndex({ workflows, isSA }: Props) {
                                                     <div style={{ fontFamily:'monospace', fontSize:12, fontWeight:600, color:'#dc2626' }}>
                                                         {fmt(cert?.insured_value ?? 0, cert?.currency_code ?? 'XOF')}
                                                     </div>
+                                                    {w.contract?.declared_max_value != null && (
+                                                        <div style={{ fontSize:10, color:'#94a3b8' }}>
+                                                            Plein du contrat : {fmt(w.contract.declared_max_value, cert?.currency_code ?? 'XOF')}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td>
                                                     <div style={{ fontSize:11, color:'#dc2626', fontWeight:600 }}>
@@ -142,6 +148,20 @@ export default function ApprovalsIndex({ workflows, isSA }: Props) {
                                                         <div style={{ fontSize:10, color:'#94a3b8' }}>
                                                             Seuil : {fmt(w.threshold_amount, cert?.currency_code ?? 'XOF')}
                                                         </div>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {w.contract?.treaty_limit != null ? (
+                                                        <>
+                                                            <div style={{ fontSize:11, fontWeight:600, color: (cert?.insured_value ?? 0) > w.contract.treaty_limit ? '#dc2626' : '#334155' }}>
+                                                                {fmt(w.contract.treaty_limit, cert?.currency_code ?? 'XOF')}
+                                                            </div>
+                                                            {(cert?.insured_value ?? 0) > w.contract.treaty_limit && (
+                                                                <div style={{ fontSize:10, color:'#dc2626' }}>— dépassé</div>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <span style={{ fontSize:11, color:'#94a3b8' }}>—</span>
                                                     )}
                                                 </td>
                                                 {isSA && (

@@ -52,10 +52,12 @@ interface Props {
 
 // ── Constants ────────────────────────────────────────────────
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-    ISSUED:    { label: 'Émis',       color: '#15803d', bg: '#f0fdf4' },
-    SUBMITTED: { label: 'En attente', color: '#d97706', bg: '#fef3c7' },
-    DRAFT:     { label: 'Brouillon',  color: '#64748b', bg: '#f8fafc' },
-    CANCELLED: { label: 'Annulé',     color: '#dc2626', bg: '#fef2f2' },
+    ISSUED:    { label: 'Approuvé', color: '#15803d', bg: '#f0fdf4' },
+    SUBMITTED: { label: 'Soumis',   color: '#d97706', bg: '#fef3c7' },
+    DRAFT:     { label: 'Stocké',   color: '#64748b', bg: '#f8fafc' },
+    REJECTED:  { label: 'Rejeté',   color: '#dc2626', bg: '#fef2f2' },
+    REPLACED:  { label: 'Remplacé', color: '#475569', bg: '#f1f5f9' },
+    CANCELLED: { label: 'Annulé',   color: '#991b1b', bg: '#fef2f2' },
 };
 
 const TRANSPORT_META: Record<string, { label: string; icon: any; color: string }> = {
@@ -271,9 +273,11 @@ export default function CertificatesReport({
                                     value={local.status}
                                     onChange={e => setLocal(p => ({ ...p, status: e.target.value }))}>
                                 <option value="ALL">Tous les statuts</option>
-                                <option value="ISSUED">Émis</option>
-                                <option value="SUBMITTED">En attente</option>
-                                <option value="DRAFT">Brouillon</option>
+                                <option value="ISSUED">Approuvé</option>
+                                <option value="SUBMITTED">Soumis</option>
+                                <option value="DRAFT">Stocké</option>
+                                <option value="REJECTED">Rejeté</option>
+                                <option value="REPLACED">Remplacé</option>
                                 <option value="CANCELLED">Annulé</option>
                             </select>
                             <button className="btn btn-secondary" onClick={() => setShowAdv(v => !v)}>
@@ -561,9 +565,9 @@ export default function CertificatesReport({
                                 <div className="rpt-panel-body" style={{ fontSize: 12 }}>
                                     {[
                                         { label: 'Valeur totale assurée', val: fmtAmt(stats.total_insured) },
-                                        { label: 'dont ISSUED',           val: fmtAmt(stats.issued_insured), sub: true },
+                                        { label: 'dont Approuvé',         val: fmtAmt(stats.issued_insured), sub: true },
                                         { label: 'Prime totale',          val: fmtAmt(stats.total_prime) },
-                                        { label: 'dont ISSUED',           val: fmtAmt(stats.issued_prime), sub: true },
+                                        { label: 'dont Approuvé',         val: fmtAmt(stats.issued_prime), sub: true },
                                     ].map((row, i) => (
                                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between',
                                                               padding: '5px 0', borderBottom: '1px solid #f8fafc',

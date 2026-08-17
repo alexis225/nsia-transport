@@ -27,9 +27,10 @@ class ContractLimitController extends Controller
         $this->authorizeTenant($contract);
 
         $usedLimit         = (float) $contract->used_limit;
-        $subscriptionLimit = $contract->subscription_limit
-            ? (float) $contract->subscription_limit
-            : null;
+        // Plafond effectivement opposable : Traité si le contrat a été
+        // débloqué suite à validation DTAG d'un dépassement NN300, sinon
+        // NN300 standard — cf. InsuranceContract::effectiveCeiling().
+        $subscriptionLimit = $contract->effectiveCeiling();
 
         $usagePercent = $subscriptionLimit && $subscriptionLimit > 0
             ? min(100, round(($usedLimit / $subscriptionLimit) * 100, 2))
@@ -58,6 +59,7 @@ class ContractLimitController extends Controller
             'contract_number'    => $contract->contract_number,
             'currency_code'      => $contract->currency_code,
             'subscription_limit' => $subscriptionLimit,
+            'nn300_unlocked'     => $contract->isNn300Unlocked(),
             'used_limit'         => $usedLimit,
             'remaining_limit'    => $remainingLimit,
             'usage_percent'      => $usagePercent,
@@ -89,8 +91,11 @@ class ContractLimitController extends Controller
                 'insured_name'       => $c->insured_name,
                 'currency_code'      => $c->currency_code,
                 'subscription_limit' => (float) $c->subscription_limit,
+                'effective_limit'    => $c->effectiveCeiling(),
+                'nn300_unlocked'     => $c->isNn300Unlocked(),
+                'treaty_limit'       => $c->treaty_limit !== null ? (float) $c->treaty_limit : null,
                 'used_limit'         => (float) $c->used_limit,
-                'remaining_limit'    => max(0, (float)$c->subscription_limit - (float)$c->used_limit),
+                'remaining_limit'    => $c->remainingLimit(),
                 'usage_percent'      => $c->usagePercent(),
                 'certificates_count' => $c->certificates_count,
                 'certificates_limit' => $c->certificates_limit,
@@ -107,7 +112,7 @@ class ContractLimitController extends Controller
             'warning'          => $contracts->where('alert_level', 'warning')->count(),
             'ok'               => $contracts->where('alert_level', 'ok')->count(),
             'total_used'       => $contracts->sum('used_limit'),
-            'total_limit'      => $contracts->sum('subscription_limit'),
+            'total_limit'      => $contracts->sum('effective_limit'),
         ];
 
         return Inertia::render('admin/contracts/limits', [

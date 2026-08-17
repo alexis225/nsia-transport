@@ -247,6 +247,8 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
 
                 Route::delete('/certificates/{certificate}',[CertificateController::class, 'destroy'])->middleware('permission:certificates.create')->name('admin.certificates.destroy');
                 Route::post('/certificates',[CertificateController::class, 'store'])->middleware('permission:certificates.create')->name('admin.certificates.store');
+                // Stocker le Certificat — brouillon à validation allégée
+                Route::post('/certificates/store-draft',[CertificateController::class, 'storeDraft'])->middleware('permission:certificates.create')->name('admin.certificates.store-draft');
 
                 Route::get('/certificates/{certificate}/edit',[CertificateController::class, 'edit'])->middleware('permission:certificates.create')->name('admin.certificates.edit');
 
@@ -260,6 +262,10 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
                 Route::patch('/certificates/{certificate}/reject',[CertificateController::class, 'reject'])->middleware('permission:certificates.validate')->name('admin.certificates.reject');
 
                 Route::patch('/certificates/{certificate}/cancel',[CertificateController::class, 'cancel'])->middleware('permission:certificates.cancel')->name('admin.certificates.cancel');
+
+                // Remplacer un certificat Approuvé — génère un nouveau certificat
+                // (Stocké) et marque celui-ci Remplacé.
+                Route::post('/certificates/{certificate}/replace',[CertificateController::class, 'replace'])->middleware('permission:certificates.create')->name('admin.certificates.replace');
             });
 
             // ── Demandes de certificat (espace partenaire) ────────

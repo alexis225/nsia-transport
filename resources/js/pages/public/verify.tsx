@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import {
-    CheckCircle, XCircle, AlertCircle,
+    CheckCircle, XCircle, AlertCircle, Repeat,
     Ship, Plane, Truck, Calendar,
     MapPin, Shield, Building2, User,
 } from 'lucide-react';
@@ -21,10 +21,11 @@ interface CertificatePublic {
     template_company: string | null;
     template_logo: string | null;
     verification_count: number;
+    replaced_by: string | null;
 }
 
 interface Props {
-    status:      'valid' | 'invalid' | 'cancelled' | 'not_found';
+    status:      'valid' | 'invalid' | 'cancelled' | 'replaced' | 'not_found';
     certificate: CertificatePublic | null;
     verifiedAt:  string;
 }
@@ -36,6 +37,7 @@ const TRANSPORT_ICONS: Record<string, any> = {
 export default function CertificateVerify({ status, certificate, verifiedAt }: Props) {
     const isValid     = status === 'valid';
     const isCancelled = status === 'cancelled';
+    const isReplaced  = status === 'replaced';
     const notFound    = status === 'not_found';
 
     const TransIcon = certificate?.transport_type
@@ -61,6 +63,7 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
                 .status-card { width: 100%; max-width: 540px; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
                 .status-valid     { background: linear-gradient(135deg, #15803d, #16a34a); }
                 .status-cancelled { background: linear-gradient(135deg, #dc2626, #ef4444); }
+                .status-replaced  { background: linear-gradient(135deg, #475569, #64748b); }
                 .status-invalid   { background: linear-gradient(135deg, #d97706, #f59e0b); }
                 .status-notfound  { background: linear-gradient(135deg, #475569, #64748b); }
 
@@ -113,25 +116,31 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
                     <div className={`status-inner ${
                         notFound    ? 'status-notfound'  :
                         isCancelled ? 'status-cancelled' :
+                        isReplaced  ? 'status-replaced'  :
                         isValid     ? 'status-valid'     : 'status-invalid'
                     }`}>
                         <div className="status-ico">
                             {isValid     && <CheckCircle size={26} color="#fff"/>}
                             {isCancelled && <XCircle    size={26} color="#fff"/>}
-                            {!isValid && !isCancelled && <AlertCircle size={26} color="#fff"/>}
+                            {isReplaced  && <Repeat     size={26} color="#fff"/>}
+                            {!isValid && !isCancelled && !isReplaced && <AlertCircle size={26} color="#fff"/>}
                         </div>
                         <div>
                             <div className="status-title">
                                 {isValid     && 'Certificat authentique et valide'}
                                 {isCancelled && 'Certificat annulé'}
+                                {isReplaced  && 'Certificat remplacé'}
                                 {notFound    && 'Certificat introuvable'}
-                                {!isValid && !isCancelled && !notFound && 'Certificat non valide'}
+                                {!isValid && !isCancelled && !isReplaced && !notFound && 'Certificat non valide'}
                             </div>
                             <div className="status-sub">
                                 {isValid     && `Émis par ${certificate?.tenant?.name ?? 'NSIA'} · Vérifié le ${verifiedAt}`}
                                 {isCancelled && 'Ce certificat a été annulé — non valide'}
+                                {isReplaced  && (certificate?.replaced_by
+                                    ? `Remplacé par le certificat N° ${certificate.replaced_by} — non valide`
+                                    : 'Ce certificat a été remplacé — non valide')}
                                 {notFound    && 'Aucun certificat ne correspond à ce QR code'}
-                                {!isValid && !isCancelled && !notFound && 'Ce certificat n\'est pas dans un état valide'}
+                                {!isValid && !isCancelled && !isReplaced && !notFound && 'Ce certificat n\'est pas dans un état valide'}
                             </div>
                         </div>
                     </div>

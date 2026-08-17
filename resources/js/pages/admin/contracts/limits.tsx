@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { TrendingUp, AlertTriangle, CheckCircle, XCircle, Eye, Search } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle, XCircle, Eye, Search, Unlock } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Contrats', href: '/admin/contracts' },
@@ -12,6 +12,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface ContractLimit {
     id: string; contract_number: string; insured_name: string;
     currency_code: string; subscription_limit: number;
+    effective_limit: number | null; nn300_unlocked: boolean; treaty_limit: number | null;
     used_limit: number; remaining_limit: number; usage_percent: number;
     certificates_count: number; certificates_limit: number | null;
     alert_level: 'ok' | 'warning' | 'critical';
@@ -183,6 +184,11 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                                                     {contract.alert_level === 'ok'       && <CheckCircle  size={10}/>}
                                                     {as.label}
                                                 </span>
+                                                {contract.nn300_unlocked && (
+                                                    <span className="alert-badge" style={{ background:'#eff6ff', border:'1px solid #bfdbfe', color:'#1d4ed8' }}>
+                                                        <Unlock size={9}/> Débloqué (Traité)
+                                                    </span>
+                                                )}
                                                 {!contract.can_issue && (
                                                     <span className="blocked-badge">
                                                         <XCircle size={9}/> Bloqué
@@ -221,10 +227,17 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                                                     </div>
                                                 </div>
                                                 <div className="amount-item" style={{ gridColumn:'1/-1' }}>
-                                                    <div className="amount-label">Plafond total NN300</div>
-                                                    <div className="amount-value">
-                                                        {fmt(contract.subscription_limit, contract.currency_code)}
+                                                    <div className="amount-label">
+                                                        {contract.nn300_unlocked ? 'Plafond effectif (Traité)' : 'Plafond total NN300'}
                                                     </div>
+                                                    <div className="amount-value">
+                                                        {fmt(contract.effective_limit ?? contract.subscription_limit, contract.currency_code)}
+                                                    </div>
+                                                    {contract.nn300_unlocked && contract.treaty_limit !== null && (
+                                                        <div style={{ fontSize:10, color:'#94a3b8', marginTop:2 }}>
+                                                            Plafond NN300 standard : {fmt(contract.subscription_limit, contract.currency_code)}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 

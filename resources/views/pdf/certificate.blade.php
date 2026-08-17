@@ -15,17 +15,22 @@
         }
 
         /* ── Page ── */
+        /* Le padding vit sur .content (largeur auto), PAS sur .page/.verso-page
+           elles-mêmes : DomPDF n'applique pas de façon fiable box-sizing:
+           border-box sur un bloc qui porte à la fois une largeur explicite ET
+           un padding, ce qui élargissait la page de 24mm (10mm×2 + 12mm×2)
+           au-delà des 210mm de l'A4 et faisait déborder tout le contenu hors
+           de la page (colonnes de droite, décompte de prime, n° de certificat
+           invisibles à l'impression/l'export PDF). */
         .page {
             width: 210mm;
             min-height: 297mm;
-            padding: 10mm 12mm;
             position: relative;
             page-break-after: always;
         }
         .verso-page {
             width: 210mm;
             min-height: 297mm;
-            padding: 10mm 12mm;
             position: relative;
         }
 
@@ -62,19 +67,26 @@
             text-transform: uppercase;
         }
 
-        .content { position: relative; z-index: 1; }
+        .content { position: relative; z-index: 1; padding: 10mm 12mm; }
 
         /* ── En-tête ── */
+        /* table-layout:fixed impose que les 3 colonnes respectent
+           strictement leurs largeurs déclarées (35/35/30%) — sans ça,
+           DomPDF élargit la colonne du numéro de certificat (texte
+           monospace long) au-delà de sa part et fait déborder l'en-tête
+           du bord droit de la page (même défaut que .exp-table plus bas,
+           déjà corrigé pour la même raison). */
         .header {
             display: table;
             width: 100%;
+            table-layout: fixed;
             border-bottom: 2pt solid #1e3a8a;
             padding-bottom: 6mm;
             margin-bottom: 5mm;
         }
-        .header-logo  { display: table-cell; width: 35%; vertical-align: top; }
-        .header-title { display: table-cell; width: 35%; vertical-align: middle; text-align: center; }
-        .header-num   { display: table-cell; width: 30%; vertical-align: top; text-align: right; }
+        .header-logo  { display: table-cell; width: 35%; vertical-align: top; overflow-wrap: break-word; }
+        .header-title { display: table-cell; width: 35%; vertical-align: middle; text-align: center; overflow-wrap: break-word; }
+        .header-num   { display: table-cell; width: 30%; vertical-align: top; text-align: right; overflow-wrap: break-word; }
 
         .logo-img { max-width: 100px; max-height: 55px; }
         .logo-placeholder {
@@ -134,8 +146,8 @@
         .section-body { padding: 4pt 6pt; }
 
         /* ── Grille 2 colonnes ── */
-        .grid2 { display: table; width: 100%; }
-        .grid2-cell { display: table-cell; width: 50%; padding: 2pt 4pt; border-right: 0.5pt solid #e2e8f0; vertical-align: top; }
+        .grid2 { display: table; width: 100%; table-layout: fixed; }
+        .grid2-cell { display: table-cell; width: 50%; padding: 2pt 4pt; border-right: 0.5pt solid #e2e8f0; vertical-align: top; overflow-wrap: break-word; }
         .grid2-cell:last-child { border-right: none; }
 
         .field-label { font-size: 7pt; color: #64748b; margin-bottom: 2pt; }
@@ -143,7 +155,7 @@
         .field-value-filled { font-size: 8.5pt; font-weight: 500; color: #1a1a2e; }
 
         /* ── Voyage ── */
-        .voyage-wrap { display: table; width: 100%; }
+        .voyage-wrap { display: table; width: 100%; table-layout: fixed; }
         .voyage-label {
             display: table-cell;
             width: 18mm;
@@ -206,9 +218,9 @@
         }
 
         /* ── Bas de page : signatures + prime ── */
-        .bottom-wrap { display: table; width: 100%; margin-top: 5pt; }
-        .bottom-left  { display: table-cell; width: 45%; vertical-align: top; padding-right: 6pt; }
-        .bottom-right { display: table-cell; width: 55%; vertical-align: top; }
+        .bottom-wrap { display: table; width: 100%; table-layout: fixed; margin-top: 5pt; }
+        .bottom-left  { display: table-cell; width: 45%; vertical-align: top; padding-right: 6pt; overflow-wrap: break-word; }
+        .bottom-right { display: table-cell; width: 55%; vertical-align: top; overflow-wrap: break-word; }
 
         .sign-box {
             border: 0.7pt solid #94a3b8;
@@ -228,7 +240,13 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-        .prime-table { width: 100%; border-collapse: collapse; }
+        /* table-layout:fixed — même correctif que .header/.exp-table : sans
+           ça, la colonne MONTANT (chiffres monospace) pousse le tableau
+           au-delà de la colonne de droite et le fait déborder de la page. */
+        .prime-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+        .prime-table th:nth-child(1), .prime-table td:nth-child(1) { width: 46%; }
+        .prime-table th:nth-child(2), .prime-table td:nth-child(2) { width: 24%; }
+        .prime-table th:nth-child(3), .prime-table td:nth-child(3) { width: 30%; }
         .prime-table th {
             background: #f8fafc;
             border-bottom: 0.5pt solid #e2e8f0;
@@ -236,12 +254,14 @@
             font-size: 7pt;
             font-weight: 700;
             color: #475569;
+            overflow-wrap: break-word;
         }
         .prime-table td {
             padding: 2pt 4pt;
             font-size: 8pt;
             border-bottom: 0.5pt solid #f1f5f9;
             border-right: 0.5pt solid #f1f5f9;
+            overflow-wrap: break-word;
         }
         .prime-table td:last-child { border-right: none; }
         .prime-table .total-row td { font-weight: 700; background: #f8fafc; }
@@ -288,8 +308,8 @@
         }
         .verso-avarie-title { font-weight: 700; color: #1e3a8a; font-size: 9pt; margin-bottom: 3pt; }
 
-        .verso-grid { display: table; width: 100%; }
-        .verso-col  { display: table-cell; width: 50%; vertical-align: top; padding-right: 6pt; }
+        .verso-grid { display: table; width: 100%; table-layout: fixed; }
+        .verso-col  { display: table-cell; width: 50%; vertical-align: top; padding-right: 6pt; overflow-wrap: break-word; }
         .verso-col:last-child { padding-right: 0; padding-left: 6pt; }
 
         .verso-section-title {
@@ -599,14 +619,20 @@
 
                 {{-- QR Code --}}
                 @if($qrBase64 && $verifyUrl)
-                <div style="display: table; width: 100%; margin-bottom: 5pt; border: 0.7pt solid #94a3b8; padding: 5pt;">
-                    <div style="display: table-cell; width: 30mm; vertical-align: middle; text-align: center;">
+                {{-- table-layout:fixed + padding sur les cellules (pas sur la
+                     table elle-même) — même correctif que .header/.prime-table
+                     plus haut : sans ça, l'URL longue du QR (un seul "mot"
+                     malgré word-break) élargit la 1re colonne au-delà de ses
+                     30mm et fait déborder le bloc QR sur le Décompte de Prime
+                     voisin. --}}
+                <div style="display: table; width: 100%; table-layout: fixed; margin-bottom: 5pt; border: 0.7pt solid #94a3b8;">
+                    <div style="display: table-cell; width: 30mm; vertical-align: middle; text-align: center; padding: 5pt; overflow-wrap: break-word;">
                         <img src="{{ $qrBase64 }}" style="width: 80pt; height: 80pt;" alt="QR"/>
-                        <div style="font-size: 6pt; color: #64748b; margin-top: 2pt; word-break: break-all;">
+                        <div style="font-size: 6pt; color: #64748b; margin-top: 2pt; word-break: break-all; overflow-wrap: break-word;">
                             {{ $verifyUrl }}
                         </div>
                     </div>
-                    <div style="display: table-cell; vertical-align: middle; padding-left: 6pt; border-left: 0.5pt solid #e2e8f0;">
+                    <div style="display: table-cell; vertical-align: middle; padding: 5pt 5pt 5pt 6pt; border-left: 0.5pt solid #e2e8f0; overflow-wrap: break-word;">
                         <div style="font-size: 7pt; font-weight: 700; color: #1e3a8a; margin-bottom: 3pt; text-transform: uppercase;">
                             Vérification d'authenticité
                         </div>

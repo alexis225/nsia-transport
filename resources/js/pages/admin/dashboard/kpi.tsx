@@ -306,7 +306,7 @@ export default function KpiDashboard({
                                     <BarChart2 size={14} color="#1d4ed8"/>
                                     Émissions par mois (12 mois)
                                 </div>
-                                <span style={{ fontSize: 10, color: '#94a3b8' }}>Certificats ISSUED</span>
+                                <span style={{ fontSize: 10, color: '#94a3b8' }}>Certificats Approuvés</span>
                             </div>
                             <div className="kpi-panel-body">
                                 <BarChart data={monthlyData}/>

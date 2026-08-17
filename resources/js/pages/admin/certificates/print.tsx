@@ -133,9 +133,13 @@ export default function CertificatePrint({ certificate: cert, templateId, calibr
                 }
             `}</style>
 
-            {/* Filigrane si brouillon */}
+            {/* Filigrane selon le statut — un certificat non Approuvé n'a pas
+                de valeur légale ; Remplacé/Annulé affichent leur propre
+                mention plutôt que le générique BROUILLON. */}
             {cert.status !== 'ISSUED' && (
-                <div className="watermark">BROUILLON</div>
+                <div className="watermark">
+                    {cert.status === 'REPLACED' ? 'REMPLACÉ' : cert.status === 'CANCELLED' ? 'ANNULÉ' : 'BROUILLON'}
+                </div>
             )}
 
             {/* Template introuvable */}
