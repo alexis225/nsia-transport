@@ -27,7 +27,7 @@ interface GuceCertificate {
     file_mime_type: string | null;
     notes: string | null;
     created_at: string;
-    imported_by: { id: number; name: string } | null;
+    imported_by: { id: number; first_name: string; last_name: string } | null;
 }
 
 interface Props {
@@ -100,7 +100,7 @@ export default function GuceCertificatesShow({ certificate: cert }: Props) {
                                 Certificat GUCE
                             </h1>
                             <p style={{ color: '#64748b', fontSize: '13px', margin: '2px 0 0' }}>
-                                Importé le {formatDate(cert.created_at)}{cert.imported_by ? ` par ${cert.imported_by.name}` : ''}
+                                Importé le {formatDate(cert.created_at)}{cert.imported_by ? ` par ${cert.imported_by.first_name} ${cert.imported_by.last_name}` : ''}
                             </p>
                         </div>
                     </div>

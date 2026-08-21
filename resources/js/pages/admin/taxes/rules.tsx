@@ -138,11 +138,11 @@ export default function TaxRules({ rules, tenants, transportModes, countries, is
                                 <div className="form-grid">
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Mode de transport *
+                                            Mode de transport
                                         </Label>
                                         <select value={data.transport_mode_id} onChange={e => setData('transport_mode_id', e.target.value)}
                                                 className="hs-select">
-                                            <option value="">— Choisir —</option>
+                                            <option value="">Tous les modes (par défaut)</option>
                                             {transportModes.map(m => (
                                                 <option key={m.id} value={m.id}>{m.name_fr}</option>
                                             ))}
@@ -152,11 +152,11 @@ export default function TaxRules({ rules, tenants, transportModes, countries, is
 
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Pays (réglementation) *
+                                            Pays de destination
                                         </Label>
                                         <select value={data.country_code} onChange={e => setData('country_code', e.target.value)}
                                                 className="hs-select">
-                                            <option value="">— Choisir —</option>
+                                            <option value="">Toutes destinations (par défaut)</option>
                                             {countries.map(c => (
                                                 <option key={c.code} value={c.code}>{c.name_fr}</option>
                                             ))}
@@ -203,10 +203,11 @@ export default function TaxRules({ rules, tenants, transportModes, countries, is
 
                                 <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#92400e' }}>
                                     Ce taux remplace la saisie manuelle du taux de taxe sur le contrat — il est résolu automatiquement à l'émission selon le mode de transport et le pays de destination du certificat.
+                                    Laisser « Mode de transport » et/ou « Pays de destination » vides crée une règle par défaut (taxe unique de la filiale, ou taux par mode indépendant de la destination) utilisée quand aucune règle plus précise ne correspond.
                                 </div>
 
                                 <div style={{ display:'flex', gap:8 }}>
-                                    <Button disabled={processing || !data.transport_mode_id || !data.country_code || !data.rate_pct || !data.effective_date}
+                                    <Button disabled={processing || !data.rate_pct || !data.effective_date}
                                             onClick={handleSubmit}
                                             className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
                                         {processing ? 'Enregistrement…' : <><Receipt size={13}/> Créer le taux</>}
@@ -253,8 +254,8 @@ export default function TaxRules({ rules, tenants, transportModes, countries, is
                                                     <div style={{ fontSize:10, color:'#94a3b8', fontFamily:'monospace' }}>{rule.tenant?.code}</div>
                                                 </td>
                                             )}
-                                            <td>{rule.transport_mode?.name_fr}</td>
-                                            <td>{rule.country?.name_fr}</td>
+                                            <td>{rule.transport_mode?.name_fr ?? <span style={{ color:'#94a3b8' }}>Tous les modes</span>}</td>
+                                            <td>{rule.country?.name_fr ?? <span style={{ color:'#94a3b8' }}>Toutes destinations</span>}</td>
                                             <td>
                                                 <span className="rate-badge">
                                                     {parseFloat(String(rule.rate_pct)).toFixed(2)}%

@@ -44,9 +44,12 @@ export default function StubOverlay({ certificate, positions, calibrate = false 
     );
 }
 
-// Grille de repère (tous les 10mm) affichée uniquement en mode
-// calibration (?calibrate=1) pour mesurer les écarts contre la souche
-// physique réelle tenue derrière la feuille imprimée.
+// Grille de repère (tous les 10mm, avec traits renforcés tous les 50mm)
+// affichée uniquement en mode calibration (?calibrate=1) pour mesurer les
+// écarts contre la souche physique réelle tenue derrière la feuille
+// imprimée. Traits et chiffres volontairement épais/foncés pour rester
+// lisibles après impression + photo/scan (contrairement à un simple trait
+// fin à 25% d'opacité, invisible sur la plupart des photos de test).
 function CalibrationGrid() {
     const width = 210;
     const height = 297;
@@ -64,12 +67,12 @@ function CalibrationGrid() {
     return (
         <div className="calibration-grid">
             {verticals.map(x => (
-                <div key={`v${x}`} className="grid-line grid-line--v" style={{ left: `${x}mm` }}>
+                <div key={`v${x}`} className={`grid-line grid-line--v ${x % 50 === 0 ? 'grid-line--major' : ''}`} style={{ left: `${x}mm` }}>
                     <span>{x}</span>
                 </div>
             ))}
             {horizontals.map(y => (
-                <div key={`h${y}`} className="grid-line grid-line--h" style={{ top: `${y}mm` }}>
+                <div key={`h${y}`} className={`grid-line grid-line--h ${y % 50 === 0 ? 'grid-line--major' : ''}`} style={{ top: `${y}mm` }}>
                     <span>{y}</span>
                 </div>
             ))}

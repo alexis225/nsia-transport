@@ -52,10 +52,15 @@ class TaxRuleController extends Controller
         abort_if(! ($user->hasRole('admin_filiale') || $user->hasRole('super_admin')), 403);
         $isSA = $user->hasRole('super_admin');
 
+        // Mode de transport / pays de destination optionnels — une règle
+        // sans l'un ou l'autre sert de règle par défaut (cf.
+        // TaxRule::findApplicable()) : "taxe unique" si les deux sont
+        // vides, ou taux par mode indépendant du pays de destination si
+        // seul le pays est vide.
         $validated = $request->validate([
             'tenant_id'         => [$isSA ? 'required' : 'nullable', 'uuid', 'exists:tenants,id'],
-            'transport_mode_id' => ['required', 'exists:transport_modes,id'],
-            'country_code'      => ['required', 'string', 'size:2', 'exists:countries,code'],
+            'transport_mode_id' => ['nullable', 'exists:transport_modes,id'],
+            'country_code'      => ['nullable', 'string', 'size:2', 'exists:countries,code'],
             'rate_pct'          => ['required', 'numeric', 'min:0', 'max:100'],
             'effective_date'    => ['required', 'date'],
             'end_date'          => ['nullable', 'date', 'after:effective_date'],
@@ -64,8 +69,8 @@ class TaxRuleController extends Controller
 
         TaxRule::create([
             'tenant_id'         => $isSA ? $validated['tenant_id'] : $user->tenant_id,
-            'transport_mode_id' => $validated['transport_mode_id'],
-            'country_code'      => $validated['country_code'],
+            'transport_mode_id' => $validated['transport_mode_id'] ?? null,
+            'country_code'      => $validated['country_code'] ?? null,
             'rate_pct'          => $validated['rate_pct'],
             'effective_date'    => $validated['effective_date'],
             'end_date'          => $validated['end_date'] ?? null,

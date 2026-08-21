@@ -11,8 +11,9 @@ export const GABON_POSITIONS: FieldPosition[] = DEFAULT_FIELD_POSITIONS;
 interface Props {
     certificate: CertificateForPrint;
     calibrate?: boolean;
+    positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateGabon({ certificate, calibrate }: Props) {
-    return <StubOverlay certificate={certificate} positions={GABON_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateGabon({ certificate, calibrate, positionsOverride }: Props) {
+    return <StubOverlay certificate={certificate} positions={positionsOverride ?? GABON_POSITIONS} calibrate={calibrate}/>;
 }

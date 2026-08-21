@@ -11,8 +11,9 @@ export const SENEGAL_POSITIONS: FieldPosition[] = DEFAULT_FIELD_POSITIONS;
 interface Props {
     certificate: CertificateForPrint;
     calibrate?: boolean;
+    positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateSenegal({ certificate, calibrate }: Props) {
-    return <StubOverlay certificate={certificate} positions={SENEGAL_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateSenegal({ certificate, calibrate, positionsOverride }: Props) {
+    return <StubOverlay certificate={certificate} positions={positionsOverride ?? SENEGAL_POSITIONS} calibrate={calibrate}/>;
 }

@@ -7,22 +7,28 @@ use App\Models\ApprovalRequest;
 use App\Models\AuditLog;
 use App\Models\Broker;
 use App\Models\Certificate;
+use App\Models\CertificatePrintTemplate;
 use App\Models\CertificateTemplate;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Models\InsuranceContract;
 use App\Models\Notification;
 use App\Models\TaxRule;
+use App\Models\TenantGuaranteeRate;
 use App\Models\TransportMode;
 use App\Models\User;
 use App\Services\ApprovalWorkflowService;
 use App\Services\CertificatePdfService;
+use App\Services\CertificatePrePrintedService;
 use App\Services\CertificateQrService;
 use App\Services\ExchangeRateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -332,6 +338,16 @@ class CertificateController extends Controller
                 'validate' => auth()->user()->can('certificates.validate'),
                 'cancel'   => auth()->user()->can('certificates.cancel'),
             ],
+            // Modèles disposant d'un positionnement FPDF calibré — soit
+            // codé en dur (config/certificate_layouts.php), soit une
+            // surcharge enregistrée depuis /admin/certificate-print-templates
+            // (édition JSON manuelle ou import du calibreur, cf.
+            // CertificatePrePrintedService::resolveLayout()) — seuls
+            // ceux-ci proposent le bouton « Imprimer sur souche ».
+            'printOnFormTemplates' => array_unique(array_merge(
+                array_keys(config('certificate_layouts', [])),
+                CertificatePrintTemplate::pluck('template_id')->all(),
+            )),
         ]);
     }
 
@@ -360,17 +376,82 @@ class CertificateController extends Controller
             'CG' => 'congo',
         ];
         $defaultTemplate = $templateByTenantCode[$certificate->tenant?->code] ?? 'guinee-conakry';
+        $templateId      = $request->query('template', $defaultTemplate);
+
+        // Coordonnées mm surchargées depuis l'admin (cf.
+        // CertificatePrintTemplateController) — absence de ligne = le
+        // composant du pays garde ses coordonnées codées en dur.
+        $positionsOverride = CertificatePrintTemplate::where('template_id', $templateId)->value('positions');
 
         return Inertia::render('admin/certificates/print', [
-            'certificate' => $certificate,
-            'templateId'  => $request->query('template', $defaultTemplate),
-            'calibrate'   => $request->boolean('calibrate'),
+            'certificate'       => $certificate,
+            'templateId'        => $templateId,
+            'calibrate'         => $request->boolean('calibrate'),
+            'positionsOverride' => $positionsOverride,
         ]);
     }
 
     public function printModels(): Response
     {
         return Inertia::render('admin/certificates/print-models');
+    }
+
+    // ── Impression sur souche physique pré-imprimée (FPDF) ────
+    // Génère un PDF positionné aux coordonnées (mm) de
+    // config/certificate_layouts.php — à imprimer directement
+    // par-dessus le carnet NSIA déjà chargé dans l'imprimante.
+    public function printOnForm(Request $request, Certificate $certificate, CertificatePrePrintedService $service): HttpResponse
+    {
+        $this->authorizeTenant($certificate->tenant_id);
+
+        $templateByTenantCode = [
+            'GN' => 'guinee-conakry',
+            'GA' => 'gabon',
+            'TG' => 'togo',
+            'SN' => 'senegal',
+            'CM' => 'cameroun',
+            'CG' => 'congo',
+        ];
+        $defaultTemplate = $templateByTenantCode[$certificate->tenant?->code] ?? 'guinee-conakry';
+        $templateId      = $request->query('template', $defaultTemplate);
+        $calibrate       = $request->boolean('calibrate');
+        $preview         = $request->boolean('preview');
+
+        // Décalage propre à un poste/une imprimante (mm), réglé et conservé
+        // côté navigateur (localStorage — cf. show.tsx) : compense
+        // l'enregistrement/le bac papier d'une imprimante donnée sans
+        // toucher au calibrage maître. Bornes larges mais sûres — un
+        // décalage aberrant ne doit pas produire un rendu totalement
+        // hors-page.
+        $offsetX = max(-30, min(30, (float) $request->query('offset_x', 0)));
+        $offsetY = max(-30, min(30, (float) $request->query('offset_y', 0)));
+
+        // Requête de navigation directe (lien <a target="_blank">, pas un
+        // appel Inertia) — une exception de configuration (positionnement
+        // ou PDF de fond manquant pour ce template) doit donc afficher un
+        // message clair, pas la page de debug Laravel brute.
+        try {
+            if ($preview) {
+                $pdf    = $service->preview($certificate, $templateId, $offsetX, $offsetY);
+                $suffix = 'apercu';
+            } else {
+                $pdf    = $service->generate($certificate, $templateId, $calibrate, $offsetX, $offsetY);
+                $suffix = $calibrate ? 'calibrage' : $templateId;
+            }
+        } catch (InvalidArgumentException $e) {
+            return response(
+                '<!doctype html><meta charset="utf-8">'.
+                '<div style="font-family:Arial,sans-serif;max-width:560px;margin:60px auto;padding:24px;border:1px solid #fecaca;background:#fef2f2;border-radius:10px;color:#991b1b;">'.
+                '<strong>Impression sur souche indisponible</strong><p style="margin:10px 0 0;font-size:14px;">'.e($e->getMessage()).'</p></div>',
+                404,
+                ['Content-Type' => 'text/html; charset=UTF-8']
+            );
+        }
+
+        return response($pdf, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="certificat-'.$certificate->certificate_number.'-'.$suffix.'.pdf"',
+        ]);
     }
 
     // ── US-017 : Formulaire modification ─────────────────────
@@ -509,15 +590,17 @@ class CertificateController extends Controller
         abort_if($certificate->status !== Certificate::STATUS_SUBMITTED, 422);
 
         // Une escalade NN300 en cours doit être validée via /admin/approvals,
-        // pas contournée par une émission directe.
-        abort_if(
-            ApprovalRequest::where('entity_type', 'CERTIFICATE')
-                ->where('entity_id', $certificate->id)
-                ->where('status', ApprovalRequest::STATUS_PENDING)
-                ->exists(),
-            422,
-            'Ce certificat est en cours de validation NN300 — voir Escalades NN300.'
-        );
+        // pas contournée par une émission directe. ValidationException (pas
+        // abort_if) pour qu'Inertia affiche l'erreur normalement au lieu de
+        // basculer sur sa page de secours (réponse non-Inertia).
+        if (ApprovalRequest::where('entity_type', 'CERTIFICATE')
+            ->where('entity_id', $certificate->id)
+            ->where('status', ApprovalRequest::STATUS_PENDING)
+            ->exists()) {
+            throw ValidationException::withMessages([
+                'certificate' => 'Ce certificat est en cours de validation NN300 — voir Escalades NN300.',
+            ]);
+        }
 
         $request->validate(['notes' => ['nullable', 'string', 'max:500']]);
 
@@ -727,6 +810,18 @@ class CertificateController extends Controller
         $divers   = $lineAmount($rateDivers);
         $surprime = $lineAmount($rateSurprime);
         $primeNette = round($ro + $rg + $divers + $surprime, 2);
+
+        // Prime nette minimum réglementaire par filiale × garantie (cf.
+        // TenantGuaranteeRate) : contrairement au taux/accessoires (saisis
+        // par l'utilisateur sur le contrat, bloqués en dessous du plancher
+        // à la validation), la prime nette est un montant CALCULÉ à partir
+        // de la valeur assurée — on applique donc un plancher transparent
+        // (prime minimum perçue) plutôt qu'un rejet, conformément à la
+        // pratique du marché.
+        $minGuarantee = TenantGuaranteeRate::minimumsFor($contract->tenant_id, $contract->coverage_type);
+        if ($minGuarantee && $primeNette < (float) $minGuarantee->min_net_premium) {
+            $primeNette = (float) $minGuarantee->min_net_premium;
+        }
 
         // Accessoires : montant fixe défini sur le contrat (pas un taux).
         $accessoires = (float) ($contract->accessories_amount ?? 0);

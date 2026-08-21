@@ -6,7 +6,11 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem } from '@/types';
 
 interface NavItemExtended extends NavItem {
-    children?: { title: string; href: string }[];
+    // external : lien statique hors Inertia (ex. outil autonome servi
+    // depuis public/) — ouvert dans un nouvel onglet plutôt que par une
+    // navigation SPA, pour ne pas quitter l'app et éviter le préchargement
+    // Inertia sur une page non-Inertia.
+    children?: { title: string; href: string; external?: boolean }[];
 }
 
 /**
@@ -261,15 +265,28 @@ export function NavMain({ items = [] }: { items: NavItemExtended[] }) {
                                     {/* ── Sous-menu ── */}
                                     <div className={`mn-submenu ${isOpen ? 'open' : ''}`}>
                                         {item.children!.map(child => (
-                                            <Link
-                                                key={child.href}
-                                                href={child.href}
-                                                className={`mn-sublink ${isCurrentUrl(child.href) ? 'active' : ''}`}
-                                                prefetch
-                                            >
-                                                <span className="mn-subdot"/>
-                                                {child.title}
-                                            </Link>
+                                            child.external ? (
+                                                <a
+                                                    key={child.href}
+                                                    href={child.href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="mn-sublink"
+                                                >
+                                                    <span className="mn-subdot"/>
+                                                    {child.title}
+                                                </a>
+                                            ) : (
+                                                <Link
+                                                    key={child.href}
+                                                    href={child.href}
+                                                    className={`mn-sublink ${isCurrentUrl(child.href) ? 'active' : ''}`}
+                                                    prefetch
+                                                >
+                                                    <span className="mn-subdot"/>
+                                                    {child.title}
+                                                </Link>
+                                            )
                                         ))}
                                     </div>
                                 </SidebarMenuItem>

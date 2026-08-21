@@ -59,7 +59,14 @@ class TaxRule extends Model
 
     /**
      * Résout le taux applicable pour une filiale / mode de transport /
-     * pays donnés, à une date donnée (défaut aujourd'hui).
+     * pays donnés, à une date donnée (défaut aujourd'hui). Cherche par
+     * ordre de spécificité décroissante :
+     *   1. règle exacte (filiale + mode + pays de destination)
+     *   2. règle par défaut de la filiale pour ce mode (pays = NULL)
+     *   3. règle "taxe unique" de la filiale, tous modes (mode = NULL, pays = NULL)
+     * — une filiale n'ayant qu'un barème générique ("Taxe unique : X%",
+     * indépendant du mode de transport et du pays de destination) n'a
+     * besoin que d'une seule ligne de niveau 3.
      */
     public static function findApplicable(
         string  $tenantId,
@@ -67,17 +74,28 @@ class TaxRule extends Model
         ?string $countryCode,
         ?string $date = null
     ): ?self {
-        if (! $transportModeId || ! $countryCode) return null;
-
         $date = $date ?? now()->toDateString();
 
-        return static::where('tenant_id', $tenantId)
-            ->where('transport_mode_id', $transportModeId)
-            ->where('country_code', $countryCode)
+        $base = fn () => static::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->where('effective_date', '<=', $date)
             ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $date))
-            ->orderBy('effective_date', 'desc')
-            ->first();
+            ->orderBy('effective_date', 'desc');
+
+        if ($transportModeId && $countryCode) {
+            $exact = $base()->where('transport_mode_id', $transportModeId)
+                ->where('country_code', $countryCode)
+                ->first();
+            if ($exact) return $exact;
+        }
+
+        if ($transportModeId) {
+            $byMode = $base()->where('transport_mode_id', $transportModeId)
+                ->whereNull('country_code')
+                ->first();
+            if ($byMode) return $byMode;
+        }
+
+        return $base()->whereNull('transport_mode_id')->whereNull('country_code')->first();
     }
 }

@@ -10,6 +10,7 @@ import {
     AlertCircle, Printer, QrCode, ExternalLink, Download, Copy, Repeat,
 } from 'lucide-react';
 import { PRINT_TEMPLATES, getTemplateForTenantCode } from './print-templates/registry';
+import PrintOnFormButton from '@/components/print-on-form-button';
 
 interface ExpeditionItem {
     marks: string; package_numbers: string; package_count: number;
@@ -53,6 +54,7 @@ interface Certificate {
 interface Props {
     certificate: Certificate;
     can: { edit: boolean; validate: boolean; cancel: boolean };
+    printOnFormTemplates: string[];
 }
 
 export const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
@@ -98,11 +100,29 @@ function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose
     );
 }
 
-export default function CertificateShow({ certificate, can }: Props) {
+export default function CertificateShow({ certificate, can, printOnFormTemplates }: Props) {
     const [modal, setModal]               = useState<string | null>(null);
     const [printModal, setPrintModal]     = useState(false);
     const autoTemplate = getTemplateForTenantCode(certificate.tenant?.code)?.id ?? PRINT_TEMPLATES[0]?.id ?? '';
     const [selectedTemplate, setSelected] = useState<string>(autoTemplate);
+
+    // Décalage imprimante (mm) — propre au poste/imprimante physique, pas
+    // au certificat ni au calibrage maître. Conservé en localStorage pour
+    // survivre à la navigation ; jamais envoyé au serveur autrement qu'en
+    // paramètre de requête ponctuel à l'impression.
+    const [printOffset, setPrintOffset] = useState<{ x: number; y: number }>(() => {
+        try {
+            const raw = localStorage.getItem('nsia-print-offset');
+            return raw ? JSON.parse(raw) : { x: 0, y: 0 };
+        } catch {
+            return { x: 0, y: 0 };
+        }
+    });
+    const updateOffset = (patch: Partial<{ x: number; y: number }>) => {
+        const next = { ...printOffset, ...patch };
+        setPrintOffset(next);
+        try { localStorage.setItem('nsia-print-offset', JSON.stringify(next)); } catch { /* stockage indisponible, tant pis */ }
+    };
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Certificats', href: '/admin/certificates' },
@@ -114,8 +134,13 @@ export default function CertificateShow({ certificate, can }: Props) {
     const fmtDt = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 
     const action = (routeName: string, payload: Record<string, any> = {}) => {
-        router.patch(route(routeName, { certificate: certificate.id }), payload);
-        setModal(null);
+        router.patch(route(routeName, { certificate: certificate.id }), payload, {
+            onSuccess: () => setModal(null),
+            // Ne pas fermer la modale sur erreur (ex. escalade NN300 en
+            // cours) — l'utilisateur doit voir le message, pas juste
+            // constater que rien ne s'est passé.
+            onError: (errors) => alert(Object.values(errors).join('\n') || 'Une erreur est survenue.'),
+        });
     };
 
     const totalItems = certificate.expedition_items?.reduce((s, i) => s + (i.insured_value || 0), 0) ?? 0;
@@ -191,19 +216,77 @@ export default function CertificateShow({ certificate, can }: Props) {
                         </div>
 
                         {/* Actions */}
-                        <div style={{ padding:'14px 20px', borderTop:'1px solid #f1f5f9', display:'flex', gap:8, justifyContent:'flex-end' }}>
-                            <Button variant="outline" onClick={() => setPrintModal(false)}>Annuler</Button>
-                            <a
-                                href={route('admin.certificates.print', { certificate: certificate.id }) + `?template=${selectedTemplate}`}
-                                target="_blank"
-                                rel="noopener noreferrer">
-                                <Button
-                                    disabled={!selectedTemplate}
-                                    onClick={() => setPrintModal(false)}
-                                    style={{ background:'#1e3a8a', color:'#fff', display:'flex', alignItems:'center', gap:6 }}>
-                                    <Printer size={14}/> Lancer l'impression
-                                </Button>
-                            </a>
+                        <div style={{ padding:'14px 20px', borderTop:'1px solid #f1f5f9', display:'flex', flexDirection:'column', gap:10 }}>
+                            {printOnFormTemplates.includes(selectedTemplate) && (
+                                <>
+                                    <div style={{ display:'flex', flexWrap:'wrap', gap:'6px 16px' }}>
+                                        <a
+                                            href={route('admin.certificates.print-on-form', { certificate: certificate.id }) + `?template=${selectedTemplate}&preview=1&offset_x=${printOffset.x}&offset_y=${printOffset.y}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize:11.5, color:'#1d4ed8' }}>
+                                            Aperçu calibrage (fond + données)
+                                        </a>
+                                        <a
+                                            href={route('admin.certificates.print-on-form', { certificate: certificate.id }) + `?template=${selectedTemplate}&calibrate=1&offset_x=${printOffset.x}&offset_y=${printOffset.y}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize:11.5, color:'#94a3b8' }}>
+                                            Grille de calibration (mm)
+                                        </a>
+                                    </div>
+
+                                    {/* Décalage imprimante — propre à ce poste, conservé en
+                                        localStorage (cf. commentaire plus haut). Compense un
+                                        registre/bac papier différent d'une imprimante à l'autre
+                                        sans toucher au calibrage partagé par tous. */}
+                                    <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:10, padding:'8px 10px', background:'#f8fafc', borderRadius:8 }}>
+                                        <span style={{ fontSize:11, color:'#64748b', fontWeight:600 }}>Décalage imprimante (mm)</span>
+                                        <label style={{ display:'flex', alignItems:'center', gap:4, fontSize:11.5, color:'#334155' }}>
+                                            X
+                                            <input type="number" step="0.5" value={printOffset.x}
+                                                   onChange={e => updateOffset({ x: parseFloat(e.target.value) || 0 })}
+                                                   style={{ width:60, padding:'3px 6px', border:'1px solid #cbd5e1', borderRadius:5, fontSize:11.5 }}/>
+                                        </label>
+                                        <label style={{ display:'flex', alignItems:'center', gap:4, fontSize:11.5, color:'#334155' }}>
+                                            Y
+                                            <input type="number" step="0.5" value={printOffset.y}
+                                                   onChange={e => updateOffset({ y: parseFloat(e.target.value) || 0 })}
+                                                   style={{ width:60, padding:'3px 6px', border:'1px solid #cbd5e1', borderRadius:5, fontSize:11.5 }}/>
+                                        </label>
+                                        {(printOffset.x !== 0 || printOffset.y !== 0) && (
+                                            <button type="button" onClick={() => updateOffset({ x: 0, y: 0 })}
+                                                    style={{ fontSize:11, color:'#dc2626', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                                                Réinitialiser
+                                            </button>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'flex-end' }}>
+                                <Button variant="outline" onClick={() => setPrintModal(false)}>Annuler</Button>
+                                <a
+                                    href={route('admin.certificates.print', { certificate: certificate.id }) + `?template=${selectedTemplate}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer">
+                                    <Button
+                                        variant="outline"
+                                        disabled={!selectedTemplate}
+                                        onClick={() => setPrintModal(false)}
+                                        style={{ display:'flex', alignItems:'center', gap:6 }}>
+                                        <Printer size={14}/> Aperçu HTML
+                                    </Button>
+                                </a>
+                                <div onClick={() => setPrintModal(false)}>
+                                    <PrintOnFormButton
+                                        certificateId={certificate.id}
+                                        templateId={selectedTemplate}
+                                        availableTemplates={printOnFormTemplates}
+                                        offsetX={printOffset.x}
+                                        offsetY={printOffset.y}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Calibreur souche NSIA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    :root { --px-per-mm: 3; }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; font-family: Arial, Helvetica, sans-serif; background: #0f172a;
+        color: #e2e8f0; display: flex; height: 100vh; overflow: hidden;
+    }
+
+    /* ── Barre latérale ── */
+    #sidebar {
+        width: 340px; flex-shrink: 0; background: #1e293b; border-right: 1px solid #334155;
+        padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+    }
+    #sidebar h1 { font-size: 15px; margin: 0; color: #fff; }
+    #sidebar h1 span { display: block; font-size: 11px; font-weight: 400; color: #94a3b8; margin-top: 2px; }
+    .field-group { display: flex; flex-direction: column; gap: 5px; }
+    .field-group label { font-size: 10.5px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em; }
+    .field-group input[type=text], .field-group input[type=number], .field-group select, .field-group textarea {
+        width: 100%; padding: 7px 9px; font-size: 12.5px; border-radius: 6px; border: 1px solid #334155;
+        background: #0f172a; color: #e2e8f0; font-family: inherit;
+    }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+    button {
+        cursor: pointer; border: none; border-radius: 7px; padding: 8px 12px; font-size: 12.5px;
+        font-weight: 600; font-family: inherit; background: #334155; color: #e2e8f0;
+    }
+    button:hover { background: #475569; }
+    button.primary { background: #2563eb; color: #fff; }
+    button.primary:hover { background: #1d4ed8; }
+    button.danger { background: #7f1d1d; color: #fecaca; }
+    button.danger:hover { background: #991b1b; }
+    hr { border: none; border-top: 1px solid #334155; margin: 2px 0; }
+    #fieldList { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+    .field-row {
+        display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 6px;
+        background: #0f172a; font-size: 11.5px; cursor: pointer; border: 1px solid transparent;
+    }
+    .field-row:hover { border-color: #475569; }
+    .field-row.selected { border-color: #2563eb; background: #1e2f57; }
+    .field-row code { color: #7dd3fc; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .field-row .del { color: #f87171; font-weight: 700; padding: 0 4px; }
+    textarea.code { font-family: ui-monospace, Consolas, monospace; font-size: 11px; height: 160px; resize: vertical; }
+    .hint { font-size: 11px; color: #64748b; line-height: 1.5; }
+    .zoom-val { font-size: 11px; color: #94a3b8; text-align: right; }
+
+    /* ── Zone de travail ── */
+    #stageWrap { flex: 1; overflow: auto; background: #0b1220; padding: 40px; }
+    #stage {
+        position: relative; background: #fff repeating-linear-gradient(0deg, #f8fafc 0 1px, transparent 1px 100%);
+        box-shadow: 0 0 0 1px #334155, 0 20px 60px rgba(0,0,0,.5); margin: 0 auto;
+        background-size: 100% var(--px-per-mm-10);
+    }
+    #stageImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; user-select: none; }
+    .grid-overlay { position: absolute; inset: 0; pointer-events: none; opacity: .35; }
+    .fbox {
+        position: absolute; border: 1.5px dashed #dc2626; background: rgba(220,38,38,.12);
+        cursor: move; min-width: 8px; min-height: 8px; display: flex; align-items: flex-start;
+    }
+    .fbox.selected { border-color: #2563eb; background: rgba(37,99,235,.18); z-index: 5; }
+    .fbox .tag {
+        position: absolute; top: -16px; left: -1.5px; background: #dc2626; color: #fff; font-size: 9px;
+        font-weight: 700; padding: 1px 4px; border-radius: 3px 3px 0 0; white-space: nowrap; font-family: monospace;
+    }
+    .fbox.selected .tag { background: #2563eb; }
+    .fbox .handle {
+        position: absolute; right: -4px; top: 0; bottom: 0; width: 8px; cursor: ew-resize;
+    }
+    #dropHint {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        color: #94a3b8; font-size: 14px; text-align: center; padding: 40px; pointer-events: none;
+    }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h1>Calibreur souche NSIA<span>Positionner les champs (mm) par-dessus le scan/photo de la souche pré-imprimée</span></h1>
+
+    <div class="field-group">
+        <label>1. Image de référence (scan / export PDF en PNG-JPG)</label>
+        <input type="file" id="imgInput" accept="image/*">
+    </div>
+
+    <div class="row">
+        <div class="field-group">
+            <label>Largeur image (mm)</label>
+            <input type="number" id="pageW" value="210" step="0.1">
+        </div>
+        <div class="field-group">
+            <label>Hauteur image (mm)</label>
+            <input type="number" id="pageH" value="297" step="0.1">
+        </div>
+    </div>
+
+    <div class="field-group">
+        <label>Zoom</label>
+        <input type="range" id="zoom" min="1.5" max="6" step="0.1" value="3">
+        <div class="zoom-val" id="zoomVal">3.0 px/mm</div>
+    </div>
+
+    <hr>
+
+    <div class="field-group">
+        <label>2. template_id (clé dans certificate_layouts.php)</label>
+        <input type="text" id="templateId" value="togo">
+    </div>
+
+    <div class="field-group">
+        <label>3. Ajouter un champ</label>
+        <div class="row">
+            <select id="fieldKey"></select>
+            <button class="primary" id="addFieldBtn" style="flex:0 0 auto;">+ Ajouter</button>
+        </div>
+        <p class="hint">Le champ apparaît au centre de la page — glissez-le à l'emplacement exact, tirez le bord droit pour régler la largeur.</p>
+    </div>
+
+    <div class="field-group">
+        <label>Champs placés (<span id="fieldCount">0</span>)</label>
+        <div id="fieldList"></div>
+    </div>
+
+    <div id="propsPanel" style="display:none;" class="field-group">
+        <hr>
+        <label>Propriétés — <code id="propsKey"></code></label>
+        <div class="row">
+            <div class="field-group"><label>Top (mm)</label><input type="number" id="propTop" step="0.1"></div>
+            <div class="field-group"><label>Left (mm)</label><input type="number" id="propLeft" step="0.1"></div>
+        </div>
+        <div class="row">
+            <div class="field-group"><label>Width (mm)</label><input type="number" id="propWidth" step="0.1"></div>
+            <div class="field-group"><label>Font (pt)</label><input type="number" id="propFontSize" step="0.5" value="9"></div>
+        </div>
+        <div class="row">
+            <div class="field-group">
+                <label>Alignement</label>
+                <select id="propAlign"><option value="left">Gauche</option><option value="center">Centre</option><option value="right">Droite</option></select>
+            </div>
+            <div class="field-group">
+                <label>Gras</label>
+                <select id="propBold"><option value="0">Non</option><option value="1">Oui</option></select>
+            </div>
+        </div>
+        <button class="danger" id="deleteFieldBtn">Supprimer ce champ</button>
+    </div>
+
+    <hr>
+
+    <div class="field-group">
+        <label>4. Export</label>
+        <div class="row">
+            <button id="copyJsonBtn">Copier JSON</button>
+            <button class="primary" id="copyPhpBtn">Copier PHP</button>
+        </div>
+        <textarea class="code" id="codeOut" readonly></textarea>
+        <p class="hint">
+            <strong>PHP</strong> → coller dans <code>config/certificate_layouts.php</code>, sous la clé <code id="hintTemplateId">togo</code>.<br>
+            <strong>JSON</strong> → compatible avec l'éditeur admin (<code>/admin/certificate-print-templates</code>) et l'ancien format <code>FieldPosition</code> React.
+        </p>
+    </div>
+
+    <div class="field-group">
+        <label>Importer un JSON existant</label>
+        <textarea class="code" id="importIn" placeholder='[{"key":"policy_number","top":58.8,"left":155.6,"width":47.1}, ...]' style="height:70px;"></textarea>
+        <button id="importBtn">Charger dans le calibreur</button>
+    </div>
+</div>
+
+<div id="stageWrap">
+    <div id="stage">
+        <img id="stageImg" style="display:none;">
+        <div id="dropHint">Chargez une image de la souche (scan ou capture du PDF) pour commencer,<br>ou importez un JSON existant ci-contre pour visualiser/ajuster un calibrage déjà fait.</div>
+        <svg class="grid-overlay" id="gridSvg"></svg>
+    </div>
+</div>
+
+<script>
+(function () {
+    const FIELD_KEYS = [
+        'certificate_number','policy_number','issue_place','issue_date',
+        'insured_name','insured_address','insured_name_and_address','insured_ref',
+        'voyage_date','voyage_from','voyage_to','voyage_via',
+        'transport_air','flight_number','transport_sea','vessel_name','transport_road','voyage_mode',
+        'marks','package_numbers','package_count','weight','nature','packaging',
+        'insured_value','insured_value_letters','guarantee_mode',
+        'rate_ro','amount_ro','rate_rg','amount_rg','rate_surprime','amount_surprime',
+        'rate_divers','amount_divers','rate_accessoires','amount_accessoires','rate_taxe','amount_taxe',
+        'rate_prime_nette','amount_prime_nette','prime_total','currency_code','issued_by',
+    ];
+
+    const state = { fields: [], selectedId: null, pxPerMm: 3, pageW: 210, pageH: 297, seq: 1 };
+
+    const stage      = document.getElementById('stage');
+    const stageImg    = document.getElementById('stageImg');
+    const dropHint     = document.getElementById('dropHint');
+    const fieldKeySel  = document.getElementById('fieldKey');
+    const fieldListEl  = document.getElementById('fieldList');
+    const fieldCountEl = document.getElementById('fieldCount');
+    const propsPanel   = document.getElementById('propsPanel');
+    const codeOut       = document.getElementById('codeOut');
+    const templateIdInp = document.getElementById('templateId');
+    const hintTemplateId = document.getElementById('hintTemplateId');
+
+    FIELD_KEYS.forEach(k => {
+        const opt = document.createElement('option');
+        opt.value = k; opt.textContent = k;
+        fieldKeySel.appendChild(opt);
+    });
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__'; customOpt.textContent = '(clé personnalisée…)';
+    fieldKeySel.appendChild(customOpt);
+
+    function mmToPx(mm) { return mm * state.pxPerMm; }
+    function pxToMm(px)  { return px / state.pxPerMm; }
+
+    function resizeStage() {
+        stage.style.width  = mmToPx(state.pageW) + 'px';
+        stage.style.height = mmToPx(state.pageH) + 'px';
+        renderGrid();
+        state.fields.forEach(renderBox);
+    }
+
+    function renderGrid() {
+        const svg = document.getElementById('gridSvg');
+        svg.setAttribute('width', mmToPx(state.pageW));
+        svg.setAttribute('height', mmToPx(state.pageH));
+        let html = '';
+        for (let x = 0; x <= state.pageW; x += 10) {
+            const major = x % 50 === 0;
+            html += `<line x1="${mmToPx(x)}" y1="0" x2="${mmToPx(x)}" y2="${mmToPx(state.pageH)}" stroke="${major ? '#1d4ed8' : '#93c5fd'}" stroke-width="${major ? 1 : 0.5}"/>`;
+        }
+        for (let y = 0; y <= state.pageH; y += 10) {
+            const major = y % 50 === 0;
+            html += `<line x1="0" y1="${mmToPx(y)}" x2="${mmToPx(state.pageW)}" y2="${mmToPx(y)}" stroke="${major ? '#1d4ed8' : '#93c5fd'}" stroke-width="${major ? 1 : 0.5}"/>`;
+        }
+        svg.innerHTML = html;
+    }
+
+    // ── Champs ──
+    function addField(key, top, left) {
+        const f = {
+            id: state.seq++, key, top: round1(top), left: round1(left),
+            width: 40, fontSize: 9, align: 'left', bold: false,
+        };
+        state.fields.push(f);
+        renderBox(f);
+        selectField(f.id);
+        renderList();
+        renderCode();
+        return f;
+    }
+
+    function round1(n) { return Math.round(n * 10) / 10; }
+
+    function renderBox(f) {
+        let el = document.getElementById('box-' + f.id);
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'fbox';
+            el.id = 'box-' + f.id;
+            el.innerHTML = `<span class="tag"></span><span class="handle"></span>`;
+            el.addEventListener('mousedown', e => startDrag(e, f.id));
+            el.querySelector('.handle').addEventListener('mousedown', e => { e.stopPropagation(); startResize(e, f.id); });
+            stage.appendChild(el);
+        }
+        el.querySelector('.tag').textContent = f.key;
+        el.style.top    = mmToPx(f.top) + 'px';
+        el.style.left   = mmToPx(f.left) + 'px';
+        el.style.width  = mmToPx(f.width) + 'px';
+        el.style.height = mmToPx(f.fontSize / 2.3) + 'px';
+        el.classList.toggle('selected', f.id === state.selectedId);
+    }
+
+    function removeField(id) {
+        const el = document.getElementById('box-' + id);
+        if (el) el.remove();
+        state.fields = state.fields.filter(f => f.id !== id);
+        if (state.selectedId === id) selectField(null);
+        renderList();
+        renderCode();
+    }
+
+    function selectField(id) {
+        state.selectedId = id;
+        document.querySelectorAll('.fbox').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('.field-row').forEach(el => el.classList.remove('selected'));
+        const f = state.fields.find(x => x.id === id);
+        if (!f) { propsPanel.style.display = 'none'; return; }
+        document.getElementById('box-' + id)?.classList.add('selected');
+        document.getElementById('row-' + id)?.classList.add('selected');
+        propsPanel.style.display = 'flex';
+        document.getElementById('propsKey').textContent = f.key;
+        document.getElementById('propTop').value = f.top;
+        document.getElementById('propLeft').value = f.left;
+        document.getElementById('propWidth').value = f.width;
+        document.getElementById('propFontSize').value = f.fontSize;
+        document.getElementById('propAlign').value = f.align;
+        document.getElementById('propBold').value = f.bold ? '1' : '0';
+    }
+
+    function renderList() {
+        fieldCountEl.textContent = state.fields.length;
+        fieldListEl.innerHTML = '';
+        state.fields.forEach(f => {
+            const row = document.createElement('div');
+            row.className = 'field-row';
+            row.id = 'row-' + f.id;
+            row.innerHTML = `<code>${f.key}</code><span class="del" title="Supprimer">✕</span>`;
+            row.addEventListener('click', e => {
+                if (e.target.classList.contains('del')) { removeField(f.id); return; }
+                selectField(f.id);
+            });
+            fieldListEl.appendChild(row);
+        });
+    }
+
+    // ── Propriétés (édition manuelle) ──
+    ['propTop', 'propLeft', 'propWidth', 'propFontSize', 'propAlign', 'propBold'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            const f = state.fields.find(x => x.id === state.selectedId);
+            if (!f) return;
+            f.top      = parseFloat(document.getElementById('propTop').value) || 0;
+            f.left     = parseFloat(document.getElementById('propLeft').value) || 0;
+            f.width    = parseFloat(document.getElementById('propWidth').value) || 1;
+            f.fontSize = parseFloat(document.getElementById('propFontSize').value) || 9;
+            f.align    = document.getElementById('propAlign').value;
+            f.bold     = document.getElementById('propBold').value === '1';
+            renderBox(f);
+            renderCode();
+        });
+    });
+    document.getElementById('deleteFieldBtn').addEventListener('click', () => {
+        if (state.selectedId != null) removeField(state.selectedId);
+    });
+
+    // ── Drag / resize ──
+    let drag = null;
+    function startDrag(e, id) {
+        e.preventDefault();
+        selectField(id);
+        const f = state.fields.find(x => x.id === id);
+        drag = { id, mode: 'move', startX: e.clientX, startY: e.clientY, origTop: f.top, origLeft: f.left };
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+    }
+    function startResize(e, id) {
+        e.preventDefault();
+        selectField(id);
+        const f = state.fields.find(x => x.id === id);
+        drag = { id, mode: 'resize', startX: e.clientX, origWidth: f.width };
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+    }
+    function onDrag(e) {
+        if (!drag) return;
+        const f = state.fields.find(x => x.id === drag.id);
+        if (!f) return;
+        if (drag.mode === 'move') {
+            f.top  = round1(drag.origTop  + pxToMm(e.clientY - drag.startY));
+            f.left = round1(drag.origLeft + pxToMm(e.clientX - drag.startX));
+        } else {
+            f.width = Math.max(2, round1(drag.origWidth + pxToMm(e.clientX - drag.startX)));
+        }
+        renderBox(f);
+        if (state.selectedId === f.id) {
+            document.getElementById('propTop').value = f.top;
+            document.getElementById('propLeft').value = f.left;
+            document.getElementById('propWidth').value = f.width;
+        }
+    }
+    function endDrag() {
+        drag = null;
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', endDrag);
+        renderCode();
+    }
+
+    // Clic sur le fond de la page = désélectionner
+    stage.addEventListener('mousedown', e => {
+        if (e.target === stage) selectField(null);
+    });
+
+    // ── Ajout d'un champ ──
+    document.getElementById('addFieldBtn').addEventListener('click', () => {
+        let key = fieldKeySel.value;
+        if (key === '__custom__') {
+            key = prompt('Clé du champ (doit correspondre à buildFieldValues()) :', '');
+            if (!key) return;
+        }
+        addField(key, state.pageH / 2 - 15, state.pageW / 2 - 20);
+    });
+
+    // ── Image de référence ──
+    document.getElementById('imgInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            stageImg.src = reader.result;
+            stageImg.style.display = 'block';
+            dropHint.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // ── Dimensions / zoom ──
+    document.getElementById('pageW').addEventListener('input', e => { state.pageW = parseFloat(e.target.value) || 210; resizeStage(); });
+    document.getElementById('pageH').addEventListener('input', e => { state.pageH = parseFloat(e.target.value) || 297; resizeStage(); });
+    document.getElementById('zoom').addEventListener('input', e => {
+        state.pxPerMm = parseFloat(e.target.value);
+        document.getElementById('zoomVal').textContent = state.pxPerMm.toFixed(1) + ' px/mm';
+        resizeStage();
+    });
+    templateIdInp.addEventListener('input', () => { hintTemplateId.textContent = templateIdInp.value || 'togo'; renderCode(); });
+
+    // ── Génération du code ──
+    function alignPhp(a)  { return a === 'center' ? 'C' : a === 'right' ? 'R' : 'L'; }
+    function alignJs(a)   { return a === 'center' ? 'center' : a === 'right' ? 'right' : 'left'; }
+
+    function toJson() {
+        return JSON.stringify(state.fields.map(f => {
+            const o = { key: f.key, top: f.top, left: f.left };
+            if (f.width) o.width = f.width;
+            if (f.fontSize !== 9) o.fontSize = f.fontSize;
+            if (f.align !== 'left') o.align = alignJs(f.align);
+            if (f.bold) o.bold = true;
+            return o;
+        }), null, 2);
+    }
+
+    function toPhp() {
+        const tid = templateIdInp.value || 'togo';
+        let out = `    '${tid}' => [\n`;
+        state.fields.forEach(f => {
+            const parts = [`'top' => ${f.top}`, `'left' => ${f.left}`];
+            if (f.width) parts.push(`'width' => ${f.width}`);
+            if (f.fontSize !== 9) parts.push(`'fontSize' => ${f.fontSize}`);
+            if (f.align !== 'left') parts.push(`'align' => '${alignPhp(f.align)}'`);
+            if (f.bold) parts.push(`'bold' => true`);
+            out += `        '${f.key}' => [${parts.join(', ')}],\n`;
+        });
+        out += `    ],`;
+        return out;
+    }
+
+    let lastFormat = 'php';
+    function renderCode() {
+        codeOut.value = lastFormat === 'php' ? toPhp() : toJson();
+    }
+    document.getElementById('copyPhpBtn').addEventListener('click', () => {
+        lastFormat = 'php'; renderCode(); codeOut.select(); document.execCommand('copy');
+    });
+    document.getElementById('copyJsonBtn').addEventListener('click', () => {
+        lastFormat = 'json'; renderCode(); codeOut.select(); document.execCommand('copy');
+    });
+
+    // ── Import JSON ──
+    document.getElementById('importBtn').addEventListener('click', () => {
+        let data;
+        try {
+            data = JSON.parse(document.getElementById('importIn').value);
+        } catch (e) {
+            alert('JSON invalide : ' + e.message);
+            return;
+        }
+        if (!Array.isArray(data)) { alert('Le JSON doit être un tableau.'); return; }
+
+        state.fields.forEach(f => document.getElementById('box-' + f.id)?.remove());
+        state.fields = [];
+        state.selectedId = null;
+        propsPanel.style.display = 'none';
+
+        data.forEach(item => {
+            const f = {
+                id: state.seq++, key: item.key, top: item.top, left: item.left,
+                width: item.width || 40, fontSize: item.fontSize || 9,
+                align: item.align || 'left', bold: !!item.bold,
+            };
+            state.fields.push(f);
+            renderBox(f);
+        });
+        renderList();
+        renderCode();
+    });
+
+    resizeStage();
+    renderCode();
+})();
+</script>
+
+</body>
+</html>

@@ -30,7 +30,6 @@ export function buildFieldValues(cert: CertificateForPrint): Record<string, stri
     // (accessoires/taxe) — cf. CertificateTemplateSeeder.
     const accessoires = row('accessoires');
     const taxe = row('taxe');
-    const primeNette = row('prime_nette');
 
     return {
         certificate_number: cert.certificate_number ?? '',
@@ -39,6 +38,10 @@ export function buildFieldValues(cert: CertificateForPrint): Record<string, stri
         issue_date: fmtDate(cert.issued_at ?? cert.created_at),
         insured_name: cert.insured_name ?? '',
         insured_address: contract?.insured_address ?? '',
+        // Combiné pour les souches dont la case ASSURE n'offre qu'une
+        // seule ligne libre (ex. Togo) — nom et adresse sur la même
+        // ligne plutôt que deux champs superposés.
+        insured_name_and_address: [cert.insured_name, contract?.insured_address].filter(Boolean).join(' — '),
         insured_ref: cert.insured_ref ?? '',
         voyage_date: fmtDate(cert.voyage_date),
         voyage_from: cert.voyage_from ?? '',
@@ -65,7 +68,11 @@ export function buildFieldValues(cert: CertificateForPrint): Record<string, stri
         rate_divers: divers.rate, amount_divers: divers.amount,
         rate_accessoires: accessoires.rate, amount_accessoires: accessoires.amount,
         rate_taxe: taxe.rate, amount_taxe: taxe.amount,
-        rate_prime_nette: primeNette.rate, amount_prime_nette: primeNette.amount,
+        // prime_nette est une colonne propre du certificat (somme
+        // RO+RG+Divers+Surprime déjà calculée), PAS une ligne de
+        // prime_breakdown — contrairement aux autres montants ci-dessus.
+        rate_prime_nette: '',
+        amount_prime_nette: fmt(cert.prime_nette, cert.currency_code),
         prime_total: fmt(cert.prime_total, cert.currency_code),
         currency_code: cert.currency_code ?? '',
         issued_by: cert.issued_by ? `${cert.issued_by.first_name} ${cert.issued_by.last_name}` : '',

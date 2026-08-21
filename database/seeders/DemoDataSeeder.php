@@ -19,7 +19,9 @@ use App\Models\TransportMode;
 use App\Models\User;
 use App\Models\UserRoleGrant;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Seeder;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 /**
  * ============================================================
@@ -93,6 +95,12 @@ class DemoDataSeeder extends Seeder
 
     private array $transportTypes = ['SEA', 'AIR', 'ROAD', 'MULTIMODAL', 'RIVER'];
     private array $voyageModes    = ['CONTAINER', 'GROUPAGE', 'CONVENTIONNEL', 'BOUT_EN_BOUT'];
+
+    // Noms de navires / codes compagnie aérienne — pour peupler
+    // vessel_name (SEA/RIVER) et flight_number (AIR) sur une partie des
+    // certificats démo (auparavant toujours NULL, cf. voyage_via ci-dessous).
+    private array $vesselNames  = ['MV NSIA STAR', 'MSC ABIDJAN', 'CMA CGM TOGO', 'MV AFRICA TRADER', 'MAERSK LOMÉ'];
+    private array $airlineCodes = ['AF', 'ET', 'RAM', 'KQ', 'TK'];
 
     private int $escaladeCertSeq = 900000;
 
@@ -392,6 +400,26 @@ class DemoDataSeeder extends Seeder
             $fromCity = $this->countries[$fromCountry][array_rand($this->countries[$fromCountry])];
             $toCity   = $this->countries[$toCountry][array_rand($this->countries[$toCountry])];
 
+            // ~35% des certificats ont un point de transit ; le pays de
+            // transit est distinct des pays de départ/arrivée.
+            $viaCountry = null;
+            if (rand(1, 100) <= 35) {
+                $viaCountry = $countriesKeys[array_rand($countriesKeys)];
+                while (in_array($viaCountry, [$fromCountry, $toCountry], true)) {
+                    $viaCountry = $countriesKeys[array_rand($countriesKeys)];
+                }
+            }
+            $viaCity = $viaCountry ? $this->countries[$viaCountry][array_rand($this->countries[$viaCountry])] : null;
+
+            $transportType = $this->transportTypes[array_rand($this->transportTypes)];
+            // Navire renseigné ~70% du temps pour SEA/RIVER, vol ~70% du
+            // temps pour AIR — le reste volontairement vide (données réelles
+            // parfois incomplètes).
+            $vesselName   = in_array($transportType, ['SEA', 'RIVER'], true) && rand(1, 100) <= 70
+                ? $this->vesselNames[array_rand($this->vesselNames)] : null;
+            $flightNumber = $transportType === 'AIR' && rand(1, 100) <= 70
+                ? $this->airlineCodes[array_rand($this->airlineCodes)] . ' ' . rand(100, 999) : null;
+
             // Valeur du certificat calée sur le "plein" (plafond par
             // certificat) du contrat — certains proches/dépassant le seuil
             // d'escalade configuré.
@@ -424,10 +452,12 @@ class DemoDataSeeder extends Seeder
                 'voyage_date'      => $voyageDate,
                 'voyage_from'      => "{$fromCity}, {$fromCountry}",
                 'voyage_to'        => "{$toCity}, {$toCountry}",
-                'voyage_via'       => null,
+                'voyage_via'       => $viaCity ? "{$viaCity}, {$viaCountry}" : null,
                 'origin_country_code'      => $this->countryIsoCodes[$fromCountry] ?? null,
                 'destination_country_code' => $this->countryIsoCodes[$toCountry] ?? null,
-                'transport_type'   => $this->transportTypes[array_rand($this->transportTypes)],
+                'transport_type'   => $transportType,
+                'vessel_name'      => $vesselName,
+                'flight_number'    => $flightNumber,
                 'voyage_mode'      => $this->voyageModes[array_rand($this->voyageModes)],
                 'expedition_items' => [[
                     'marks'          => 'NSIA-' . rand(100, 999),
@@ -865,6 +895,8 @@ class DemoDataSeeder extends Seeder
         ];
 
         foreach ($samples as $s) {
+            $path = 'guce-certificates/demo/' . Str::uuid() . '.pdf';
+
             GuceCertificate::firstOrCreate(
                 ['guce_reference' => $s['ref']],
                 [
@@ -880,12 +912,26 @@ class DemoDataSeeder extends Seeder
                     'currency'           => 'XOF',
                     'net_premium'        => round($s['value'] * 0.004, 2),
                     'total_premium'      => round($s['value'] * 0.005, 2),
-                    'file_path'          => 'guce-certificates/demo/' . Str::uuid() . '.pdf',
+                    'file_path'          => $path,
                     'file_original_name' => 'certificat-guce-demo.pdf',
                     'file_mime_type'     => 'application/pdf',
-                    'notes'              => 'Certificat de démonstration — import GUCE (aucun fichier réel joint).',
+                    'notes'              => 'Certificat de démonstration — import GUCE.',
                 ]
             );
+
+            // Un vrai fichier est écrit sur le disque pour que le bouton
+            // "Télécharger" fonctionne réellement en démo — sans ça,
+            // file_path pointe vers un fichier qui n'a jamais existé et le
+            // téléchargement échoue systématiquement (404).
+            if (! Storage::disk('private')->exists($path)) {
+                $placeholder = Pdf::loadHTML(
+                    '<h2>Certificat GUCE — ' . e($s['ref']) . '</h2>'
+                    . '<p>Document de démonstration généré automatiquement — aucun certificat officiel réel.</p>'
+                    . '<p>Assuré : ' . e($s['name']) . '</p>'
+                )->output();
+
+                Storage::disk('private')->put($path, $placeholder);
+            }
         }
     }
 

@@ -14,6 +14,10 @@ use Illuminate\Database\Seeder;
  *   - NSIA Gabon    (Ordre d'assurance, XAF)
  *   - NSIA Guinée   (Certificat d'assurance bilingue, GNF)
  *   - NSIA Togo     (Ordre d'assurance, XOF)
+ *   - NSIA Bénin    (Certificat d'assurance bilingue, XOF)
+ *
+ * Données reprises directement des souches officielles NSIA
+ * scannées par filiale (adresse, téléphone, RCCM, capital…).
  *
  * Usage : php artisan db:seed --class=CertificateTemplateSeeder
  * ============================================================
@@ -25,6 +29,7 @@ class CertificateTemplateSeeder extends Seeder
         $this->seedGabon();
         $this->seedGuinee();
         $this->seedTogo();
+        $this->seedBenin();
 
         $this->command->info('✅ Modèles de certificats chargés.');
     }
@@ -177,5 +182,53 @@ class CertificateTemplateSeeder extends Seeder
         );
 
         $this->command->info('  ✅ Togo OK');
+    }
+
+    // ── NSIA Bénin ───────────────────────────────────────────
+    private function seedBenin(): void
+    {
+        $tenant = Tenant::where('code', 'BJ')->first();
+        if (! $tenant) {
+            $this->command->warn('⚠ Filiale BJ (Bénin) introuvable — template ignoré.');
+            return;
+        }
+
+        CertificateTemplate::updateOrCreate(
+            ['tenant_id' => $tenant->id],
+            [
+                'name'             => 'Certificat d\'assurance NSIA Bénin',
+                'code'             => 'BJ',
+                'type'             => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
+                'company_name'     => 'NSIA Assurances',
+                'company_address'  => '1066 Boulevard Saint Michel - Immeuble NSIA Bénin Face Hall des Arts - 08 BP 0258 Tri Postal - Cotonou (Bénin)',
+                'company_phone'    => '(229) 21 36 55 00 / 21 31 33 69 - Fax: (229) 21 31 35 17',
+                'company_email'    => 'nsiabenin@groupensia.com',
+                'legal_framework'  => 'Entreprise régie par le code des Assurances',
+                'currency_code'    => 'XOF',
+                'city'             => 'COTONOU',
+                'number_prefix'    => 'N°',
+                'number_padding'   => 7,
+                'last_number'      => 32205,
+                'is_bilingual'     => true,
+                'has_container_options' => false,
+                'has_flight_number'     => false,
+                'has_vessel_name'       => true,
+                'has_currency_rate'     => false,
+                'prime_breakdown_lines' => [
+                    ['key' => 'ro',            'label' => 'R.O',          'label_en' => 'O.R'],
+                    ['key' => 'rg',            'label' => 'R.G',          'label_en' => 'W.R'],
+                    ['key' => 'divers',        'label' => 'Divers',       'label_en' => 'Miscellaneous'],
+                    ['key' => 'surprime',      'label' => 'Surprime',     'label_en' => 'Surprime'],
+                    ['key' => 'prime_nette',   'label' => 'Prime Nette',  'label_en' => 'Net Premium'],
+                    ['key' => 'accessoires',   'label' => 'Accessoires',  'label_en' => 'Accessories'],
+                    ['key' => 'taxe',          'label' => 'Taxe',         'label_en' => 'Tax'],
+                    ['key' => 'prime_totale',  'label' => 'Prime Total',  'label_en' => 'Total Premium'],
+                ],
+                'footer_text'   => 'Toutes indemnités pour pertes ou avaries seront payées, dans les conditions prévues à l\'article 27 des Conditions Générales entre les mains du porteur de l\'original du certificat d\'assurance et des pièces justificatives de la réclamation.',
+                'is_active'     => true,
+            ]
+        );
+
+        $this->command->info('  ✅ Bénin OK');
     }
 }

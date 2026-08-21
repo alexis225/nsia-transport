@@ -7,6 +7,7 @@ import TemplateGuineeConakry from './print-templates/guinee-conakry';
 import { PRINT_TEMPLATES } from './print-templates/registry';
 import TemplateSenegal       from './print-templates/senegal';
 import TemplateTogo          from './print-templates/togo';
+import type { FieldPosition } from './print-templates/overlay-types';
 import type { CertificateForPrint } from './print-templates/types';
 // ── Ajouter les imports des nouveaux templates ici ──
 
@@ -14,10 +15,13 @@ interface Props {
     certificate: CertificateForPrint;
     templateId: string;
     calibrate?: boolean;
+    // Positions mm surchargées depuis l'admin (cf. /admin/certificate-print-templates) —
+    // null/absent = le composant du pays garde ses coordonnées codées en dur.
+    positionsOverride?: FieldPosition[] | null;
 }
 
 /* Registre des composants — ajouter ici chaque nouveau template */
-const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<{ certificate: CertificateForPrint; calibrate?: boolean }>> = {
+const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<{ certificate: CertificateForPrint; calibrate?: boolean; positionsOverride?: FieldPosition[] | null }>> = {
     'guinee-conakry': TemplateGuineeConakry,
     'gabon':          TemplateGabon,
     'togo':           TemplateTogo,
@@ -27,7 +31,7 @@ const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<{ certificate: Cer
     // ── Enregistrer ici les nouveaux templates ──
 };
 
-export default function CertificatePrint({ certificate: cert, templateId, calibrate = false }: Props) {
+export default function CertificatePrint({ certificate: cert, templateId, calibrate = false, positionsOverride = null }: Props) {
     const TemplateComponent = TEMPLATE_COMPONENTS[templateId];
     const templateMeta      = PRINT_TEMPLATES.find(t => t.id === templateId);
 
@@ -52,8 +56,8 @@ export default function CertificatePrint({ certificate: cert, templateId, calibr
                 display: 'flex', gap: 8, alignItems: 'center',
             }}>
                 {calibrate && (
-                    <span style={{ fontSize: 12, color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '6px 10px' }}>
-                        Mode calibration — grille de repère (mm) affichée, impression auto désactivée
+                    <span style={{ fontSize: 12, color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '6px 10px', maxWidth: 340 }}>
+                        Mode calibration — grille de repère (mm) affichée. Dans la boîte d'impression, vérifiez « Échelle : 100% / Taille réelle » (PAS « Ajuster à la page ») et « Marges : Aucune », sinon la grille elle-même sera faussée.
                     </span>
                 )}
                 <button onClick={() => window.print()} style={{
@@ -102,26 +106,34 @@ export default function CertificatePrint({ certificate: cert, templateId, calibr
                     line-height: 1.25;
                 }
                 .stub-field--calibrate {
-                    outline: 0.5pt dashed #dc2626;
-                    background: rgba(220,38,38,0.05);
+                    outline: 1pt dashed #dc2626;
+                    background: rgba(220,38,38,0.08);
                     min-height: 4mm;
                     min-width: 4mm;
                 }
                 .stub-field-key {
                     display: block;
-                    font-size: 5pt;
+                    font-size: 7pt;
+                    font-weight: 700;
                     color: #dc2626;
                     font-family: monospace;
+                    background: #fff;
                 }
 
-                /* Grille de calibration (mode ?calibrate=1 uniquement) */
+                /* Grille de calibration (mode ?calibrate=1 uniquement) — traits
+                   et chiffres volontairement épais/foncés pour rester lisibles
+                   après impression + photo (une grille fine à 25% d'opacité ne
+                   survit pas au papier + à une photo de test). */
                 .calibration-grid { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
                 .grid-line { position: absolute; }
-                .grid-line--v { top: 0; bottom: 0; border-left: 0.5pt solid rgba(29,78,216,0.25); }
-                .grid-line--h { left: 0; right: 0; border-top: 0.5pt solid rgba(29,78,216,0.25); }
-                .grid-line span { position: absolute; font-size: 5pt; color: #1d4ed8; background: #fff; }
+                .grid-line--v { top: 0; bottom: 0; border-left: 0.75pt solid rgba(29,78,216,0.55); }
+                .grid-line--h { left: 0; right: 0; border-top: 0.75pt solid rgba(29,78,216,0.55); }
+                .grid-line--major.grid-line--v { border-left: 1.5pt solid #1d4ed8; }
+                .grid-line--major.grid-line--h { border-top: 1.5pt solid #1d4ed8; }
+                .grid-line span { position: absolute; font-size: 6pt; color: #1d4ed8; background: #fff; padding: 0 1pt; }
+                .grid-line--major span { font-size: 8pt; font-weight: 700; }
                 .grid-line--v span { top: 0; left: 1pt; }
-                .grid-line--h span { top: -6pt; left: 1pt; }
+                .grid-line--h span { top: -7pt; left: 1pt; }
 
                 /* Filigrane brouillon */
                 .watermark {
@@ -151,7 +163,7 @@ export default function CertificatePrint({ certificate: cert, templateId, calibr
             )}
 
             {/* Rendu du template sélectionné */}
-            {TemplateComponent && <TemplateComponent certificate={cert} calibrate={calibrate}/>}
+            {TemplateComponent && <TemplateComponent certificate={cert} calibrate={calibrate} positionsOverride={positionsOverride}/>}
         </>
     );
 }

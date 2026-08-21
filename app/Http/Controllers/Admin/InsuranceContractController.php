@@ -12,10 +12,12 @@ use App\Models\Incoterm;
 use App\Models\InsuranceContract;
 use App\Models\Setting;
 use App\Models\Tenant;
+use App\Models\TenantGuaranteeRate;
 use App\Models\TransportMode;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -470,7 +472,7 @@ class InsuranceContractController extends Controller
     // ── Validation ───────────────────────────────────────────
     private function validateContract(Request $request): array
     {
-        return $request->validate([
+        $validator = Validator::make($request->all(), [
             'tenant_id'            => ['required', 'uuid', 'exists:tenants,id'],
             'broker_id'            => ['nullable', 'uuid', 'exists:brokers,id'],
             'commission_rate'      => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -522,6 +524,39 @@ class InsuranceContractController extends Controller
             'certificates_limit'   => ['nullable', 'integer', 'min:1'],
             'notes'                => ['nullable', 'string'],
         ]);
+
+        // Tarifs minimum réglementaires par filiale × garantie (taux, mais
+        // aussi accessoires — cf. TenantGuaranteeRate) : opposables dès la
+        // saisie du contrat, blocage strict en dessous du plancher.
+        $validator->after(function ($validator) use ($request) {
+            $tenantId     = $request->input('tenant_id');
+            $coverageType = $request->input('coverage_type');
+            if (! $tenantId || ! $coverageType) return;
+
+            $minimums = TenantGuaranteeRate::minimumsFor($tenantId, $coverageType);
+            if (! $minimums) return;
+
+            $premiumRate = (float) $request->input('rate_ro', 0) + (float) $request->input('rate_rg', 0);
+            if ($premiumRate < (float) $minimums->min_rate_pct) {
+                $message = sprintf(
+                    'Le taux global (R.O. + R.G. = %s%%) est inférieur au minimum réglementaire de %s%% pour la garantie %s de cette filiale.',
+                    rtrim(rtrim(number_format($premiumRate, 4, '.', ''), '0'), '.'),
+                    rtrim(rtrim(number_format((float) $minimums->min_rate_pct, 4, '.', ''), '0'), '.'),
+                    $coverageType === 'TOUS_RISQUES' ? 'Tous Risques' : ($coverageType === 'FAP_ABSOLUE' ? 'FAP Absolue' : 'FAP Sauf')
+                );
+                $validator->errors()->add('rate_ro', $message);
+            }
+
+            $accessories = $request->input('accessories_amount');
+            if ($accessories !== null && $accessories !== '' && (float) $accessories < (float) $minimums->min_accessories_amount) {
+                $validator->errors()->add('accessories_amount', sprintf(
+                    'Le montant des Accessoires est inférieur au minimum réglementaire de cette filiale (%s).',
+                    number_format((float) $minimums->min_accessories_amount, 0, ',', ' ')
+                ));
+            }
+        });
+
+        return $validator->validate();
     }
 
     // ── Audit log helper ─────────────────────────────────────

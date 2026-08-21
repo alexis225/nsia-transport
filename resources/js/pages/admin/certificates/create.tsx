@@ -438,39 +438,39 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                         <p style={{ fontSize:11, color:'#94a3b8' }}>Détermine le taux de taxe appliqué automatiquement.</p>
                                     </div>
                                 </div>
-                                {(data.transport_type === 'SEA' || !data.transport_type) && (
-                                    <div className="form-grid">
+                                <div className="form-grid">
+                                    {(data.transport_type === 'SEA' || data.transport_type === 'RIVER' || !data.transport_type) && (
                                         <div className="grid gap-2">
                                             <Label className="cc-label">Navire S/S</Label>
                                             <Input className="h-11" value={data.vessel_name ?? ''}
                                                    onChange={e => setData('vessel_name', e.target.value)}
                                                    placeholder="Nom du navire"/>
                                         </div>
+                                    )}
+                                    {data.transport_type === 'AIR' && (
                                         <div className="grid gap-2">
-                                            <Label className="cc-label">Mode</Label>
-                                            <select className="cc-select" value={data.voyage_mode ?? ''}
-                                                    onChange={e => setData('voyage_mode', e.target.value)}>
-                                                <option value="">—</option>
-                                                {(selectedC?.conditioning_types?.length ? selectedC.conditioning_types : Object.keys(CONDITIONING_LABELS)).map((code: string) => (
-                                                    <option key={code} value={code}>{CONDITIONING_LABELS[code] ?? code}</option>
-                                                ))}
-                                            </select>
-                                            {!!selectedC?.conditioning_types?.length && (
-                                                <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                                    Options limitées aux types de conditionnement définis sur le contrat.
-                                                </p>
-                                            )}
+                                            <Label className="cc-label">N° de vol</Label>
+                                            <Input className="h-11" value={data.flight_number ?? ''}
+                                                   onChange={e => setData('flight_number', e.target.value)}
+                                                   placeholder="ex: AF 123"/>
                                         </div>
-                                    </div>
-                                )}
-                                {data.transport_type === 'AIR' && (
+                                    )}
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">N° de vol</Label>
-                                        <Input className="h-11" value={data.flight_number ?? ''}
-                                               onChange={e => setData('flight_number', e.target.value)}
-                                               placeholder="ex: AF 123"/>
+                                        <Label className="cc-label">Mode</Label>
+                                        <select className="cc-select" value={data.voyage_mode ?? ''}
+                                                onChange={e => setData('voyage_mode', e.target.value)}>
+                                            <option value="">—</option>
+                                            {(selectedC?.conditioning_types?.length ? selectedC.conditioning_types : Object.keys(CONDITIONING_LABELS)).map((code: string) => (
+                                                <option key={code} value={code}>{CONDITIONING_LABELS[code] ?? code}</option>
+                                            ))}
+                                        </select>
+                                        {!!selectedC?.conditioning_types?.length && (
+                                            <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                                Options limitées aux types de conditionnement définis sur le contrat.
+                                            </p>
+                                        )}
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
 

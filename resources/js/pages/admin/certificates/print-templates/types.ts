@@ -51,6 +51,7 @@ export interface CertificateForPrint {
     guarantee_mode: string | null;
     prime_breakdown: PrimeLine[] | null;
     prime_total: string | null;
+    prime_nette: string | null;
     exchange_rate: string | null;
     issued_at: string | null;
     created_at: string;
@@ -77,7 +78,9 @@ export function fmt(n: string | number | null, currency = ''): string {
 }
 
 export function fmtRate(n: number | null): string {
-    if (!n) return '';
+    // Un taux à 0% (ex. surprime non appliquée) est une valeur réelle à
+    // afficher, pas une valeur absente — seul null/undefined l'est.
+    if (n === null || n === undefined) return '';
     return n.toFixed(4).replace(/\.?0+$/, '') + ' %';
 }
 

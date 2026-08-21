@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ApprovalWorkflowController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
 use App\Http\Controllers\Admin\CertificateController;
+use App\Http\Controllers\Admin\CertificatePrintTemplateController;
 use App\Http\Controllers\Admin\CertificateRequestController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
 use App\Http\Controllers\Admin\ContractAmendmentController;
@@ -244,6 +245,8 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
 
                 Route::get('/certificates/{certificate}',[CertificateController::class, 'show'])->middleware('permission:certificates.view')->name('admin.certificates.show');
                 Route::get('/certificates/{certificate}/print',[CertificateController::class, 'print'])->middleware('permission:certificates.view')->name('admin.certificates.print');
+                // Impression sur souche physique pré-imprimée (FPDF) — cf. CertificatePrePrintedService
+                Route::get('/certificates/{certificate}/print-on-form',[CertificateController::class, 'printOnForm'])->middleware('permission:certificates.view')->name('admin.certificates.print-on-form');
 
                 Route::delete('/certificates/{certificate}',[CertificateController::class, 'destroy'])->middleware('permission:certificates.create')->name('admin.certificates.destroy');
                 Route::post('/certificates',[CertificateController::class, 'store'])->middleware('permission:certificates.create')->name('admin.certificates.store');
@@ -393,6 +396,12 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
 
                 Route::post('/certificate-templates/{certificateTemplate}/logo',[CertificateTemplateController::class, 'updateLogo'])->name('admin.certificate-templates.logo');
                 Route::delete('/certificate-templates/{certificateTemplate}/logo',[CertificateTemplateController::class, 'removeLogo'])->name('admin.certificate-templates.logo.remove');
+
+                //Certificate print positions (carnets — coordonnées mm en JSON)
+                Route::get('/certificate-print-templates',[CertificatePrintTemplateController::class, 'index'])->name('admin.certificate-print-templates.index');
+                Route::get('/certificate-print-templates/{templateId}',[CertificatePrintTemplateController::class, 'edit'])->name('admin.certificate-print-templates.edit');
+                Route::post('/certificate-print-templates/{templateId}',[CertificatePrintTemplateController::class, 'update'])->name('admin.certificate-print-templates.update');
+                Route::delete('/certificate-print-templates/{templateId}',[CertificatePrintTemplateController::class, 'destroy'])->name('admin.certificate-print-templates.destroy');
             });
         });
     });

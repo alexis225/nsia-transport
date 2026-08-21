@@ -11,8 +11,9 @@ export const CAMEROUN_POSITIONS: FieldPosition[] = DEFAULT_FIELD_POSITIONS;
 interface Props {
     certificate: CertificateForPrint;
     calibrate?: boolean;
+    positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateCameroun({ certificate, calibrate }: Props) {
-    return <StubOverlay certificate={certificate} positions={CAMEROUN_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateCameroun({ certificate, calibrate, positionsOverride }: Props) {
+    return <StubOverlay certificate={certificate} positions={positionsOverride ?? CAMEROUN_POSITIONS} calibrate={calibrate}/>;
 }

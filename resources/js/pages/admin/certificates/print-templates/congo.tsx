@@ -11,8 +11,9 @@ export const CONGO_POSITIONS: FieldPosition[] = DEFAULT_FIELD_POSITIONS;
 interface Props {
     certificate: CertificateForPrint;
     calibrate?: boolean;
+    positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateCongo({ certificate, calibrate }: Props) {
-    return <StubOverlay certificate={certificate} positions={CONGO_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateCongo({ certificate, calibrate, positionsOverride }: Props) {
+    return <StubOverlay certificate={certificate} positions={positionsOverride ?? CONGO_POSITIONS} calibrate={calibrate}/>;
 }

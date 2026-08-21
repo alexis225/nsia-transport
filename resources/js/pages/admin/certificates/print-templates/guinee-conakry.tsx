@@ -11,8 +11,9 @@ export const GUINEE_CONAKRY_POSITIONS: FieldPosition[] = DEFAULT_FIELD_POSITIONS
 interface Props {
     certificate: CertificateForPrint;
     calibrate?: boolean;
+    positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateGuineeConakry({ certificate, calibrate }: Props) {
-    return <StubOverlay certificate={certificate} positions={GUINEE_CONAKRY_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateGuineeConakry({ certificate, calibrate, positionsOverride }: Props) {
+    return <StubOverlay certificate={certificate} positions={positionsOverride ?? GUINEE_CONAKRY_POSITIONS} calibrate={calibrate}/>;
 }

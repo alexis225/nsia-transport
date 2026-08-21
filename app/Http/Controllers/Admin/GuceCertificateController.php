@@ -23,7 +23,7 @@ class GuceCertificateController extends Controller
 
         $query = GuceCertificate::query()
             ->when(! $user->hasRole('super_admin'), fn ($q) => $q->where('tenant_id', $user->tenant_id))
-            ->with('importedBy:id,name')
+            ->with('importedBy:id,first_name,last_name')
             ->latest();
 
         if ($search = $request->input('search')) {
@@ -124,7 +124,7 @@ class GuceCertificateController extends Controller
     {
         $this->authorizeTenant($guceCertificate);
 
-        $guceCertificate->load('importedBy:id,name');
+        $guceCertificate->load('importedBy:id,first_name,last_name');
 
         return Inertia::render('admin/guce-certificates/show', [
             'certificate' => $guceCertificate,

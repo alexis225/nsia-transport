@@ -170,6 +170,8 @@ export function AppSidebar() {
             children: [
                 { title: 'Liste',   href: route('admin.certificate-templates.index') },
                 { title: 'Nouveau', href: route('admin.certificate-templates.create') },
+                { title: 'Positions des champs (JSON)', href: route('admin.certificate-print-templates.index') },
+                { title: 'Calibreur visuel (souche)', href: '/tools/calibreur_nsia_togo.html', external: true },
             ],
         }] : []),
 

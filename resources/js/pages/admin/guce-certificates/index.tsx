@@ -28,7 +28,7 @@ interface GuceCertificate {
     total_premium: string | null;
     file_original_name: string;
     created_at: string;
-    imported_by: { id: number; name: string } | null;
+    imported_by: { id: number; first_name: string; last_name: string } | null;
 }
 
 interface Paginated<T> {
@@ -176,7 +176,7 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
                                         </span>
                                     </td>
                                     <td style={{ padding: '10px 14px', color: '#64748b', fontSize: '12px' }}>
-                                        {cert.imported_by?.name ?? '—'}
+                                        {cert.imported_by ? `${cert.imported_by.first_name} ${cert.imported_by.last_name}` : '—'}
                                     </td>
                                     <td style={{ padding: '10px 14px' }}>
                                         <div style={{ display: 'flex', gap: '6px' }}>
