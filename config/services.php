@@ -92,6 +92,19 @@ return [
         ],
     ],
 
+    // Google reCAPTCHA v3 (invisible) — protège /login, /register et
+    // /forgot-password contre les robots. Clés à créer sur
+    // https://www.google.com/recaptcha/admin (type "reCAPTCHA v3").
+    // Si RECAPTCHA_SECRET_KEY est vide, la vérification est simplement
+    // ignorée (utile en dev tant que les clés ne sont pas créées) — voir
+    // App\Http\Middleware\VerifyRecaptcha.
+    'recaptcha' => [
+        'site_key'   => env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY'),
+        // Score Google entre 0 (bot certain) et 1 (humain certain).
+        'min_score'  => (float) env('RECAPTCHA_MIN_SCORE', 0.5),
+    ],
+
     // Taux de change du jour pour la "Devise cotation" des certificats
     // (conversion vers la devise locale de la filiale). API OANDA Exchange
     // Rates — https://developer.oanda.com/exchange-rates-api/. Nécessite

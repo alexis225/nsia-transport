@@ -159,7 +159,7 @@ class ContractAmendmentController extends Controller
             ->where('id', '!=', $request->user()->id)
             ->get();
 
-        Notification::notifyMany(
+        Notification::sendToMany(
             $validators,
             'AmendmentPending',
             "Avenant en attente de validation",
@@ -216,7 +216,7 @@ class ContractAmendmentController extends Controller
         // Notifier le créateur de l'avenant
         $creator = User::find($amendment->created_by);
         if ($creator) {
-            Notification::notify(
+            Notification::send(
                 $creator,
                 'AmendmentApproved',
                 "Avenant approuvé et appliqué",
@@ -253,7 +253,7 @@ class ContractAmendmentController extends Controller
 
         $creator = User::find($amendment->created_by);
         if ($creator) {
-            Notification::notify(
+            Notification::send(
                 $creator,
                 'AmendmentRejected',
                 "Avenant rejeté",

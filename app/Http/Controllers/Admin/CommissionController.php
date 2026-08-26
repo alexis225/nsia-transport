@@ -79,6 +79,8 @@ class CommissionController extends Controller
  
     public function toggleRule(Request $request, CommissionRule $rule): RedirectResponse
     {
+        $user = $request->user();
+        abort_if(! ($user->hasRole('admin_filiale') || $user->hasRole('super_admin')), 403);
         $this->authorizeTenant($rule->tenant_id);
         $rule->update(['is_active' => ! $rule->is_active]);
         return back()->with('status', $rule->is_active ? 'Règle activée.' : 'Règle désactivée.');

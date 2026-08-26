@@ -158,7 +158,17 @@ class DelegationService
             ->with(['grantee', 'grantor'])
             ->get();
 
+        $processed = 0;
+
         foreach ($expired as $grant) {
+            // Anti-doublon : sans ceci, un scheduler horaire renotifierait
+            // indéfiniment le même grant expiré à chaque exécution, faute
+            // d'un état persisté distinguant "expiré" de "révoqué" sur
+            // UserRoleGrant (voir docblock du modèle).
+            if ($grant->grantee && Notification::alreadySentToday($grant->grantee, 'DelegationExpired', $grant->id)) {
+                continue;
+            }
+
             $roleLabel = UserRoleGrant::DELEGATABLE_ROLES[$grant->role_name] ?? $grant->role_name;
 
             if ($grant->grantee) {
@@ -168,9 +178,10 @@ class DelegationService
                     "Délégation expirée : {$roleLabel}",
                     "Votre délégation du rôle {$roleLabel} a expiré automatiquement.",
                     [
-                        'icon'  => 'clock',
-                        'color' => 'warning',
-                        'url'   => route('admin.delegations.index'),
+                        'icon'      => 'clock',
+                        'color'     => 'warning',
+                        'url'       => route('admin.delegations.index'),
+                        'entity_id' => $grant->id,
                     ]
                 );
             }
@@ -183,14 +194,17 @@ class DelegationService
                     "La délégation du rôle {$roleLabel} accordée à "
                         . "{$grant->grantee?->first_name} {$grant->grantee?->last_name} a expiré.",
                     [
-                        'icon'  => 'clock',
-                        'color' => 'info',
-                        'url'   => route('admin.delegations.index'),
+                        'icon'      => 'clock',
+                        'color'     => 'info',
+                        'url'       => route('admin.delegations.index'),
+                        'entity_id' => $grant->id,
                     ]
                 );
             }
+
+            $processed++;
         }
 
-        return $expired->count();
+        return $processed;
     }
 }

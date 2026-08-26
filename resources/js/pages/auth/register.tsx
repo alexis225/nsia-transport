@@ -7,10 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+import { useRecaptchaToken } from '@/hooks/use-recaptcha-token';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
 export default function Register() {
+    const recaptchaToken = useRecaptchaToken('register');
+
     return (
         <AuthLayout
             title="Create an account"
@@ -19,6 +22,7 @@ export default function Register() {
             <Head title="Register" />
             <Form
                 {...store.form()}
+                transform={(data) => ({ ...data, 'g-recaptcha-response': recaptchaToken ?? '' })}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
                 className="flex flex-col gap-6"
@@ -88,10 +92,15 @@ export default function Register() {
                                 />
                             </div>
 
+                            {errors['g-recaptcha-response'] && (
+                                <InputError message={errors['g-recaptcha-response']} />
+                            )}
+
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
                                 tabIndex={5}
+                                disabled={processing}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}

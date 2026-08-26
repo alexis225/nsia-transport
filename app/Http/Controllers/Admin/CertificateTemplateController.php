@@ -165,6 +165,18 @@ class CertificateTemplateController extends Controller
         return back()->with('status', 'Logo mis à jour.');
     }
 
+    // ── Supprimer logo ───────────────────────────────────────
+    public function removeLogo(CertificateTemplate $certificateTemplate): RedirectResponse
+    {
+        if ($certificateTemplate->logo_path) {
+            \Storage::disk('public')->delete($certificateTemplate->logo_path);
+        }
+
+        $certificateTemplate->update(['logo_path' => null]);
+
+        return back()->with('status', 'Logo supprimé.');
+    }
+
     // ── Validation commune ───────────────────────────────────
     private function validateTemplate(Request $request, ?string $ignoreId = null): array
     {

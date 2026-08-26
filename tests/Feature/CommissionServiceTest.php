@@ -162,7 +162,7 @@ it('retourne null si aucune règle de commission applicable', function () {
     $broker = Broker::create([
         'tenant_id' => $tenant->id, 'code' => 'BRK-NR-' . Str::random(3),
         'name' => 'Broker Sans Règle', 'type' => Broker::TYPE_LOCAL,
-        'country_code' => 'CI', 'commission_rate' => 5.00, 'is_active' => true,
+        'country_code' => 'CI', 'commission_rate' => null, 'is_active' => true,
     ]);
 
     $contract = InsuranceContract::create([

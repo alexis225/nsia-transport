@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { useRecaptchaToken } from '@/hooks/use-recaptcha-token';
 
 interface LoginProps {
     status?: string;
@@ -10,6 +11,7 @@ interface LoginProps {
 export default function Login({ status, canResetPassword = true }: LoginProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [mounted, setMounted]           = useState(false);
+    const recaptchaToken = useRecaptchaToken('login');
 
     useEffect(() => setMounted(true), []);
 
@@ -17,7 +19,12 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
         email:    '',
         password: '',
         remember: false,
+        'g-recaptcha-response': '',
     });
+
+    useEffect(() => {
+        if (recaptchaToken) setData('g-recaptcha-response', recaptchaToken);
+    }, [recaptchaToken, setData]);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -448,6 +455,12 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                                     </Link>
                                 )}
                             </div>
+
+                            {errors['g-recaptcha-response'] && (
+                                <p className="field-error" style={{ marginBottom: 14 }}>
+                                    <AlertCircle size={12} /> {errors['g-recaptcha-response']}
+                                </p>
+                            )}
 
                             {/* Bouton login */}
                             <button type="submit" disabled={processing} className="btn-login">

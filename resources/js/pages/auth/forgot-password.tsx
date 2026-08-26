@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Loader2, AlertCircle, ArrowLeft, Mail } from 'lucide-react';
+import { useRecaptchaToken } from '@/hooks/use-recaptcha-token';
 
 interface ForgotPasswordProps {
     status?: string;
@@ -9,8 +10,16 @@ interface ForgotPasswordProps {
 export default function ForgotPassword({ status }: ForgotPasswordProps) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
+    const recaptchaToken = useRecaptchaToken('forgot_password');
 
-    const { data, setData, post, processing, errors } = useForm({ email: '' });
+    const { data, setData, post, processing, errors } = useForm({
+        email: '',
+        'g-recaptcha-response': '',
+    });
+
+    useEffect(() => {
+        if (recaptchaToken) setData('g-recaptcha-response', recaptchaToken);
+    }, [recaptchaToken, setData]);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -295,6 +304,12 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                                     </p>
                                 )}
                             </div>
+
+                            {errors['g-recaptcha-response'] && (
+                                <p className="field-error" style={{ marginBottom: 14 }}>
+                                    <AlertCircle size={12} /> {errors['g-recaptcha-response']}
+                                </p>
+                            )}
 
                             <button type="submit" disabled={processing} className="btn-send">
                                 {processing ? (

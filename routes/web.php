@@ -71,7 +71,7 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
 
     });
     Route::prefix('admin/taxes')->name('admin.taxes.')->middleware('module:taxes')->group(function () {
-        Route::get('/rules',                 [TaxRuleController::class, 'rules'])      ->name('rules');
+        Route::get('/rules',                 [TaxRuleController::class, 'rules'])      ->middleware('permission:referential.view')->name('rules');
         Route::post('/rules',                [TaxRuleController::class, 'storeRule'])  ->name('rules.store');
         Route::patch('/rules/{rule}/toggle', [TaxRuleController::class, 'toggleRule']) ->name('rules.toggle');
     });
@@ -127,9 +127,9 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
         Route::patch('/{grant}/revoke',[DelegationController::class, 'revoke'])->name('revoke');
     });
     // Page tableau de bord plafonds multi-contrats
-    Route::get('/contracts/limits',[ContractLimitController::class, 'index'])->middleware(['permission:contracts.view', 'module:contracts'])->name('admin.contracts.limits');
+    Route::get('/admin/contracts/limits',[ContractLimitController::class, 'index'])->middleware(['permission:contracts.view', 'module:contracts'])->name('admin.contracts.limits');
     // API polling — état plafond d'un contrat
-    Route::get('/contracts/{contract}/limit-status',[ContractLimitController::class, 'status'])->middleware(['permission:contracts.view', 'module:contracts'])->name('admin.contracts.limit-status');
+    Route::get('/admin/contracts/{contract}/limit-status',[ContractLimitController::class, 'status'])->middleware(['permission:contracts.view', 'module:contracts'])->name('admin.contracts.limit-status');
     // Dashboard
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/dashboard/pending',[DashboardController::class, 'pending'])->middleware('permission:certificates.validate')->name('admin.dashboard.pending');

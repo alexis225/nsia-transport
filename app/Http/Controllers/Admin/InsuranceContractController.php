@@ -242,6 +242,7 @@ class InsuranceContractController extends Controller
     public function update(Request $request, InsuranceContract $contract): RedirectResponse
     {
         $this->authorizeTenant($contract);
+        abort_if($contract->status === InsuranceContract::STATUS_ACTIVE, 403, 'Un contrat actif ne peut pas être modifié directement.');
         $validated = $this->validateContract($request);
         $commissionRate = $validated['commission_rate'] ?? null;
         unset($validated['commission_rate']);

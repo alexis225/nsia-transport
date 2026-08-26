@@ -101,7 +101,11 @@ return [
     |
     */
 
-    'middleware' => ['web'],
+    // App\Http\Middleware\VerifyRecaptcha s'applique à toutes les routes
+    // Fortify mais s'auto-limite à login.store/register.store/password.email
+    // (voir le middleware) — pas de risque d'affecter 2FA, vérification
+    // email, etc.
+    'middleware' => ['web', \App\Http\Middleware\VerifyRecaptcha::class],
 
     /*
     |--------------------------------------------------------------------------

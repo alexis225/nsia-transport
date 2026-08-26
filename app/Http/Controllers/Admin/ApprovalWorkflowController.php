@@ -70,22 +70,22 @@ class ApprovalWorkflowController extends Controller
     }
 
     // ── Détail d'une escalade ─────────────────────────────────
-    public function show(ApprovalRequest $approvalRequest): Response
+    public function show(ApprovalRequest $workflow): Response
     {
-        $this->authorizeApprover($approvalRequest);
+        $this->authorizeApprover($workflow);
 
-        $approvalRequest->load([
+        $workflow->load([
             'workflowConfig',
             'requestedBy:id,first_name,last_name',
             'resolvedBy:id,first_name,last_name',
             'decisions.approver:id,first_name,last_name',
         ]);
 
-        $certificate = $approvalRequest->certificate();
+        $certificate = $workflow->certificate();
         $contract    = $certificate?->contract()->with('tenant')->first();
 
         return Inertia::render('admin/approvals/show', [
-            'workflow'    => $this->formatRequest($approvalRequest, $certificate),
+            'workflow'    => $this->formatRequest($workflow, $certificate),
             'certificate' => $certificate ? [
                 'id'                 => $certificate->id,
                 'certificate_number' => $certificate->certificate_number,
@@ -106,24 +106,24 @@ class ApprovalWorkflowController extends Controller
                 'escalade_threshold_pct' => $contract->escalade_threshold_pct ?? 15,
             ] : null,
             'can'         => [
-                'approve' => $this->canAct(auth()->user(), $approvalRequest),
-                'reject'  => $this->canAct(auth()->user(), $approvalRequest),
+                'approve' => $this->canAct(auth()->user(), $workflow),
+                'reject'  => $this->canAct(auth()->user(), $workflow),
             ],
         ]);
     }
 
     // ── Approuver ─────────────────────────────────────────────
-    public function approve(Request $request, ApprovalRequest $approvalRequest): RedirectResponse
+    public function approve(Request $request, ApprovalRequest $workflow): RedirectResponse
     {
-        $this->authorizeApprover($approvalRequest);
-        abort_if(! $approvalRequest->isPending(), 422);
+        $this->authorizeApprover($workflow);
+        abort_if(! $workflow->isPending(), 422);
 
         $request->validate(['notes' => ['nullable', 'string', 'max:500']]);
 
-        $this->service->approve($approvalRequest, $request->user(), $request->notes);
+        $this->service->approve($workflow, $request->user(), $request->notes);
 
-        $isLast = $approvalRequest->fresh()->isLastStep()
-            || $approvalRequest->fresh()->isApproved();
+        $isLast = $workflow->fresh()->isLastStep()
+            || $workflow->fresh()->isApproved();
 
         $message = $isLast
             ? 'Approuvé — certificat émis automatiquement.'
@@ -133,14 +133,14 @@ class ApprovalWorkflowController extends Controller
     }
 
     // ── Rejeter ───────────────────────────────────────────────
-    public function reject(Request $request, ApprovalRequest $approvalRequest): RedirectResponse
+    public function reject(Request $request, ApprovalRequest $workflow): RedirectResponse
     {
-        $this->authorizeApprover($approvalRequest);
-        abort_if(! $approvalRequest->isPending(), 422);
+        $this->authorizeApprover($workflow);
+        abort_if(! $workflow->isPending(), 422);
 
         $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
-        $this->service->reject($approvalRequest, $request->user(), $request->reason);
+        $this->service->reject($workflow, $request->user(), $request->reason);
 
         return redirect()->route('admin.approvals.index')
             ->with('status', 'Escalade rejetée — certificat remis en brouillon.');
