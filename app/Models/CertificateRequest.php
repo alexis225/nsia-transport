@@ -33,6 +33,11 @@ class CertificateRequest extends Model
         'reviewed_by',
         'reviewed_at',
         'review_notes',
+        'info_requested_at',
+        'info_request_notes',
+        'completed_at',
+        'completion_notes',
+        'closed_at',
         'certificate_id',
         'guce_certificate_id',
     ];
@@ -40,18 +45,28 @@ class CertificateRequest extends Model
     protected function casts(): array
     {
         return [
-            'voyage_date'     => 'date',
-            'estimated_value' => 'decimal:2',
-            'assigned_at'     => 'datetime',
-            'reviewed_at'     => 'datetime',
+            'voyage_date'        => 'date',
+            'estimated_value'    => 'decimal:2',
+            'assigned_at'        => 'datetime',
+            'reviewed_at'        => 'datetime',
+            'info_requested_at'  => 'datetime',
+            'completed_at'       => 'datetime',
+            'closed_at'          => 'datetime',
         ];
     }
 
     // ── Constantes ───────────────────────────────────────────
-    const STATUS_PENDING    = 'PENDING';
-    const STATUS_IN_REVIEW  = 'IN_REVIEW';
-    const STATUS_APPROVED   = 'APPROVED';
-    const STATUS_REJECTED   = 'REJECTED';
+    // Workflow complet (Module 1 — rapport DTAG 14/08/2026) :
+    // PENDING → IN_REVIEW → INFO_REQUESTED → [retour IN_REVIEW] →
+    // APPROVED → FULFILLED → CLOSED · REJECTED (terminal, depuis
+    // PENDING/IN_REVIEW/INFO_REQUESTED).
+    const STATUS_PENDING        = 'PENDING';
+    const STATUS_IN_REVIEW      = 'IN_REVIEW';
+    const STATUS_INFO_REQUESTED = 'INFO_REQUESTED';
+    const STATUS_APPROVED       = 'APPROVED';
+    const STATUS_FULFILLED      = 'FULFILLED';
+    const STATUS_CLOSED         = 'CLOSED';
+    const STATUS_REJECTED       = 'REJECTED';
 
     // ── Relations ────────────────────────────────────────────
     public function tenant(): BelongsTo

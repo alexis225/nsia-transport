@@ -43,14 +43,18 @@ class CertificateRequestController extends Controller
             });
         }
 
-        // File d'attente : PENDING/IN_REVIEW en tête (plus anciennes d'abord), puis le reste
+        // File d'attente : statuts nécessitant une action staff en tête
+        // (plus anciennes d'abord), puis le reste.
         $certificateRequests = $query
             ->orderByRaw("CASE status
                 WHEN 'PENDING' THEN 0
                 WHEN 'IN_REVIEW' THEN 1
-                WHEN 'APPROVED' THEN 2
-                WHEN 'REJECTED' THEN 3
-                ELSE 4 END")
+                WHEN 'INFO_REQUESTED' THEN 2
+                WHEN 'APPROVED' THEN 3
+                WHEN 'FULFILLED' THEN 4
+                WHEN 'REJECTED' THEN 5
+                WHEN 'CLOSED' THEN 6
+                ELSE 7 END")
             ->orderBy('created_at')
             ->paginate(15)
             ->withQueryString();
@@ -59,10 +63,13 @@ class CertificateRequestController extends Controller
             'certificateRequests' => $certificateRequests,
             'filters'             => $request->only(['status', 'search']),
             'counts'              => [
-                'PENDING'    => $counts['PENDING'] ?? 0,
-                'IN_REVIEW'  => $counts['IN_REVIEW'] ?? 0,
-                'APPROVED'   => $counts['APPROVED'] ?? 0,
-                'REJECTED'   => $counts['REJECTED'] ?? 0,
+                'PENDING'        => $counts['PENDING'] ?? 0,
+                'IN_REVIEW'      => $counts['IN_REVIEW'] ?? 0,
+                'INFO_REQUESTED' => $counts['INFO_REQUESTED'] ?? 0,
+                'APPROVED'       => $counts['APPROVED'] ?? 0,
+                'FULFILLED'      => $counts['FULFILLED'] ?? 0,
+                'CLOSED'         => $counts['CLOSED'] ?? 0,
+                'REJECTED'       => $counts['REJECTED'] ?? 0,
             ],
         ]);
     }
@@ -134,12 +141,69 @@ class CertificateRequestController extends Controller
         return back()->with('success', 'Demande prise en charge.');
     }
 
-    public function approve(Request $request, CertificateRequest $certificateRequest): RedirectResponse
+    // ── Cas n°2 du rapport DTAG : compléments manquants ───────
+    // Le souscripteur précise directement les compléments nécessaires
+    // (pièces manquantes, informations incomplètes) ; le demandeur
+    // reçoit la notification, complète son dossier puis le retransmet
+    // (cf. Partner\CertificateRequestController::complete()).
+    public function requestInfo(Request $request, CertificateRequest $certificateRequest): RedirectResponse
     {
         $this->authorizeTenant($certificateRequest);
 
         abort_if(
             ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW], true),
+            422,
+            'Un complément ne peut être demandé que sur une demande en attente ou en cours d\'analyse.'
+        );
+
+        $validated = $request->validate([
+            'info_request_notes' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $certificateRequest->update([
+            'status'              => CertificateRequest::STATUS_INFO_REQUESTED,
+            'info_requested_at'   => now(),
+            'info_request_notes'  => $validated['info_request_notes'],
+        ]);
+
+        if ($certificateRequest->createdBy) {
+            Notification::send(
+                $certificateRequest->createdBy,
+                Notification::TYPE_CERT_REQUEST_INFO_REQUESTED,
+                'Complément demandé sur votre demande',
+                "Merci de compléter votre demande" . ($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '') . " : {$validated['info_request_notes']}",
+                [
+                    'icon'  => 'file-question',
+                    'color' => 'warning',
+                    'url'   => route('partner.certificate-requests.show', $certificateRequest),
+                ]
+            );
+        }
+
+        return back()->with('success', 'Complément demandé — le partenaire a été notifié.');
+    }
+
+    // ── Clôture — dernière étape du workflow (Certificat émis → Clôturée) ─
+    public function close(CertificateRequest $certificateRequest): RedirectResponse
+    {
+        $this->authorizeTenant($certificateRequest);
+
+        abort_if($certificateRequest->status !== CertificateRequest::STATUS_FULFILLED, 422, 'Seule une demande dont le certificat a été émis peut être clôturée.');
+
+        $certificateRequest->update([
+            'status'    => CertificateRequest::STATUS_CLOSED,
+            'closed_at' => now(),
+        ]);
+
+        return back()->with('success', 'Demande clôturée.');
+    }
+
+    public function approve(Request $request, CertificateRequest $certificateRequest): RedirectResponse
+    {
+        $this->authorizeTenant($certificateRequest);
+
+        abort_if(
+            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW, CertificateRequest::STATUS_INFO_REQUESTED], true),
             422,
             'Cette demande a déjà été traitée.'
         );
@@ -163,7 +227,7 @@ class CertificateRequestController extends Controller
         $this->authorizeTenant($certificateRequest);
 
         abort_if(
-            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW], true),
+            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW, CertificateRequest::STATUS_INFO_REQUESTED], true),
             422,
             'Cette demande a déjà été traitée.'
         );
@@ -215,13 +279,13 @@ class CertificateRequestController extends Controller
             $certificate = Certificate::findOrFail($validated['certificate_id']);
             abort_if($certificate->tenant_id !== $certificateRequest->tenant_id, 403);
 
-            $certificateRequest->update(['certificate_id' => $certificate->id]);
+            $certificateRequest->update(['certificate_id' => $certificate->id, 'status' => CertificateRequest::STATUS_FULFILLED]);
             $certificateNumber = $certificate->certificate_number;
         } else {
             $guceCertificate = GuceCertificate::findOrFail($validated['guce_certificate_id']);
             abort_if($guceCertificate->tenant_id !== $certificateRequest->tenant_id, 403);
 
-            $certificateRequest->update(['guce_certificate_id' => $guceCertificate->id]);
+            $certificateRequest->update(['guce_certificate_id' => $guceCertificate->id, 'status' => CertificateRequest::STATUS_FULFILLED]);
             $certificateNumber = $guceCertificate->certificate_number;
         }
 

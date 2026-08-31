@@ -7,9 +7,11 @@ use App\Models\ApprovalWorkflowConfig;
 use App\Models\Broker;
 use App\Models\Certificate;
 use App\Models\CertificateRequest;
+use App\Models\Coinsurer;
 use App\Models\CommissionRule;
 use App\Models\CommissionTransaction;
 use App\Models\ContractAmendment;
+use App\Models\Expert;
 use App\Models\GuceCertificate;
 use App\Models\InsuranceContract;
 use App\Models\Notification;
@@ -30,8 +32,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
  * Génère un jeu de données réaliste pour démontrer TOUTES
  * les fonctionnalités de NSIA Transport :
  *
- *   - Contrats actifs avec valeurs variées (plein / plafond NN300)
- *   - Certificats : DRAFT, SUBMITTED, ISSUED, CANCELLED, DUPLICATA
+ *   - Coassureurs (référentiel filiale) + association par contrat avec
+ *     part de coassurance propre (contract_coinsurers.share_rate)
+ *   - Experts (référentiel filiale) associés à certains contrats
+ *   - Contrats actifs avec valeurs variées (plein / plafond NN300),
+ *     conditionnement (Conteneur/Conventionnel/Vrac) et bloc Souscripteur
+ *   - Certificats : DRAFT, SUBMITTED, ISSUED, CANCELLED, REPLACED, DUPLICATA
  *   - Avenants sur contrats
  *   - Escalades NN300 EN COURS — les 3 types de déclencheur :
  *       dépassement du plein, plafond cumulé dépassé, nombre de
@@ -102,8 +108,6 @@ class DemoDataSeeder extends Seeder
     private array $vesselNames  = ['MV NSIA STAR', 'MSC ABIDJAN', 'CMA CGM TOGO', 'MV AFRICA TRADER', 'MAERSK LOMÉ'];
     private array $airlineCodes = ['AF', 'ET', 'RAM', 'KQ', 'TK'];
 
-    private int $escaladeCertSeq = 900000;
-
     public function run(): void
     {
         $this->command->info('🚀 Génération des données de démonstration...');
@@ -137,37 +141,46 @@ class DemoDataSeeder extends Seeder
         // ── 1. Courtiers (inclut le courtier de démo relié à un login) ──
         $brokers = $this->seedBrokers($tenant, $courtierUser);
 
-        // ── 2. Contrats (10 par filiale) ───────────────────────
-        $contracts = $this->seedContracts($tenant, $brokers, $souscripteur);
+        // ── 2. Coassureurs (référentiel filiale — pas de taux ici) ──────
+        $coinsurers = $this->seedCoinsurers($tenant);
 
-        // ── 3. Avenants sur 30% des contrats ───────────────────
+        // ── 3. Experts (référentiel filiale) ────────────────────────────
+        $experts = $this->seedExperts($tenant);
+
+        // ── 4. Contrats (10 par filiale) ───────────────────────
+        $contracts = $this->seedContracts($tenant, $brokers, $souscripteur, $coinsurers, $experts);
+
+        // ── 5. Avenants sur 30% des contrats ───────────────────
         $this->seedAmendments($contracts, $souscripteur);
 
-        // ── 4. Certificats (variés : statuts, montants) ────────
+        // ── 6. Certificats (variés : statuts, montants) ────────
         $certificates = $this->seedCertificates($tenant, $contracts, $souscripteur);
 
-        // ── 5. Escalades NN300 — 3 types de déclencheur ─────────
+        // ── 7. Remplacement de certificat (statut REPLACED) ─────
+        $this->seedCertificateReplacement($tenant, $certificates, $souscripteur);
+
+        // ── 8. Escalades NN300 — 3 types de déclencheur ─────────
         $this->seedEscalades($tenant, $certificates, $contracts, $souscripteur, $admin);
 
-        // ── 6. Règles + transactions de commission ──────────────
+        // ── 9. Règles + transactions de commission ──────────────
         $this->seedCommissionRules($tenant, $brokers, $contracts, $admin);
 
-        // ── 7. Référentiel de taxes ──────────────────────────────
+        // ── 10. Référentiel de taxes ──────────────────────────────
         $this->seedTaxRules($tenant, $admin);
 
-        // ── 8. Demandes partenaires ───────────────────────────────
+        // ── 11. Demandes partenaires ───────────────────────────────
         $demoBroker = $courtierUser
             ? $brokers->first(fn ($b) => $b->user_id === $courtierUser->id)
             : null;
         $this->seedCertificateRequests($tenant, $demoBroker ?? $brokers->first(), $courtierUser, $admin, $certificates);
 
-        // ── 9. Certificats GUCE importés ─────────────────────────
+        // ── 12. Certificats GUCE importés ─────────────────────────
         $this->seedGuceCertificates($tenant, $admin);
 
-        // ── 10. Délégations ───────────────────────────────────────
+        // ── 13. Délégations ───────────────────────────────────────
         $this->seedDelegations($tenant, $users, $admin);
 
-        // ── 11. Notifications variées ─────────────────────────────
+        // ── 14. Notifications variées ─────────────────────────────
         $this->seedNotifications($users);
     }
 
@@ -211,9 +224,66 @@ class DemoDataSeeder extends Seeder
     }
 
     // ════════════════════════════════════════════════════════
-    // 2. CONTRATS
+    // 2. COASSUREURS (référentiel filiale — Renforcement)
     // ════════════════════════════════════════════════════════
-    private function seedContracts(Tenant $tenant, $brokers, ?User $subscriber): \Illuminate\Support\Collection
+    // Un coassureur est identifié sur une filiale avec simplement ses
+    // coordonnées — AUCUN taux à ce niveau, un même coassureur pouvant
+    // intervenir sur plusieurs contrats avec des parts différentes
+    // (cf. contract_coinsurers.share_rate dans seedContracts()).
+    private function seedCoinsurers(Tenant $tenant): \Illuminate\Support\Collection
+    {
+        $coinsurers = Coinsurer::where('tenant_id', $tenant->id)->get();
+        if ($coinsurers->count() >= 3) return $coinsurers;
+
+        $names = ['SUNU ASSURANCES', 'ALLIANZ AFRIQUE', 'SANLAM ASSURANCES'];
+
+        foreach ($names as $name) {
+            $coinsurer = Coinsurer::firstOrCreate(
+                ['tenant_id' => $tenant->id, 'name' => $name],
+                [
+                    'country_code' => strlen($tenant->code) === 2 ? $tenant->code : 'CI',
+                    'address'      => 'Abidjan, Plateau',
+                    'email'        => Str::slug($name) . '@coassureur-demo.com',
+                    'phone'        => '+225 07 ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99),
+                    'is_active'    => true,
+                ]
+            );
+            if (! $coinsurers->contains('id', $coinsurer->id)) $coinsurers->push($coinsurer);
+        }
+
+        return $coinsurers;
+    }
+
+    // ════════════════════════════════════════════════════════
+    // 3. EXPERTS (référentiel filiale)
+    // ════════════════════════════════════════════════════════
+    private function seedExperts(Tenant $tenant): \Illuminate\Support\Collection
+    {
+        $experts = Expert::where('tenant_id', $tenant->id)->get();
+        if ($experts->count() >= 2) return $experts;
+
+        $names = ['CABINET EXPERTISE MARITIME CI', 'AFRICA CARGO SURVEYORS'];
+
+        foreach ($names as $name) {
+            $expert = Expert::firstOrCreate(
+                ['tenant_id' => $tenant->id, 'name' => $name],
+                [
+                    'country_code' => strlen($tenant->code) === 2 ? $tenant->code : 'CI',
+                    'email'        => Str::slug($name) . '@expertise-demo.com',
+                    'phone'        => '+225 05 ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99),
+                    'is_active'    => true,
+                ]
+            );
+            if (! $experts->contains('id', $expert->id)) $experts->push($expert);
+        }
+
+        return $experts;
+    }
+
+    // ════════════════════════════════════════════════════════
+    // 4. CONTRATS
+    // ════════════════════════════════════════════════════════
+    private function seedContracts(Tenant $tenant, $brokers, ?User $subscriber, $coinsurers = null, $experts = null): \Illuminate\Support\Collection
     {
         $existing = InsuranceContract::where('tenant_id', $tenant->id)->count();
         if ($existing >= 12) {
@@ -221,6 +291,7 @@ class DemoDataSeeder extends Seeder
         }
 
         $contracts = collect();
+        $conditioningCycle = [['CONTAINER'], ['CONVENTIONNEL'], ['VRAC'], ['CONTAINER', 'CONVENTIONNEL']];
 
         for ($i = 1; $i <= 10; $i++) {
             $companyName = $this->companyNames[array_rand($this->companyNames)];
@@ -235,7 +306,7 @@ class DemoDataSeeder extends Seeder
 
             $startDate = now()->subMonths(rand(1, 6));
 
-            $contracts->push(InsuranceContract::create([
+            $contract = InsuranceContract::create([
                 'tenant_id'              => $tenant->id,
                 'broker_id'              => $brokers->isNotEmpty() ? $brokers->random()->id : null,
                 'subscriber_id'          => $subscriber?->id,
@@ -257,13 +328,32 @@ class DemoDataSeeder extends Seeder
                 'certificates_count'     => 0,
                 'escalade_threshold_pct' => $i % 5 === 0 ? 10.00 : null, // seuil custom sur 1 contrat sur 5
                 'escalade_enabled'       => true,
+                'conditioning_types'     => $conditioningCycle[($i - 1) % count($conditioningCycle)],
                 'status'                 => $i === 10 ? InsuranceContract::STATUS_EXPIRED : InsuranceContract::STATUS_ACTIVE,
                 'effective_date'         => $startDate,
                 'expiry_date'            => $startDate->copy()->addYear(),
                 'created_by'             => $subscriber?->id,
                 'updated_by'             => $subscriber?->id,
                 'created_at'             => $startDate,
-            ]));
+            ]);
+
+            // Coassureurs sur 1 contrat sur 3 — part de coassurance propre à
+            // CE contrat (un même coassureur peut avoir un taux différent
+            // sur un autre contrat, cf. Renforcement §3).
+            if ($coinsurers && $coinsurers->count() >= 2 && $i % 3 === 0) {
+                $contract->coinsurers()->attach([
+                    $coinsurers->get(0)->id => ['share_rate' => 30.00],
+                    $coinsurers->get(1)->id => ['share_rate' => 15.00],
+                ]);
+            }
+
+            // Experts sur 1 contrat sur 4, associés dès la création
+            // (Renforcement §5 — plus besoin d'attendre un sinistre).
+            if ($experts && $experts->isNotEmpty() && $i % 4 === 0) {
+                $contract->experts()->attach($experts->random()->id);
+            }
+
+            $contracts->push($contract);
         }
 
         // ── Contrat 11 — Dépassement du plafond NN300 standard (2 Mds
@@ -523,6 +613,76 @@ class DemoDataSeeder extends Seeder
         return $certificates;
     }
 
+    // ════════════════════════════════════════════════════════
+    // 4bis. REMPLACEMENT DE CERTIFICAT (statut REPLACED — Renforcement)
+    // ════════════════════════════════════════════════════════
+    // Démontre le 6ᵉ statut demandé par la DTAG : un certificat ISSUED
+    // remplacé par un nouveau, avec mention croisée (replaced_by_certificate_id
+    // / replaces), même logique que CertificateController::replace().
+    private function seedCertificateReplacement(Tenant $tenant, $certificates, ?User $creator): void
+    {
+        // Idempotence : un seul remplacement démo par filiale. Sans ce
+        // garde-fou au niveau filiale, chaque nouveau passage du seeder
+        // choisirait un autre certificat ISSUED encore éligible parmi les
+        // 8 générés par seedCertificates() et en ajouterait un de plus.
+        if (Certificate::where('tenant_id', $tenant->id)->where('status', 'REPLACED')->exists()) return;
+
+        $old = $certificates->first(fn ($c) =>
+            $c->status === 'ISSUED'
+            && $c->document_type === Certificate::DOC_TYPE_ORIGINAL
+            && ! $c->duplicate_count
+        );
+        if (! $old) return;
+
+        $newNumber = $old->certificate_number . '-R1';
+        if (Certificate::where('certificate_number', $newNumber)->exists()) return;
+
+        $new = Certificate::create([
+            'tenant_id'                 => $tenant->id,
+            'contract_id'               => $old->contract_id,
+            'document_type'             => Certificate::DOC_TYPE_ORIGINAL,
+            'certificate_number'        => $newNumber,
+            'policy_number'             => $old->policy_number,
+            'insured_name'              => $old->insured_name,
+            'insured_ref'               => $old->insured_ref,
+            'voyage_date'               => $old->voyage_date,
+            'voyage_from'               => $old->voyage_from,
+            'voyage_to'                 => $old->voyage_to,
+            'voyage_via'                => $old->voyage_via,
+            'origin_country_code'       => $old->origin_country_code,
+            'destination_country_code'  => $old->destination_country_code,
+            'transport_type'            => $old->transport_type,
+            'vessel_name'               => $old->vessel_name,
+            'flight_number'             => $old->flight_number,
+            'voyage_mode'               => $old->voyage_mode,
+            'expedition_items'          => $old->expedition_items,
+            'currency_code'             => $old->currency_code,
+            'insured_value'             => $old->insured_value,
+            'insured_value_letters'     => $old->insured_value_letters,
+            'guarantee_mode'            => $old->guarantee_mode,
+            'rate_divers'               => $old->rate_divers,
+            'rate_surprime'             => $old->rate_surprime,
+            'prime_breakdown'           => $old->prime_breakdown,
+            'prime_total'               => $old->prime_total,
+            'prime_nette'               => $old->prime_nette,
+            'status'                    => Certificate::STATUS_ISSUED,
+            'created_by'                => $creator?->id,
+            'submitted_at'              => now(),
+            'submitted_by'              => $creator?->id,
+            'issued_at'                 => now(),
+            'issued_by'                 => $creator?->id,
+            'qr_token'                  => Str::random(48),
+        ]);
+
+        $old->update([
+            'status'                     => Certificate::STATUS_REPLACED,
+            'replaced_at'                => now(),
+            'replaced_by_certificate_id' => $new->id,
+        ]);
+
+        $certificates->push($new);
+    }
+
     // Décompte de prime — même formule et mêmes clés que le calcul réel
     // (CertificateController::buildPrimeBreakdown) :
     //   Prime Nette = Prime(RO) + Prime(RG) + Prime(Divers) + Prime(Surprime)
@@ -575,7 +735,13 @@ class DemoDataSeeder extends Seeder
             ->get();
         if ($configs->isEmpty()) return;
 
-        $activeContracts = $contracts->where('status', 'ACTIVE')->values();
+        // Tri déterministe (numéro de contrat) — sinon get(1)/get(2) ci-dessous
+        // pointeraient vers un contrat différent à chaque passage du seeder
+        // (la collection $contracts vient d'une requête sans ORDER BY côté
+        // Postgres une fois seedContracts() en mode "déjà existant"), et
+        // quickDemoCertificate() générerait un nouveau certificat déterministe
+        // pour CE contrat-là — donc plus de certificats à chaque relance.
+        $activeContracts = $contracts->where('status', 'ACTIVE')->sortBy('contract_number')->values();
         if ($activeContracts->isEmpty()) return;
 
         // A. Dépassement du "plein" (%) — sur le certificat SUBMITTED déjà généré
@@ -595,7 +761,7 @@ class DemoDataSeeder extends Seeder
             $contract->update(['used_limit' => round((float) $contract->subscription_limit * 0.90, 2)]);
 
             $overValue = round((float) $contract->subscription_limit * 0.15, 2);
-            $cert = $this->quickDemoCertificate($tenant, $contract, $creator, $overValue);
+            $cert = $this->quickDemoCertificate($tenant, $contract, $creator, $overValue, 'B');
 
             $this->createEscaladeRequest($tenant, $cert, $subConfig, $creator, $admin,
                 "Escalade NN300 — la soumission dépasse le plafond NN300 cumulé du contrat {$contract->contract_number}");
@@ -607,49 +773,54 @@ class DemoDataSeeder extends Seeder
             $contract = $activeContracts->get(2);
             $contract->update(['certificates_limit' => 3, 'certificates_count' => 3]);
 
-            $cert = $this->quickDemoCertificate($tenant, $contract, $creator, round((float) $contract->plein * 0.05, 2));
+            $cert = $this->quickDemoCertificate($tenant, $contract, $creator, round((float) $contract->plein * 0.05, 2), 'C');
 
             $this->createEscaladeRequest($tenant, $cert, $certsConfig, $creator, $admin,
                 "Escalade NN300 — le contrat {$contract->contract_number} a atteint son nombre maximal de certificats");
         }
     }
 
-    // Certificat minimal SUBMITTED, dédié aux scénarios d'escalade B et C
-    // (les valeurs assurées n'ont pas besoin de variété ici).
-    private function quickDemoCertificate(Tenant $tenant, InsuranceContract $contract, ?User $creator, float $insuredValue): Certificate
+    // Certificat minimal SUBMITTED, dédié aux scénarios d'escalade B et C.
+    // Numéro DÉTERMINISTE (dérivé du contrat + suffixe de scénario, pas un
+    // compteur en mémoire réinitialisé à chaque exécution) + firstOrCreate,
+    // pour que le seeder reste rejouable sans violer l'unicité de
+    // certificate_number lors d'un second passage sur la même base.
+    private function quickDemoCertificate(Tenant $tenant, InsuranceContract $contract, ?User $creator, float $insuredValue, string $suffix): Certificate
     {
-        $this->escaladeCertSeq++;
         $now = now();
+        $number = 'N°ESC-' . $contract->contract_number . '-' . $suffix;
 
-        return Certificate::create([
-            'tenant_id'          => $tenant->id,
-            'contract_id'        => $contract->id,
-            'document_type'      => Certificate::DOC_TYPE_ORIGINAL,
-            'certificate_number' => 'N°' . str_pad((string) $this->escaladeCertSeq, 6, '0', STR_PAD_LEFT),
-            'policy_number'      => $contract->contract_number,
-            'insured_name'       => $contract->insured_name,
-            'voyage_date'        => $now->copy()->subDays(2),
-            'voyage_from'        => 'Abidjan, Côte d\'Ivoire',
-            'voyage_to'          => 'Le Havre, France',
-            'origin_country_code'      => 'CI',
-            'destination_country_code' => 'FR',
-            'transport_type'     => 'SEA',
-            'voyage_mode'        => 'CONTAINER',
-            'expedition_items'   => [[
-                'marks' => 'NSIA-DEMO', 'package_count' => 10, 'weight' => '5000 kg',
-                'nature' => 'Marchandises diverses', 'packaging' => 'Conteneurs',
-            ]],
-            'currency_code'         => $contract->currency_code,
-            'insured_value'         => $insuredValue,
-            'insured_value_letters' => $this->numberToFrenchWords($insuredValue) . ' ' . $contract->currency_code,
-            'guarantee_mode'        => 'Tous risques',
-            'prime_total'           => round($insuredValue * 0.005, 2),
-            'prime_nette'           => round($insuredValue * 0.005, 2),
-            'status'                => 'SUBMITTED',
-            'created_by'            => $creator?->id,
-            'submitted_at'          => $now,
-            'submitted_by'          => $creator?->id,
-        ]);
+        return Certificate::firstOrCreate(
+            ['certificate_number' => $number],
+            [
+                'tenant_id'          => $tenant->id,
+                'contract_id'        => $contract->id,
+                'document_type'      => Certificate::DOC_TYPE_ORIGINAL,
+                'policy_number'      => $contract->contract_number,
+                'insured_name'       => $contract->insured_name,
+                'voyage_date'        => $now->copy()->subDays(2),
+                'voyage_from'        => 'Abidjan, Côte d\'Ivoire',
+                'voyage_to'          => 'Le Havre, France',
+                'origin_country_code'      => 'CI',
+                'destination_country_code' => 'FR',
+                'transport_type'     => 'SEA',
+                'voyage_mode'        => 'CONTAINER',
+                'expedition_items'   => [[
+                    'marks' => 'NSIA-DEMO', 'package_count' => 10, 'weight' => '5000 kg',
+                    'nature' => 'Marchandises diverses', 'packaging' => 'Conteneurs',
+                ]],
+                'currency_code'         => $contract->currency_code,
+                'insured_value'         => $insuredValue,
+                'insured_value_letters' => $this->numberToFrenchWords($insuredValue) . ' ' . $contract->currency_code,
+                'guarantee_mode'        => 'Tous risques',
+                'prime_total'           => round($insuredValue * 0.005, 2),
+                'prime_nette'           => round($insuredValue * 0.005, 2),
+                'status'                => 'SUBMITTED',
+                'created_by'            => $creator?->id,
+                'submitted_at'          => $now,
+                'submitted_by'          => $creator?->id,
+            ]
+        );
     }
 
     private function createEscaladeRequest(Tenant $tenant, Certificate $cert, ApprovalWorkflowConfig $config, ?User $creator, ?User $admin, string $note): void
@@ -1058,11 +1229,14 @@ class DemoDataSeeder extends Seeder
             ['Entité', 'Total créé'],
             [
                 ['Courtiers',              Broker::count()],
+                ['Coassureurs',            class_exists(Coinsurer::class) ? Coinsurer::count() : 0],
+                ['Experts',                class_exists(Expert::class) ? Expert::count() : 0],
                 ['Contrats',               InsuranceContract::count()],
                 ['Certificats',            Certificate::count()],
                 ['  - dont DRAFT',         Certificate::where('status', 'DRAFT')->count()],
                 ['  - dont SUBMITTED',     Certificate::where('status', 'SUBMITTED')->count()],
                 ['  - dont ISSUED',        Certificate::where('status', 'ISSUED')->count()],
+                ['  - dont REPLACED',      Certificate::where('status', 'REPLACED')->count()],
                 ['  - dont CANCELLED',     Certificate::where('status', 'CANCELLED')->count()],
                 ['  - dont DUPLICATA',     Certificate::where('document_type', Certificate::DOC_TYPE_DUPLICATA)->count()],
                 ['Avenants',               class_exists(ContractAmendment::class) ? ContractAmendment::count() : 0],

@@ -176,6 +176,63 @@ class CertificateRequestController extends Controller
         ]);
     }
 
+    // ── Cas n°2 du rapport DTAG : le partenaire complète son dossier
+    // suite à une demande de complément et le retransmet — retour
+    // automatique en file d'analyse (IN_REVIEW).
+    public function complete(Request $request, CertificateRequest $certificateRequest): RedirectResponse
+    {
+        $this->authorizeOwnership($request, $certificateRequest);
+
+        abort_if($certificateRequest->status !== CertificateRequest::STATUS_INFO_REQUESTED, 422, 'Aucun complément n\'est attendu sur cette demande.');
+
+        $validated = $request->validate([
+            'completion_notes' => ['nullable', 'string', 'max:2000'],
+            'documents'        => ['nullable', 'array'],
+            'documents.*'      => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
+            'document_types'   => ['array'],
+            'document_types.*' => ['nullable', 'string', 'in:' . implode(',', CertificateRequestDocument::TYPES)],
+        ]);
+
+        foreach ($request->file('documents', []) as $i => $file) {
+            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs("certificate-requests/{$certificateRequest->id}", $filename, 'local');
+
+            CertificateRequestDocument::create([
+                'certificate_request_id' => $certificateRequest->id,
+                'file_path'              => $path,
+                'file_original_name'     => $file->getClientOriginalName(),
+                'file_mime_type'         => $file->getMimeType(),
+                'file_size'              => $file->getSize(),
+                'document_type'          => $validated['document_types'][$i] ?? null,
+                'uploaded_by'            => Auth::id(),
+            ]);
+        }
+
+        $certificateRequest->update([
+            'status'           => CertificateRequest::STATUS_IN_REVIEW,
+            'completed_at'     => now(),
+            'completion_notes' => $validated['completion_notes'] ?? null,
+        ]);
+
+        if ($certificateRequest->assignedTo) {
+            Notification::send(
+                $certificateRequest->assignedTo,
+                Notification::TYPE_CERT_REQUEST_COMPLETED,
+                'Dossier complété',
+                "Le partenaire a complété sa demande" . ($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '') . '.',
+                [
+                    'icon'  => 'file-check',
+                    'color' => 'info',
+                    'url'   => route('admin.certificate-requests.show', $certificateRequest),
+                ]
+            );
+        }
+
+        return redirect()
+            ->route('partner.certificate-requests.show', $certificateRequest)
+            ->with('success', 'Dossier complété et retransmis pour analyse.');
+    }
+
     public function destroy(Request $request, CertificateRequest $certificateRequest): RedirectResponse
     {
         $this->authorizeOwnership($request, $certificateRequest);

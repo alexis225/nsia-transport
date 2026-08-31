@@ -9,12 +9,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Mes demandes', href: '/partner/certificate-requests' },
 ];
 
+type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
+
 interface CertificateRequestRow {
     id: string;
     insured_name: string | null;
     voyage_from: string | null;
     voyage_to: string | null;
-    status: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+    status: RequestStatus;
     created_at: string;
 }
 
@@ -33,11 +35,14 @@ interface Props {
     filters: { search?: string; status?: string };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-    PENDING:   { bg: '#fffbeb', color: '#b45309', label: 'En attente' },
-    IN_REVIEW: { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'examen" },
-    APPROVED:  { bg: '#f0fdf4', color: '#15803d', label: 'Approuvée' },
-    REJECTED:  { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
+const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
+    PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
+    IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
+    INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
+    APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
+    FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
+    CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
+    REJECTED:       { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
 };
 
 export default function PartnerCertificateRequestsIndex({ certificateRequests, filters }: Props) {
@@ -88,9 +93,12 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                     <select value={filters.status ?? ''} onChange={e => applyFilters({ status: e.target.value })}
                             style={{ padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>
                         <option value="">Tous statuts</option>
-                        <option value="PENDING">En attente</option>
-                        <option value="IN_REVIEW">En cours d'examen</option>
-                        <option value="APPROVED">Approuvée</option>
+                        <option value="PENDING">Transmise</option>
+                        <option value="IN_REVIEW">En cours d'analyse</option>
+                        <option value="INFO_REQUESTED">Complément demandé</option>
+                        <option value="APPROVED">Validée</option>
+                        <option value="FULFILLED">Certificat émis</option>
+                        <option value="CLOSED">Clôturée</option>
                         <option value="REJECTED">Rejetée</option>
                     </select>
                 </div>

@@ -278,6 +278,8 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
                 Route::patch('/certificate-requests/{certificateRequest}/assign',[CertificateRequestController::class, 'assign'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.assign');
                 Route::patch('/certificate-requests/{certificateRequest}/approve',[CertificateRequestController::class, 'approve'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.approve');
                 Route::patch('/certificate-requests/{certificateRequest}/reject',[CertificateRequestController::class, 'reject'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.reject');
+                Route::patch('/certificate-requests/{certificateRequest}/request-info',[CertificateRequestController::class, 'requestInfo'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.request-info');
+                Route::patch('/certificate-requests/{certificateRequest}/close',[CertificateRequestController::class, 'close'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.close');
                 Route::patch('/certificate-requests/{certificateRequest}/link-certificate',[CertificateRequestController::class, 'linkCertificate'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.link-certificate');
                 Route::get('/certificate-requests/{certificateRequest}/documents/{document}/download',[CertificateRequestController::class, 'downloadDocument'])->middleware('permission:certificates.view')->name('admin.certificate-requests.documents.download');
             });
@@ -419,6 +421,7 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'role:courtier_local|
             Route::get('/create', [PartnerCertificateRequestController::class, 'create'])->name('create');
             Route::post('/',      [PartnerCertificateRequestController::class, 'store'])->name('store');
             Route::get('/{certificateRequest}', [PartnerCertificateRequestController::class, 'show'])->name('show');
+            Route::post('/{certificateRequest}/complete', [PartnerCertificateRequestController::class, 'complete'])->name('complete');
             Route::delete('/{certificateRequest}', [PartnerCertificateRequestController::class, 'destroy'])->name('destroy');
             Route::get('/{certificateRequest}/documents/{document}/download',
                 [PartnerCertificateRequestController::class, 'downloadDocument'])->name('documents.download');

@@ -40,9 +40,12 @@ class Notification extends Model
     const TYPE_CONTRACT_LIMIT    = 'ContractLimitReached';
 
     // Demandes partenaires (CertificateRequest)
-    const TYPE_CERT_REQUEST_CREATED   = 'CertificateRequestCreated';
-    const TYPE_CERT_REQUEST_IN_REVIEW = 'CertificateRequestInReview';
-    const TYPE_CERT_REQUEST_REJECTED  = 'CertificateRequestRejected';
+    const TYPE_CERT_REQUEST_CREATED        = 'CertificateRequestCreated';
+    const TYPE_CERT_REQUEST_IN_REVIEW      = 'CertificateRequestInReview';
+    const TYPE_CERT_REQUEST_REJECTED       = 'CertificateRequestRejected';
+    const TYPE_CERT_REQUEST_INFO_REQUESTED = 'CertificateRequestInfoRequested';
+    const TYPE_CERT_REQUEST_COMPLETED      = 'CertificateRequestCompleted';
+    const TYPE_CERT_REQUEST_CLOSED         = 'CertificateRequestClosed';
 
     protected $fillable = [
         'type',

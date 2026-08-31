@@ -114,16 +114,23 @@ export function AppSidebar() {
             ],
         }] : []),
 
-        // ── Partenaires — Courtiers & espace partenaire ────────
-        ...((can('brokers.view') || can('certificates.view')) && moduleEnabled('brokers') ? [{
-            title: 'Partenaires / Courtiers',
-            href:  can('brokers.view') ? route('admin.brokers.index') : route('admin.certificate-requests.index'),
+        // ── Courtiers ───────────────────────────────────────────
+        ...(can('brokers.view') && moduleEnabled('brokers') ? [{
+            title: 'Courtiers',
+            href:  route('admin.brokers.index'),
             icon:  Briefcase,
             children: [
-                ...(can('brokers.view')   ? [{ title: 'Courtiers',           href: route('admin.brokers.index') }]          : []),
-                ...(can('brokers.create') ? [{ title: 'Nouveau courtier',    href: route('admin.brokers.create') }]         : []),
-                ...(can('certificates.view') ? [{ title: 'Demandes partenaires', href: route('admin.certificate-requests.index') }] : []),
+                { title: 'Liste', href: route('admin.brokers.index') },
+                ...(can('brokers.create') ? [{ title: 'Nouveau courtier', href: route('admin.brokers.create') }] : []),
             ],
+        }] : []),
+
+        // ── Demandes de certificats d'assurance (Module 1 — espace
+        // partenaire ↔ souscripteur, rapport DTAG 14/08/2026) ─────
+        ...(can('certificates.view') && moduleEnabled('brokers') ? [{
+            title: 'Demandes de certificats d\'assurance',
+            href:  route('admin.certificate-requests.index'),
+            icon:  Inbox,
         }] : []),
 
         // ── Coassureurs — US-041 ─────────────────────────────

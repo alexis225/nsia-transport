@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ChevronLeft, FileText, Download, CheckCircle2, XCircle, Briefcase, UserCheck, Award, Link2, Check, Plus, Upload } from 'lucide-react';
+import { ChevronLeft, FileText, Download, CheckCircle2, XCircle, Briefcase, UserCheck, Award, Link2, Check, Plus, Upload, FileQuestion, Archive } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -20,9 +20,11 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
     AUTRE: 'Autre justificatif',
 };
 
+type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
+
 interface CertificateRequestDetail {
     id: string;
-    status: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+    status: RequestStatus;
     country_code: string | null;
     insured_name: string | null;
     voyage_from: string | null;
@@ -34,6 +36,11 @@ interface CertificateRequestDetail {
     currency_code: string | null;
     notes: string | null;
     review_notes: string | null;
+    info_requested_at: string | null;
+    info_request_notes: string | null;
+    completed_at: string | null;
+    completion_notes: string | null;
+    closed_at: string | null;
     created_at: string;
     assigned_at: string | null;
     reviewed_at: string | null;
@@ -54,11 +61,14 @@ interface Props {
     availableGuceCertificates: AvailableCertificate[];
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-    PENDING:   { bg: '#fffbeb', color: '#b45309', label: 'En attente' },
-    IN_REVIEW: { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'examen" },
-    APPROVED:  { bg: '#f0fdf4', color: '#15803d', label: 'Approuvée' },
-    REJECTED:  { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
+const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
+    PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
+    IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
+    INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
+    APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
+    FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
+    CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
+    REJECTED:       { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
 };
 
 const TRANSPORT_LABELS: Record<string, string> = {
@@ -67,12 +77,13 @@ const TRANSPORT_LABELS: Record<string, string> = {
 
 export default function AdminCertificateRequestShow({ certificateRequest: cr, availableCertificates, availableGuceCertificates }: Props) {
     const [reviewNotes, setReviewNotes] = useState('');
+    const [infoRequestNotes, setInfoRequestNotes] = useState('');
     const [processing, setProcessing] = useState(false);
     const [selectedCertificateId, setSelectedCertificateId] = useState('');
     const [selectedGuceCertificateId, setSelectedGuceCertificateId] = useState('');
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Demandes partenaires', href: '/admin/certificate-requests' },
+        { title: 'Demandes de certificats d\'assurance', href: '/admin/certificate-requests' },
         { title: cr.insured_name ?? 'Demande', href: `/admin/certificate-requests/${cr.id}` },
     ];
 
@@ -103,6 +114,22 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
         router.patch(route('admin.certificate-requests.reject', { certificateRequest: cr.id }), { review_notes: reviewNotes }, { onFinish: () => setProcessing(false) });
     }
 
+    function requestInfo() {
+        if (!infoRequestNotes.trim()) {
+            alert('Merci de préciser les compléments attendus.');
+
+            return;
+        }
+
+        setProcessing(true);
+        router.patch(route('admin.certificate-requests.request-info', { certificateRequest: cr.id }), { info_request_notes: infoRequestNotes }, { onFinish: () => setProcessing(false) });
+    }
+
+    function close() {
+        setProcessing(true);
+        router.patch(route('admin.certificate-requests.close', { certificateRequest: cr.id }), {}, { onFinish: () => setProcessing(false) });
+    }
+
     function linkCertificate() {
         if (!selectedCertificateId) {
             return;
@@ -122,20 +149,27 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
     }
 
     const timelineSteps = [
-        { label: 'Demande soumise', done: true, date: cr.created_at, by: cr.created_by ? `${cr.created_by.first_name} ${cr.created_by.last_name}` : null },
+        { label: 'Demande transmise', done: true, date: cr.created_at, by: cr.created_by ? `${cr.created_by.first_name} ${cr.created_by.last_name}` : null },
         { label: 'Prise en charge', done: !!cr.assigned_at, date: cr.assigned_at, by: cr.assigned_to ? `${cr.assigned_to.first_name} ${cr.assigned_to.last_name}` : null },
+        ...(cr.info_requested_at ? [{
+            label: 'Complément demandé',
+            done: true,
+            date: cr.info_requested_at,
+            by: cr.completed_at ? `Dossier complété le ${fmt(cr.completed_at)}` : 'En attente du partenaire',
+        }] : []),
         {
-            label: cr.status === 'REJECTED' ? 'Demande rejetée' : 'Demande approuvée',
+            label: cr.status === 'REJECTED' ? 'Demande rejetée' : 'Demande validée',
             done: !!cr.reviewed_at,
             date: cr.reviewed_at,
             by: cr.reviewed_by ? `${cr.reviewed_by.first_name} ${cr.reviewed_by.last_name}` : null,
         },
         {
-            label: 'Certificat disponible',
+            label: 'Certificat émis',
             done: !!(cr.certificate || cr.guce_certificate),
             date: null,
             by: cr.certificate ? `N° ${cr.certificate.certificate_number}` : (cr.guce_certificate ? `N° ${cr.guce_certificate.certificate_number} (GUCE)` : null),
         },
+        { label: 'Clôturée', done: !!cr.closed_at, date: cr.closed_at, by: null },
     ];
 
     return (
@@ -248,6 +282,16 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                     )}
                 </div>
 
+                {cr.status === 'INFO_REQUESTED' && (
+                    <div style={{ ...cardStyle, background: '#fff7ed', borderColor: '#fed7aa' }}>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#c2410c', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <FileQuestion size={16} /> Complément demandé — en attente du partenaire
+                        </h2>
+                        <p style={{ fontSize: 13, color: '#7c2d12', margin: 0 }}>{cr.info_request_notes}</p>
+                        <p style={{ fontSize: 11.5, color: '#9a3412', marginTop: 10, opacity: .85 }}>Le partenaire a été notifié et doit compléter son dossier depuis son espace pour le retransmettre.</p>
+                    </div>
+                )}
+
                 {(cr.status === 'PENDING' || cr.status === 'IN_REVIEW') && (
                     <div style={cardStyle}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>Traitement</h2>
@@ -267,12 +311,26 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                             rows={3}
                             style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', marginBottom: 14 }}
                         />
-                        <div style={{ display: 'flex', gap: 10 }}>
+                        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
                             <Button onClick={approve} disabled={processing} className="bg-[#16a34a] hover:bg-[#15803d] text-white" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <CheckCircle2 size={15} /> Approuver
+                                <CheckCircle2 size={15} /> Valider
                             </Button>
                             <Button onClick={reject} disabled={processing} variant="outline" style={{ color: '#dc2626', borderColor: '#fecaca', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <XCircle size={15} /> Rejeter
+                            </Button>
+                        </div>
+
+                        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16 }}>
+                            <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 8px' }}>Dossier incomplet ? Demandez un complément au partenaire — il sera notifié et pourra retransmettre.</p>
+                            <textarea
+                                value={infoRequestNotes}
+                                onChange={e => setInfoRequestNotes(e.target.value)}
+                                placeholder="Ex : Merci de joindre la facture commerciale et le connaissement définitif."
+                                rows={2}
+                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', marginBottom: 10 }}
+                            />
+                            <Button onClick={requestInfo} disabled={processing} variant="outline" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <FileQuestion size={15} /> Demander un complément
                             </Button>
                         </div>
                     </div>
@@ -350,6 +408,19 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                             </Link>
                         )}
                         <p style={{ fontSize: 11.5, color: '#166534', marginTop: 10, opacity: .8 }}>Le partenaire a été notifié et peut le télécharger depuis son espace.</p>
+                        {cr.status === 'FULFILLED' && (
+                            <Button onClick={close} disabled={processing} variant="outline" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 14 }}>
+                                <Archive size={15} /> Clôturer la demande
+                            </Button>
+                        )}
+                    </div>
+                )}
+
+                {cr.completion_notes && (
+                    <div style={cardStyle}>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>Réponse du partenaire au complément demandé</h2>
+                        <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{cr.completion_notes}</p>
+                        {cr.completed_at && <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '8px 0 0' }}>Retransmis le {fmt(cr.completed_at)}</p>}
                     </div>
                 )}
 

@@ -1,5 +1,5 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { ChevronLeft, FileText, Download, Trash2, MessageSquare, Check, Award } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { ChevronLeft, FileText, Download, Trash2, MessageSquare, Check, Award, FileQuestion, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -19,9 +19,11 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
     AUTRE: 'Autre justificatif',
 };
 
+type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
+
 interface CertificateRequestDetail {
     id: string;
-    status: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+    status: RequestStatus;
     country_code: string | null;
     insured_name: string | null;
     voyage_from: string | null;
@@ -33,6 +35,11 @@ interface CertificateRequestDetail {
     currency_code: string | null;
     notes: string | null;
     review_notes: string | null;
+    info_requested_at: string | null;
+    info_request_notes: string | null;
+    completed_at: string | null;
+    completion_notes: string | null;
+    closed_at: string | null;
     assigned_to: { first_name: string; last_name: string } | null;
     assigned_at: string | null;
     reviewed_by: { first_name: string; last_name: string } | null;
@@ -45,11 +52,14 @@ interface CertificateRequestDetail {
 
 interface Props { certificateRequest: CertificateRequestDetail; }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-    PENDING:   { bg: '#fffbeb', color: '#b45309', label: 'En attente' },
-    IN_REVIEW: { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'examen" },
-    APPROVED:  { bg: '#f0fdf4', color: '#15803d', label: 'Approuvée' },
-    REJECTED:  { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
+const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
+    PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
+    IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
+    INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
+    APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
+    FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
+    CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
+    REJECTED:       { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
 };
 
 const TRANSPORT_LABELS: Record<string, string> = {
@@ -73,21 +83,56 @@ export default function PartnerCertificateRequestShow({ certificateRequest: cr }
         router.delete(route('partner.certificate-requests.destroy', { certificateRequest: cr.id }));
     }
 
+    const completeForm = useForm({
+        completion_notes: '',
+        documents:        [] as File[],
+        document_types:   [] as string[],
+    });
+
+    function addCompletionFiles(files: FileList | null) {
+        if (!files || files.length === 0) return;
+
+        completeForm.setData({
+            ...completeForm.data,
+            documents:      [...completeForm.data.documents, ...Array.from(files)],
+            document_types: [...completeForm.data.document_types, ...Array.from(files).map(() => 'AUTRE')],
+        });
+    }
+
+    function removeCompletionFile(index: number) {
+        completeForm.setData({
+            ...completeForm.data,
+            documents:      completeForm.data.documents.filter((_, i) => i !== index),
+            document_types: completeForm.data.document_types.filter((_, i) => i !== index),
+        });
+    }
+
+    function submitCompletion(e: React.FormEvent) {
+        e.preventDefault();
+        completeForm.post(route('partner.certificate-requests.complete', { certificateRequest: cr.id }), { forceFormData: true });
+    }
+
     const cardStyle: React.CSSProperties = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '20px' };
     const labelStyle: React.CSSProperties = { fontSize: 10.5, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3, display: 'block' };
     const valueStyle: React.CSSProperties = { fontSize: 13, color: '#1e293b' };
 
     const timelineSteps = [
-        { label: 'Demande soumise', done: true, date: cr.created_at, by: null as string | null },
+        { label: 'Demande transmise', done: true, date: cr.created_at, by: null as string | null },
         { label: 'Prise en charge par NSIA', done: !!cr.assigned_at, date: cr.assigned_at, by: cr.assigned_to ? `${cr.assigned_to.first_name} ${cr.assigned_to.last_name}` : null },
+        ...(cr.info_requested_at ? [{
+            label: 'Complément demandé',
+            done: true,
+            date: cr.info_requested_at,
+            by: cr.completed_at ? `Complété le ${fmt(cr.completed_at)}` : 'À compléter',
+        }] : []),
         {
-            label: cr.status === 'REJECTED' ? 'Demande rejetée' : 'Demande approuvée',
+            label: cr.status === 'REJECTED' ? 'Demande rejetée' : 'Demande validée',
             done: !!cr.reviewed_at,
             date: cr.reviewed_at,
             by: cr.reviewed_by ? `${cr.reviewed_by.first_name} ${cr.reviewed_by.last_name}` : null,
         },
         {
-            label: 'Certificat disponible',
+            label: 'Certificat émis',
             done: !!(cr.certificate || cr.guce_certificate),
             date: null,
             by: cr.certificate ? `N° ${cr.certificate.certificate_number}` : (cr.guce_certificate ? `N° ${cr.guce_certificate.certificate_number}` : null),
@@ -174,6 +219,52 @@ export default function PartnerCertificateRequestShow({ certificateRequest: cr }
                                 </a>
                             )}
                         </div>
+                    </div>
+                )}
+
+                {cr.status === 'INFO_REQUESTED' && (
+                    <div style={{ ...cardStyle, background: '#fff7ed', borderColor: '#fed7aa' }}>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 16 }}>
+                            <FileQuestion size={16} color="#c2410c" style={{ flexShrink: 0, marginTop: 2 }} />
+                            <div>
+                                <div style={{ fontWeight: 600, fontSize: 13, color: '#9a3412' }}>Complément demandé par NSIA</div>
+                                <div style={{ fontSize: 12.5, color: '#9a3412', marginTop: 3 }}>{cr.info_request_notes}</div>
+                            </div>
+                        </div>
+
+                        <form onSubmit={submitCompletion}>
+                            <textarea
+                                value={completeForm.data.completion_notes}
+                                onChange={e => completeForm.setData('completion_notes', e.target.value)}
+                                placeholder="Précisions sur les pièces/informations ajoutées (optionnel)..."
+                                rows={2}
+                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #fed7aa', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', marginBottom: 10, background: '#fff' }}
+                            />
+
+                            {completeForm.data.documents.length > 0 && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                                    {completeForm.data.documents.map((f, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#fff', border: '1px solid #fed7aa', borderRadius: 6 }}>
+                                            <FileText size={14} color="#9a3412" />
+                                            <span style={{ flex: 1, fontSize: 12, color: '#7c2d12' }}>{f.name}</span>
+                                            <button type="button" onClick={() => removeCompletionFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9a3412', display: 'flex' }}>
+                                                <X size={13} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 500, color: '#9a3412', border: '1px solid #fed7aa', borderRadius: 6, padding: '7px 12px', cursor: 'pointer', background: '#fff' }}>
+                                    <Upload size={14} /> Ajouter des pièces
+                                    <input type="file" multiple hidden onChange={e => { addCompletionFiles(e.target.files); e.target.value = ''; }} />
+                                </label>
+                                <Button type="submit" disabled={completeForm.processing} className="bg-[#c2410c] hover:bg-[#9a3412] text-white">
+                                    Compléter et retransmettre
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 )}
 

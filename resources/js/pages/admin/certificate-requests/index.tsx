@@ -5,13 +5,15 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Demandes partenaires', href: '/admin/certificate-requests' },
+    { title: 'Demandes de certificats d\'assurance', href: '/admin/certificate-requests' },
 ];
+
+type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
 
 interface CertificateRequestRow {
     id: string;
     insured_name: string | null;
-    status: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+    status: RequestStatus;
     created_at: string;
     broker: { id: string; name: string; code: string } | null;
 }
@@ -29,29 +31,35 @@ interface Paginated<T> {
 interface Props {
     certificateRequests: Paginated<CertificateRequestRow>;
     filters: { status?: string; search?: string };
-    counts: { PENDING: number; IN_REVIEW: number; APPROVED: number; REJECTED: number };
+    counts: Record<RequestStatus, number>;
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-    PENDING:   { bg: '#fffbeb', color: '#b45309', label: 'En attente' },
-    IN_REVIEW: { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'examen" },
-    APPROVED:  { bg: '#f0fdf4', color: '#15803d', label: 'Approuvée' },
-    REJECTED:  { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
+const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
+    PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
+    IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
+    INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
+    APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
+    FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
+    CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
+    REJECTED:       { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
 };
 
 const STATUS_TABS: { key: string; label: string }[] = [
-    { key: '',           label: 'Toutes' },
-    { key: 'PENDING',    label: 'En attente' },
-    { key: 'IN_REVIEW',  label: "En cours d'examen" },
-    { key: 'APPROVED',   label: 'Approuvées' },
-    { key: 'REJECTED',   label: 'Rejetées' },
+    { key: '',               label: 'Toutes' },
+    { key: 'PENDING',        label: 'Transmises' },
+    { key: 'IN_REVIEW',      label: "En cours d'analyse" },
+    { key: 'INFO_REQUESTED', label: 'Complément demandé' },
+    { key: 'APPROVED',       label: 'Validées' },
+    { key: 'FULFILLED',      label: 'Certificat émis' },
+    { key: 'CLOSED',         label: 'Clôturées' },
+    { key: 'REJECTED',       label: 'Rejetées' },
 ];
 
 export default function AdminCertificateRequestsIndex({ certificateRequests, filters, counts }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
     const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
     const activeStatus = filters.status ?? '';
-    const queueCount = counts.PENDING + counts.IN_REVIEW;
+    const queueCount = counts.PENDING + counts.IN_REVIEW + counts.INFO_REQUESTED;
 
     function applyFilters(next: Partial<{ status: string; search: string }>) {
         router.get('/admin/certificate-requests', { ...filters, ...next }, { preserveState: true, replace: true });
@@ -59,11 +67,11 @@ export default function AdminCertificateRequestsIndex({ certificateRequests, fil
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Demandes partenaires — NSIA Transport" />
+            <Head title="Demandes de certificats d'assurance — NSIA Transport" />
 
             <div style={{ padding: '24px', width: '100%' }}>
                 <div style={{ marginBottom: '24px' }}>
-                    <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Demandes partenaires</h1>
+                    <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Demandes de certificats d'assurance</h1>
                     <p style={{ color: '#64748b', fontSize: '13px', margin: '4px 0 0' }}>
                         Demandes de certificat soumises par les courtiers et partenaires étrangers
                         {queueCount > 0 && <> — <strong style={{ color: '#b45309' }}>{queueCount}</strong> en file d'attente</>}
