@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
+import { edit } from '@/routes/profile';
+import type { BreadcrumbItem } from '@/types';
 import {
     Shield, ShieldCheck, ShieldOff, RefreshCw,
     Copy, Check, AlertCircle, Eye, EyeOff,
     KeyRound, Loader2, ChevronRight
 } from 'lucide-react';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Paramètres du profil', href: edit() },
+    { title: 'MFA' },
+];
 
 interface Props {
     mfaEnabled:    boolean;
@@ -45,14 +53,10 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
     };
 
     return (
-        <>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Configuration MFA — NSIA Transport" />
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
-                *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-                body{font-family:'DM Sans',sans-serif;background:#f1f5f9;min-height:100vh;}
-
-                .page{max-width:680px;margin:0 auto;padding:40px 24px;}
+                .page{max-width:680px;margin:0 auto;padding:24px 24px 40px;font-family:'DM Sans',sans-serif;}
                 .page-header{margin-bottom:32px;}
                 .page-title{font-size:26px;font-weight:600;color:#1e293b;margin-bottom:4px;}
                 .page-sub{font-size:13px;color:#64748b;font-weight:300;}
@@ -250,6 +254,6 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                     </div>
                 )}
             </div>
-        </>
+        </AppLayout>
     );
 }

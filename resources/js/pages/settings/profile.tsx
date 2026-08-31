@@ -1,7 +1,6 @@
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import DeleteUser from '@/components/delete-user';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -122,9 +121,6 @@ export default function Profile({
                 .avatar-upload-btn{padding:8px 14px;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:9px;font-size:12px;color:#475569;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
                 .avatar-upload-btn:hover{background:#f1f5f9;border-color:#94a3b8;color:#1e293b;}
                 .avatar-hint{font-size:11px;color:#94a3b8;}
-
-                /* Danger */
-                .pf-card.danger .pf-card-hdr{background:#fff8f8;}
 
                 @keyframes spin{to{transform:rotate(360deg);}}
             `}</style>
@@ -325,22 +321,6 @@ export default function Profile({
                                 )}
                             </Form>
                         </div>
-                    </div>
-
-                    {/* ── Zone danger ── */}
-                    <div className="pf-card danger">
-                        <div className="pf-card-hdr">
-                            <div className="pf-card-ico" style={{background:'#fef2f2'}}>
-                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-                                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div className="pf-card-ttl" style={{color:'#dc2626'}}>Zone de danger</div>
-                                <div className="pf-card-sub">Cette action est irréversible</div>
-                            </div>
-                        </div>
-                        <div className="pf-card-body"><DeleteUser/></div>
                     </div>
 
                 </div>

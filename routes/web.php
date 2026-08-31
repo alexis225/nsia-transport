@@ -175,11 +175,6 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
         Route::get('/{guceCertificate}/download',    [GuceCertificateController::class, 'download'])->name('download');
         Route::delete('/{guceCertificate}',          [GuceCertificateController::class, 'destroy']) ->name('destroy');
     });
-    // ── MFA Setup — US-002 ───────────────────────────────────
-    Route::get('/user/mfa-setup', [MfaSetupController::class, 'show'])->name('user.mfa-setup');
-    Route::post('/user/mfa-setup/enable', [MfaSetupController::class, 'enable'])->name('mfa.enable');
-    Route::delete('/user/mfa-setup/disable', [MfaSetupController::class, 'disable'])->name('mfa.disable');
-    Route::post('/user/mfa-setup/recovery-codes', [MfaSetupController::class, 'regenerateRecoveryCodes'])->name('mfa.recovery-codes.regenerate');
     // ── Avatar — US-009 ──────────────────────────────────────
     Route::post('/settings/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
     Route::delete('/settings/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
@@ -407,6 +402,14 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
             });
         });
     });
+});
+
+// ── MFA Setup — US-002 (staff ET partenaires, pas de staff.only) ─
+Route::middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
+    Route::get('/user/mfa-setup', [MfaSetupController::class, 'show'])->name('user.mfa-setup');
+    Route::post('/user/mfa-setup/enable', [MfaSetupController::class, 'enable'])->name('mfa.enable');
+    Route::delete('/user/mfa-setup/disable', [MfaSetupController::class, 'disable'])->name('mfa.disable');
+    Route::post('/user/mfa-setup/recovery-codes', [MfaSetupController::class, 'regenerateRecoveryCodes'])->name('mfa.recovery-codes.regenerate');
 });
 
 // ── Espace partenaire / courtier ──────────────────────────────
