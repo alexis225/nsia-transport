@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useEffect } from 'react';
+import TemplateBenin         from './print-templates/benin';
 import TemplateCameroun      from './print-templates/cameroun';
 import TemplateCongo         from './print-templates/congo';
 import TemplateGabon         from './print-templates/gabon';
@@ -28,6 +29,7 @@ const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<{ certificate: Cer
     'senegal':        TemplateSenegal,
     'cameroun':       TemplateCameroun,
     'congo':          TemplateCongo,
+    'benin':          TemplateBenin,
     // ── Enregistrer ici les nouveaux templates ──
 };
 

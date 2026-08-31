@@ -1,3 +1,4 @@
+import { BENIN_POSITIONS } from './benin';
 import { CAMEROUN_POSITIONS } from './cameroun';
 import { CONGO_POSITIONS } from './congo';
 import { GABON_POSITIONS } from './gabon';
@@ -16,5 +17,6 @@ export const DEFAULT_POSITIONS_BY_TEMPLATE: Record<string, FieldPosition[]> = {
     'senegal':        SENEGAL_POSITIONS,
     'cameroun':       CAMEROUN_POSITIONS,
     'congo':          CONGO_POSITIONS,
+    'benin':          BENIN_POSITIONS,
     // ── Enregistrer ici les nouveaux templates ──
 };

@@ -105,15 +105,4 @@ return [
         'min_score'  => (float) env('RECAPTCHA_MIN_SCORE', 0.5),
     ],
 
-    // Taux de change du jour pour la "Devise cotation" des certificats
-    // (conversion vers la devise locale de la filiale). API OANDA Exchange
-    // Rates — https://developer.oanda.com/exchange-rates-api/. Nécessite
-    // un compte OANDA + une clé API (non fournie par défaut : sans clé,
-    // l'endpoint /admin/certificates/exchange-rate répond simplement
-    // "indisponible" et l'utilisateur saisit le taux manuellement).
-    'oanda' => [
-        'api_key' => env('OANDA_API_KEY'),
-        'api_url' => env('OANDA_API_URL', 'https://api-fxtrade.oanda.com/v3'),
-    ],
-
 ];

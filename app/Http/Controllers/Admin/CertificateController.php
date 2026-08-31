@@ -374,6 +374,7 @@ class CertificateController extends Controller
             'SN' => 'senegal',
             'CM' => 'cameroun',
             'CG' => 'congo',
+            'BJ' => 'benin',
         ];
         $defaultTemplate = $templateByTenantCode[$certificate->tenant?->code] ?? 'guinee-conakry';
         $templateId      = $request->query('template', $defaultTemplate);
@@ -411,6 +412,7 @@ class CertificateController extends Controller
             'SN' => 'senegal',
             'CM' => 'cameroun',
             'CG' => 'congo',
+            'BJ' => 'benin',
         ];
         $defaultTemplate = $templateByTenantCode[$certificate->tenant?->code] ?? 'guinee-conakry';
         $templateId      = $request->query('template', $defaultTemplate);

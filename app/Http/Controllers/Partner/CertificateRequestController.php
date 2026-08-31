@@ -90,6 +90,7 @@ class CertificateRequestController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $broker = $this->currentBroker($request);
+        $isDraft = $request->input('save_as') === 'draft';
 
         $validated = $request->validate([
             'tenant_id'          => ['nullable', 'uuid', Rule::in($broker->tenants()->pluck('tenants.id'))],
@@ -103,9 +104,9 @@ class CertificateRequestController extends Controller
             'estimated_value'    => ['nullable', 'numeric', 'min:0'],
             'currency_code'      => ['nullable', 'string', 'size:3'],
             'notes'              => ['nullable', 'string', 'max:2000'],
-            'documents'          => ['required', 'array', 'min:1'],
+            'documents'          => [$isDraft ? 'nullable' : 'required', 'array', $isDraft ? 'sometimes' : 'min:1'],
             'documents.*'        => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
-            'document_types'     => ['required', 'array', 'size:' . count($request->file('documents', []))],
+            'document_types'     => [$isDraft ? 'nullable' : 'required', 'array', 'size:' . count($request->file('documents', []))],
             'document_types.*'   => ['required', 'string', 'in:' . implode(',', CertificateRequestDocument::TYPES)],
         ], [
             'documents.required'      => 'Au moins une pièce justificative est requise.',
@@ -119,7 +120,8 @@ class CertificateRequestController extends Controller
             'tenant_id'  => $validated['tenant_id'] ?? $broker->tenant_id,
             'broker_id'  => $broker->id,
             'created_by' => Auth::id(),
-            'status'     => CertificateRequest::STATUS_PENDING,
+            'status'     => $isDraft ? CertificateRequest::STATUS_DRAFT : CertificateRequest::STATUS_PENDING,
+            ...($isDraft ? [] : ['submitted_at' => now()]),
         ]);
 
         foreach ($request->file('documents', []) as $i => $file) {
@@ -137,7 +139,90 @@ class CertificateRequestController extends Controller
             ]);
         }
 
-        // Notifier le personnel habilité à traiter les demandes (admin_filiale / souscripteur)
+        if ($isDraft) {
+            return redirect()
+                ->route('partner.certificate-requests.show', $certificateRequest)
+                ->with('success', 'Brouillon enregistré. Transmettez-le quand votre dossier est prêt.');
+        }
+
+        $this->notifyStaffOfNewRequest($certificateRequest, $broker);
+
+        return redirect()
+            ->route('partner.certificate-requests.show', $certificateRequest)
+            ->with('success', 'Votre demande de certificat a été soumise avec succès.');
+    }
+
+    // ── Mise à jour d'un brouillon avant transmission ──────────
+    public function update(Request $request, CertificateRequest $certificateRequest): RedirectResponse
+    {
+        $this->authorizeOwnership($request, $certificateRequest);
+
+        abort_if($certificateRequest->status !== CertificateRequest::STATUS_DRAFT, 422, 'Seul un brouillon peut être modifié.');
+
+        $broker = $this->currentBroker($request);
+
+        $validated = $request->validate([
+            'country_code'       => ['nullable', 'string', 'size:2', 'exists:countries,code'],
+            'insured_name'       => ['nullable', 'string', 'max:200'],
+            'voyage_from'        => ['nullable', 'string', 'max:150'],
+            'voyage_to'          => ['nullable', 'string', 'max:150'],
+            'voyage_date'        => ['nullable', 'date'],
+            'transport_type'     => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL'],
+            'cargo_description'  => ['nullable', 'string', 'max:1000'],
+            'estimated_value'    => ['nullable', 'numeric', 'min:0'],
+            'currency_code'      => ['nullable', 'string', 'size:3'],
+            'notes'              => ['nullable', 'string', 'max:2000'],
+            'documents'          => ['nullable', 'array'],
+            'documents.*'        => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
+            'document_types'     => ['nullable', 'array', 'size:' . count($request->file('documents', []))],
+            'document_types.*'   => ['required', 'string', 'in:' . implode(',', CertificateRequestDocument::TYPES)],
+        ]);
+
+        $certificateRequest->update(collect($validated)->except(['documents', 'document_types'])->toArray());
+
+        foreach ($request->file('documents', []) as $i => $file) {
+            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs("certificate-requests/{$certificateRequest->id}", $filename, 'local');
+
+            CertificateRequestDocument::create([
+                'certificate_request_id' => $certificateRequest->id,
+                'file_path'              => $path,
+                'file_original_name'     => $file->getClientOriginalName(),
+                'file_mime_type'         => $file->getMimeType(),
+                'file_size'              => $file->getSize(),
+                'document_type'          => $validated['document_types'][$i] ?? null,
+                'uploaded_by'            => Auth::id(),
+            ]);
+        }
+
+        return redirect()
+            ->route('partner.certificate-requests.show', $certificateRequest)
+            ->with('success', 'Brouillon mis à jour.');
+    }
+
+    // ── Transmission d'un brouillon (rapport 1.3) ──────────────
+    public function submit(Request $request, CertificateRequest $certificateRequest): RedirectResponse
+    {
+        $this->authorizeOwnership($request, $certificateRequest);
+
+        abort_if($certificateRequest->status !== CertificateRequest::STATUS_DRAFT, 422, 'Seul un brouillon peut être transmis.');
+        abort_if($certificateRequest->documents()->count() === 0, 422, 'Au moins une pièce justificative est requise avant transmission.');
+
+        $certificateRequest->update([
+            'status'       => CertificateRequest::STATUS_PENDING,
+            'submitted_at' => now(),
+        ]);
+
+        $this->notifyStaffOfNewRequest($certificateRequest, $this->currentBroker($request));
+
+        return redirect()
+            ->route('partner.certificate-requests.show', $certificateRequest)
+            ->with('success', 'Votre demande de certificat a été transmise avec succès.');
+    }
+
+    // Notifie le personnel habilité à traiter les demandes (admin_filiale / souscripteur)
+    private function notifyStaffOfNewRequest(CertificateRequest $certificateRequest, $broker): void
+    {
         $staff = User::where('tenant_id', $certificateRequest->tenant_id)
             ->whereHas('roles', fn ($q) => $q->whereIn('name', ['admin_filiale', 'souscripteur']))
             ->get();
@@ -153,10 +238,6 @@ class CertificateRequestController extends Controller
                 'url'   => route('admin.certificate-requests.show', $certificateRequest),
             ]
         );
-
-        return redirect()
-            ->route('partner.certificate-requests.show', $certificateRequest)
-            ->with('success', 'Votre demande de certificat a été soumise avec succès.');
     }
 
     public function show(Request $request, CertificateRequest $certificateRequest): Response
@@ -209,7 +290,7 @@ class CertificateRequestController extends Controller
         }
 
         $certificateRequest->update([
-            'status'           => CertificateRequest::STATUS_IN_REVIEW,
+            'status'           => CertificateRequest::STATUS_COMPLETED,
             'completed_at'     => now(),
             'completion_notes' => $validated['completion_notes'] ?? null,
         ]);
@@ -237,8 +318,8 @@ class CertificateRequestController extends Controller
     {
         $this->authorizeOwnership($request, $certificateRequest);
 
-        if ($certificateRequest->status !== CertificateRequest::STATUS_PENDING) {
-            return back()->withErrors(['status' => 'Seule une demande en attente peut être annulée.']);
+        if (! in_array($certificateRequest->status, [CertificateRequest::STATUS_DRAFT, CertificateRequest::STATUS_PENDING], true)) {
+            return back()->withErrors(['status' => 'Seul un brouillon ou une demande en attente peut être annulé(e).']);
         }
 
         foreach ($certificateRequest->documents as $document) {

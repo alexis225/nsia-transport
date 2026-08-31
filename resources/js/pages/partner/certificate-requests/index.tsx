@@ -9,10 +9,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Mes demandes', href: '/partner/certificate-requests' },
 ];
 
-type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
+type RequestStatus = 'DRAFT' | 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'COMPLETED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
 
 interface CertificateRequestRow {
     id: string;
+    reference: string | null;
     insured_name: string | null;
     voyage_from: string | null;
     voyage_to: string | null;
@@ -36,9 +37,11 @@ interface Props {
 }
 
 const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
+    DRAFT:          { bg: '#f1f5f9', color: '#64748b', label: 'Brouillon' },
     PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
     IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
     INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
+    COMPLETED:      { bg: '#eef2ff', color: '#4338ca', label: 'Complétée' },
     APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
     FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
     CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
@@ -93,9 +96,11 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                     <select value={filters.status ?? ''} onChange={e => applyFilters({ status: e.target.value })}
                             style={{ padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>
                         <option value="">Tous statuts</option>
+                        <option value="DRAFT">Brouillon</option>
                         <option value="PENDING">Transmise</option>
                         <option value="IN_REVIEW">En cours d'analyse</option>
                         <option value="INFO_REQUESTED">Complément demandé</option>
+                        <option value="COMPLETED">Complétée</option>
                         <option value="APPROVED">Validée</option>
                         <option value="FULFILLED">Certificat émis</option>
                         <option value="CLOSED">Clôturée</option>
@@ -107,7 +112,7 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                {['Date', 'Assuré', 'Trajet', 'Statut', ''].map(h => (
+                                {['Référence', 'Date', 'Assuré', 'Trajet', 'Statut', ''].map(h => (
                                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>{h}</th>
                                 ))}
                             </tr>
@@ -115,7 +120,7 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                         <tbody>
                             {certificateRequests.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                                    <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
                                         <Inbox size={32} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.4 }} />
                                         Aucune demande soumise pour le moment
                                     </td>
@@ -125,6 +130,7 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
 
                                 return (
                                     <tr key={cr.id} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                                        <td style={{ padding: '10px 14px', color: '#374151', fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{cr.reference ?? '—'}</td>
                                         <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{fmt(cr.created_at)}</td>
                                         <td style={{ padding: '10px 14px', fontWeight: 500, color: '#0f172a' }}>{cr.insured_name ?? '—'}</td>
                                         <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>

@@ -72,6 +72,16 @@ export const PRINT_TEMPLATES: PrintTemplate[] = [
         orientation: 'portrait',
         tenantCode: 'CG',
     },
+    {
+        id: 'benin',
+        name: 'Modèle Bénin',
+        country: 'Bénin',
+        countryFlag: '🇧🇯',
+        description: 'Certificat d\'assurance — Arrêté N° 331/MF/DC/DGAE/DCA — NSIA Bénin (CIMA)',
+        paperSize: 'A4',
+        orientation: 'portrait',
+        tenantCode: 'BJ',
+    },
     // ── Ajouter les nouveaux modèles ici au fur et à mesure ──
 ];
 

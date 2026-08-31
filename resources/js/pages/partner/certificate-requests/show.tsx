@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ChevronLeft, FileText, Download, Trash2, MessageSquare, Check, Award, FileQuestion, X, Upload } from 'lucide-react';
+import { ChevronLeft, FileText, Download, Trash2, MessageSquare, Check, Award, FileQuestion, X, Upload, Send, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -19,10 +19,11 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
     AUTRE: 'Autre justificatif',
 };
 
-type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
+type RequestStatus = 'DRAFT' | 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'COMPLETED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
 
 interface CertificateRequestDetail {
     id: string;
+    reference: string | null;
     status: RequestStatus;
     country_code: string | null;
     insured_name: string | null;
@@ -47,15 +48,18 @@ interface CertificateRequestDetail {
     certificate: { id: string; certificate_number: string; qr_token: string | null } | null;
     guce_certificate: { id: string; certificate_number: string; file_original_name: string } | null;
     created_at: string;
+    submitted_at: string | null;
     documents: Document[];
 }
 
 interface Props { certificateRequest: CertificateRequestDetail; }
 
 const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
+    DRAFT:          { bg: '#f1f5f9', color: '#64748b', label: 'Brouillon' },
     PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
     IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
     INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
+    COMPLETED:      { bg: '#eef2ff', color: '#4338ca', label: 'Complétée' },
     APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
     FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
     CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
@@ -112,12 +116,51 @@ export default function PartnerCertificateRequestShow({ certificateRequest: cr }
         completeForm.post(route('partner.certificate-requests.complete', { certificateRequest: cr.id }), { forceFormData: true });
     }
 
+    // ── Brouillon : ajout de pièces avant transmission ─────────
+    const draftDocsForm = useForm({ documents: [] as File[], document_types: [] as string[] });
+
+    function addDraftFiles(type: string, files: FileList | null) {
+        if (!files || files.length === 0) return;
+
+        draftDocsForm.setData({
+            ...draftDocsForm.data,
+            documents:      [...draftDocsForm.data.documents, ...Array.from(files)],
+            document_types: [...draftDocsForm.data.document_types, ...Array.from(files).map(() => type)],
+        });
+    }
+
+    function removeDraftFile(index: number) {
+        draftDocsForm.setData({
+            ...draftDocsForm.data,
+            documents:      draftDocsForm.data.documents.filter((_, i) => i !== index),
+            document_types: draftDocsForm.data.document_types.filter((_, i) => i !== index),
+        });
+    }
+
+    function saveDraftDocs(e: React.FormEvent) {
+        e.preventDefault();
+        draftDocsForm.post(route('partner.certificate-requests.update', { certificateRequest: cr.id }), {
+            forceFormData: true,
+            onSuccess: () => draftDocsForm.reset(),
+        });
+    }
+
+    function submitDraft() {
+        if (cr.documents.length + draftDocsForm.data.documents.length === 0) {
+            alert('Ajoutez au moins une pièce justificative avant de transmettre la demande.');
+            return;
+        }
+        if (!confirm('Transmettre cette demande à NSIA ?')) return;
+
+        router.post(route('partner.certificate-requests.submit', { certificateRequest: cr.id }));
+    }
+
     const cardStyle: React.CSSProperties = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '20px' };
     const labelStyle: React.CSSProperties = { fontSize: 10.5, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3, display: 'block' };
     const valueStyle: React.CSSProperties = { fontSize: 13, color: '#1e293b' };
 
     const timelineSteps = [
-        { label: 'Demande transmise', done: true, date: cr.created_at, by: null as string | null },
+        { label: 'Demande transmise', done: !!cr.submitted_at, date: cr.submitted_at, by: null as string | null },
         { label: 'Prise en charge par NSIA', done: !!cr.assigned_at, date: cr.assigned_at, by: cr.assigned_to ? `${cr.assigned_to.first_name} ${cr.assigned_to.last_name}` : null },
         ...(cr.info_requested_at ? [{
             label: 'Complément demandé',
@@ -153,7 +196,10 @@ export default function PartnerCertificateRequestShow({ certificateRequest: cr }
                         </Link>
                         <div>
                             <h1 style={{ fontSize: '19px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{cr.insured_name ?? 'Demande de certificat'}</h1>
-                            <p style={{ color: '#64748b', fontSize: '12.5px', margin: '2px 0 0' }}>Soumise le {fmt(cr.created_at)}</p>
+                            <p style={{ color: '#64748b', fontSize: '12.5px', margin: '2px 0 0' }}>
+                                {cr.reference ? <>Réf. <span style={{ fontFamily: 'monospace' }}>{cr.reference}</span> — </> : null}
+                                {cr.status === 'DRAFT' ? 'Brouillon enregistré' : `Transmise le ${fmt(cr.created_at)}`}
+                            </p>
                         </div>
                     </div>
                     <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: '5px 14px', fontSize: 12.5, fontWeight: 600 }}>{s.label}</span>
@@ -188,6 +234,51 @@ export default function PartnerCertificateRequestShow({ certificateRequest: cr }
                         ))}
                     </div>
                 </div>
+
+                {cr.status === 'DRAFT' && (
+                    <div style={{ ...cardStyle, background: '#f8fafc', borderColor: '#e2e8f0' }}>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 16 }}>
+                            <AlertCircle size={16} color="#64748b" style={{ flexShrink: 0, marginTop: 2 }} />
+                            <div>
+                                <div style={{ fontWeight: 600, fontSize: 13, color: '#334155' }}>Brouillon non transmis</div>
+                                <div style={{ fontSize: 12.5, color: '#64748b', marginTop: 3 }}>
+                                    Complétez les pièces justificatives puis transmettez la demande à NSIA.
+                                </div>
+                            </div>
+                        </div>
+
+                        <form onSubmit={saveDraftDocs}>
+                            {draftDocsForm.data.documents.length > 0 && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                                    {draftDocsForm.data.documents.map((f, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6 }}>
+                                            <FileText size={14} color="#334155" />
+                                            <span style={{ flex: 1, fontSize: 12, color: '#334155' }}>{f.name}</span>
+                                            <button type="button" onClick={() => removeDraftFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b', display: 'flex' }}>
+                                                <X size={13} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 500, color: '#334155', border: '1px solid #e2e8f0', borderRadius: 6, padding: '7px 12px', cursor: 'pointer', background: '#fff' }}>
+                                    <Upload size={14} /> Ajouter des pièces
+                                    <input type="file" multiple hidden onChange={e => { addDraftFiles('AUTRE', e.target.files); e.target.value = ''; }} />
+                                </label>
+                                {draftDocsForm.data.documents.length > 0 && (
+                                    <Button type="submit" disabled={draftDocsForm.processing} variant="outline">
+                                        Enregistrer les pièces
+                                    </Button>
+                                )}
+                                <Button type="button" onClick={submitDraft} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white" style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+                                    <Send size={14} /> Transmettre la demande
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                )}
 
                 {(cr.certificate || cr.guce_certificate) && (
                     <div style={{ ...cardStyle, background: '#f0fdf4', borderColor: '#bbf7d0' }}>
@@ -334,9 +425,9 @@ export default function PartnerCertificateRequestShow({ certificateRequest: cr }
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748b', textDecoration: 'none' }}>
                         <ChevronLeft size={14} /> Retour à mes demandes
                     </Link>
-                    {cr.status === 'PENDING' && (
+                    {(cr.status === 'DRAFT' || cr.status === 'PENDING') && (
                         <Button variant="outline" onClick={cancel} style={{ color: '#dc2626', borderColor: '#fecaca', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <Trash2 size={14} /> Annuler la demande
+                            <Trash2 size={14} /> {cr.status === 'DRAFT' ? 'Supprimer le brouillon' : 'Annuler la demande'}
                         </Button>
                     )}
                 </div>

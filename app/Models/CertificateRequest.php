@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class CertificateRequest extends Model
 {
@@ -17,6 +18,8 @@ class CertificateRequest extends Model
         'tenant_id',
         'broker_id',
         'created_by',
+        'reference',
+        'submitted_at',
         'country_code',
         'insured_name',
         'voyage_from',
@@ -47,6 +50,7 @@ class CertificateRequest extends Model
         return [
             'voyage_date'        => 'date',
             'estimated_value'    => 'decimal:2',
+            'submitted_at'       => 'datetime',
             'assigned_at'        => 'datetime',
             'reviewed_at'        => 'datetime',
             'info_requested_at'  => 'datetime',
@@ -57,16 +61,37 @@ class CertificateRequest extends Model
 
     // ── Constantes ───────────────────────────────────────────
     // Workflow complet (Module 1 — rapport DTAG 14/08/2026) :
-    // PENDING → IN_REVIEW → INFO_REQUESTED → [retour IN_REVIEW] →
+    // DRAFT → PENDING → IN_REVIEW → INFO_REQUESTED → COMPLETED →
     // APPROVED → FULFILLED → CLOSED · REJECTED (terminal, depuis
-    // PENDING/IN_REVIEW/INFO_REQUESTED).
+    // PENDING/IN_REVIEW/INFO_REQUESTED/COMPLETED).
+    const STATUS_DRAFT          = 'DRAFT';
     const STATUS_PENDING        = 'PENDING';
     const STATUS_IN_REVIEW      = 'IN_REVIEW';
     const STATUS_INFO_REQUESTED = 'INFO_REQUESTED';
+    const STATUS_COMPLETED      = 'COMPLETED';
     const STATUS_APPROVED       = 'APPROVED';
     const STATUS_FULFILLED      = 'FULFILLED';
     const STATUS_CLOSED         = 'CLOSED';
     const STATUS_REJECTED       = 'REJECTED';
+
+    // ── Référence unique (rapport 1.3) — attribuée dès la création,
+    // y compris pour un brouillon, afin que toute demande en base
+    // dispose d'une référence.
+    public static function nextReference(): string
+    {
+        $seq = DB::selectOne("SELECT nextval('certificate_request_reference_seq') AS val")->val;
+
+        return 'DEM-' . now()->format('Y') . '-' . str_pad((string) $seq, 6, '0', STR_PAD_LEFT);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $model) {
+            if (empty($model->reference)) {
+                $model->reference = self::nextReference();
+            }
+        });
+    }
 
     // ── Relations ────────────────────────────────────────────
     public function tenant(): BelongsTo

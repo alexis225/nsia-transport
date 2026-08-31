@@ -99,6 +99,24 @@ it("un partenaire peut soumettre une demande de certificat avec pièces jointes"
     expect($req->documents()->count())->toBe(1);
 });
 
+it("un partenaire peut enregistrer un brouillon sans pièce jointe — il reçoit quand même une référence", function () {
+    $tenant = makePartnerFormTenant();
+    ['user' => $partner] = makePartnerFormUser($tenant);
+
+    $this->actingAs($partner)
+        ->post(route('partner.certificate-requests.store'), [
+            'insured_name' => 'BROUILLON SOTRACI',
+            'save_as'      => 'draft',
+        ])
+        ->assertRedirect();
+
+    $req = CertificateRequest::where('insured_name', 'BROUILLON SOTRACI')->firstOrFail();
+    expect($req->status)->toBe(CertificateRequest::STATUS_DRAFT)
+        ->and($req->reference)->not->toBeNull()
+        ->and($req->reference)->toStartWith('DEM-')
+        ->and($req->submitted_at)->toBeNull();
+});
+
 it("la demande soumise sans aucune pièce jointe est refusée", function () {
     $tenant = makePartnerFormTenant();
     ['user' => $partner] = makePartnerFormUser($tenant);

@@ -20,10 +20,11 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
     AUTRE: 'Autre justificatif',
 };
 
-type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
+type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'COMPLETED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
 
 interface CertificateRequestDetail {
     id: string;
+    reference: string | null;
     status: RequestStatus;
     country_code: string | null;
     insured_name: string | null;
@@ -65,6 +66,7 @@ const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: s
     PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
     IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
     INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
+    COMPLETED:      { bg: '#eef2ff', color: '#4338ca', label: 'Complétée' },
     APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
     FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
     CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
@@ -186,7 +188,10 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                         </Link>
                         <div>
                             <h1 style={{ fontSize: '19px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{cr.insured_name ?? 'Demande de certificat'}</h1>
-                            <p style={{ color: '#64748b', fontSize: '12.5px', margin: '2px 0 0' }}>Soumise le {fmt(cr.created_at)} par {cr.created_by ? `${cr.created_by.first_name} ${cr.created_by.last_name}` : '—'}</p>
+                            <p style={{ color: '#64748b', fontSize: '12.5px', margin: '2px 0 0' }}>
+                                {cr.reference ? <>Réf. <span style={{ fontFamily: 'monospace' }}>{cr.reference}</span> — </> : null}
+                                Soumise le {fmt(cr.created_at)} par {cr.created_by ? `${cr.created_by.first_name} ${cr.created_by.last_name}` : '—'}
+                            </p>
                         </div>
                     </div>
                     <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: '5px 14px', fontSize: 12.5, fontWeight: 600 }}>{s.label}</span>
@@ -292,7 +297,16 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                     </div>
                 )}
 
-                {(cr.status === 'PENDING' || cr.status === 'IN_REVIEW') && (
+                {cr.status === 'COMPLETED' && (
+                    <div style={{ ...cardStyle, background: '#eef2ff', borderColor: '#c7d2fe' }}>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#4338ca', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <FileQuestion size={16} /> Dossier complété par le partenaire — en attente de ré-analyse
+                        </h2>
+                        {cr.completion_notes && <p style={{ fontSize: 13, color: '#3730a3', margin: 0 }}>{cr.completion_notes}</p>}
+                    </div>
+                )}
+
+                {(cr.status === 'PENDING' || cr.status === 'IN_REVIEW' || cr.status === 'COMPLETED') && (
                     <div style={cardStyle}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>Traitement</h2>
 

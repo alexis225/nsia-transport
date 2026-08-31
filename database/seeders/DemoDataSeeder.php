@@ -1031,6 +1031,8 @@ class DemoDataSeeder extends Seeder
                 'currency_code'     => 'XOF',
                 'notes'             => $s['notes'],
                 'status'            => $s['status'],
+                'reference'         => CertificateRequest::nextReference(),
+                'submitted_at'      => $createdAt,
                 'created_at'        => $createdAt,
             ]);
 

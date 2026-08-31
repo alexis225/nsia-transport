@@ -8,10 +8,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Demandes de certificats d\'assurance', href: '/admin/certificate-requests' },
 ];
 
-type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
+type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'COMPLETED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
 
 interface CertificateRequestRow {
     id: string;
+    reference: string | null;
     insured_name: string | null;
     status: RequestStatus;
     created_at: string;
@@ -38,6 +39,7 @@ const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: s
     PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
     IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
     INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
+    COMPLETED:      { bg: '#eef2ff', color: '#4338ca', label: 'Complétée' },
     APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
     FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
     CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
@@ -49,6 +51,7 @@ const STATUS_TABS: { key: string; label: string }[] = [
     { key: 'PENDING',        label: 'Transmises' },
     { key: 'IN_REVIEW',      label: "En cours d'analyse" },
     { key: 'INFO_REQUESTED', label: 'Complément demandé' },
+    { key: 'COMPLETED',      label: 'Complétées' },
     { key: 'APPROVED',       label: 'Validées' },
     { key: 'FULFILLED',      label: 'Certificat émis' },
     { key: 'CLOSED',         label: 'Clôturées' },
@@ -59,7 +62,7 @@ export default function AdminCertificateRequestsIndex({ certificateRequests, fil
     const [search, setSearch] = useState(filters.search ?? '');
     const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
     const activeStatus = filters.status ?? '';
-    const queueCount = counts.PENDING + counts.IN_REVIEW + counts.INFO_REQUESTED;
+    const queueCount = counts.PENDING + counts.IN_REVIEW + counts.INFO_REQUESTED + counts.COMPLETED;
 
     function applyFilters(next: Partial<{ status: string; search: string }>) {
         router.get('/admin/certificate-requests', { ...filters, ...next }, { preserveState: true, replace: true });
@@ -135,7 +138,7 @@ export default function AdminCertificateRequestsIndex({ certificateRequests, fil
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                {['Date', 'Courtier', 'Assuré', 'Statut', ''].map(h => (
+                                {['Référence', 'Date', 'Courtier', 'Assuré', 'Statut', ''].map(h => (
                                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>{h}</th>
                                 ))}
                             </tr>
@@ -143,7 +146,7 @@ export default function AdminCertificateRequestsIndex({ certificateRequests, fil
                         <tbody>
                             {certificateRequests.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                                    <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
                                         <Inbox size={32} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.4 }} />
                                         Aucune demande partenaire
                                     </td>
@@ -153,6 +156,7 @@ export default function AdminCertificateRequestsIndex({ certificateRequests, fil
 
                                 return (
                                     <tr key={cr.id} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                                        <td style={{ padding: '10px 14px', color: '#374151', fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{cr.reference ?? '—'}</td>
                                         <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{fmt(cr.created_at)}</td>
                                         <td style={{ padding: '10px 14px', color: '#0f172a' }}>{cr.broker?.name ?? '—'}</td>
                                         <td style={{ padding: '10px 14px', fontWeight: 500, color: '#0f172a' }}>{cr.insured_name ?? '—'}</td>

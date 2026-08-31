@@ -424,6 +424,8 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'role:courtier_local|
             Route::get('/create', [PartnerCertificateRequestController::class, 'create'])->name('create');
             Route::post('/',      [PartnerCertificateRequestController::class, 'store'])->name('store');
             Route::get('/{certificateRequest}', [PartnerCertificateRequestController::class, 'show'])->name('show');
+            Route::post('/{certificateRequest}/update', [PartnerCertificateRequestController::class, 'update'])->name('update');
+            Route::post('/{certificateRequest}/submit', [PartnerCertificateRequestController::class, 'submit'])->name('submit');
             Route::post('/{certificateRequest}/complete', [PartnerCertificateRequestController::class, 'complete'])->name('complete');
             Route::delete('/{certificateRequest}', [PartnerCertificateRequestController::class, 'destroy'])->name('destroy');
             Route::get('/{certificateRequest}/documents/{document}/download',

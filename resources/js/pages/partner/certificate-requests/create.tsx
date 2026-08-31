@@ -29,7 +29,7 @@ const DOCUMENT_TYPES: { key: string; label: string; hint: string }[] = [
 export default function PartnerCertificateRequestCreate({ countries, tenant, tenants }: Props) {
     const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, transform, processing, errors } = useForm({
         tenant_id:          tenants.length > 0 ? (tenant?.id ?? '') : '',
         country_code:       '',
         insured_name:       '',
@@ -65,8 +65,9 @@ export default function PartnerCertificateRequestCreate({ countries, tenant, ten
         });
     }
 
-    function submit(e: React.FormEvent) {
+    function submit(e: React.FormEvent, saveAs: 'draft' | 'submit') {
         e.preventDefault();
+        transform(d => ({ ...d, save_as: saveAs }));
         post(route('partner.certificate-requests.store'), { forceFormData: true });
     }
 
@@ -92,7 +93,7 @@ export default function PartnerCertificateRequestCreate({ countries, tenant, ten
                     </div>
                 </div>
 
-                <form onSubmit={submit}>
+                <form onSubmit={e => submit(e, 'submit')}>
                     <div style={cardStyle}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
                             <Building2 size={16} /> Filiale
@@ -186,10 +187,10 @@ export default function PartnerCertificateRequestCreate({ countries, tenant, ten
 
                     <div style={cardStyle}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>
-                            Pièces justificatives <span style={{ color: '#dc2626' }}>*</span>
+                            Pièces justificatives
                         </h2>
                         <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 16px' }}>
-                            Joignez au moins un document, réparti selon les catégories ci-dessous. PDF, JPG, PNG, DOC ou DOCX — 10 Mo max. par fichier.
+                            Requises pour transmettre la demande (au moins un document, réparti selon les catégories ci-dessous) — facultatives pour un brouillon. PDF, JPG, PNG, DOC ou DOCX — 10 Mo max. par fichier.
                         </p>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -253,9 +254,12 @@ export default function PartnerCertificateRequestCreate({ countries, tenant, ten
                         <Link href={route('partner.certificate-requests.index')}>
                             <Button type="button" variant="outline">Annuler</Button>
                         </Link>
+                        <Button type="button" variant="outline" disabled={processing} onClick={e => submit(e, 'draft')}>
+                            {processing ? 'Envoi…' : 'Enregistrer comme brouillon'}
+                        </Button>
                         <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <Upload size={15} />
-                            {processing ? 'Envoi…' : 'Soumettre la demande'}
+                            {processing ? 'Envoi…' : 'Transmettre la demande'}
                         </Button>
                     </div>
                 </form>

@@ -165,7 +165,7 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
     const addItem    = () => setData('expedition_items', [...data.expedition_items, emptyItem()]);
     const removeItem = (i: number) => setData('expedition_items', data.expedition_items.filter((_: ExpeditionItem, idx: number) => idx !== i));
 
-    // Taux du jour OANDA (devise cotation → devise locale du contrat) —
+    // Taux du jour (devise cotation → devise locale du contrat) —
     // purement indicatif, l'utilisateur peut toujours corriger le champ.
     async function fetchExchangeRate(fromCurrency: string) {
         if (!fromCurrency || !selectedC?.currency_code) return;
@@ -584,7 +584,7 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                                onChange={e => setData('exchange_rate', e.target.value)}
                                                placeholder="ex: 600"/>
                                         {rateStatus === 'loading' && (
-                                            <p style={{ fontSize:11, color:'#1d4ed8' }}>Récupération du taux du jour (OANDA)…</p>
+                                            <p style={{ fontSize:11, color:'#1d4ed8' }}>Récupération du taux du jour…</p>
                                         )}
                                         {rateStatus === 'error' && (
                                             <p style={{ fontSize:11, color:'#c2410c' }}>{rateMessage}</p>

@@ -5,9 +5,9 @@
  * Tests Pest — Module 1 : Demande de certificats d'assurance
  * ============================================================
  * Workflow complet issu du rapport DTAG du 14/08/2026 :
- * PENDING (Transmise) → IN_REVIEW (En cours d'analyse)
- *   → INFO_REQUESTED (Complément demandé) → [partenaire complète
- *     → retour IN_REVIEW] → APPROVED (Validée)
+ * DRAFT (Brouillon) → PENDING (Transmise) → IN_REVIEW (En cours
+ *   d'analyse) → INFO_REQUESTED (Complément demandé) → [partenaire
+ *     complète → COMPLETED (Complétée)] → APPROVED (Validée)
  *   → FULFILLED (Certificat émis) → CLOSED (Clôturée)
  * REJECTED (Rejetée) — terminal.
  * Lancer : php artisan test --filter CertificateRequestWorkflowTest
@@ -132,7 +132,7 @@ it('le souscripteur peut demander un complément — la demande passe en INFO_RE
         ->and($req->info_request_notes)->toBe('Merci de joindre la facture commerciale et le connaissement définitif.');
 });
 
-it("le partenaire complète son dossier et la demande retourne en IN_REVIEW (cas n°2 du rapport)", function () {
+it("le partenaire complète son dossier et la demande passe en COMPLETED (cas n°2 du rapport)", function () {
     $tenant = makeCertReqTenant();
     ['broker' => $broker, 'user' => $partner] = makeCertReqPartner($tenant);
     $req = makeCertReqRequest($tenant, $broker, $partner, [
@@ -148,9 +148,74 @@ it("le partenaire complète son dossier et la demande retourne en IN_REVIEW (cas
         ->assertRedirect();
 
     $req->refresh();
-    expect($req->status)->toBe(CertificateRequest::STATUS_IN_REVIEW)
+    expect($req->status)->toBe(CertificateRequest::STATUS_COMPLETED)
         ->and($req->completed_at)->not->toBeNull()
         ->and($req->completion_notes)->toBe('Facture jointe.');
+});
+
+it('le souscripteur peut valider une demande COMPLETED', function () {
+    $tenant = makeCertReqTenant();
+    $staff = makeCertReqStaff($tenant);
+    ['broker' => $broker, 'user' => $partner] = makeCertReqPartner($tenant);
+    $req = makeCertReqRequest($tenant, $broker, $partner, ['status' => CertificateRequest::STATUS_COMPLETED]);
+
+    $this->actingAs($staff)
+        ->patch(route('admin.certificate-requests.approve', $req), ['review_notes' => 'Dossier conforme après complément.'])
+        ->assertRedirect();
+
+    expect($req->fresh()->status)->toBe(CertificateRequest::STATUS_APPROVED);
+});
+
+it('une demande brouillon transmise reçoit une référence unique et devient PENDING', function () {
+    $tenant = makeCertReqTenant();
+    $staff = makeCertReqStaff($tenant);
+    ['broker' => $broker, 'user' => $partner] = makeCertReqPartner($tenant);
+    $req = makeCertReqRequest($tenant, $broker, $partner, ['status' => CertificateRequest::STATUS_DRAFT, 'reference' => null]);
+
+    \App\Models\CertificateRequestDocument::create([
+        'certificate_request_id' => $req->id,
+        'file_path'              => 'certificate-requests/x/y.pdf',
+        'file_original_name'     => 'y.pdf',
+        'file_mime_type'         => 'application/pdf',
+        'file_size'              => 100,
+        'document_type'          => 'AUTRE',
+        'uploaded_by'            => $partner->id,
+    ]);
+
+    $this->actingAs($partner)
+        ->post(route('partner.certificate-requests.submit', $req))
+        ->assertRedirect();
+
+    $req->refresh();
+    expect($req->status)->toBe(CertificateRequest::STATUS_PENDING)
+        ->and($req->reference)->not->toBeNull()
+        ->and($req->reference)->toStartWith('DEM-')
+        ->and($req->submitted_at)->not->toBeNull();
+});
+
+it('refuse de transmettre un brouillon sans aucune pièce jointe', function () {
+    $tenant = makeCertReqTenant();
+    ['broker' => $broker, 'user' => $partner] = makeCertReqPartner($tenant);
+    $req = makeCertReqRequest($tenant, $broker, $partner, ['status' => CertificateRequest::STATUS_DRAFT, 'reference' => null]);
+
+    $this->actingAs($partner)
+        ->post(route('partner.certificate-requests.submit', $req))
+        ->assertStatus(422);
+
+    expect($req->fresh()->status)->toBe(CertificateRequest::STATUS_DRAFT);
+});
+
+it('les brouillons sont invisibles dans la file du staff', function () {
+    $tenant = makeCertReqTenant();
+    $staff = makeCertReqStaff($tenant);
+    ['broker' => $broker, 'user' => $partner] = makeCertReqPartner($tenant);
+    makeCertReqRequest($tenant, $broker, $partner, ['status' => CertificateRequest::STATUS_DRAFT, 'reference' => null, 'insured_name' => 'DRAFT ONLY']);
+
+    $response = $this->actingAs($staff)->get(route('admin.certificate-requests.index'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->where('certificateRequests.data', fn ($data) => collect($data)->pluck('insured_name')->doesntContain('DRAFT ONLY')));
 });
 
 it('un partenaire ne peut pas compléter une demande qui ne le concerne pas', function () {

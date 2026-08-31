@@ -22,7 +22,10 @@ class CertificateRequestController extends Controller
         $user = Auth::user();
         $isSA = $user->hasRole('super_admin');
 
-        $base = CertificateRequest::query()->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id));
+        // Les brouillons (DRAFT) ne sont jamais transmis au staff — invisibles ici.
+        $base = CertificateRequest::query()
+            ->where('status', '!=', CertificateRequest::STATUS_DRAFT)
+            ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id));
 
         // Compteurs par statut — alimentent la file d'attente (onglets)
         $counts = (clone $base)
@@ -50,11 +53,12 @@ class CertificateRequestController extends Controller
                 WHEN 'PENDING' THEN 0
                 WHEN 'IN_REVIEW' THEN 1
                 WHEN 'INFO_REQUESTED' THEN 2
-                WHEN 'APPROVED' THEN 3
-                WHEN 'FULFILLED' THEN 4
-                WHEN 'REJECTED' THEN 5
-                WHEN 'CLOSED' THEN 6
-                ELSE 7 END")
+                WHEN 'COMPLETED' THEN 3
+                WHEN 'APPROVED' THEN 4
+                WHEN 'FULFILLED' THEN 5
+                WHEN 'REJECTED' THEN 6
+                WHEN 'CLOSED' THEN 7
+                ELSE 8 END")
             ->orderBy('created_at')
             ->paginate(15)
             ->withQueryString();
@@ -66,6 +70,7 @@ class CertificateRequestController extends Controller
                 'PENDING'        => $counts['PENDING'] ?? 0,
                 'IN_REVIEW'      => $counts['IN_REVIEW'] ?? 0,
                 'INFO_REQUESTED' => $counts['INFO_REQUESTED'] ?? 0,
+                'COMPLETED'      => $counts['COMPLETED'] ?? 0,
                 'APPROVED'       => $counts['APPROVED'] ?? 0,
                 'FULFILLED'      => $counts['FULFILLED'] ?? 0,
                 'CLOSED'         => $counts['CLOSED'] ?? 0,
@@ -151,9 +156,9 @@ class CertificateRequestController extends Controller
         $this->authorizeTenant($certificateRequest);
 
         abort_if(
-            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW], true),
+            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW, CertificateRequest::STATUS_COMPLETED], true),
             422,
-            'Un complément ne peut être demandé que sur une demande en attente ou en cours d\'analyse.'
+            'Un complément ne peut être demandé que sur une demande en attente, en cours d\'analyse ou complétée.'
         );
 
         $validated = $request->validate([
@@ -203,7 +208,7 @@ class CertificateRequestController extends Controller
         $this->authorizeTenant($certificateRequest);
 
         abort_if(
-            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW, CertificateRequest::STATUS_INFO_REQUESTED], true),
+            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW, CertificateRequest::STATUS_INFO_REQUESTED, CertificateRequest::STATUS_COMPLETED], true),
             422,
             'Cette demande a déjà été traitée.'
         );
@@ -227,7 +232,7 @@ class CertificateRequestController extends Controller
         $this->authorizeTenant($certificateRequest);
 
         abort_if(
-            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW, CertificateRequest::STATUS_INFO_REQUESTED], true),
+            ! in_array($certificateRequest->status, [CertificateRequest::STATUS_PENDING, CertificateRequest::STATUS_IN_REVIEW, CertificateRequest::STATUS_INFO_REQUESTED, CertificateRequest::STATUS_COMPLETED], true),
             422,
             'Cette demande a déjà été traitée.'
         );

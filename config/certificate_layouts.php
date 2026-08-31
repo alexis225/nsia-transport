@@ -85,6 +85,29 @@ return [
         'prime_total'               => ['top' => 258.7, 'left' => 150.3, 'width' => 44.5, 'align' => 'C', 'fontSize' => 11],
     ],
 
+    // ⚠️ Calibré sur aperçu PDF (preview()), pas encore sur tirage papier
+    // réel (voir le commentaire détaillé en tête de resources/js/pages/
+    // admin/certificates/print-templates/benin.tsx, qui doit rester
+    // synchronisé avec ces coordonnées). Pas de tableau DECOMPTE DE
+    // PRIME sur cette souche — seul un encart libre "RESUME DES
+    // PRINCIPALES CONDITIONS D'ASSURANCE" y accueille provisoirement
+    // amount_prime_nette et prime_total.
+    'benin' => [
+        'certificate_number'        => ['top' => 62,  'left' => 160, 'width' => 38, 'fontSize' => 8],
+        'policy_number'             => ['top' => 97,  'left' => 152, 'width' => 28],
+        'issue_date'                => ['top' => 97,  'left' => 185, 'width' => 20],
+        'insured_name_and_address'  => ['top' => 89,  'left' => 16,  'width' => 118, 'fontSize' => 8],
+        'nature'                    => ['top' => 110, 'left' => 16,  'width' => 118, 'fontSize' => 8],
+        'weight'                    => ['top' => 106, 'left' => 152, 'width' => 30],
+        'marks'                     => ['top' => 120, 'left' => 152, 'width' => 40],
+        'vessel_name'               => ['top' => 138, 'left' => 16,  'width' => 118],
+        'voyage_from'               => ['top' => 138, 'left' => 152, 'width' => 40],
+        'insured_value'             => ['top' => 184, 'left' => 16,  'width' => 80],
+        'insured_value_letters'     => ['top' => 184, 'left' => 152, 'width' => 42, 'fontSize' => 8],
+        'amount_prime_nette'        => ['top' => 228, 'left' => 20,  'width' => 80],
+        'prime_total'               => ['top' => 234, 'left' => 20,  'width' => 80, 'fontSize' => 11],
+    ],
+
     // ── Ajouter les nouveaux modèles pays ici, calibrés via le
     //    calibreur (public/tools/calibreur_nsia_togo.html) ──
 
