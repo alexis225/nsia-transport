@@ -1,5 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
-import { Clock, AlertTriangle, CheckCircle, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Clock, AlertTriangle, CheckCircle, ArrowRight, ShieldAlert, Search, X } from 'lucide-react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -17,18 +18,27 @@ interface Workflow {
     tenant: { name: string; code: string } | null;
     triggered_by: { name: string } | null;
 }
+interface Tenant { id: string; name: string; code: string; }
+interface Filters { search?: string; level?: string; tenant_id?: string; overdue?: string; }
 interface Props {
     workflows: Workflow[];
     isSA:      boolean;
+    filters:   Filters;
+    tenants:   Tenant[];
 }
 
 const fmt   = (n: number, c: string) => n.toLocaleString('fr-FR', { maximumFractionDigits:0 }) + ' ' + c;
 const fmtDt = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
 
-export default function ApprovalsIndex({ workflows, isSA }: Props) {
+export default function ApprovalsIndex({ workflows, isSA, filters, tenants }: Props) {
+    const [search, setSearch] = useState(filters.search ?? '');
     const overdue  = workflows.filter(w => w.is_overdue).length;
     const level1   = workflows.filter(w => w.current_level === 1).length;
     const level2   = workflows.filter(w => w.current_level === 2).length;
+
+    function applyFilters(next: Partial<Filters>) {
+        router.get(route('admin.approvals.index'), { ...filters, ...next }, { preserveState: true, replace: true });
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -71,6 +81,43 @@ export default function ApprovalsIndex({ workflows, isSA }: Props) {
                         </Link>
                     </div>
 
+                    <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+                        <div style={{ position:'relative', flex:1, maxWidth:320 }}>
+                            <Search size={15} style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', color:'#94a3b8' }}/>
+                            <input
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && applyFilters({ search })}
+                                placeholder="N° certificat, N° contrat, assuré..."
+                                style={{ width:'100%', padding:'7px 8px 7px 32px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, outline:'none', boxSizing:'border-box' }}
+                            />
+                            {search && (
+                                <button type="button" onClick={() => { setSearch(''); applyFilters({ search: '' }); }}
+                                        style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}>
+                                    <X size={13}/>
+                                </button>
+                            )}
+                        </div>
+                        <select value={filters.level ?? ''} onChange={e => applyFilters({ level: e.target.value })}
+                                style={{ padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, cursor:'pointer' }}>
+                            <option value="">Tous niveaux</option>
+                            <option value="1">Niveau 1 (Admin)</option>
+                            <option value="2">Niveau 2 (Super Admin)</option>
+                        </select>
+                        {isSA && tenants.length > 0 && (
+                            <select value={filters.tenant_id ?? ''} onChange={e => applyFilters({ tenant_id: e.target.value })}
+                                    style={{ padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, cursor:'pointer' }}>
+                                <option value="">Toutes filiales</option>
+                                {tenants.map(t => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                            </select>
+                        )}
+                        <label style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:12.5, color:'#475569', cursor:'pointer', padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8 }}>
+                            <input type="checkbox" checked={filters.overdue === '1'}
+                                   onChange={e => applyFilters({ overdue: e.target.checked ? '1' : '' })}/>
+                            Délai dépassé uniquement
+                        </label>
+                    </div>
+
                     <div className="kpi-grid">
                         <div className="kpi-card" style={{ borderColor: workflows.length > 0 ? '#fde68a' : undefined }}>
                             <div className="kpi-val" style={{ color: workflows.length > 0 ? '#92400e' : '#1e293b' }}>{workflows.length}</div>
@@ -94,8 +141,16 @@ export default function ApprovalsIndex({ workflows, isSA }: Props) {
                         {workflows.length === 0 ? (
                             <div className="empty">
                                 <CheckCircle size={32} color="#bbf7d0" style={{ marginBottom:8 }}/>
-                                <div style={{ fontWeight:500, color:'#15803d' }}>Aucune escalade en attente</div>
-                                <div style={{ fontSize:11, marginTop:4 }}>Toutes les escalades ont été traitées.</div>
+                                <div style={{ fontWeight:500, color:'#15803d' }}>
+                                    {filters.search || filters.level || filters.tenant_id || filters.overdue
+                                        ? 'Aucune escalade ne correspond aux filtres'
+                                        : 'Aucune escalade en attente'}
+                                </div>
+                                <div style={{ fontSize:11, marginTop:4 }}>
+                                    {filters.search || filters.level || filters.tenant_id || filters.overdue
+                                        ? 'Essayez d\'élargir votre recherche.'
+                                        : 'Toutes les escalades ont été traitées.'}
+                                </div>
                             </div>
                         ) : (
                             <table>

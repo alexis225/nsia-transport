@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Plus, X, ToggleLeft, ToggleRight, Trash2, Pencil, ShieldAlert } from 'lucide-react';
+import { Plus, X, ToggleLeft, ToggleRight, Trash2, Pencil, ShieldAlert, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,10 +22,11 @@ interface Config {
     steps: Step[];
 }
 interface Tenant { id: string; name: string; code: string; }
+interface Filters { tenant_id?: string; search?: string; trigger_type?: string; status?: string; }
 interface Props {
     configs:         Config[];
     tenants:         Tenant[];
-    filters:         { tenant_id?: string };
+    filters:         Filters;
     isSA:            boolean;
     defaultTenantId: string | null;
 }
@@ -54,9 +55,14 @@ const emptyForm = (defaultTenantId: string | null) => ({
     ] as StepForm[],
 });
 
-export default function ApprovalConfigs({ configs, tenants, isSA, defaultTenantId }: Props) {
+export default function ApprovalConfigs({ configs, tenants, filters, isSA, defaultTenantId }: Props) {
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [search, setSearch] = useState(filters.search ?? '');
+
+    function applyFilters(next: Partial<Filters>) {
+        router.get(route('admin.approvals.configs'), { ...filters, ...next }, { preserveState: true, replace: true });
+    }
 
     const { data, setData, post, patch, processing, errors, reset } = useForm(emptyForm(defaultTenantId));
 
@@ -156,6 +162,47 @@ export default function ApprovalConfigs({ configs, tenants, isSA, defaultTenantI
                             </Button>
                         )}
                     </div>
+
+                    {!showForm && (
+                        <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+                            <div style={{ position:'relative', flex:1, maxWidth:320 }}>
+                                <Search size={15} style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', color:'#94a3b8' }}/>
+                                <input
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && applyFilters({ search })}
+                                    placeholder="Nom de la règle..."
+                                    style={{ width:'100%', padding:'7px 8px 7px 32px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, outline:'none', boxSizing:'border-box' }}
+                                />
+                                {search && (
+                                    <button type="button" onClick={() => { setSearch(''); applyFilters({ search: '' }); }}
+                                            style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}>
+                                        <X size={13}/>
+                                    </button>
+                                )}
+                            </div>
+                            <select value={filters.trigger_type ?? ''} onChange={e => applyFilters({ trigger_type: e.target.value })}
+                                    style={{ padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, cursor:'pointer' }}>
+                                <option value="">Tous déclencheurs</option>
+                                {(Object.keys(TRIGGER_LABELS) as TriggerType[]).map(t => (
+                                    <option key={t} value={t}>{TRIGGER_LABELS[t]}</option>
+                                ))}
+                            </select>
+                            <select value={filters.status ?? ''} onChange={e => applyFilters({ status: e.target.value })}
+                                    style={{ padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, cursor:'pointer' }}>
+                                <option value="">Tous statuts</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                            {isSA && tenants.length > 0 && (
+                                <select value={filters.tenant_id ?? ''} onChange={e => applyFilters({ tenant_id: e.target.value })}
+                                        style={{ padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, cursor:'pointer' }}>
+                                    <option value="">Toutes filiales</option>
+                                    {tenants.map(t => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                </select>
+                            )}
+                        </div>
+                    )}
 
                     {showForm && (
                         <div className="form-card">
@@ -270,7 +317,11 @@ export default function ApprovalConfigs({ configs, tenants, isSA, defaultTenantI
                         {configs.length === 0 ? (
                             <div className="empty">
                                 <ShieldAlert size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
-                                <div>Aucune règle d'escalade configurée.</div>
+                                <div>
+                                    {filters.search || filters.trigger_type || filters.status || filters.tenant_id
+                                        ? 'Aucune règle ne correspond aux filtres.'
+                                        : 'Aucune règle d\'escalade configurée.'}
+                                </div>
                             </div>
                         ) : (
                             <table>

@@ -31,8 +31,9 @@ class ApprovalWorkflowController extends Controller
     // ── Liste des escalades en attente ────────────────────────
     public function index(Request $request): Response
     {
-        $user = $request->user();
-        $isSA = $user->hasRole('super_admin');
+        $user    = $request->user();
+        $isSA    = $user->hasRole('super_admin');
+        $filters = $request->only(['search', 'level', 'tenant_id', 'overdue']);
 
         $requests = ApprovalRequest::with([
                 'workflowConfig:id,name,steps_config,trigger_condition',
@@ -52,6 +53,8 @@ class ApprovalWorkflowController extends Controller
                     // super_admin voit tout
                 });
             })
+            ->when($isSA && ! empty($filters['tenant_id']), fn ($q) => $q->where('tenant_id', $filters['tenant_id']))
+            ->when(! empty($filters['level']), fn ($q) => $q->where('current_step', (int) $filters['level']))
             ->orderBy('due_date', 'asc')
             ->get();
 
@@ -63,9 +66,29 @@ class ApprovalWorkflowController extends Controller
 
         $requests = $requests->map(fn ($r) => $this->formatRequest($r, $certificates->get($r->entity_id)));
 
+        // Recherche libre (N° certificat, N° contrat, assuré) et filtre "en
+        // retard" — appliqués après formatage : les valeurs recherchées
+        // (certificat/contrat) sont dénormalisées lors du formatRequest()
+        // à partir d'un chargement en masse séparé, pas directement
+        // requêtables en SQL sur approval_requests (entity_id polymorphe).
+        if (! empty($filters['search'])) {
+            $needle = mb_strtolower($filters['search']);
+            $requests = $requests->filter(function ($w) use ($needle) {
+                return str_contains(mb_strtolower($w['certificate']['certificate_number'] ?? ''), $needle)
+                    || str_contains(mb_strtolower($w['certificate']['insured_name'] ?? ''), $needle)
+                    || str_contains(mb_strtolower($w['contract']['contract_number'] ?? ''), $needle);
+            });
+        }
+
+        if (($filters['overdue'] ?? null) === '1') {
+            $requests = $requests->filter(fn ($w) => $w['is_overdue']);
+        }
+
         return Inertia::render('admin/approvals/index', [
-            'workflows' => $requests,
+            'workflows' => $requests->values(),
             'isSA'      => $isSA,
+            'filters'   => $filters,
+            'tenants'   => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']) : collect(),
         ]);
     }
 
@@ -161,21 +184,31 @@ class ApprovalWorkflowController extends Controller
     // ── Liste des règles d'escalade configurées ────────────────
     public function configs(Request $request): Response
     {
-        $user = $request->user();
-        $isSA = $user->hasRole('super_admin');
+        $user    = $request->user();
+        $isSA    = $user->hasRole('super_admin');
+        $filters = $request->only(['tenant_id', 'search', 'trigger_type', 'status']);
 
         $configs = ApprovalWorkflowConfig::with('tenant:id,name,code')
             ->where('entity_type', ApprovalWorkflowConfig::ENTITY_CERTIFICATE)
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-            ->when($request->tenant_id && $isSA, fn ($q) => $q->where('tenant_id', $request->tenant_id))
+            ->when(($filters['tenant_id'] ?? null) && $isSA, fn ($q) => $q->where('tenant_id', $filters['tenant_id']))
+            ->when($filters['search'] ?? null, fn ($q, $search) => $q->where('name', 'ilike', "%{$search}%"))
+            ->when(($filters['status'] ?? null) === 'active', fn ($q) => $q->where('is_active', true))
+            ->when(($filters['status'] ?? null) === 'inactive', fn ($q) => $q->where('is_active', false))
             ->orderBy('name')
             ->get()
             ->map(fn ($c) => $this->formatConfig($c));
 
+        // trigger_type dérivé de trigger_condition (JSON) après formatage —
+        // pas de colonne dédiée à filtrer directement en SQL.
+        if (! empty($filters['trigger_type'])) {
+            $configs = $configs->filter(fn ($c) => $c['trigger_type'] === $filters['trigger_type'])->values();
+        }
+
         return Inertia::render('admin/approvals/configs', [
             'configs'         => $configs,
             'tenants'         => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']) : collect(),
-            'filters'         => $request->only(['tenant_id']),
+            'filters'         => $filters,
             'isSA'            => $isSA,
             'defaultTenantId' => $user->tenant_id,
         ]);
