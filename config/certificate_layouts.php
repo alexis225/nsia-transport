@@ -85,27 +85,28 @@ return [
         'prime_total'               => ['top' => 258.7, 'left' => 150.3, 'width' => 44.5, 'align' => 'C', 'fontSize' => 11],
     ],
 
-    // ⚠️ Calibré sur aperçu PDF (preview()), pas encore sur tirage papier
-    // réel (voir le commentaire détaillé en tête de resources/js/pages/
-    // admin/certificates/print-templates/benin.tsx, qui doit rester
-    // synchronisé avec ces coordonnées). Pas de tableau DECOMPTE DE
-    // PRIME sur cette souche — seul un encart libre "RESUME DES
-    // PRINCIPALES CONDITIONS D'ASSURANCE" y accueille provisoirement
-    // amount_prime_nette et prime_total.
+    // Converti depuis l'export JSON du Designer pdfme (calibrage visuel
+    // sur le PDF réel de la souche) le 2026-09-03 — voir le commentaire
+    // détaillé en tête de resources/js/pages/admin/certificates/
+    // print-templates/benin.tsx, qui doit rester synchronisé avec ces
+    // coordonnées. Pas encore vérifié sur un tirage papier réel.
+    // Pas de tableau DECOMPTE DE PRIME sur cette souche (encart libre
+    // "RESUME DES PRINCIPALES CONDITIONS D'ASSURANCE") : le calibrage
+    // n'y place aucun champ de prime.
     'benin' => [
-        'certificate_number'        => ['top' => 62,  'left' => 160, 'width' => 38, 'fontSize' => 8],
-        'policy_number'             => ['top' => 97,  'left' => 152, 'width' => 28],
-        'issue_date'                => ['top' => 97,  'left' => 185, 'width' => 20],
-        'insured_name_and_address'  => ['top' => 89,  'left' => 16,  'width' => 118, 'fontSize' => 8],
-        'nature'                    => ['top' => 110, 'left' => 16,  'width' => 118, 'fontSize' => 8],
-        'weight'                    => ['top' => 106, 'left' => 152, 'width' => 30],
-        'marks'                     => ['top' => 120, 'left' => 152, 'width' => 40],
-        'vessel_name'               => ['top' => 138, 'left' => 16,  'width' => 118],
-        'voyage_from'               => ['top' => 138, 'left' => 152, 'width' => 40],
-        'insured_value'             => ['top' => 184, 'left' => 16,  'width' => 80],
-        'insured_value_letters'     => ['top' => 184, 'left' => 152, 'width' => 42, 'fontSize' => 8],
-        'amount_prime_nette'        => ['top' => 228, 'left' => 20,  'width' => 80],
-        'prime_total'               => ['top' => 234, 'left' => 20,  'width' => 80, 'fontSize' => 11],
+        'certificate_number'    => ['top' => 60.7,   'left' => 126.74, 'width' => 67.47, 'fontSize' => 13],
+        'policy_number'         => ['top' => 83.62,  'left' => 140.89, 'width' => 28.57, 'fontSize' => 13],
+        'voyage_date'           => ['top' => 88.55,  'left' => 172.9,  'width' => 21.17, 'fontSize' => 13],
+        'insured_name'          => ['top' => 89.86,  'left' => 35.98,  'width' => 62.71, 'fontSize' => 13],
+        'weight'                => ['top' => 101.16, 'left' => 123.82, 'width' => 28.84, 'fontSize' => 13],
+        'package_count'         => ['top' => 110.69, 'left' => 61.91,  'width' => 37.57, 'fontSize' => 13],
+        'nature'                => ['top' => 111.03, 'left' => 16.67,  'width' => 43.92, 'fontSize' => 13],
+        'marks'                 => ['top' => 113.94, 'left' => 117.21, 'width' => 75.94, 'fontSize' => 13],
+        'voyage_via'            => ['top' => 127.44, 'left' => 117.6,  'width' => 75.41, 'fontSize' => 13],
+        'vessel_name'           => ['top' => 134.7,  'left' => 17.06,  'width' => 81.76, 'fontSize' => 13],
+        'insured_value_letters' => ['top' => 179.3,  'left' => 105.84, 'width' => 88.64, 'fontSize' => 13],
+        'insured_value'         => ['top' => 182.91, 'left' => 16.65,  'width' => 82.81, 'fontSize' => 13],
+        'issue_date'            => ['top' => 234.67, 'left' => 134.22, 'width' => 43.39, 'fontSize' => 13],
     ],
 
     // ── Ajouter les nouveaux modèles pays ici, calibrés via le

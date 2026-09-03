@@ -3,59 +3,50 @@ import StubOverlay from './stub-overlay';
 import type { CertificateForPrint } from './types';
 
 // ============================================================
-// ⚠️ CALIBRAGE PRÉ-VALIDÉ SUR APERÇU PDF UNIQUEMENT — PAS ENCORE
-// VÉRIFIÉ SUR UN TIRAGE PAPIER RÉEL.
-// Positions ajustées le 2026-08-31 par itérations successives via
-// CertificatePrePrintedService::preview() (fond = storage/app/public/
-// formulaires/benin.pdf, déposé par NSIA), chaque champ vérifié
-// visuellement dans sa case sur le PDF scanné réel de la souche
-// "CERTIFICAT MARITIME - TEMPLATE - ASSURANCES - BENIN.pdf" (Arrêté
-// N° 331/MF/DC/DGAE/DCA, Cotonou). Contrairement au Togo (calibré en
-// 2 passes AVEC vérification photo d'un tirage papier réel — cf.
-// togo.tsx), cette calibration n'a été confrontée qu'à l'aperçu
-// écran : reste à confirmer qu'aucun décalage d'échelle/marge
-// d'impression ne déplace les champs une fois réellement imprimés
-// par-dessus la souche physique (mode ?calibrate=1 + mesure à la
-// règle, comme pour le Togo).
+// Coordonnées calibrées visuellement dans le Designer pdfme sur le PDF
+// réel de la souche ("CERTIFICAT MARITIME - TEMPLATE - ASSURANCES -
+// BENIN.pdf", Arrêté N° 331/MF/DC/DGAE/DCA, Cotonou), puis converties
+// depuis l'export JSON pdfme le 2026-09-03 : chaque `position.{x,y}`
+// (mm, coin haut-gauche) devient {left, top}, `width` et `fontSize`
+// sont repris tels quels.
+//
+// ⚠️ Comme pour le Togo à l'issue de sa 1re passe, ce calibrage n'a
+// pas encore été confronté à un tirage papier réel : imprimer en mode
+// ?calibrate=1 sur une vraie souche, à plat, et mesurer à la règle
+// avant usage en production (une mise à l'échelle du lecteur PDF à
+// l'impression décalerait tous les champs).
 //
 // Différences structurelles vs le Togo :
 //   - Pas de tableau DECOMPTE DE PRIME (RO/RG/Surprime) sur cette
 //     souche : uniquement un encart libre "RESUME DES PRINCIPALES
-//     CONDITIONS D'ASSURANCE" — le détail de prime n'y a donc pas
-//     d'emplacement dédié ; seuls prime_total et amount_prime_nette
-//     sont provisoirement placés en haut de cet encart.
-//   - "Marchandise" est une case libre unique (pas de colonnes
-//     Marques/N° colis/Poids/Nature séparées comme au Togo) : seul le
-//     champ `nature` y est positionné, les autres (marks, weight...)
-//     sont positionnés dans leurs petites cases dédiées à droite.
+//     CONDITIONS D'ASSURANCE". Le calibrage pdfme n'y place aucun
+//     champ — le détail de prime n'est donc pas imprimé ici.
 //   - Pas de cases à cocher AVION/NAVIRE/ROUTIER ni CONTAINER/VRAC.
-//   - "Voyage : TRAVEL" est une case libre unique — mappée sur
-//     `voyage_from` faute de champ combiné dédié côté backend.
 export const BENIN_POSITIONS: FieldPosition[] = [
     // ── En-tête ──
-    { key: 'certificate_number',       top: 62,    left: 160, width: 38, fontSize: 8 },
-    { key: 'policy_number',            top: 97,    left: 152, width: 28 },
-    { key: 'issue_date',               top: 97,    left: 185, width: 20 },
+    { key: 'certificate_number',    top: 60.7,  left: 126.74, width: 67.47, fontSize: 13 },
+    { key: 'policy_number',         top: 83.62, left: 140.89, width: 28.57, fontSize: 13 },
+    { key: 'voyage_date',           top: 88.55, left: 172.9,  width: 21.17, fontSize: 13 },
 
     // ── ASSURE ──
-    { key: 'insured_name_and_address', top: 89,    left: 16,  width: 118, fontSize: 8 },
+    { key: 'insured_name',          top: 89.86, left: 35.98,  width: 62.71, fontSize: 13 },
 
     // ── MARCHANDISE / POIDS / MARQUES ──
-    { key: 'nature',                   top: 110,   left: 16,  width: 118, fontSize: 8 },
-    { key: 'weight',                   top: 106,   left: 152, width: 30 },
-    { key: 'marks',                    top: 120,   left: 152, width: 40 },
+    { key: 'nature',                top: 111.03, left: 16.67,  width: 43.92, fontSize: 13 },
+    { key: 'package_count',         top: 110.69, left: 61.91,  width: 37.57, fontSize: 13 },
+    { key: 'weight',                top: 101.16, left: 123.82, width: 28.84, fontSize: 13 },
+    { key: 'marks',                 top: 113.94, left: 117.21, width: 75.94, fontSize: 13 },
 
     // ── NAVIRE / VOYAGE ──
-    { key: 'vessel_name',              top: 138,   left: 16,  width: 118 },
-    { key: 'voyage_from',              top: 138,   left: 152, width: 40 },
+    { key: 'vessel_name',           top: 134.7, left: 17.06,  width: 81.76, fontSize: 13 },
+    { key: 'voyage_via',            top: 127.44, left: 117.6,  width: 75.41, fontSize: 13 },
 
     // ── VALEUR D'ASSURANCE ──
-    { key: 'insured_value',            top: 184,   left: 16,  width: 80 },
-    { key: 'insured_value_letters',    top: 184,   left: 152, width: 42, fontSize: 8 },
+    { key: 'insured_value',         top: 182.91, left: 16.65,  width: 82.81, fontSize: 13 },
+    { key: 'insured_value_letters', top: 179.3, left: 105.84, width: 88.64, fontSize: 13 },
 
-    // ── RESUME DES PRINCIPALES CONDITIONS D'ASSURANCE (encart libre) ──
-    { key: 'amount_prime_nette',       top: 228,   left: 20,  width: 80 },
-    { key: 'prime_total',              top: 234,   left: 20,  width: 80, fontSize: 11 },
+    // ── Pied de page (Cotonou, le …) ──
+    { key: 'issue_date',            top: 234.67, left: 134.22, width: 43.39, fontSize: 13 },
 ];
 
 interface Props {
