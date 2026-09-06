@@ -1,4 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,10 +42,12 @@ const TIMEZONES = [
 const CURRENCIES = ['XOF','XAF','GNF','MGA','NGN','EUR','USD'];
 
 export default function TenantEdit({ tenant }: Props) {
+    const { t } = useTranslation('tenants');
+    const { t: tc } = useTranslation('common');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Filiales',   href: '/admin/tenants' },
+        { title: t('edit.breadcrumb.tenants'),   href: '/admin/tenants' },
         { title: tenant.name, href: route('admin.tenants.show', { tenant: tenant.id }) },
-        { title: 'Modifier' },
+        { title: t('edit.breadcrumb.edit') },
     ];
 
     const fileRef                       = useRef<HTMLInputElement>(null);
@@ -136,7 +139,7 @@ export default function TenantEdit({ tenant }: Props) {
     };
 
     const handleLogoRemove = () => {
-        if (!confirm('Supprimer le logo de cette filiale ?')) return;
+        if (!confirm(t('edit.logo.confirmRemove'))) return;
         router.delete(route('admin.tenants.logo.remove', { tenant: tenant.id }), {
             onSuccess: () => { setLogoPreview(null); setLogoFile(null); },
         });
@@ -149,7 +152,7 @@ export default function TenantEdit({ tenant }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Modifier ${tenant.name} — NSIA Transport`}/>
+            <Head title={t('edit.title', { name: tenant.name })}/>
             <style>{`
                 .te-wrap{width:100%;max-width:760px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .te-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
@@ -195,19 +198,19 @@ export default function TenantEdit({ tenant }: Props) {
                             }
                         </div>
                         <div className="te-hero-info">
-                            <div className="te-hero-title">Modifier {tenant.name}</div>
-                            <div className="te-hero-sub">Code : {tenant.code} · {tenant.currency_code}</div>
+                            <div className="te-hero-title">{t('edit.hero.title', { name: tenant.name })}</div>
+                            <div className="te-hero-sub">{t('edit.hero.sub', { code: tenant.code, currency: tenant.currency_code })}</div>
                         </div>
                     </div>
 
                     {/* ── Section Logo ── */}
                     <div className="te-card">
                         <div className="te-card-hdr">
-                            <div className="te-card-ttl">Logo de la filiale</div>
-                            <div className="te-card-sub">JPG, PNG, WebP ou SVG · Max 2 Mo</div>
+                            <div className="te-card-ttl">{t('edit.logo.title')}</div>
+                            <div className="te-card-sub">{t('edit.logo.subtitle')}</div>
                         </div>
                         <div className="te-card-body">
-                            {recentlySuccessful && <div className="status-ok"><Check size={13}/>Logo mis à jour.</div>}
+                            {recentlySuccessful && <div className="status-ok"><Check size={13}/>{t('edit.logo.updated')}</div>}
                             <div className="logo-zone">
                                 <div className="logo-preview">
                                     {logoPreview
@@ -220,21 +223,21 @@ export default function TenantEdit({ tenant }: Props) {
                                            style={{ display:'none' }} onChange={handleLogoChange}/>
                                     <div className="logo-btn-row">
                                         <button type="button" className="logo-upload-btn" onClick={() => fileRef.current?.click()}>
-                                            <Camera size={13}/> Choisir un logo
+                                            <Camera size={13}/> {t('edit.logo.choose')}
                                         </button>
                                         {logoPreview && (
                                             <button type="button" onClick={handleLogoRemove}
                                                     style={{ padding:'8px 12px', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:9, fontSize:12, color:'#dc2626', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
-                                                <Trash2 size={12}/> Supprimer
+                                                <Trash2 size={12}/> {t('edit.logo.remove')}
                                             </button>
                                         )}
                                     </div>
-                                    <span className="logo-hint">Format JPG, PNG, WebP ou SVG · Max 2 Mo</span>
+                                    <span className="logo-hint">{t('edit.logo.hint')}</span>
                                 </div>
                                 {logoFile && (
                                     <Button onClick={handleLogoUpload} disabled={uploading}
                                             className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5 flex-shrink-0">
-                                        {uploading ? 'Upload…' : <><Check size={14}/> Enregistrer le logo</>}
+                                        {uploading ? t('edit.logo.uploading') : <><Check size={14}/> {t('edit.logo.save')}</>}
                                     </Button>
                                 )}
                             </div>
@@ -244,75 +247,75 @@ export default function TenantEdit({ tenant }: Props) {
                     {/* ── Formulaire infos ── */}
                     <div className="te-card">
                         <div className="te-card-hdr">
-                            <div className="te-card-ttl">Informations de la filiale</div>
-                            <div className="te-card-sub">Modifiez les paramètres de configuration</div>
+                            <div className="te-card-ttl">{t('edit.form.title')}</div>
+                            <div className="te-card-sub">{t('edit.form.subtitle')}</div>
                         </div>
                         <div className="te-card-body">
                             <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
                                 {recentlySuccessful && (
-                                    <div className="status-ok"><Check size={13}/>Modifications enregistrées.</div>
+                                    <div className="status-ok"><Check size={13}/>{t('edit.form.saved')}</div>
                                 )}
 
                                 <div className="grid gap-2">
-                                    <Label className="te-label">Nom de la filiale *</Label>
-                                    <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder="ex: NSIA Côte d'Ivoire"/>
+                                    <Label className="te-label">{t('edit.fields.name')}</Label>
+                                    <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder={t('edit.fields.namePlaceholder')}/>
                                     <InputError message={errors.name}/>
                                 </div>
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="te-label">Code *</Label>
-                                        <Input className="h-11" value={data.code} onChange={e => setData('code', e.target.value.toUpperCase())} placeholder="ex: CI" maxLength={10} style={{ fontFamily:'monospace', letterSpacing:'.1em' }}/>
+                                        <Label className="te-label">{t('edit.fields.code')}</Label>
+                                        <Input className="h-11" value={data.code} onChange={e => setData('code', e.target.value.toUpperCase())} placeholder={t('edit.fields.codePlaceholder')} maxLength={10} style={{ fontFamily:'monospace', letterSpacing:'.1em' }}/>
                                         <InputError message={errors.code}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="te-label">Code pays (ISO 2) *</Label>
-                                        <Input className="h-11" value={data.country_code} onChange={e => setData('country_code', e.target.value.toUpperCase())} placeholder="ex: CI" maxLength={2} style={{ fontFamily:'monospace', letterSpacing:'.1em' }}/>
+                                        <Label className="te-label">{t('edit.fields.countryCode')}</Label>
+                                        <Input className="h-11" value={data.country_code} onChange={e => setData('country_code', e.target.value.toUpperCase())} placeholder={t('edit.fields.codePlaceholder')} maxLength={2} style={{ fontFamily:'monospace', letterSpacing:'.1em' }}/>
                                         <InputError message={errors.country_code}/>
                                     </div>
                                 </div>
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="te-label">Devise *</Label>
+                                        <Label className="te-label">{t('edit.fields.currency')}</Label>
                                         <select className="te-select" value={data.currency_code} onChange={e => setData('currency_code', e.target.value)}>
                                             {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                                         </select>
                                         <InputError message={errors.currency_code}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="te-label">Langue *</Label>
+                                        <Label className="te-label">{t('edit.fields.locale')}</Label>
                                         <select className="te-select" value={data.locale} onChange={e => setData('locale', e.target.value)}>
-                                            <option value="fr">Français</option>
-                                            <option value="en">English</option>
+                                            <option value="fr">{t('edit.fields.localeFr')}</option>
+                                            <option value="en">{t('edit.fields.localeEn')}</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label className="te-label">Fuseau horaire *</Label>
+                                    <Label className="te-label">{t('edit.fields.timezone')}</Label>
                                     <select className="te-select" value={data.timezone} onChange={e => setData('timezone', e.target.value)}>
                                         {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
                                     </select>
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label className="te-label">Plafond NN300 (XOF)</Label>
+                                    <Label className="te-label">{t('edit.fields.nn300Limit')}</Label>
                                     <Input className="h-11" type="number" min={0}
                                            value={data.subscription_limit_config?.nn300_limit ?? 0}
                                            onChange={e => setData('subscription_limit_config', { nn300_limit: Number(e.target.value) })}/>
                                 </div>
 
                                 <div>
-                                    <Label className="te-label" style={{ marginBottom:8, display:'block' }}>Statut</Label>
+                                    <Label className="te-label" style={{ marginBottom:8, display:'block' }}>{t('edit.fields.status')}</Label>
                                     <div className="te-toggle" onClick={() => setData('is_active', !data.is_active)}>
                                         <div className="te-toggle-box" style={{ background: data.is_active ? '#1e3a8a' : '#e2e8f0' }}>
                                             <div className="te-toggle-thumb" style={{ left: data.is_active ? '21px' : '3px' }}/>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>{data.is_active ? 'Filiale active' : 'Filiale inactive'}</div>
-                                            <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>{data.is_active ? 'Les utilisateurs peuvent se connecter' : 'Accès bloqué'}</div>
+                                            <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>{data.is_active ? t('edit.status.active') : t('edit.status.inactive')}</div>
+                                            <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>{data.is_active ? t('edit.status.activeDesc') : t('edit.status.inactiveDesc')}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -324,81 +327,81 @@ export default function TenantEdit({ tenant }: Props) {
                                             <FileText size={14} color="#3b82f6" />
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>Informations pour l'impression des certificats</div>
-                                            <div style={{ fontSize: 11, color: '#94a3b8' }}>Ces données apparaissent dans l'en-tête et le bas du certificat imprimé</div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{t('edit.print.title')}</div>
+                                            <div style={{ fontSize: 11, color: '#94a3b8' }}>{t('edit.print.subtitle')}</div>
                                         </div>
                                     </div>
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
                                         <div className="grid gap-2">
-                                            <Label className="te-label">Siège social</Label>
+                                            <Label className="te-label">{t('edit.print.headOffice')}</Label>
                                             <textarea
                                                 rows={3}
                                                 value={data.settings.siege_social}
                                                 onChange={e => setSetting('siege_social', e.target.value)}
-                                                placeholder={"Immeuble NSIA\nBP 5884 Conakry Guinée"}
+                                                placeholder={t('edit.print.headOfficePlaceholder')}
                                                 style={{ width: '100%', padding: '10px 12px', fontSize: 13, fontFamily: 'inherit', color: '#1e293b', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 9, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
                                             />
                                         </div>
 
                                         <div className="form-grid">
                                             <div className="grid gap-2">
-                                                <Label className="te-label">Téléphone</Label>
-                                                <Input className="h-11" value={data.settings.phone} onChange={e => setSetting('phone', e.target.value)} placeholder="(+224) 666 18 12 82"/>
+                                                <Label className="te-label">{t('edit.print.phone')}</Label>
+                                                <Input className="h-11" value={data.settings.phone} onChange={e => setSetting('phone', e.target.value)} placeholder={t('edit.print.phonePlaceholder')}/>
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label className="te-label">Ville (lieu d'émission)</Label>
-                                                <Input className="h-11" value={data.settings.city} onChange={e => setSetting('city', e.target.value)} placeholder="Conakry"/>
+                                                <Label className="te-label">{t('edit.print.city')}</Label>
+                                                <Input className="h-11" value={data.settings.city} onChange={e => setSetting('city', e.target.value)} placeholder={t('edit.print.cityPlaceholder')}/>
                                             </div>
                                         </div>
 
                                         <div className="form-grid">
                                             <div className="grid gap-2">
-                                                <Label className="te-label">Site Web</Label>
-                                                <Input className="h-11" value={data.settings.website} onChange={e => setSetting('website', e.target.value)} placeholder="www.groupensia.com"/>
+                                                <Label className="te-label">{t('edit.print.website')}</Label>
+                                                <Input className="h-11" value={data.settings.website} onChange={e => setSetting('website', e.target.value)} placeholder={t('edit.print.websitePlaceholder')}/>
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label className="te-label">E-mail</Label>
-                                                <Input className="h-11" type="email" value={data.settings.email} onChange={e => setSetting('email', e.target.value)} placeholder="nsiaguinee@groupensia.com"/>
+                                                <Label className="te-label">{t('edit.print.email')}</Label>
+                                                <Input className="h-11" type="email" value={data.settings.email} onChange={e => setSetting('email', e.target.value)} placeholder={t('edit.print.emailPlaceholder')}/>
                                             </div>
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label className="te-label">Capital social</Label>
-                                            <Input className="h-11" value={data.settings.capital} onChange={e => setSetting('capital', e.target.value)} placeholder="13 000 000 000 GNF entièrement libéré"/>
+                                            <Label className="te-label">{t('edit.print.capital')}</Label>
+                                            <Input className="h-11" value={data.settings.capital} onChange={e => setSetting('capital', e.target.value)} placeholder={t('edit.print.capitalPlaceholder')}/>
                                         </div>
 
                                         <div className="form-grid">
                                             <div className="grid gap-2">
-                                                <Label className="te-label">N° RCCM</Label>
-                                                <Input className="h-11" value={data.settings.rccm} onChange={e => setSetting('rccm', e.target.value)} placeholder="RCCM/GC-KAL/024,618A/2009"/>
+                                                <Label className="te-label">{t('edit.print.rccm')}</Label>
+                                                <Input className="h-11" value={data.settings.rccm} onChange={e => setSetting('rccm', e.target.value)} placeholder={t('edit.print.rccmPlaceholder')}/>
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label className="te-label">Organisme de tutelle</Label>
-                                                <Input className="h-11" value={data.settings.regulator} onChange={e => setSetting('regulator', e.target.value)} placeholder="Assurances de la Guinée"/>
+                                                <Label className="te-label">{t('edit.print.regulator')}</Label>
+                                                <Input className="h-11" value={data.settings.regulator} onChange={e => setSetting('regulator', e.target.value)} placeholder={t('edit.print.regulatorPlaceholder')}/>
                                             </div>
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label className="te-label">Adresse de paiement des sinistres</Label>
+                                            <Label className="te-label">{t('edit.print.paymentAddress')}</Label>
                                             <textarea
                                                 rows={2}
                                                 value={data.settings.payment_address}
                                                 onChange={e => setSetting('payment_address', e.target.value)}
-                                                placeholder="NSIA Guinée — BP 5884 Conakry"
+                                                placeholder={t('edit.print.paymentAddressPlaceholder')}
                                                 style={{ width: '100%', padding: '10px 12px', fontSize: 13, fontFamily: 'inherit', color: '#1e293b', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 9, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
                                             />
                                         </div>
 
                                         <div className="form-grid">
                                             <div className="grid gap-2">
-                                                <Label className="te-label">Nom de l'expert (en cas d'avaries)</Label>
-                                                <Input className="h-11" value={data.settings.surveyor_name} onChange={e => setSetting('surveyor_name', e.target.value)} placeholder="Cabinet METEA"/>
+                                                <Label className="te-label">{t('edit.print.surveyorName')}</Label>
+                                                <Input className="h-11" value={data.settings.surveyor_name} onChange={e => setSetting('surveyor_name', e.target.value)} placeholder={t('edit.print.surveyorNamePlaceholder')}/>
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label className="te-label">Adresse de l'expert</Label>
-                                                <Input className="h-11" value={data.settings.surveyor_address} onChange={e => setSetting('surveyor_address', e.target.value)} placeholder="Adresse du cabinet"/>
+                                                <Label className="te-label">{t('edit.print.surveyorAddress')}</Label>
+                                                <Input className="h-11" value={data.settings.surveyor_address} onChange={e => setSetting('surveyor_address', e.target.value)} placeholder={t('edit.print.surveyorAddressPlaceholder')}/>
                                             </div>
                                         </div>
 
@@ -407,9 +410,9 @@ export default function TenantEdit({ tenant }: Props) {
 
                                 <div style={{ display:'flex', gap:8, paddingTop:4, borderTop:'1px solid #f8fafc', marginTop:4 }}>
                                     <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                        {processing ? 'Enregistrement…' : <><Check size={14}/> Enregistrer</>}
+                                        {processing ? t('edit.actions.saving') : <><Check size={14}/> {t('edit.actions.save')}</>}
                                     </Button>
-                                    <Button type="button" variant="outline" onClick={() => window.history.back()}>Annuler</Button>
+                                    <Button type="button" variant="outline" onClick={() => window.history.back()}>{tc('actions.cancel')}</Button>
                                 </div>
                             </form>
                         </div>

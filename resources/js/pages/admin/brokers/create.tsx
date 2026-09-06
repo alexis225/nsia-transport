@@ -1,5 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Briefcase, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,9 +28,10 @@ const COUNTRIES = [
 ];
 
 export default function BrokerCreate({ tenants, allTenants, defaultTenantId }: Props) {
+    const { t } = useTranslation('brokers');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Courtiers', href: '/admin/brokers' },
-        { title: 'Nouveau courtier', href: '/admin/brokers/create' },
+        { title: t('index.breadcrumb'), href: '/admin/brokers' },
+        { title: t('create.breadcrumb'), href: '/admin/brokers/create' },
     ];
 
     const { data, setData, post, processing, errors } = useForm({
@@ -56,14 +58,14 @@ export default function BrokerCreate({ tenants, allTenants, defaultTenantId }: P
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouveau courtier — NSIA Transport"/>
+            <Head title={t('create.title')}/>
             <BrokerForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants} allTenants={allTenants}
-                submitLabel="Créer le courtier"
-                heroTitle="Nouveau courtier"
-                heroSub="Enregistrez un nouveau courtier ou partenaire étranger"
+                submitLabel={t('create.submitLabel')}
+                heroTitle={t('create.heroTitle')}
+                heroSub={t('create.heroSub')}
             />
         </AppLayout>
     );
@@ -71,6 +73,8 @@ export default function BrokerCreate({ tenants, allTenants, defaultTenantId }: P
 
 // ── Formulaire partagé ────────────────────────────────────────
 export function BrokerForm({ data, setData, errors, processing, onSubmit, tenants, allTenants, submitLabel, heroTitle, heroSub }: any) {
+    const { t } = useTranslation('brokers');
+    const { t: tc } = useTranslation('common');
     const toggleAdditionalTenant = (id: string) => {
         const current: string[] = data.additional_tenant_ids ?? [];
         setData('additional_tenant_ids', current.includes(id)
@@ -121,21 +125,21 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Identification ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">Identification</div>
-                                <div className="bf-card-sub">Informations d'identification du courtier</div>
+                                <div className="bf-card-ttl">{t('form.identification.title')}</div>
+                                <div className="bf-card-sub">{t('form.identification.subtitle')}</div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Nom / Raison sociale *</Label>
-                                        <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder="Cabinet Dupont & Associés"/>
+                                        <Label className="bf-label">{t('form.identification.name')}</Label>
+                                        <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder={t('form.identification.namePlaceholder')}/>
                                         <InputError message={errors.name}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Code *</Label>
+                                        <Label className="bf-label">{t('form.identification.code')}</Label>
                                         <Input className="h-11" value={data.code}
                                                onChange={e => setData('code', e.target.value.toUpperCase())}
-                                               placeholder="ex: CRTCI001" maxLength={20}
+                                               placeholder={t('form.identification.codePlaceholder')} maxLength={20}
                                                style={{ fontFamily:'monospace', letterSpacing:'.06em' }}/>
                                         <InputError message={errors.code}/>
                                     </div>
@@ -143,27 +147,27 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Type *</Label>
+                                        <Label className="bf-label">{t('form.identification.type')}</Label>
                                         <select className="bf-select" value={data.type} onChange={e => setData('type', e.target.value)}>
-                                            <option value="courtier_local">Courtier local</option>
-                                            <option value="partenaire_etranger">Partenaire étranger</option>
+                                            <option value="courtier_local">{t('form.identification.typeLocal')}</option>
+                                            <option value="partenaire_etranger">{t('form.identification.typeForeign')}</option>
                                         </select>
                                         <InputError message={errors.type}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Numéro d'agrément</Label>
+                                        <Label className="bf-label">{t('form.identification.registrationNumber')}</Label>
                                         <Input className="h-11" value={data.registration_number}
                                                onChange={e => setData('registration_number', e.target.value)}
-                                               placeholder="ex: AGR-CI-2024-001"/>
+                                               placeholder={t('form.identification.registrationNumberPlaceholder')}/>
                                         <InputError message={errors.registration_number}/>
                                     </div>
                                 </div>
 
                                 {tenants?.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Filiale principale</Label>
+                                        <Label className="bf-label">{t('form.identification.mainTenant')}</Label>
                                         <select className="bf-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
-                                            <option value="">Sélectionnez une filiale</option>
+                                            <option value="">{t('form.identification.selectTenant')}</option>
                                             {tenants.map((t: any) => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
                                         </select>
                                         <InputError message={errors.tenant_id}/>
@@ -172,9 +176,9 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
 
                                 {allTenants?.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Filiales supplémentaires</Label>
+                                        <Label className="bf-label">{t('form.identification.additionalTenants')}</Label>
                                         <div style={{ fontSize: 11, color: '#94a3b8', marginTop: -6, marginBottom: 2 }}>
-                                            Ce courtier pourra également opérer dans les filiales cochées ci-dessous
+                                            {t('form.identification.additionalTenantsHint')}
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto', border: '1.5px solid #e2e8f0', borderRadius: 9, padding: 10 }}>
                                             {allTenants
@@ -199,18 +203,18 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Commission ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">Commission</div>
-                                <div className="bf-card-sub">Taux standard appliqué par défaut sur les contrats de ce courtier</div>
+                                <div className="bf-card-ttl">{t('form.commission.title')}</div>
+                                <div className="bf-card-sub">{t('form.commission.subtitle')}</div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="bf-label">Commission standard — %</Label>
+                                    <Label className="bf-label">{t('form.commission.rate')}</Label>
                                     <Input className="h-11" type="number" step="0.01" min={0} max={100}
                                            value={data.commission_rate} onChange={e => setData('commission_rate', e.target.value)}
-                                           placeholder="ex: 5"/>
+                                           placeholder={t('form.commission.ratePlaceholder')}/>
                                     <InputError message={errors.commission_rate}/>
                                     <div style={{ fontSize: 11, color: '#94a3b8' }}>
-                                        Utilisé automatiquement à l'émission des certificats, sauf si un taux spécifique est défini sur le contrat.
+                                        {t('form.commission.hint')}
                                     </div>
                                 </div>
                             </div>
@@ -219,30 +223,30 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Contact ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">Contact</div>
-                                <div className="bf-card-sub">Coordonnées du courtier</div>
+                                <div className="bf-card-ttl">{t('form.contact.title')}</div>
+                                <div className="bf-card-sub">{t('form.contact.subtitle')}</div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="bf-label">Email</Label>
+                                    <Label className="bf-label">{t('form.contact.email')}</Label>
                                     <Input className="h-11" type="email" value={data.email}
                                            onChange={e => setData('email', e.target.value)}
-                                           placeholder="contact@courtier.com"/>
+                                           placeholder={t('form.contact.emailPlaceholder')}/>
                                     <InputError message={errors.email}/>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Téléphone principal</Label>
+                                        <Label className="bf-label">{t('form.contact.phone')}</Label>
                                         <Input className="h-11" type="tel" value={data.phone}
                                                onChange={e => setData('phone', e.target.value)}
-                                               placeholder="+225 07 00 00 00 00"/>
+                                               placeholder={t('form.contact.phonePlaceholder')}/>
                                         <InputError message={errors.phone}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Téléphone secondaire</Label>
+                                        <Label className="bf-label">{t('form.contact.phoneSecondary')}</Label>
                                         <Input className="h-11" type="tel" value={data.phone_secondary}
                                                onChange={e => setData('phone_secondary', e.target.value)}
-                                               placeholder="+225 07 00 00 00 00"/>
+                                               placeholder={t('form.contact.phonePlaceholder')}/>
                                         <InputError message={errors.phone_secondary}/>
                                     </div>
                                 </div>
@@ -252,27 +256,27 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Adresse ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">Adresse</div>
-                                <div className="bf-card-sub">Localisation du courtier</div>
+                                <div className="bf-card-ttl">{t('form.address.title')}</div>
+                                <div className="bf-card-sub">{t('form.address.subtitle')}</div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="bf-label">Adresse</Label>
+                                    <Label className="bf-label">{t('form.address.address')}</Label>
                                     <Input className="h-11" value={data.address}
                                            onChange={e => setData('address', e.target.value)}
-                                           placeholder="Rue, avenue, quartier…"/>
+                                           placeholder={t('form.address.addressPlaceholder')}/>
                                     <InputError message={errors.address}/>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Ville</Label>
+                                        <Label className="bf-label">{t('form.address.city')}</Label>
                                         <Input className="h-11" value={data.city}
                                                onChange={e => setData('city', e.target.value)}
-                                               placeholder="Abidjan"/>
+                                               placeholder={t('form.address.cityPlaceholder')}/>
                                         <InputError message={errors.city}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">Pays</Label>
+                                        <Label className="bf-label">{t('form.address.country')}</Label>
                                         <select className="bf-select" value={data.country_code}
                                                 onChange={e => setData('country_code', e.target.value)}>
                                             {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
@@ -286,7 +290,7 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Statut ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">Statut</div>
+                                <div className="bf-card-ttl">{t('form.status.title')}</div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="bf-toggle" onClick={() => setData('is_active', !data.is_active)}>
@@ -295,10 +299,10 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                                     </div>
                                     <div>
                                         <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>
-                                            {data.is_active ? 'Courtier actif' : 'Courtier inactif'}
+                                            {data.is_active ? t('form.status.active') : t('form.status.inactive')}
                                         </div>
                                         <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>
-                                            {data.is_active ? 'Peut être assigné à des contrats' : 'Ne peut pas être utilisé'}
+                                            {data.is_active ? t('form.status.activeHint') : t('form.status.inactiveHint')}
                                         </div>
                                     </div>
                                 </div>
@@ -308,10 +312,10 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* Actions */}
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><Check size={14}/> {submitLabel}</>}
+                                {processing ? tc('states.saving') : <><Check size={14}/> {submitLabel}</>}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                                Annuler
+                                {tc('actions.cancel')}
                             </Button>
                         </div>
                     </form>

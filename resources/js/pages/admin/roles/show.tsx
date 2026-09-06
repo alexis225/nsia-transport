@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -37,6 +38,8 @@ const ROLE_COLORS: Record<string, { bg: string; color: string; avatarBg: string;
 
 // ── Modal assigner rôle ───────────────────────────────────────
 function AssignModal({ roleId, roleName, onClose }: { roleId: number; roleName: string; onClose: () => void }) {
+    const { t } = useTranslation('roles');
+    const { t: tc } = useTranslation('common');
     const { data, setData, post, processing, errors } = useForm({ user_id:'', role: roleName });
 
     return (
@@ -48,7 +51,7 @@ function AssignModal({ roleId, roleName, onClose }: { roleId: number; roleName: 
                             <UserCog size={17} color="#3b82f6"/>
                         </div>
                         <div>
-                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Assigner le rôle</p>
+                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('show.assignModal.title')}</p>
                             <p style={{ fontSize:11, color:'#94a3b8' }}>{roleName.replace(/_/g,' ')}</p>
                         </div>
                     </div>
@@ -56,20 +59,20 @@ function AssignModal({ roleId, roleName, onClose }: { roleId: number; roleName: 
                 </div>
                 <div style={{ padding:'20px 22px' }}>
                     <div style={{ marginBottom:16 }}>
-                        <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>UUID Utilisateur *</label>
+                        <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>{t('show.assignModal.userIdLabel')}</label>
                         <input
                             type="text" value={data.user_id} onChange={e => setData('user_id', e.target.value)}
                             placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                             style={{ width:'100%', padding:'10px 13px', fontSize:12, fontFamily:'monospace', color:'#1e293b', background:'#f8fafc', border:`1.5px solid ${errors.user_id ? '#ef4444' : '#e2e8f0'}`, borderRadius:9, outline:'none', boxSizing:'border-box' }}
                         />
                         {errors.user_id && <p style={{ fontSize:11, color:'#ef4444', marginTop:4, display:'flex', alignItems:'center', gap:3 }}><AlertCircle size={11}/>{errors.user_id}</p>}
-                        <p style={{ fontSize:11, color:'#94a3b8', marginTop:5 }}>Remplacera le rôle actuel de l'utilisateur.</p>
+                        <p style={{ fontSize:11, color:'#94a3b8', marginTop:5 }}>{t('show.assignModal.note')}</p>
                     </div>
                     <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button variant="outline" onClick={onClose}>Annuler</Button>
+                        <Button variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
                         <Button onClick={e => { e.preventDefault(); post(route('admin.roles.assign-user'), { onSuccess: onClose }); }} disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white">
                             {processing ? <Loader2 size={13} className="animate-spin"/> : <UserCog size={13}/>}
-                            Assigner
+                            {t('show.assignModal.assign')}
                         </Button>
                     </div>
                 </div>
@@ -80,6 +83,7 @@ function AssignModal({ roleId, roleName, onClose }: { roleId: number; roleName: 
 
 // ── Page principale ───────────────────────────────────────────
 export default function RoleShow({ role, users, allPermissions }: Props) {
+    const { t } = useTranslation('roles');
     const [showAssign, setShowAssign] = useState(false);
     const [search,     setSearch]     = useState('');
 
@@ -87,7 +91,7 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
     const rolePerms = new Set(role.permissions.map(p => p.name));
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Rôles & Permissions', href: '/admin/roles' },
+        { title: t('show.breadcrumb'), href: '/admin/roles' },
         { title: role.name.replace(/_/g,' ') },
     ];
 
@@ -100,7 +104,7 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Rôle ${role.name} — NSIA Transport`}/>
+            <Head title={t('show.title', { name: role.name })}/>
             <style>{`
                 .rs-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .rs-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
@@ -163,12 +167,12 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
                             <div>
                                 <h1 className="rs-name">{role.name.replace(/_/g,' ')}</h1>
                                 <p className="rs-sub">
-                                    {role.permissions.length} permission{role.permissions.length > 1 ? 's' : ''} · {users.total} utilisateur{users.total > 1 ? 's' : ''}
+                                    {t('show.permissionsCount', { count: role.permissions.length })} · {t('show.usersCount', { count: users.total })}
                                 </p>
                             </div>
                         </div>
                         <Button onClick={() => setShowAssign(true)} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                            <UserCog size={15}/> Assigner à un utilisateur
+                            <UserCog size={15}/> {t('show.assignButton')}
                         </Button>
                     </div>
 
@@ -205,25 +209,25 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
                         <div className="rs-card-hdr">
                             <span className="rs-card-ttl">
                                 <Users size={15} color="#94a3b8"/>
-                                Utilisateurs avec ce rôle
+                                {t('show.usersSection.title')}
                                 <span style={{ fontSize:11, color:'#94a3b8', fontWeight:400 }}>({users.total})</span>
                             </span>
                             <form onSubmit={applySearch} className="rs-search">
-                                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…"/>
+                                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('show.usersSection.searchPlaceholder')}/>
                                 <button type="submit"><Search size={13}/></button>
                             </form>
                         </div>
 
                         {users.data.length === 0 ? (
-                            <div className="rs-empty">Aucun utilisateur avec ce rôle.</div>
+                            <div className="rs-empty">{t('show.usersSection.empty')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Utilisateur</th>
-                                            <th>Filiale</th>
-                                            <th>Statut</th>
+                                            <th>{t('show.table.user')}</th>
+                                            <th>{t('show.table.tenant')}</th>
+                                            <th>{t('show.table.status')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -243,8 +247,8 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
                                                     <td style={{ fontSize:12, color:'#64748b' }}>{user.tenant?.name ?? '—'}</td>
                                                     <td>
                                                         {user.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>Actif</span>
-                                                            : <span className="s-blocked"><span className="s-dot" style={{ background:'#ef4444' }}/>Bloqué</span>
+                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{t('show.status.active')}</span>
+                                                            : <span className="s-blocked"><span className="s-dot" style={{ background:'#ef4444' }}/>{t('show.status.blocked')}</span>
                                                         }
                                                     </td>
                                                 </tr>
@@ -255,7 +259,7 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
 
                                 {users.last_page > 1 && (
                                     <div className="rs-pagination">
-                                        <span className="rs-pg-info">Page {users.current_page} / {users.last_page} · {users.total} utilisateurs</span>
+                                        <span className="rs-pg-info">{t('show.pagination.info', { current: users.current_page, last: users.last_page, total: users.total })}</span>
                                         <div className="rs-pg-links">
                                             <button className="pg-btn" disabled={users.current_page === 1}
                                                 onClick={() => router.get(route('admin.roles.show', { role: role.id }), { page: users.current_page - 1 }, { preserveState:true })}>

@@ -3,12 +3,9 @@ import {
     Award, BarChart2, FileText, TrendingDown, TrendingUp, Users, ArrowRight,
     Building2, Inbox, Clock, CheckCircle2,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-];
 
 // ── Types ─────────────────────────────────────────────────────
 interface KPI         { label: string; value: string; change: number; sub: string }
@@ -33,13 +30,13 @@ interface Props {
     operationalStats:   OperationalStats;
 }
 
-const STATUS: Record<string, { bg: string; color: string; label: string }> = {
-    ISSUED:    { bg: '#f0fdf4', color: '#15803d', label: 'Approuvé' },
-    SUBMITTED: { bg: '#eff6ff', color: '#1d4ed8', label: 'Soumis' },
-    DRAFT:     { bg: '#f8fafc', color: '#64748b', label: 'Stocké' },
-    REJECTED:  { bg: '#fef2f2', color: '#dc2626', label: 'Rejeté' },
-    REPLACED:  { bg: '#f1f5f9', color: '#475569', label: 'Remplacé' },
-    CANCELLED: { bg: '#fef2f2', color: '#991b1b', label: 'Annulé' },
+const STATUS: Record<string, { bg: string; color: string }> = {
+    ISSUED:    { bg: '#f0fdf4', color: '#15803d' },
+    SUBMITTED: { bg: '#eff6ff', color: '#1d4ed8' },
+    DRAFT:     { bg: '#f8fafc', color: '#64748b' },
+    REJECTED:  { bg: '#fef2f2', color: '#dc2626' },
+    REPLACED:  { bg: '#f1f5f9', color: '#475569' },
+    CANCELLED: { bg: '#fef2f2', color: '#991b1b' },
 };
 
 // ── Sparkline SVG ─────────────────────────────────────────────
@@ -65,6 +62,12 @@ export default function Dashboard({
     kpis, recentCerts, topBrokers, topInsured, topFiliales, monthlyData, period, tenantName,
     isSA, brokersActiveTotal, primeAllTime, operationalStats,
 }: Props) {
+    const { t } = useTranslation('dashboard');
+    const { t: tc } = useTranslation('common');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb'), href: route('admin.dashboard') },
+    ];
 
     const maxAmt     = Math.max(...monthlyData.map(m => m.amount), 1);
     const sparkData  = monthlyData.map(m => m.issued);
@@ -88,7 +91,7 @@ export default function Dashboard({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard — NSIA Transport"/>
+            <Head title={t('title')}/>
 
             <style>{`
                 .dash { display:flex; flex-direction:column; gap:18px; font-family:'DM Sans',sans-serif; }
@@ -172,7 +175,7 @@ export default function Dashboard({
                     {/* ── Header ──────────────────────────────── */}
                     <div className="dash-hdr">
                         <div>
-                            <h1>Rapport général</h1>
+                            <h1>{t('heading')}</h1>
                             <p style={{ textTransform: 'capitalize' }}>{period} · {tenantName}</p>
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
@@ -180,7 +183,7 @@ export default function Dashboard({
                                   style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px',
                                            background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 8,
                                            fontSize: 12, color: '#1d4ed8', textDecoration: 'none' }}>
-                                <BarChart2 size={12}/> KPIs détaillés
+                                <BarChart2 size={12}/> {t('detailedKpis')}
                             </Link>
                         </div>
                     </div>
@@ -219,14 +222,14 @@ export default function Dashboard({
                             <div className="mini-ico" style={{ background:'#eff6ff' }}><Users size={17} color="#3b82f6"/></div>
                             <div>
                                 <div className="mini-val">{brokersActiveTotal}</div>
-                                <div className="mini-lbl">Courtiers actifs (total)</div>
+                                <div className="mini-lbl">{t('mini.brokersActive')}</div>
                             </div>
                         </div>
                         <div className="mini-card">
                             <div className="mini-ico" style={{ background:'#f0fdf4' }}><Award size={17} color="#22c55e"/></div>
                             <div>
                                 <div className="mini-val">{primeAllTime}</div>
-                                <div className="mini-lbl">Primes émises (cumul)</div>
+                                <div className="mini-lbl">{t('mini.primeAllTime')}</div>
                             </div>
                         </div>
                     </div>
@@ -239,22 +242,22 @@ export default function Dashboard({
                             <div className="chart-hdr">
                                 <span className="chart-ttl">
                                     <BarChart2 size={14} color="#1d4ed8"/>
-                                    Certificats émis — mensuel
+                                    {t('monthly.title')}
                                 </span>
                                 <Link href={route('admin.reports.certificates')} className="see-more">
-                                    Voir rapport <ArrowRight size={10}/>
+                                    {t('monthly.seeReport')} <ArrowRight size={10}/>
                                 </Link>
                             </div>
-                            <p className="chart-sub">Évolution 12 mois</p>
+                            <p className="chart-sub">{t('monthly.subtitle')}</p>
                             {totalIssued === 0 ? (
-                                <div className="empty-state">Aucune émission sur les 12 derniers mois</div>
+                                <div className="empty-state">{t('monthly.empty')}</div>
                             ) : (
                                 <div className="bars">
                                     {monthlyData.map((m, i) => (
                                         <div key={i} className="bar-col">
                                             <div className="bar"
                                                  style={{ height: `${Math.max(3, (m.amount / maxAmt) * 82)}px` }}
-                                                 title={`${m.month} : ${m.issued} cert.`}/>
+                                                 title={t('monthly.tooltip', { month: m.month, issued: m.issued })}/>
                                             <span className="bar-lbl">{m.month}</span>
                                         </div>
                                     ))}
@@ -263,11 +266,11 @@ export default function Dashboard({
                             <div className="chart-stats">
                                 <div>
                                     <div className="stat-val">{totalIssued.toLocaleString('fr-FR')}</div>
-                                    <div className="stat-lbl">Certificats émis (12 mois)</div>
+                                    <div className="stat-lbl">{t('monthly.totalIssued')}</div>
                                 </div>
                                 <div>
                                     <div className="stat-val">{fmtPrime(totalPrime)}</div>
-                                    <div className="stat-lbl">Primes totales</div>
+                                    <div className="stat-lbl">{t('monthly.totalPrime')}</div>
                                 </div>
                             </div>
                         </div>
@@ -275,15 +278,15 @@ export default function Dashboard({
                         {/* Top courtiers */}
                         <div className="chart-card">
                             <div className="chart-hdr">
-                                <span className="chart-ttl">Top courtiers</span>
+                                <span className="chart-ttl">{t('tops.brokers')}</span>
                                 <Link href={route('admin.brokers.index')} className="see-more">
-                                    Voir plus <ArrowRight size={10}/>
+                                    {t('tops.seeMore')} <ArrowRight size={10}/>
                                 </Link>
                             </div>
-                            <p className="chart-sub">Par volume · ce mois</p>
+                            <p className="chart-sub">{t('tops.byVolume')}</p>
                             {topBrokers.length === 0 ? (
                                 <div className="empty-state" style={{ padding: '16px 0' }}>
-                                    Aucune émission ce mois
+                                    {t('tops.empty')}
                                 </div>
                             ) : (
                                 <div className="brokers">
@@ -312,12 +315,12 @@ export default function Dashboard({
                     <div className="row3" style={{ gridTemplateColumns: isSA ? '1fr 1fr' : '1fr' }}>
                         <div className="chart-card">
                             <div className="chart-hdr">
-                                <span className="chart-ttl">Top assurés</span>
+                                <span className="chart-ttl">{t('tops.insured')}</span>
                             </div>
-                            <p className="chart-sub">Par volume · ce mois</p>
+                            <p className="chart-sub">{t('tops.byVolume')}</p>
                             {topInsured.length === 0 ? (
                                 <div className="empty-state" style={{ padding: '16px 0' }}>
-                                    Aucune émission ce mois
+                                    {t('tops.empty')}
                                 </div>
                             ) : (
                                 <div className="brokers">
@@ -344,12 +347,12 @@ export default function Dashboard({
                         {isSA && (
                             <div className="chart-card">
                                 <div className="chart-hdr">
-                                    <span className="chart-ttl"><Building2 size={14} color="#1d4ed8"/> Top 3 filiales</span>
+                                    <span className="chart-ttl"><Building2 size={14} color="#1d4ed8"/> {t('tops.filiales')}</span>
                                 </div>
-                                <p className="chart-sub">Par volume · ce mois</p>
+                                <p className="chart-sub">{t('tops.byVolume')}</p>
                                 {topFiliales.length === 0 ? (
                                     <div className="empty-state" style={{ padding: '16px 0' }}>
-                                        Aucune émission ce mois
+                                        {t('tops.empty')}
                                     </div>
                                 ) : (
                                     <div className="brokers">
@@ -378,22 +381,22 @@ export default function Dashboard({
                     {/* ── Certificats récents ──────────────────── */}
                     <div className="tbl-card">
                         <div className="tbl-hdr">
-                            <span className="tbl-ttl">Certificats récents</span>
+                            <span className="tbl-ttl">{t('recent.title')}</span>
                             <Link href={route('admin.certificates.index')} className="see-more">
-                                Voir tous <ArrowRight size={10}/>
+                                {t('recent.seeAll')} <ArrowRight size={10}/>
                             </Link>
                         </div>
                         {recentCerts.length === 0 ? (
-                            <div className="empty-state">Aucun certificat récent</div>
+                            <div className="empty-state">{t('recent.empty')}</div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>N° Certificat</th>
-                                        <th>Client</th>
-                                        <th>Montant</th>
-                                        <th>Statut</th>
-                                        <th>Date</th>
+                                        <th>{t('recent.number')}</th>
+                                        <th>{t('recent.client')}</th>
+                                        <th>{t('recent.amount')}</th>
+                                        <th>{t('recent.status')}</th>
+                                        <th>{t('recent.date')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -415,7 +418,9 @@ export default function Dashboard({
                                                 </td>
                                                 <td>
                                                     <span className="s-badge" style={{ background: s.bg, color: s.color }}>
-                                                        {s.label}
+                                                        {tc(`certificateStatus.${cert.status}`, {
+                                                            defaultValue: tc('certificateStatus.DRAFT'),
+                                                        })}
                                                     </span>
                                                 </td>
                                                 <td style={{ color: '#94a3b8', fontSize: 11 }}>{cert.date}</td>
@@ -429,28 +434,28 @@ export default function Dashboard({
 
                     {/* ── Suivi opérationnel ────────────────────── */}
                     <div className="chart-card">
-                        <span className="section-ttl"><Inbox size={14} color="#1d4ed8"/> Suivi opérationnel</span>
-                        <p className="section-sub">Demandes de certificats — portail partenaires</p>
+                        <span className="section-ttl"><Inbox size={14} color="#1d4ed8"/> {t('operational.title')}</span>
+                        <p className="section-sub">{t('operational.subtitle')}</p>
                         <div className="ops-stats">
                             <div className="mini-card">
                                 <div className="mini-ico" style={{ background:'#eff6ff' }}><Inbox size={17} color="#3b82f6"/></div>
                                 <div>
                                     <div className="mini-val">{operationalStats.received}</div>
-                                    <div className="mini-lbl">Demandes reçues</div>
+                                    <div className="mini-lbl">{t('operational.received')}</div>
                                 </div>
                             </div>
                             <div className="mini-card">
                                 <div className="mini-ico" style={{ background:'#fffbeb' }}><Clock size={17} color="#d97706"/></div>
                                 <div>
                                     <div className="mini-val">{operationalStats.pending}</div>
-                                    <div className="mini-lbl">Demandes en attente</div>
+                                    <div className="mini-lbl">{t('operational.pending')}</div>
                                 </div>
                             </div>
                             <div className="mini-card">
                                 <div className="mini-ico" style={{ background:'#f0fdf4' }}><CheckCircle2 size={17} color="#22c55e"/></div>
                                 <div>
                                     <div className="mini-val">{operationalStats.processed}</div>
-                                    <div className="mini-lbl">Demandes traitées</div>
+                                    <div className="mini-lbl">{t('operational.processed')}</div>
                                 </div>
                             </div>
                         </div>

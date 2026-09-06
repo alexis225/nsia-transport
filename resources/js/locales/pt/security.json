@@ -1,0 +1,48 @@
+{
+    "ipBlacklist": {
+        "breadcrumbDashboard": "Painel",
+        "breadcrumbSecurity": "Segurança",
+        "breadcrumbIpBlacklist": "Lista negra de IPs",
+        "title": "Lista negra de IPs — NSIA Transport",
+        "heading": "Lista negra de IPs e Deteção de intrusão",
+        "subtitle": "Bloquear intervalos IP/CIDR · Monitorização de tentativas de início de sessão",
+        "blockIp": "Bloquear um IP",
+        "addErrorFallback": "Erro ao adicionar.",
+        "me": "Eu",
+        "panel": {
+            "blockedRanges": "Intervalos IP bloqueados ({{count}})",
+            "ipOrCidr": "IP ou intervalo CIDR *",
+            "ipOrCidrPlaceholder": "ex: 192.168.1.5 ou 10.0.0.0/24",
+            "reason": "Motivo",
+            "reasonPlaceholder": "Motivo do bloqueio…",
+            "expiration": "Expiração (opcional)",
+            "block": "Bloquear",
+            "noBlockedIp": "Nenhum IP bloqueado",
+            "columns": {
+                "ipRange": "IP / Intervalo CIDR",
+                "reason": "Motivo",
+                "blockedBy": "Bloqueado por",
+                "expiration": "Expiração",
+                "status": "Estado",
+                "addedOn": "Adicionado em"
+            },
+            "permanent": "Permanente",
+            "active": "Ativo",
+            "expired": "Expirado",
+            "delete": "Eliminar"
+        },
+        "suspicious": {
+            "title": "Contas suspeitas (tentativas > 3)",
+            "noSuspicious": "Nenhuma conta suspeita",
+            "columns": {
+                "user": "Utilizador",
+                "email": "Email",
+                "failedAttempts": "Tentativas falhadas",
+                "lastIp": "Último IP",
+                "lockedUntil": "Bloqueado até",
+                "action": "Ação"
+            },
+            "unlock": "Desbloquear"
+        }
+    }
+}

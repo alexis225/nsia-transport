@@ -1,0 +1,88 @@
+{
+    "index": {
+        "breadcrumb": "Experts",
+        "title": "Experts — NSIA Transport",
+        "heading": "Insurance experts",
+        "count_one": "{{count}} expert",
+        "count_other": "{{count}} experts",
+        "newExpert": "New expert",
+        "searchPlaceholder": "Search by name or email…",
+        "statusAll": "All statuses",
+        "statusActive": "Active",
+        "statusInactive": "Inactive",
+        "clear": "Clear",
+        "empty": "No expert found.",
+        "table": {
+            "expert": "Expert",
+            "contact": "Contact",
+            "country": "Country",
+            "tenant": "Subsidiary",
+            "status": "Status",
+            "actions": "Actions"
+        },
+        "view": "View",
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "delete": "Delete",
+        "confirmDelete": "Delete expert \"{{name}}\"?",
+        "confirmDeactivate": "Deactivate {{name}}?",
+        "confirmActivate": "Activate {{name}}?",
+        "pageInfo": "Page {{current}} / {{last}} · {{total}} experts"
+    },
+    "show": {
+        "title": "Information",
+        "fields": {
+            "name": "Name",
+            "country": "Country",
+            "email": "Email",
+            "phone": "Phone",
+            "tenant": "Subsidiary",
+            "status": "Status",
+            "createdAt": "Created on"
+        },
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "backToList": "Back to list",
+        "confirmDeactivate": "Deactivate {{name}}?",
+        "confirmActivate": "Activate {{name}}?"
+    },
+    "create": {
+        "breadcrumb": "New expert",
+        "title": "New expert — NSIA Transport",
+        "submitLabel": "Create expert",
+        "heroTitle": "New expert",
+        "heroSub": "Register a new insurance expert"
+    },
+    "edit": {
+        "breadcrumb": "Edit",
+        "title": "Edit {{name}} — NSIA Transport",
+        "submitLabel": "Save changes",
+        "heroTitle": "Edit: {{name}}",
+        "heroSub": "Update the expert's information"
+    },
+    "form": {
+        "identification": {
+            "title": "Identification",
+            "subtitle": "Expert information",
+            "name": "Full name *",
+            "namePlaceholder": "Jean-Paul Martin",
+            "email": "Email",
+            "emailPlaceholder": "expert@insurance.com",
+            "phone": "Phone",
+            "phonePlaceholder": "+225 07 00 00 00 00",
+            "country": "Country",
+            "noneOption": "— None —",
+            "tenant": "Subsidiary",
+            "selectTenant": "Select a subsidiary"
+        },
+        "status": {
+            "title": "Status",
+            "active": "Active expert",
+            "inactive": "Inactive expert",
+            "activeHint": "Can be assigned to cases",
+            "inactiveHint": "Cannot be used"
+        }
+    }
+}

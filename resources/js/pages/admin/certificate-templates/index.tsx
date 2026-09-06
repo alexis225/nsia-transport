@@ -6,10 +6,7 @@ import {
     Plus, Eye, Edit2, Trash2, FileText,
     Building2, Check, X, Globe, Languages,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Modèles de certificats', href: '/admin/certificate-templates' },
-];
+import { useTranslation } from 'react-i18next';
 
 interface Tenant   { id: string; name: string; code: string; }
 interface Template {
@@ -26,12 +23,12 @@ interface Props {
     types:                  Record<string, string>;
 }
 
-const TYPE_STYLES: Record<string, { label: string; bg: string; color: string }> = {
-    carnet_ordre:          { label: 'Certificat Carnet d\'Ordre',              bg:'#eff6ff', color:'#1d4ed8' },
-    certificat_assurance:  { label: 'Certificat d\'Assurance',                 bg:'#f0fdf4', color:'#15803d' },
-    certificat_etatique:   { label: 'Certificat Étatique (GUCE, GUOT, etc.)', bg:'#fdf4ff', color:'#7c3aed' },
+const TYPE_STYLES: Record<string, { typeKey: string; bg: string; color: string }> = {
+    carnet_ordre:          { typeKey: 'carnet_ordre',         bg:'#eff6ff', color:'#1d4ed8' },
+    certificat_assurance:  { typeKey: 'certificat_assurance', bg:'#f0fdf4', color:'#15803d' },
+    certificat_etatique:   { typeKey: 'certificat_etatique',  bg:'#fdf4ff', color:'#7c3aed' },
     // Rétro-compatibilité : anciennes lignes non encore migrées.
-    ordre_assurance:       { label: 'Certificat Carnet d\'Ordre',              bg:'#eff6ff', color:'#1d4ed8' },
+    ordre_assurance:       { typeKey: 'carnet_ordre',         bg:'#eff6ff', color:'#1d4ed8' },
 };
 
 const FLAG: Record<string, string> = {
@@ -41,14 +38,21 @@ const FLAG: Record<string, string> = {
 };
 
 export default function CertificateTemplatesIndex({ templates, tenantsWithoutTemplate }: Props) {
-    const handleDelete = (t: Template) => {
-        if (confirm(`Supprimer le modèle « ${t.name} » ?`))
-            router.delete(route('admin.certificate-templates.destroy', { certificateTemplate: t.id }));
+    const { t } = useTranslation('certificateTemplates');
+    const { t: tc } = useTranslation('common');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.title'), href: '/admin/certificate-templates' },
+    ];
+
+    const handleDelete = (tpl: Template) => {
+        if (confirm(t('index.confirmDelete', { name: tpl.name })))
+            router.delete(route('admin.certificate-templates.destroy', { certificateTemplate: tpl.id }));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Modèles de certificats — NSIA Transport"/>
+            <Head title={t('index.headTitle')}/>
             <style>{`
                 .ct-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .ct-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -86,12 +90,12 @@ export default function CertificateTemplatesIndex({ templates, tenantsWithoutTem
                     {/* Header */}
                     <div className="ct-hdr">
                         <div>
-                            <h1 className="ct-title">Modèles de certificats</h1>
-                            <p className="ct-sub">{templates.length} modèle{templates.length > 1 ? 's' : ''} configuré{templates.length > 1 ? 's' : ''}</p>
+                            <h1 className="ct-title">{t('index.title')}</h1>
+                            <p className="ct-sub">{t('index.subtitle', { count: templates.length })}</p>
                         </div>
                         <Link href={route('admin.certificate-templates.create')}>
                             <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                <Plus size={15}/> Nouveau modèle
+                                <Plus size={15}/> {t('index.newTemplate')}
                             </Button>
                         </Link>
                     </div>
@@ -102,13 +106,13 @@ export default function CertificateTemplatesIndex({ templates, tenantsWithoutTem
                             <span style={{ fontSize:18 }}>⚠️</span>
                             <div>
                                 <div style={{ fontWeight:600, marginBottom:4 }}>
-                                    {tenantsWithoutTemplate.length} filiale{tenantsWithoutTemplate.length > 1 ? 's' : ''} sans modèle de certificat
+                                    {t('index.missingAlert', { count: tenantsWithoutTemplate.length })}
                                 </div>
                                 <div className="ct-alert-tenants">
-                                    {tenantsWithoutTemplate.map(t => (
-                                        <Link key={t.id} className="ct-tenant-chip ct-tenant-chip-link"
-                                              href={route('admin.certificate-templates.create', { tenant_id: t.id })}>
-                                            {FLAG[t.code] ?? '🏢'} {t.name} <Plus size={11}/>
+                                    {tenantsWithoutTemplate.map(tn => (
+                                        <Link key={tn.id} className="ct-tenant-chip ct-tenant-chip-link"
+                                              href={route('admin.certificate-templates.create', { tenant_id: tn.id })}>
+                                            {FLAG[tn.code] ?? '🏢'} {tn.name} <Plus size={11}/>
                                         </Link>
                                     ))}
                                 </div>
@@ -120,28 +124,28 @@ export default function CertificateTemplatesIndex({ templates, tenantsWithoutTem
                     {templates.length === 0 ? (
                         <div className="ct-empty">
                             <FileText size={32} style={{ margin:'0 auto 12px', opacity:.3 }}/>
-                            <p>Aucun modèle configuré. Créez le premier modèle.</p>
+                            <p>{t('index.empty')}</p>
                         </div>
                     ) : (
                         <div className="ct-grid">
-                            {templates.map(t => {
-                                const ts = TYPE_STYLES[t.type as keyof typeof TYPE_STYLES];
-                                const nextNum = (t.number_prefix ?? 'N°') + String(t.last_number + 1).padStart(t.number_padding, '0');
+                            {templates.map(tpl => {
+                                const ts = TYPE_STYLES[tpl.type as keyof typeof TYPE_STYLES];
+                                const nextNum = (tpl.number_prefix ?? 'N°') + String(tpl.last_number + 1).padStart(tpl.number_padding, '0');
 
                                 return (
-                                    <div key={t.id} className="ct-card">
+                                    <div key={tpl.id} className="ct-card">
                                         <div className="ct-card-top">
                                             <div className="ct-logo">
-                                                {t.logo_path
-                                                    ? <img src={`/storage/${t.logo_path}`} alt={t.company_name}/>
-                                                    : <span>{FLAG[t.code] ?? '🏢'}</span>
+                                                {tpl.logo_path
+                                                    ? <img src={`/storage/${tpl.logo_path}`} alt={tpl.company_name}/>
+                                                    : <span>{FLAG[tpl.code] ?? '🏢'}</span>
                                                 }
                                             </div>
                                             <div className="ct-info">
-                                                <div className="ct-name">{t.name}</div>
-                                                <div className="ct-company">{t.company_name}</div>
+                                                <div className="ct-name">{tpl.name}</div>
+                                                <div className="ct-company">{tpl.company_name}</div>
                                             </div>
-                                            {t.is_active
+                                            {tpl.is_active
                                                 ? <span style={{ width:8, height:8, borderRadius:'50%', background:'#22c55e', flexShrink:0 }}/>
                                                 : <span style={{ width:8, height:8, borderRadius:'50%', background:'#94a3b8', flexShrink:0 }}/>
                                             }
@@ -151,36 +155,36 @@ export default function CertificateTemplatesIndex({ templates, tenantsWithoutTem
                                             <div className="ct-row">
                                                 <FileText size={12}/>
                                                 <span className="ct-badge" style={{ background: ts.bg, color: ts.color }}>
-                                                    {ts.label}
+                                                    {t(`index.types.${ts.typeKey}`)}
                                                 </span>
                                             </div>
                                             <div className="ct-row">
                                                 <Building2 size={12}/>
-                                                {t.tenant?.name ?? '—'} · {t.currency_code}
-                                                {t.city && <span style={{ color:'#94a3b8' }}>· {t.city}</span>}
+                                                {tpl.tenant?.name ?? '—'} · {tpl.currency_code}
+                                                {tpl.city && <span style={{ color:'#94a3b8' }}>· {tpl.city}</span>}
                                             </div>
                                             <div className="ct-row">
-                                                <span style={{ fontSize:10, color:'#94a3b8' }}>Prochain N° :</span>
+                                                <span style={{ fontSize:10, color:'#94a3b8' }}>{t('index.nextNumber')}</span>
                                                 <span className="num-badge">{nextNum}</span>
                                             </div>
                                             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                                                {t.is_bilingual && (
+                                                {tpl.is_bilingual && (
                                                     <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, padding:'2px 6px', borderRadius:6, background:'#fdf4ff', color:'#7c3aed', border:'1px solid #e9d5ff' }}>
-                                                        <Languages size={9}/> Bilingue FR/EN
+                                                        <Languages size={9}/> {t('index.bilingualBadge')}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
 
                                         <div className="ct-footer">
-                                            <Link href={route('admin.certificate-templates.show', { certificateTemplate: t.id })} className="btn-act btn-view">
-                                                <Eye size={12}/> Voir
+                                            <Link href={route('admin.certificate-templates.show', { certificateTemplate: tpl.id })} className="btn-act btn-view">
+                                                <Eye size={12}/> {t('index.view')}
                                             </Link>
-                                            <Link href={route('admin.certificate-templates.edit', { certificateTemplate: t.id })} className="btn-act btn-edit">
-                                                <Edit2 size={12}/> Éditer
+                                            <Link href={route('admin.certificate-templates.edit', { certificateTemplate: tpl.id })} className="btn-act btn-edit">
+                                                <Edit2 size={12}/> {t('index.edit')}
                                             </Link>
-                                            <button className="btn-act btn-del" onClick={() => handleDelete(t)}>
-                                                <Trash2 size={12}/> Supprimer
+                                            <button className="btn-act btn-del" onClick={() => handleDelete(tpl)}>
+                                                <Trash2 size={12}/> {tc('actions.delete')}
                                             </button>
                                         </div>
                                     </div>

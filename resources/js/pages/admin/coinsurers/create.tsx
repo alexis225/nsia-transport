@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,9 +27,10 @@ const COUNTRIES = [
 ];
 
 export default function CoinsurersCreate({ tenants, defaultTenantId }: Props) {
+    const { t } = useTranslation('coinsurers');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Coassureurs', href: '/admin/coinsurers' },
-        { title: 'Nouveau coassureur' },
+        { title: t('index.breadcrumb'), href: '/admin/coinsurers' },
+        { title: t('create.breadcrumb') },
     ];
 
     const { data, setData, post, processing, errors } = useForm({
@@ -48,20 +50,22 @@ export default function CoinsurersCreate({ tenants, defaultTenantId }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouveau coassureur — NSIA Transport"/>
+            <Head title={t('create.title')}/>
             <CoinsurersForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants}
-                submitLabel="Créer le coassureur"
-                heroTitle="Nouveau coassureur"
-                heroSub="Enregistrez un nouveau coassureur participant aux contrats"
+                submitLabel={t('create.submitLabel')}
+                heroTitle={t('create.heroTitle')}
+                heroSub={t('create.heroSub')}
             />
         </AppLayout>
     );
 }
 
 export function CoinsurersForm({ data, setData, errors, processing, onSubmit, tenants, submitLabel, heroTitle, heroSub }: any) {
+    const { t } = useTranslation('coinsurers');
+    const { t: tc } = useTranslation('common');
     return (
         <>
             <style>{`
@@ -102,55 +106,55 @@ export function CoinsurersForm({ data, setData, errors, processing, onSubmit, te
                         {/* Identification */}
                         <div className="cif-card">
                             <div className="cif-card-hdr">
-                                <div className="cif-card-ttl">Identification</div>
-                                <div className="cif-card-sub">Informations du coassureur</div>
+                                <div className="cif-card-ttl">{t('form.identification.title')}</div>
+                                <div className="cif-card-sub">{t('form.identification.subtitle')}</div>
                             </div>
                             <div className="cif-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="cif-label">Nom / Raison sociale *</Label>
-                                    <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder="Assurances Dupont SA"/>
+                                    <Label className="cif-label">{t('form.identification.name')}</Label>
+                                    <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder={t('form.identification.namePlaceholder')}/>
                                     <InputError message={errors.name}/>
                                 </div>
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">Pays</Label>
+                                        <Label className="cif-label">{t('form.identification.country')}</Label>
                                         <select className="cif-select" value={data.country_code ?? ''} onChange={e => setData('country_code', e.target.value)}>
-                                            <option value="">— Aucun —</option>
+                                            <option value="">{t('form.identification.noneOption')}</option>
                                             {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                                         </select>
                                         <InputError message={errors.country_code}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">Téléphone</Label>
-                                        <Input className="h-11" value={data.phone ?? ''} onChange={e => setData('phone', e.target.value)} placeholder="+225 XX XX XX XX XX"/>
+                                        <Label className="cif-label">{t('form.identification.phone')}</Label>
+                                        <Input className="h-11" value={data.phone ?? ''} onChange={e => setData('phone', e.target.value)} placeholder={t('form.identification.phonePlaceholder')}/>
                                         <InputError message={errors.phone}/>
                                     </div>
                                 </div>
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">Email</Label>
-                                        <Input className="h-11" type="email" value={data.email ?? ''} onChange={e => setData('email', e.target.value)} placeholder="contact@coassureur.com"/>
+                                        <Label className="cif-label">{t('form.identification.email')}</Label>
+                                        <Input className="h-11" type="email" value={data.email ?? ''} onChange={e => setData('email', e.target.value)} placeholder={t('form.identification.emailPlaceholder')}/>
                                         <InputError message={errors.email}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">Adresse</Label>
-                                        <Input className="h-11" value={data.address ?? ''} onChange={e => setData('address', e.target.value)} placeholder="Adresse du siège"/>
+                                        <Label className="cif-label">{t('form.identification.address')}</Label>
+                                        <Input className="h-11" value={data.address ?? ''} onChange={e => setData('address', e.target.value)} placeholder={t('form.identification.addressPlaceholder')}/>
                                         <InputError message={errors.address}/>
                                     </div>
                                 </div>
 
                                 <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                    Le taux de coassurance ne se saisit pas ici — il se précise au cas par cas lors de l'association du coassureur à un contrat.
+                                    {t('form.identification.rateHint')}
                                 </p>
 
                                 {tenants?.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">Filiale</Label>
+                                        <Label className="cif-label">{t('form.identification.tenant')}</Label>
                                         <select className="cif-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
-                                            <option value="">Sélectionnez une filiale</option>
-                                            {tenants.map((t: any) => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                            <option value="">{t('form.identification.selectTenant')}</option>
+                                            {tenants.map((tn: any) => <option key={tn.id} value={tn.id}>{tn.name} ({tn.code})</option>)}
                                         </select>
                                         <InputError message={errors.tenant_id}/>
                                     </div>
@@ -161,7 +165,7 @@ export function CoinsurersForm({ data, setData, errors, processing, onSubmit, te
                         {/* Statut */}
                         <div className="cif-card">
                             <div className="cif-card-hdr">
-                                <div className="cif-card-ttl">Statut</div>
+                                <div className="cif-card-ttl">{t('form.status.title')}</div>
                             </div>
                             <div className="cif-card-body">
                                 <div className="cif-toggle" onClick={() => setData('is_active', !data.is_active)}>
@@ -170,10 +174,10 @@ export function CoinsurersForm({ data, setData, errors, processing, onSubmit, te
                                     </div>
                                     <div>
                                         <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>
-                                            {data.is_active ? 'Coassureur actif' : 'Coassureur inactif'}
+                                            {data.is_active ? t('form.status.active') : t('form.status.inactive')}
                                         </div>
                                         <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>
-                                            {data.is_active ? 'Peut participer aux contrats' : 'Ne peut pas être utilisé'}
+                                            {data.is_active ? t('form.status.activeHint') : t('form.status.inactiveHint')}
                                         </div>
                                     </div>
                                 </div>
@@ -182,10 +186,10 @@ export function CoinsurersForm({ data, setData, errors, processing, onSubmit, te
 
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><Check size={14}/> {submitLabel}</>}
+                                {processing ? tc('states.saving') : <><Check size={14}/> {submitLabel}</>}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                                Annuler
+                                {tc('actions.cancel')}
                             </Button>
                         </div>
                     </form>

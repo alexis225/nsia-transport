@@ -1,13 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Briefcase, FilePlus2, Inbox, Clock, CheckCircle2, XCircle, AlertTriangle, Bell, X, Award } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Tableau de bord', href: '/partner' },
-];
 
 interface NotificationItem { id: string; title: string; body: string; url: string | null; }
 
@@ -71,7 +68,12 @@ function MiniBarChart({ title, data }: { title: string; data: BarDatum[] }) {
 }
 
 export default function PartnerDashboard({ broker, tenant, counts, certificateCounts, notifications: initialNotifications }: Props) {
+    const { t } = useTranslation('dashboard');
     const [notifications, setNotifications] = useState(initialNotifications);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('partner.breadcrumb'), href: '/partner' },
+    ];
 
     function dismiss(id: string) {
         setNotifications(prev => prev.filter(n => n.id !== id));
@@ -88,7 +90,7 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Espace partenaire — NSIA Transport" />
+            <Head title={t('partner.title')} />
             <style>{`
                 .pd-wrap{width:100%;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .pd-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;overflow:hidden;}
@@ -117,16 +119,16 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
                         <div className="pd-hero-left">
                             <div className="pd-hero-ico"><Briefcase size={22} color="rgba(255,255,255,0.85)" /></div>
                             <div>
-                                <div className="pd-hero-title">{broker ? broker.name : 'Espace partenaire'}</div>
+                                <div className="pd-hero-title">{broker ? broker.name : t('partner.hero')}</div>
                                 <div className="pd-hero-sub">
-                                    {broker ? `${broker.code} · ${tenant?.name ?? '—'}` : 'Bienvenue sur votre espace'}
+                                    {broker ? `${broker.code} · ${tenant?.name ?? '—'}` : t('partner.welcome')}
                                 </div>
                             </div>
                         </div>
                         {broker && (
                             <Link href={route('partner.certificate-requests.create')}>
                                 <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-10 px-4" variant="outline">
-                                    <FilePlus2 size={15} /> Nouvelle demande
+                                    <FilePlus2 size={15} /> {t('partner.newRequest')}
                                 </Button>
                             </Link>
                         )}
@@ -157,9 +159,9 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
                         <div className="pd-warn">
                             <AlertTriangle size={20} color="#b45309" style={{ flexShrink: 0, marginTop: 2 }} />
                             <div>
-                                <div style={{ fontWeight: 600, fontSize: 13, color: '#92400e' }}>Compte non rattaché</div>
+                                <div style={{ fontWeight: 600, fontSize: 13, color: '#92400e' }}>{t('partner.unlinked.title')}</div>
                                 <div style={{ fontSize: 12.5, color: '#92400e', marginTop: 3 }}>
-                                    Votre compte n'est pas encore rattaché à une fiche courtier. Contactez votre administrateur filiale NSIA pour finaliser la configuration de votre accès.
+                                    {t('partner.unlinked.text')}
                                 </div>
                             </div>
                         </div>
@@ -169,47 +171,47 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
                                 <div className="pd-stat">
                                     <div className="pd-stat-ico" style={{ background: '#fffbeb' }}><Clock size={17} color="#d97706" /></div>
                                     <div className="pd-stat-val">{counts?.pending ?? 0}</div>
-                                    <div className="pd-stat-lbl">En attente</div>
+                                    <div className="pd-stat-lbl">{t('partner.stats.pending')}</div>
                                 </div>
                                 <div className="pd-stat">
                                     <div className="pd-stat-ico" style={{ background: '#eff6ff' }}><Inbox size={17} color="#2563eb" /></div>
                                     <div className="pd-stat-val">{counts?.in_review ?? 0}</div>
-                                    <div className="pd-stat-lbl">En cours d'examen</div>
+                                    <div className="pd-stat-lbl">{t('partner.stats.inReview')}</div>
                                 </div>
                                 <div className="pd-stat">
                                     <div className="pd-stat-ico" style={{ background: '#f0fdf4' }}><CheckCircle2 size={17} color="#16a34a" /></div>
                                     <div className="pd-stat-val">{counts?.approved ?? 0}</div>
-                                    <div className="pd-stat-lbl">Approuvées</div>
+                                    <div className="pd-stat-lbl">{t('partner.stats.approved')}</div>
                                 </div>
                                 <div className="pd-stat">
                                     <div className="pd-stat-ico" style={{ background: '#fef2f2' }}><XCircle size={17} color="#dc2626" /></div>
                                     <div className="pd-stat-val">{counts?.rejected ?? 0}</div>
-                                    <div className="pd-stat-lbl">Rejetées</div>
+                                    <div className="pd-stat-lbl">{t('partner.stats.rejected')}</div>
                                 </div>
                             </div>
 
                             <div className="pd-charts">
                                 <MiniBarChart
-                                    title="Répartition des demandes"
+                                    title={t('partner.charts.requests')}
                                     data={[
-                                        { key: 'pending',   label: 'En attente',           value: counts?.pending   ?? 0, color: '#fab219', icon: Clock },
-                                        { key: 'in_review', label: "En cours d'examen",    value: counts?.in_review ?? 0, color: '#2a78d6', icon: Inbox },
-                                        { key: 'approved',  label: 'Approuvées',           value: counts?.approved  ?? 0, color: '#0ca30c', icon: CheckCircle2 },
-                                        { key: 'rejected',  label: 'Rejetées',             value: counts?.rejected  ?? 0, color: '#d03b3b', icon: XCircle },
+                                        { key: 'pending',   label: t('partner.stats.pending'),   value: counts?.pending   ?? 0, color: '#fab219', icon: Clock },
+                                        { key: 'in_review', label: t('partner.stats.inReview'),  value: counts?.in_review ?? 0, color: '#2a78d6', icon: Inbox },
+                                        { key: 'approved',  label: t('partner.stats.approved'),  value: counts?.approved  ?? 0, color: '#0ca30c', icon: CheckCircle2 },
+                                        { key: 'rejected',  label: t('partner.stats.rejected'),  value: counts?.rejected  ?? 0, color: '#d03b3b', icon: XCircle },
                                     ]}
                                 />
                                 <MiniBarChart
-                                    title="Origine des certificats"
+                                    title={t('partner.charts.certificates')}
                                     data={[
-                                        { key: 'issued', label: 'Émis',              value: certificateCounts?.issued ?? 0, color: '#2a78d6', icon: Award },
-                                        { key: 'guce',   label: 'Importés (GUCE)',    value: certificateCounts?.guce   ?? 0, color: '#008300', icon: Award },
+                                        { key: 'issued', label: t('partner.charts.issued'), value: certificateCounts?.issued ?? 0, color: '#2a78d6', icon: Award },
+                                        { key: 'guce',   label: t('partner.charts.guce'),   value: certificateCounts?.guce   ?? 0, color: '#008300', icon: Award },
                                     ]}
                                 />
                             </div>
 
                             <Link href={route('partner.certificate-requests.index')}
                                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#1e3a8a', fontWeight: 500, textDecoration: 'none' }}>
-                                <Inbox size={14} /> Voir toutes mes demandes
+                                <Inbox size={14} /> {t('partner.allRequests')}
                             </Link>
                         </>
                     )}

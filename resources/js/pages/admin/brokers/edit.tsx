@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { BrokerForm } from './create';
@@ -17,10 +18,11 @@ interface Tenant { id: string; name: string; code: string; }
 interface Props { broker: Broker; tenants: Tenant[]; allTenants: Tenant[]; }
 
 export default function BrokerEdit({ broker, tenants, allTenants }: Props) {
+    const { t } = useTranslation('brokers');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Courtiers', href: '/admin/brokers' },
+        { title: t('index.breadcrumb'), href: '/admin/brokers' },
         { title: broker.name, href: route('admin.brokers.show', { broker: broker.id }) },
-        { title: 'Modifier', href: route('admin.brokers.edit', { broker: broker.id }) },
+        { title: t('edit.breadcrumb'), href: route('admin.brokers.edit', { broker: broker.id }) },
     ];
 
     const { data, setData, put, processing, errors } = useForm({
@@ -47,14 +49,14 @@ export default function BrokerEdit({ broker, tenants, allTenants }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Modifier ${broker.name} — NSIA Transport`}/>
+            <Head title={t('edit.title', { name: broker.name })}/>
             <BrokerForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants} allTenants={allTenants}
-                submitLabel="Enregistrer les modifications"
-                heroTitle={`Modifier ${broker.name}`}
-                heroSub={`Code : ${broker.code} · ${broker.type.replace(/_/g,' ')}`}
+                submitLabel={t('edit.submitLabel')}
+                heroTitle={t('edit.heroTitle', { name: broker.name })}
+                heroSub={t('edit.heroSub', { code: broker.code, type: broker.type.replace(/_/g,' ') })}
             />
         </AppLayout>
     );

@@ -1,17 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import {
     Users, Briefcase, UserCheck, Award,
     CheckCircle, XCircle, Globe, Phone, Mail, Filter, X,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'Rapports' },
-    { title: 'État des intermédiaires' },
-];
 
 // ── Types ────────────────────────────────────────────────────
 interface BrokerRow {
@@ -50,13 +45,6 @@ interface Props {
     currentYear:     number;
 }
 
-const CONTRACT_TYPE_LABELS: Record<string, string> = {
-    OPEN_POLICY:    'Police ouverte',
-    VOYAGE:         'Voyage',
-    ANNUAL_VOYAGE:  'Voyage annuel',
-    TIERS_CHARGEUR: 'Police tiers chargeur',
-};
-
 // ── Helpers ──────────────────────────────────────────────────
 const fmtAmt = (v: number) => {
     if (v >= 1_000_000) return (v / 1_000_000).toFixed(1) + 'M';
@@ -85,6 +73,7 @@ function SumCard({ label, value, color, bg, icon: Icon }: {
 }
 
 function ActiveBadge({ active }: { active: boolean }) {
+    const { t } = useTranslation('reports');
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 3,
@@ -93,16 +82,16 @@ function ActiveBadge({ active }: { active: boolean }) {
             color: active ? '#15803d' : '#94a3b8',
         }}>
             {active ? <CheckCircle size={9}/> : <XCircle size={9}/>}
-            {active ? 'Actif' : 'Inactif'}
+            {active ? t('intermediaries.status.active') : t('intermediaries.status.inactive')}
         </span>
     );
 }
 
 // ── Tabs ─────────────────────────────────────────────────────
-const TABS = [
-    { key: 'brokers',    label: 'Courtiers',   icon: Briefcase },
-    { key: 'coinsurers', label: 'Coassureurs', icon: Users },
-    { key: 'experts',    label: 'Experts',     icon: UserCheck },
+const TAB_ICONS = [
+    { key: 'brokers',    icon: Briefcase },
+    { key: 'coinsurers', icon: Users },
+    { key: 'experts',    icon: UserCheck },
 ];
 
 // ── Main Component ───────────────────────────────────────────
@@ -110,11 +99,26 @@ export default function IntermediariesReport({
     brokersData, brokerStats, coinsurers, coinsurersStats, experts, expertStats,
     tab, isSA, tenants, filters, currentMonth, currentYear,
 }: Props) {
+    const { t } = useTranslation('reports');
+    const { t: tn } = useTranslation('navigation');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: tn('sections.dashboard'), href: route('admin.dashboard') },
+        { title: t('breadcrumb.section') },
+        { title: t('breadcrumb.intermediaries') },
+    ];
+
+    const CONTRACT_TYPE_LABELS: Record<string, string> = {
+        OPEN_POLICY:    t('intermediaries.contractTypes.OPEN_POLICY'),
+        VOYAGE:         t('intermediaries.contractTypes.VOYAGE'),
+        ANNUAL_VOYAGE:  t('intermediaries.contractTypes.ANNUAL_VOYAGE'),
+        TIERS_CHARGEUR: t('intermediaries.contractTypes.TIERS_CHARGEUR'),
+    };
 
     const [local, setLocal] = useState({ ...filters });
 
-    const switchTab = (t: string) =>
-        router.get(route('admin.reports.intermediaries'), { ...cleanParams(local), tab: t }, { preserveState: false });
+    const switchTab = (tabKey: string) =>
+        router.get(route('admin.reports.intermediaries'), { ...cleanParams(local), tab: tabKey }, { preserveState: false });
 
     const cleanParams = (f: typeof local) => {
         const p: Record<string, string> = {};
@@ -136,7 +140,7 @@ export default function IntermediariesReport({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="État des intermédiaires — NSIA Transport"/>
+            <Head title={t('intermediaries.title')}/>
             <style>{`
                 .int-page { padding:4px; display:flex; flex-direction:column; gap:14px; }
                 .int-tabs { display:flex; gap:4px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:4px; width:fit-content; }
@@ -164,28 +168,28 @@ export default function IntermediariesReport({
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
                             <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
-                                État des intermédiaires
+                                {t('intermediaries.heading')}
                             </h1>
                             <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
-                                Activité {currentMonth} · Exercice {currentYear}
+                                {t('intermediaries.activitySummary', { month: currentMonth, year: currentYear })}
                             </p>
                         </div>
                     </div>
 
                     {/* ── Tabs ─────────────────────────────────── */}
                     <div className="int-tabs">
-                        {TABS.map(t => {
-                            const Icon = t.icon;
-                            const cnt  = t.key === 'brokers' ? brokerStats.total
-                                       : t.key === 'coinsurers' ? coinsurersStats.total
+                        {TAB_ICONS.map(tabItem => {
+                            const Icon = tabItem.icon;
+                            const cnt  = tabItem.key === 'brokers' ? brokerStats.total
+                                       : tabItem.key === 'coinsurers' ? coinsurersStats.total
                                        : expertStats.total;
                             return (
-                                <button key={t.key}
-                                        className={`tab-btn ${tab === t.key ? 'active' : ''}`}
-                                        onClick={() => switchTab(t.key)}>
-                                    <Icon size={13}/> {t.label}
-                                    <span style={{ fontSize: 10, background: tab === t.key ? '#eff6ff' : '#f1f5f9',
-                                                   color: tab === t.key ? '#1d4ed8' : '#94a3b8',
+                                <button key={tabItem.key}
+                                        className={`tab-btn ${tab === tabItem.key ? 'active' : ''}`}
+                                        onClick={() => switchTab(tabItem.key)}>
+                                    <Icon size={13}/> {t(`intermediaries.tabs.${tabItem.key}`)}
+                                    <span style={{ fontSize: 10, background: tab === tabItem.key ? '#eff6ff' : '#f1f5f9',
+                                                   color: tab === tabItem.key ? '#1d4ed8' : '#94a3b8',
                                                    borderRadius: 8, padding: '0 5px' }}>
                                         {cnt}
                                     </span>
@@ -201,30 +205,30 @@ export default function IntermediariesReport({
                         {isSA && tenants.length > 0 && (
                             <select className="int-filter-sel" value={local.tenant_id ?? ''}
                                     onChange={e => setLocal(p => ({ ...p, tenant_id: e.target.value || null }))}>
-                                <option value="">Toutes les filiales</option>
-                                {tenants.map(t => <option key={t.id} value={t.id}>[{t.code}] {t.name}</option>)}
+                                <option value="">{t('intermediaries.allTenants')}</option>
+                                {tenants.map(ten => <option key={ten.id} value={ten.id}>[{ten.code}] {ten.name}</option>)}
                             </select>
                         )}
                         {tab === 'brokers' && (
                             <select className="int-filter-sel" value={local.broker_type ?? ''}
                                     onChange={e => setLocal(p => ({ ...p, broker_type: e.target.value || null }))}>
-                                <option value="">Tous types de courtier</option>
-                                <option value="LOCAL">Courtier local</option>
-                                <option value="FOREIGN">Partenaire étranger</option>
+                                <option value="">{t('intermediaries.brokerTypes.all')}</option>
+                                <option value="LOCAL">{t('intermediaries.brokerTypes.local')}</option>
+                                <option value="FOREIGN">{t('intermediaries.brokerTypes.foreign')}</option>
                             </select>
                         )}
                         {(tab === 'brokers' || tab === 'coinsurers') && (
                             <select className="int-filter-sel" value={local.contract_type ?? ''}
                                     onChange={e => setLocal(p => ({ ...p, contract_type: e.target.value || null }))}>
-                                <option value="">Tous types de contrat</option>
+                                <option value="">{t('intermediaries.contractTypes.all')}</option>
                                 {Object.entries(CONTRACT_TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                             </select>
                         )}
                         <button className="tab-btn" style={{ background: '#1d4ed8', color: '#fff' }} onClick={applyFilters}>
-                            Appliquer
+                            {t('intermediaries.apply')}
                         </button>
                         {hasActiveFilters && (
-                            <button className="tab-btn" onClick={resetFilters} title="Réinitialiser">
+                            <button className="tab-btn" onClick={resetFilters} title={t('intermediaries.resetTitle')}>
                                 <X size={12}/>
                             </button>
                         )}
@@ -234,36 +238,36 @@ export default function IntermediariesReport({
                     {tab === 'brokers' && (
                         <>
                             <div className="stats-row" style={{ gridTemplateColumns: 'repeat(6,1fr)' }}>
-                                <SumCard label="Total" value={brokerStats.total} color="#1e293b" icon={Briefcase}/>
-                                <SumCard label="Actifs" value={brokerStats.active} color="#15803d" bg="#f0fdf4" icon={CheckCircle}/>
-                                <SumCard label="Inactifs" value={brokerStats.inactive} color="#64748b" icon={XCircle}/>
-                                <SumCard label="Locaux" value={brokerStats.local} color="#1d4ed8" bg="#eff6ff" icon={Award}/>
-                                <SumCard label="Étrangers" value={brokerStats.foreign} color="#7c3aed" bg="#fdf4ff" icon={Globe}/>
-                                <SumCard label="Actifs ce mois" value={brokerStats.with_certs_month}
+                                <SumCard label={t('intermediaries.brokers.stats.total')} value={brokerStats.total} color="#1e293b" icon={Briefcase}/>
+                                <SumCard label={t('intermediaries.brokers.stats.active')} value={brokerStats.active} color="#15803d" bg="#f0fdf4" icon={CheckCircle}/>
+                                <SumCard label={t('intermediaries.brokers.stats.inactive')} value={brokerStats.inactive} color="#64748b" icon={XCircle}/>
+                                <SumCard label={t('intermediaries.brokers.stats.local')} value={brokerStats.local} color="#1d4ed8" bg="#eff6ff" icon={Award}/>
+                                <SumCard label={t('intermediaries.brokers.stats.foreign')} value={brokerStats.foreign} color="#7c3aed" bg="#fdf4ff" icon={Globe}/>
+                                <SumCard label={t('intermediaries.brokers.stats.activeThisMonth')} value={brokerStats.with_certs_month}
                                          color="#059669" bg="#f0fdf4" icon={Award}/>
                             </div>
 
                             <div className="panel">
                                 <div className="panel-hdr">
                                     <Briefcase size={14} color="#1d4ed8"/>
-                                    Courtiers — détail activité ({currentMonth})
+                                    {t('intermediaries.brokers.panelTitle', { month: currentMonth })}
                                 </div>
                                 {brokersData.length === 0 ? (
-                                    <div className="empty">Aucun courtier enregistré</div>
+                                    <div className="empty">{t('intermediaries.brokers.empty')}</div>
                                 ) : (
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>Nom / Code</th>
-                                                <th>Type</th>
-                                                <th>Pays</th>
-                                                <th>Contrats actifs</th>
-                                                <th>Cert. ce mois</th>
-                                                <th>Cert. {currentYear}</th>
-                                                <th>Comm. payées {currentYear}</th>
-                                                <th>Comm. en attente</th>
-                                                {isSA && <th>Filiale</th>}
-                                                <th>Statut</th>
+                                                <th>{t('intermediaries.brokers.table.nameCode')}</th>
+                                                <th>{t('intermediaries.brokers.table.type')}</th>
+                                                <th>{t('intermediaries.brokers.table.country')}</th>
+                                                <th>{t('intermediaries.brokers.table.activeContracts')}</th>
+                                                <th>{t('intermediaries.brokers.table.certsMonth')}</th>
+                                                <th>{t('intermediaries.brokers.table.certsYear', { year: currentYear })}</th>
+                                                <th>{t('intermediaries.brokers.table.commPaidYear', { year: currentYear })}</th>
+                                                <th>{t('intermediaries.brokers.table.commPending')}</th>
+                                                {isSA && <th>{t('intermediaries.brokers.table.tenant')}</th>}
+                                                <th>{t('intermediaries.brokers.table.status')}</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -281,7 +285,7 @@ export default function IntermediariesReport({
                                                         <span className="type-badge"
                                                               style={{ background: b.type === 'LOCAL' ? '#eff6ff' : '#fdf4ff',
                                                                        color: b.type === 'LOCAL' ? '#1d4ed8' : '#7c3aed' }}>
-                                                            {b.type === 'LOCAL' ? 'Local' : 'Étranger'}
+                                                            {b.type === 'LOCAL' ? t('intermediaries.brokers.typeLocal') : t('intermediaries.brokers.typeForeign')}
                                                         </span>
                                                     </td>
                                                     <td style={{ fontSize: 11, color: '#64748b' }}>{b.country_code}</td>
@@ -289,7 +293,7 @@ export default function IntermediariesReport({
                                                         <div style={{ fontWeight: 600, color: b.active_contracts_count > 0 ? '#15803d' : '#94a3b8' }}>
                                                             {b.active_contracts_count}
                                                         </div>
-                                                        <div style={{ fontSize: 10, color: '#94a3b8' }}>/ {b.contracts_count} total</div>
+                                                        <div style={{ fontSize: 10, color: '#94a3b8' }}>{t('intermediaries.brokers.totalOf', { count: b.contracts_count })}</div>
                                                     </td>
                                                     <td>
                                                         <div style={{ fontWeight: 700, color: b.certs_month > 0 ? '#1d4ed8' : '#94a3b8',
@@ -310,7 +314,7 @@ export default function IntermediariesReport({
                                                                     {fmtAmt(b.comm_pending)}
                                                                 </div>
                                                                 <div style={{ fontSize: 10, color: '#94a3b8' }}>
-                                                                    {b.comm_pending_count} dossier(s)
+                                                                    {t('intermediaries.brokers.pendingFiles', { count: b.comm_pending_count })}
                                                                 </div>
                                                             </div>
                                                         ) : (
@@ -324,7 +328,7 @@ export default function IntermediariesReport({
                                                     <td>
                                                         <Link href={route('admin.brokers.show', { broker: b.id })}
                                                               style={{ fontSize: 11, color: '#1d4ed8', textDecoration: 'none' }}>
-                                                            Voir →
+                                                            {t('intermediaries.brokers.viewLink')}
                                                         </Link>
                                                     </td>
                                                 </tr>
@@ -340,29 +344,29 @@ export default function IntermediariesReport({
                     {tab === 'coinsurers' && (
                         <>
                             <div className="stats-row" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-                                <SumCard label="Total" value={coinsurersStats.total} color="#1e293b" icon={Users}/>
-                                <SumCard label="Actifs" value={coinsurersStats.active} color="#15803d" bg="#f0fdf4" icon={CheckCircle}/>
-                                <SumCard label="Inactifs" value={coinsurersStats.inactive} color="#64748b" icon={XCircle}/>
+                                <SumCard label={t('intermediaries.coinsurers.stats.total')} value={coinsurersStats.total} color="#1e293b" icon={Users}/>
+                                <SumCard label={t('intermediaries.coinsurers.stats.active')} value={coinsurersStats.active} color="#15803d" bg="#f0fdf4" icon={CheckCircle}/>
+                                <SumCard label={t('intermediaries.coinsurers.stats.inactive')} value={coinsurersStats.inactive} color="#64748b" icon={XCircle}/>
                             </div>
 
                             <div className="panel">
                                 <div className="panel-hdr">
                                     <Users size={14} color="#0284c7"/>
-                                    Coassureurs
+                                    {t('intermediaries.coinsurers.panelTitle')}
                                 </div>
                                 {coinsurers.length === 0 ? (
-                                    <div className="empty">Aucun coassureur enregistré</div>
+                                    <div className="empty">{t('intermediaries.coinsurers.empty')}</div>
                                 ) : (
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>Nom</th>
-                                                <th>Pays</th>
-                                                <th>Contact</th>
-                                                <th>Contrats actifs</th>
-                                                <th>Total contrats</th>
-                                                {isSA && <th>Filiale</th>}
-                                                <th>Statut</th>
+                                                <th>{t('intermediaries.coinsurers.table.name')}</th>
+                                                <th>{t('intermediaries.coinsurers.table.country')}</th>
+                                                <th>{t('intermediaries.coinsurers.table.contact')}</th>
+                                                <th>{t('intermediaries.coinsurers.table.activeContracts')}</th>
+                                                <th>{t('intermediaries.coinsurers.table.totalContracts')}</th>
+                                                {isSA && <th>{t('intermediaries.coinsurers.table.tenant')}</th>}
+                                                <th>{t('intermediaries.coinsurers.table.status')}</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -391,7 +395,7 @@ export default function IntermediariesReport({
                                                     <td>
                                                         <Link href={route('admin.coinsurers.show', { coinsurer: c.id })}
                                                               style={{ fontSize: 11, color: '#1d4ed8', textDecoration: 'none' }}>
-                                                            Voir →
+                                                            {t('intermediaries.coinsurers.viewLink')}
                                                         </Link>
                                                     </td>
                                                 </tr>
@@ -407,28 +411,28 @@ export default function IntermediariesReport({
                     {tab === 'experts' && (
                         <>
                             <div className="stats-row" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-                                <SumCard label="Total" value={expertStats.total} color="#1e293b" icon={UserCheck}/>
-                                <SumCard label="Actifs" value={expertStats.active} color="#15803d" bg="#f0fdf4" icon={CheckCircle}/>
-                                <SumCard label="Inactifs" value={expertStats.inactive} color="#64748b" icon={XCircle}/>
+                                <SumCard label={t('intermediaries.experts.stats.total')} value={expertStats.total} color="#1e293b" icon={UserCheck}/>
+                                <SumCard label={t('intermediaries.experts.stats.active')} value={expertStats.active} color="#15803d" bg="#f0fdf4" icon={CheckCircle}/>
+                                <SumCard label={t('intermediaries.experts.stats.inactive')} value={expertStats.inactive} color="#64748b" icon={XCircle}/>
                             </div>
 
                             <div className="panel">
                                 <div className="panel-hdr">
                                     <UserCheck size={14} color="#059669"/>
-                                    Experts d'assurance
+                                    {t('intermediaries.experts.panelTitle')}
                                 </div>
                                 {experts.length === 0 ? (
-                                    <div className="empty">Aucun expert enregistré</div>
+                                    <div className="empty">{t('intermediaries.experts.empty')}</div>
                                 ) : (
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>Nom</th>
-                                                <th>Email</th>
-                                                <th>Téléphone</th>
-                                                <th>Pays</th>
-                                                {isSA && <th>Filiale</th>}
-                                                <th>Statut</th>
+                                                <th>{t('intermediaries.experts.table.name')}</th>
+                                                <th>{t('intermediaries.experts.table.email')}</th>
+                                                <th>{t('intermediaries.experts.table.phone')}</th>
+                                                <th>{t('intermediaries.experts.table.country')}</th>
+                                                {isSA && <th>{t('intermediaries.experts.table.tenant')}</th>}
+                                                <th>{t('intermediaries.experts.table.status')}</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -462,7 +466,7 @@ export default function IntermediariesReport({
                                                     <td>
                                                         <Link href={route('admin.experts.show', { expert: e.id })}
                                                               style={{ fontSize: 11, color: '#1d4ed8', textDecoration: 'none' }}>
-                                                            Voir →
+                                                            {t('intermediaries.experts.viewLink')}
                                                         </Link>
                                                     </td>
                                                 </tr>

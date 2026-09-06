@@ -1,0 +1,57 @@
+{
+    "index": {
+        "breadcrumb": "Audit Logs",
+        "title": "Audit Logs — NSIA Transport",
+        "heading": "Audit Logs",
+        "eventsRecorded_one": "{{count}} événement enregistré",
+        "eventsRecorded_other": "{{count}} événements enregistrés",
+        "exportCsv": "Exporter CSV",
+        "purge": "Purger",
+        "searchPlaceholder": "Rechercher par utilisateur, action, IP…",
+        "allActions": "Toutes les actions",
+        "allEntities": "Toutes les entités",
+        "advancedFilters": "Filtres avancés",
+        "clear": "Effacer",
+        "dateFrom": "Date début",
+        "dateTo": "Date fin",
+        "tenant": "Filiale",
+        "tenantPlaceholder": "ID filiale…",
+        "noLogs": "Aucun log trouvé.",
+        "columns": {
+            "date": "Date",
+            "user": "Utilisateur",
+            "action": "Action",
+            "entity": "Entité",
+            "tenant": "Filiale",
+            "ip": "IP",
+            "detail": "Détail"
+        },
+        "system": "Système",
+        "view": "Voir",
+        "pageInfo": "Page {{current}} / {{last}} · {{total}} logs",
+        "purgeModal": {
+            "title": "Purge des logs",
+            "subtitle": "Action irréversible",
+            "warning": "⚠ Cette action supprimera définitivement tous les logs plus anciens que le nombre de jours spécifié.",
+            "daysLabel": "Supprimer les logs antérieurs à (jours)",
+            "daysHint": "Minimum 30 jours · Recommandé : 365 jours"
+        }
+    },
+    "show": {
+        "breadcrumb": "Audit Logs",
+        "title": "Log {{action}} — NSIA Transport",
+        "generalInfo": "Informations générales",
+        "user": "Utilisateur",
+        "system": "Système",
+        "tenant": "Filiale",
+        "entity": "Entité",
+        "ip": "Adresse IP",
+        "userAgent": "User Agent",
+        "modifications": "Modifications",
+        "before": "Avant",
+        "after": "Après",
+        "noPreviousValue": "Aucune valeur précédente",
+        "noNewValue": "Aucune nouvelle valeur",
+        "backToLogs": "Retour aux logs"
+    }
+}

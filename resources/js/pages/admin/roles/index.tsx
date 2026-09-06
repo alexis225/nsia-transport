@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -8,10 +9,6 @@ import {
     ChevronLeft, ChevronRight, Shield, Lock,
     Users, AlertCircle, Loader2, Check,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Rôles & Permissions', href: '/admin/roles' },
-];
 
 interface Permission { id: number; name: string; }
 interface Role {
@@ -41,6 +38,8 @@ const PROTECTED = ['super_admin','admin_filiale','souscripteur','courtier_local'
 
 // ── Modal créer rôle ──────────────────────────────────────────
 function CreateModal({ permissions, onClose }: { permissions: Record<string, Permission[]>; onClose: () => void }) {
+    const { t } = useTranslation('roles');
+    const { t: tc } = useTranslation('common');
     const { data, setData, post, processing, errors, reset } = useForm<{ name: string; permissions: string[] }>({ name:'', permissions:[] });
 
     const toggle = (name: string) =>
@@ -70,8 +69,8 @@ function CreateModal({ permissions, onClose }: { permissions: Record<string, Per
                             <Shield size={17} color="#3b82f6"/>
                         </div>
                         <div>
-                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Nouveau rôle</p>
-                            <p style={{ fontSize:11, color:'#94a3b8' }}>Définissez le nom et les permissions</p>
+                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('index.createModal.title')}</p>
+                            <p style={{ fontSize:11, color:'#94a3b8' }}>{t('index.createModal.subtitle')}</p>
                         </div>
                     </div>
                     <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
@@ -79,16 +78,16 @@ function CreateModal({ permissions, onClose }: { permissions: Record<string, Per
                 <div style={{ overflowY:'auto', flex:1, padding:'18px 22px' }}>
                     <form onSubmit={submit}>
                         <div style={{ marginBottom:16 }}>
-                            <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>Nom du rôle *</label>
+                            <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>{t('index.createModal.nameLabel')}</label>
                             <input
                                 value={data.name} onChange={e => setData('name', e.target.value)}
-                                placeholder="ex: responsable_regional"
+                                placeholder={t('index.createModal.namePlaceholder')}
                                 style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:`1.5px solid ${errors.name ? '#ef4444' : '#e2e8f0'}`, borderRadius:9, outline:'none', boxSizing:'border-box' }}
                             />
                             {errors.name && <p style={{ fontSize:11, color:'#ef4444', marginTop:4, display:'flex', alignItems:'center', gap:3 }}><AlertCircle size={11}/>{errors.name}</p>}
                         </div>
                         <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>
-                            Permissions ({data.permissions.length} sélectionnée{data.permissions.length > 1 ? 's' : ''})
+                            {t('index.createModal.permissionsLabel', { count: data.permissions.length })}
                         </label>
                         <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                             {Object.entries(permissions).map(([module, perms]) => {
@@ -124,10 +123,10 @@ function CreateModal({ permissions, onClose }: { permissions: Record<string, Per
                     </form>
                 </div>
                 <div style={{ padding:'14px 22px', borderTop:'1px solid #f1f5f9', display:'flex', gap:8, justifyContent:'flex-end' }}>
-                    <Button variant="outline" onClick={onClose}>Annuler</Button>
+                    <Button variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
                     <Button onClick={submit as any} disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white">
                         {processing ? <Loader2 size={13} className="animate-spin"/> : <Plus size={13}/>}
-                        Créer le rôle
+                        {t('index.createModal.create')}
                     </Button>
                 </div>
             </div>
@@ -137,6 +136,8 @@ function CreateModal({ permissions, onClose }: { permissions: Record<string, Per
 
 // ── Modal éditer rôle ─────────────────────────────────────────
 function EditModal({ role, permissions, onClose }: { role: Role; permissions: Record<string, Permission[]>; onClose: () => void }) {
+    const { t } = useTranslation('roles');
+    const { t: tc } = useTranslation('common');
     const { data, setData, put, processing, errors } = useForm({
         name: role.name,
         permissions: role.permissions.map(p => p.name),
@@ -166,24 +167,24 @@ function EditModal({ role, permissions, onClose }: { role: Role; permissions: Re
                             <Shield size={17} color={ROLE_COLORS[role.name]?.color ?? '#64748b'}/>
                         </div>
                         <div>
-                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Modifier — {role.name.replace(/_/g,' ')}</p>
-                            <p style={{ fontSize:11, color:'#94a3b8' }}>{role.users_count} utilisateur{role.users_count > 1 ? 's' : ''} · {role.permissions.length} permissions</p>
+                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('index.editModal.titlePrefix', { name: role.name.replace(/_/g,' ') })}</p>
+                            <p style={{ fontSize:11, color:'#94a3b8' }}>{t('index.count', { count: role.users_count })} · {t('index.permissionsCount', { count: role.permissions.length })}</p>
                         </div>
                     </div>
                     <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
                 </div>
                 <div style={{ overflowY:'auto', flex:1, padding:'18px 22px' }}>
                     <div style={{ marginBottom:16 }}>
-                        <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>Nom du rôle</label>
+                        <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>{t('index.editModal.nameLabel')}</label>
                         <input
                             value={data.name} onChange={e => setData('name', e.target.value)}
                             disabled={isProtected}
                             style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background: isProtected ? '#f8fafc' : '#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', boxSizing:'border-box', opacity: isProtected ? .7 : 1 }}
                         />
-                        {isProtected && <p style={{ fontSize:11, color:'#94a3b8', marginTop:3 }}>Rôle système — renommage non autorisé.</p>}
+                        {isProtected && <p style={{ fontSize:11, color:'#94a3b8', marginTop:3 }}>{t('index.editModal.systemNote')}</p>}
                     </div>
                     <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>
-                        Permissions ({data.permissions.length} sélectionnée{data.permissions.length > 1 ? 's' : ''})
+                        {t('index.editModal.permissionsLabel', { count: data.permissions.length })}
                     </label>
                     <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                         {Object.entries(permissions).map(([module, perms]) => {
@@ -218,10 +219,10 @@ function EditModal({ role, permissions, onClose }: { role: Role; permissions: Re
                     </div>
                 </div>
                 <div style={{ padding:'14px 22px', borderTop:'1px solid #f1f5f9', display:'flex', gap:8, justifyContent:'flex-end' }}>
-                    <Button variant="outline" onClick={onClose}>Annuler</Button>
+                    <Button variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
                     <Button onClick={(e: any) => { e.preventDefault(); put(route('admin.roles.update', { role: role.id }), { onSuccess: onClose }); }} disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white">
                         {processing ? <Loader2 size={13} className="animate-spin"/> : <Check size={13}/>}
-                        Enregistrer
+                        {t('index.editModal.save')}
                     </Button>
                 </div>
             </div>
@@ -231,6 +232,12 @@ function EditModal({ role, permissions, onClose }: { role: Role; permissions: Re
 
 // ── Page principale ───────────────────────────────────────────
 export default function RolesIndex({ roles, permissions, filters }: Props) {
+    const { t } = useTranslation('roles');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/roles' },
+    ];
+
     const [showCreate, setShowCreate] = useState(false);
     const [editRole,   setEditRole]   = useState<Role | null>(null);
     const [search,     setSearch]     = useState(filters.search ?? '');
@@ -239,13 +246,13 @@ export default function RolesIndex({ roles, permissions, filters }: Props) {
         router.get('/admin/roles', { ...filters, ...params }, { preserveState:true, replace:true });
 
     const handleDelete = (role: Role) => {
-        if (confirm(`Supprimer le rôle « ${role.name} » ?`))
+        if (confirm(t('index.confirmDelete', { name: role.name })))
             router.delete(route('admin.roles.destroy', { role: role.id }));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Rôles & Permissions — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .rp-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .rp-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -291,23 +298,23 @@ export default function RolesIndex({ roles, permissions, filters }: Props) {
                     {/* Header */}
                     <div className="rp-hdr">
                         <div>
-                            <h1 className="rp-title">Rôles & Permissions</h1>
-                            <p className="rp-sub">{roles.total} rôle{roles.total > 1 ? 's' : ''} configuré{roles.total > 1 ? 's' : ''}</p>
+                            <h1 className="rp-title">{t('index.heading')}</h1>
+                            <p className="rp-sub">{t('index.count', { count: roles.total })}</p>
                         </div>
                         <Button onClick={() => setShowCreate(true)} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                            <Plus size={15}/> Nouveau rôle
+                            <Plus size={15}/> {t('index.newRole')}
                         </Button>
                     </div>
 
                     {/* Toolbar */}
                     <div className="rp-toolbar">
                         <form className="rp-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un rôle…"/>
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.search.placeholder')}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         {filters.search && (
                             <button onClick={() => router.get('/admin/roles')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('index.clear')}
                             </button>
                         )}
                     </div>
@@ -315,17 +322,17 @@ export default function RolesIndex({ roles, permissions, filters }: Props) {
                     {/* Tableau */}
                     <div className="rp-card">
                         {roles.data.length === 0 ? (
-                            <div className="rp-empty">Aucun rôle trouvé.</div>
+                            <div className="rp-empty">{t('index.empty')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Rôle</th>
-                                            <th>Utilisateurs</th>
-                                            <th>Permissions</th>
-                                            <th>Aperçu</th>
-                                            <th>Actions</th>
+                                            <th>{t('index.table.role')}</th>
+                                            <th>{t('index.table.users')}</th>
+                                            <th>{t('index.table.permissions')}</th>
+                                            <th>{t('index.table.preview')}</th>
+                                            <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>

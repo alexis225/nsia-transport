@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import { Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/language-switcher';
 
 interface Props {
     token: string;
@@ -12,6 +14,7 @@ interface Props {
 }
 
 export default function ResetPassword({ token, email }: Props) {
+    const { t } = useTranslation('auth');
     const [showPw,      setShowPw]      = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -40,11 +43,11 @@ export default function ResetPassword({ token, email }: Props) {
         return s;
     })();
     const strengthColor = ['','#ef4444','#f97316','#eab308','#22c55e','#16a34a'][strength];
-    const strengthLabel = ['','Très faible','Faible','Moyen','Fort','Très fort'][strength];
+    const strengthLabel = strength ? t(`password.strength.${strength}`) : '';
 
     return (
         <>
-            <Head title="Réinitialiser le mot de passe — NSIA Transport"/>
+            <Head title={`${t('reset.title')} — NSIA Transport`}/>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
                 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -52,6 +55,7 @@ export default function ResetPassword({ token, email }: Props) {
 
                 .rp-root{width:100%;max-width:440px;margin:0 auto;padding:16px;}
 
+                .rp-switcher{display:flex;justify-content:flex-end;margin-bottom:12px;}
                 .rp-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px;}
                 .rp-logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#1e2fa0,#14176a);border-radius:12px;display:flex;align-items:center;justify-content:center;}
                 .rp-logo-name{font-size:18px;font-weight:700;color:#1e293b;}
@@ -84,6 +88,10 @@ export default function ResetPassword({ token, email }: Props) {
             `}</style>
 
             <div className="rp-root">
+                <div className="rp-switcher">
+                    <LanguageSwitcher />
+                </div>
+
                 {/* Logo */}
                 <div className="rp-logo">
                     <div className="rp-logo-icon">
@@ -96,7 +104,7 @@ export default function ResetPassword({ token, email }: Props) {
                     </div>
                     <div>
                         <div className="rp-logo-name">NSIA Transport</div>
-                        <div className="rp-logo-sub">Certificats d'assurance</div>
+                        <div className="rp-logo-sub">{t('brand.tagline')}</div>
                     </div>
                 </div>
 
@@ -106,10 +114,14 @@ export default function ResetPassword({ token, email }: Props) {
                         <div className="rp-ico">
                             <Lock size={22} color="#16a34a"/>
                         </div>
-                        <h1 className="rp-title">Nouveau mot de passe</h1>
+                        <h1 className="rp-title">{t('reset.heading')}</h1>
                         <p className="rp-desc">
-                            Créez un nouveau mot de passe pour{' '}
-                            <span className="rp-email">{email}</span>
+                            <Trans
+                                t={t}
+                                i18nKey="reset.description"
+                                values={{ email }}
+                                components={{ 1: <span className="rp-email" /> }}
+                            />
                         </p>
                     </div>
 
@@ -122,7 +134,7 @@ export default function ResetPassword({ token, email }: Props) {
 
                             {/* Nouveau mot de passe */}
                             <div className="grid gap-2">
-                                <Label className="rp-label">Nouveau mot de passe</Label>
+                                <Label className="rp-label">{t('reset.newPassword')}</Label>
                                 <div className="pw-wrap">
                                     <Input
                                         type={showPw ? 'text' : 'password'}
@@ -157,10 +169,10 @@ export default function ResetPassword({ token, email }: Props) {
                             {/* Règles */}
                             <div className="pw-rules">
                                 {[
-                                    { ok: data.password.length >= 8,           label: 'Au moins 8 caractères' },
-                                    { ok: /[A-Z]/.test(data.password),         label: 'Une lettre majuscule' },
-                                    { ok: /[0-9]/.test(data.password),         label: 'Un chiffre' },
-                                    { ok: /[^A-Za-z0-9]/.test(data.password), label: 'Un caractère spécial' },
+                                    { ok: data.password.length >= 8,          label: t('password.rules.length') },
+                                    { ok: /[A-Z]/.test(data.password),        label: t('password.rules.uppercase') },
+                                    { ok: /[0-9]/.test(data.password),        label: t('password.rules.digit') },
+                                    { ok: /[^A-Za-z0-9]/.test(data.password), label: t('password.rules.special') },
                                 ].map(({ ok, label }) => (
                                     <div key={label} className={`pw-rule ${ok ? 'ok' : ''}`}>
                                         <span className="rule-dot"/>
@@ -172,7 +184,7 @@ export default function ResetPassword({ token, email }: Props) {
 
                             {/* Confirmation */}
                             <div className="grid gap-2">
-                                <Label className="rp-label">Confirmer le mot de passe</Label>
+                                <Label className="rp-label">{t('reset.confirmPassword')}</Label>
                                 <div className="pw-wrap">
                                     <Input
                                         type={showConfirm ? 'text' : 'password'}
@@ -188,12 +200,12 @@ export default function ResetPassword({ token, email }: Props) {
                                 </div>
                                 {data.password_confirmation && data.password !== data.password_confirmation && (
                                     <p style={{ fontSize:11, color:'#ef4444', display:'flex', alignItems:'center', gap:4 }}>
-                                        Les mots de passe ne correspondent pas
+                                        {t('reset.mismatch')}
                                     </p>
                                 )}
                                 {data.password_confirmation && data.password === data.password_confirmation && data.password && (
                                     <p style={{ fontSize:11, color:'#16a34a', display:'flex', alignItems:'center', gap:4 }}>
-                                        <Check size={11}/> Les mots de passe correspondent
+                                        <Check size={11}/> {t('reset.match')}
                                     </p>
                                 )}
                                 <InputError message={errors.password_confirmation}/>
@@ -205,8 +217,8 @@ export default function ResetPassword({ token, email }: Props) {
                                 className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-11 w-full"
                             >
                                 {processing
-                                    ? <><Loader2 size={15} className="animate-spin"/> Réinitialisation…</>
-                                    : <><Lock size={15}/> Réinitialiser le mot de passe</>
+                                    ? <><Loader2 size={15} className="animate-spin"/> {t('reset.submitting')}</>
+                                    : <><Lock size={15}/> {t('reset.submit')}</>
                                 }
                             </Button>
                         </form>

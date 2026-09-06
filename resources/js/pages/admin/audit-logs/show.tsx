@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { ArrowLeft, Clock, User, Shield, Globe, Monitor, Server } from 'lucide-react';
@@ -28,8 +29,9 @@ const ACTION_COLORS: Record<string, { bg: string; color: string }> = {
 };
 
 export default function AuditLogShow({ log }: Props) {
+    const { t } = useTranslation('auditLogs');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Audit Logs', href: '/admin/audit-logs' },
+        { title: t('show.breadcrumb'), href: '/admin/audit-logs' },
         { title: log.action.replace(/_/g,' ') },
     ];
 
@@ -60,7 +62,7 @@ export default function AuditLogShow({ log }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Log ${log.action} — NSIA Transport`}/>
+            <Head title={t('show.title', { action: log.action })}/>
             <style>{`
                 .ls-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .ls-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
@@ -117,36 +119,36 @@ export default function AuditLogShow({ log }: Props) {
                     <div className="ls-card">
                         <div className="ls-card-hdr">
                             <div className="ls-card-ico" style={{ background:'#eff6ff' }}><User size={15} color="#3b82f6"/></div>
-                            <span className="ls-card-ttl">Informations générales</span>
+                            <span className="ls-card-ttl">{t('show.generalInfo')}</span>
                         </div>
                         <div className="ls-card-body">
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label"><User size={10}/>Utilisateur</span>
+                                    <span className="info-label"><User size={10}/>{t('show.user')}</span>
                                     {log.user ? (
                                         <span className="info-value">
                                             {log.user.first_name} {log.user.last_name}
                                             <span style={{ fontSize:11, color:'#94a3b8', display:'block' }}>{log.user.email}</span>
                                         </span>
-                                    ) : <span style={{ color:'#cbd5e1', fontSize:12 }}>Système</span>}
+                                    ) : <span style={{ color:'#cbd5e1', fontSize:12 }}>{t('show.system')}</span>}
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Shield size={10}/>Filiale</span>
+                                    <span className="info-label"><Shield size={10}/>{t('show.tenant')}</span>
                                     <span className="info-value">{log.tenant?.name ?? '—'}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Server size={10}/>Entité</span>
+                                    <span className="info-label"><Server size={10}/>{t('show.entity')}</span>
                                     <span className="info-value">
                                         {log.entity_type ?? '—'}
                                         {log.entity_id && <span style={{ fontSize:11, color:'#94a3b8', display:'block', fontFamily:'monospace' }}>{log.entity_id}</span>}
                                     </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Globe size={10}/>Adresse IP</span>
+                                    <span className="info-label"><Globe size={10}/>{t('show.ip')}</span>
                                     <span style={{ fontSize:13, color:'#1e293b', fontFamily:'monospace' }}>{log.ip_address ?? '—'}</span>
                                 </div>
                                 <div className="info-item" style={{ gridColumn:'1/-1' }}>
-                                    <span className="info-label"><Monitor size={10}/>User Agent</span>
+                                    <span className="info-label"><Monitor size={10}/>{t('show.userAgent')}</span>
                                     <div className="ua-box">{log.user_agent ?? '—'}</div>
                                 </div>
                             </div>
@@ -158,22 +160,22 @@ export default function AuditLogShow({ log }: Props) {
                         <div className="ls-card">
                             <div className="ls-card-hdr">
                                 <div className="ls-card-ico" style={{ background:'#fff7ed' }}><Clock size={15} color="#f97316"/></div>
-                                <span className="ls-card-ttl">Modifications</span>
+                                <span className="ls-card-ttl">{t('show.modifications')}</span>
                             </div>
                             <div className="ls-card-body">
                                 <div className="diff-grid">
                                     <div className={`diff-box ${log.old_values ? 'diff-old' : ''}`}>
-                                        <div className="diff-title">Avant</div>
+                                        <div className="diff-title">{t('show.before')}</div>
                                         {log.old_values
                                             ? renderJson(log.old_values)
-                                            : <span style={{ fontSize:12, color:'#94a3b8', fontStyle:'italic' }}>Aucune valeur précédente</span>
+                                            : <span style={{ fontSize:12, color:'#94a3b8', fontStyle:'italic' }}>{t('show.noPreviousValue')}</span>
                                         }
                                     </div>
                                     <div className={`diff-box ${log.new_values ? 'diff-new' : ''}`}>
-                                        <div className="diff-title">Après</div>
+                                        <div className="diff-title">{t('show.after')}</div>
                                         {log.new_values
                                             ? renderJson(log.new_values)
-                                            : <span style={{ fontSize:12, color:'#94a3b8', fontStyle:'italic' }}>Aucune nouvelle valeur</span>
+                                            : <span style={{ fontSize:12, color:'#94a3b8', fontStyle:'italic' }}>{t('show.noNewValue')}</span>
                                         }
                                     </div>
                                 </div>
@@ -182,7 +184,7 @@ export default function AuditLogShow({ log }: Props) {
                     )}
 
                     <Link href="/admin/audit-logs" style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13, color:'#64748b', textDecoration:'none' }}>
-                        <ArrowLeft size={14}/> Retour aux logs
+                        <ArrowLeft size={14}/> {t('show.backToLogs')}
                     </Link>
                 </div>
             </div>

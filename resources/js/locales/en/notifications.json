@@ -1,0 +1,42 @@
+{
+    "breadcrumb": "Notification center",
+    "title": "Notification center — NSIA Transport",
+    "heading": "Notification center",
+    "subtitle": "History of the last 90 days",
+    "markAllRead": "Mark all as read",
+    "deleteRead": "Delete read notifications",
+    "kpis": {
+        "total90Days": "Total 90 days",
+        "unread": "Unread",
+        "today": "Today"
+    },
+    "tabs": {
+        "notifications": "Notifications",
+        "preferences": "Preferences"
+    },
+    "allTypes": "All types",
+    "allStatuses": "All statuses",
+    "unreadOption": "Unread",
+    "readOption": "Read",
+    "clear": "Clear",
+    "notificationCount_one": "{{count}} notification",
+    "notificationCount_other": "{{count}} notifications",
+    "noNotifications": "No notifications found.",
+    "viewLink": "View →",
+    "markRead": "Mark read",
+    "pagination": {
+        "range": "{{from}}–{{to}} of {{total}}"
+    },
+    "preferences": {
+        "title": "Notification preferences",
+        "subtitle": "Configure notification channels by event type",
+        "saved": "Saved",
+        "save": "Save",
+        "saving": "Saving…",
+        "columns": {
+            "eventType": "Event type",
+            "inApp": "In-App",
+            "email": "Email"
+        }
+    }
+}

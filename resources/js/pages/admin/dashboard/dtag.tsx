@@ -2,11 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Building2, Award, TrendingUp, AlertTriangle, FileText, CheckCircle } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'Dashboard DTAG (Multi-filiales)' },
-];
+import { useTranslation } from 'react-i18next';
 
 interface TenantKpi {
     id: string; name: string; code: string;
@@ -71,11 +67,17 @@ function BarChart({ data }: { data: MonthData[] }) {
 export default function DtagDashboard({
     global, byTenant, monthlyData, topTenants, tenantCount, currentMonth, currentYear,
 }: Props) {
+    const { t } = useTranslation('dashboard');
     const maxCount = Math.max(...byTenant.map(t => t.issued_month), 1);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('dtag.breadcrumbHome'), href: route('admin.dashboard') },
+        { title: t('dtag.breadcrumb') },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard DTAG Multi-filiales — NSIA Transport"/>
+            <Head title={t('dtag.headTitle')}/>
             <style>{`
                 .dtag-page  { padding:4px; display:flex; flex-direction:column; gap:16px; }
                 .panel      { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
@@ -103,10 +105,10 @@ export default function DtagDashboard({
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
                             <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b' }}>
-                                Dashboard DTAG — Consolidé groupe
+                                {t('dtag.heading')}
                             </h1>
                             <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
-                                {tenantCount} filiales actives · {currentMonth} · Exercice {currentYear}
+                                {t('dtag.subtitle', { count: tenantCount, month: currentMonth, year: currentYear })}
                             </p>
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
@@ -114,7 +116,7 @@ export default function DtagDashboard({
                                   style={{ fontSize: 12, color: '#1d4ed8', textDecoration: 'none',
                                            background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
                                            border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', gap: 5 }}>
-                                Dashboard filiale
+                                {t('dtag.subsidiaryDashboard')}
                             </Link>
                         </div>
                     </div>
@@ -122,12 +124,12 @@ export default function DtagDashboard({
                     {/* KPIs globaux */}
                     <div className="kpi-grid">
                         {[
-                            { label: 'Cert. émis ce mois', value: global.issued_month, color: '#1d4ed8', icon: Award },
-                            { label: `Cert. émis ${currentYear}`, value: global.issued_ytd, color: '#0284c7', icon: TrendingUp },
-                            { label: 'En attente (groupe)', value: global.submitted,
+                            { label: t('dtag.kpis.issuedMonth'), value: global.issued_month, color: '#1d4ed8', icon: Award },
+                            { label: t('dtag.kpis.issuedYear', { year: currentYear }), value: global.issued_ytd, color: '#0284c7', icon: TrendingUp },
+                            { label: t('dtag.kpis.pendingGroup'), value: global.submitted,
                               color: global.submitted > 10 ? '#dc2626' : '#d97706', icon: AlertTriangle },
-                            { label: 'Contrats actifs', value: global.contracts_active, color: '#15803d', icon: FileText },
-                            { label: 'Primes ce mois', value: fmtAmt(global.prime_month), color: '#7c3aed', icon: CheckCircle },
+                            { label: t('dtag.kpis.activeContracts'), value: global.contracts_active, color: '#15803d', icon: FileText },
+                            { label: t('dtag.kpis.primeMonth'), value: fmtAmt(global.prime_month), color: '#7c3aed', icon: CheckCircle },
                         ].map((k, i) => (
                             <div key={i} className="kpi-card">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -150,20 +152,20 @@ export default function DtagDashboard({
                             <div className="panel-hdr">
                                 <div className="panel-hdr-title">
                                     <Building2 size={14} color="#1d4ed8"/>
-                                    Performance par filiale — {currentMonth}
+                                    {t('dtag.table.title', { month: currentMonth })}
                                 </div>
                             </div>
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Filiale</th>
-                                        <th>Cert. mois</th>
-                                        <th>Tendance</th>
-                                        <th>Volume</th>
-                                        <th>YTD</th>
-                                        <th>En attente</th>
-                                        <th>Contrats</th>
-                                        <th>Expiration</th>
+                                        <th>{t('dtag.table.subsidiary')}</th>
+                                        <th>{t('dtag.table.certMonth')}</th>
+                                        <th>{t('dtag.table.trend')}</th>
+                                        <th>{t('dtag.table.volume')}</th>
+                                        <th>{t('dtag.table.ytd')}</th>
+                                        <th>{t('dtag.table.pending')}</th>
+                                        <th>{t('dtag.table.contracts')}</th>
+                                        <th>{t('dtag.table.expiration')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -224,7 +226,7 @@ export default function DtagDashboard({
                             <div className="panel">
                                 <div className="panel-hdr">
                                     <div className="panel-hdr-title">
-                                        <TrendingUp size={13} color="#1d4ed8"/> Émissions groupe (12 mois)
+                                        <TrendingUp size={13} color="#1d4ed8"/> {t('dtag.monthlyChart.title')}
                                     </div>
                                 </div>
                                 <div className="panel-body">
@@ -235,13 +237,13 @@ export default function DtagDashboard({
                                             <div style={{ fontWeight: 700, fontSize: 16, color: '#1e293b' }}>
                                                 {monthlyData.reduce((s, m) => s + m.issued, 0).toLocaleString('fr-FR')}
                                             </div>
-                                            <div style={{ color: '#94a3b8', fontSize: 10 }}>Certificats (12 mois)</div>
+                                            <div style={{ color: '#94a3b8', fontSize: 10 }}>{t('dtag.monthlyChart.certificates')}</div>
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
                                             <div style={{ fontWeight: 700, fontSize: 16, color: '#7c3aed' }}>
                                                 {fmtAmt(monthlyData.reduce((s, m) => s + m.amount, 0))}
                                             </div>
-                                            <div style={{ color: '#94a3b8', fontSize: 10 }}>Primes totales</div>
+                                            <div style={{ color: '#94a3b8', fontSize: 10 }}>{t('dtag.monthlyChart.totalPrime')}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -251,12 +253,12 @@ export default function DtagDashboard({
                             <div className="panel">
                                 <div className="panel-hdr">
                                     <div className="panel-hdr-title">
-                                        <Award size={13} color="#d97706"/> Top filiales ce mois
+                                        <Award size={13} color="#d97706"/> {t('dtag.topSubsidiaries.title')}
                                     </div>
                                 </div>
                                 <div className="panel-body" style={{ padding: '8px 14px' }}>
-                                    {topTenants.map((t, i) => (
-                                        <div key={t.code} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    {topTenants.map((tenant, i) => (
+                                        <div key={tenant.code} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                                                     padding: '6px 0', borderBottom: i < topTenants.length - 1 ? '1px solid #f8fafc' : 'none' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <div style={{ width: 20, height: 20, borderRadius: 6,
@@ -268,11 +270,11 @@ export default function DtagDashboard({
                                                     {i + 1}
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontSize: 12, fontWeight: 500, color: '#1e293b' }}>{t.name}</div>
-                                                    <div style={{ fontSize: 10, color: '#94a3b8' }}>{fmtAmt(t.total_prime)} primes</div>
+                                                    <div style={{ fontSize: 12, fontWeight: 500, color: '#1e293b' }}>{tenant.name}</div>
+                                                    <div style={{ fontSize: 10, color: '#94a3b8' }}>{t('dtag.topSubsidiaries.primeSuffix', { amount: fmtAmt(tenant.total_prime) })}</div>
                                                 </div>
                                             </div>
-                                            <div style={{ fontSize: 15, fontWeight: 700, color: '#1d4ed8' }}>{t.count}</div>
+                                            <div style={{ fontSize: 15, fontWeight: 700, color: '#1d4ed8' }}>{tenant.count}</div>
                                         </div>
                                     ))}
                                 </div>

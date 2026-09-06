@@ -1,0 +1,83 @@
+{
+    "brand": {
+        "name": "NSIA",
+        "suffix": "TRANSPORT"
+    },
+    "sections": {
+        "dashboard": "Dashboard",
+        "kpi": "Subsidiary KPIs",
+        "dtag": "DTAG dashboard",
+        "users": "Users",
+        "brokers": "Brokers",
+        "certificateRequests": "Insurance certificate requests",
+        "coinsurers": "Co-insurers",
+        "experts": "Experts",
+        "reference": "Reference data",
+        "certificateTemplates": "Certificate templates",
+        "contracts": "Contracts",
+        "certificates": "Certificates",
+        "commissions": "Commissions",
+        "taxes": "Taxes",
+        "reports": "Reports",
+        "security": "Security",
+        "settings": "Settings"
+    },
+    "items": {
+        "list": "List",
+        "new": "New",
+        "blockedUsers": "Blocked",
+        "newUser": "New",
+        "roles": "Roles & permissions",
+        "newRole": "New role",
+        "tenants": "Subsidiaries",
+        "newTenant": "New subsidiary",
+        "newBroker": "New broker",
+        "countries": "Countries",
+        "currencies": "Currencies",
+        "incoterms": "Incoterms",
+        "transportModes": "Transport modes",
+        "merchandiseCategories": "Merchandise",
+        "fieldPositions": "Field positions (JSON)",
+        "visualCalibrator": "Visual calibrator (stub)",
+        "limits": "NN300 limits",
+        "advancedSearch": "Advanced search",
+        "printModels": "Print models",
+        "pending": "Pending",
+        "guceCertificates": "GUCE certificates",
+        "guceImport": "Import GUCE",
+        "commissionRules": "Rules",
+        "commissionBordereau": "Statement",
+        "reportCertificates": "Certificates report",
+        "reportContracts": "Contracts report",
+        "reportIntermediaries": "Intermediaries",
+        "ipBlacklist": "IP blacklist",
+        "profile": "Profile",
+        "accountSecurity": "Security",
+        "mfa": "MFA",
+        "appearance": "Appearance",
+        "escalations": "NN300 escalations",
+        "thresholds": "NN300 thresholds",
+        "delegations": "Delegations",
+        "auditLogs": "Audit logs",
+        "notifications": "Notifications",
+        "exports": "My exports"
+    },
+    "partner": {
+        "dashboard": "Dashboard",
+        "requests": "My requests",
+        "newRequest": "New request",
+        "certificates": "My certificates"
+    },
+    "user": {
+        "settings": "Settings",
+        "logout": "Log out"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "unread_one": "{{count}} unread",
+        "unread_other": "{{count}} unread",
+        "markAll": "Mark all read",
+        "empty": "No notifications",
+        "seeAll": "View all notifications"
+    }
+}

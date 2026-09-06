@@ -1,6 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Upload, FileText, X, AlertCircle, ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -20,12 +21,15 @@ function readCookie(name: string): string | null {
     return match ? decodeURIComponent(match[1]) : null;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Certificats GUCE', href: '/admin/guce-certificates' },
-    { title: 'Importer', href: '/admin/guce-certificates/create' },
-];
-
 export default function GuceCertificatesCreate() {
+    const { t } = useTranslation('certificates');
+    const { t: tc } = useTranslation('common');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('guce.index.heading'), href: '/admin/guce-certificates' },
+        { title: t('guce.create.breadcrumb'), href: '/admin/guce-certificates/create' },
+    ];
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [dragOver, setDragOver] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -88,7 +92,7 @@ export default function GuceCertificatesCreate() {
 
             if (!res.ok || !json.success) {
                 setExtractionStatus('error');
-                setExtractionMessage(json.message ?? "Extraction automatique indisponible.");
+                setExtractionMessage(json.message ?? t('guce.create.fileSection.extractionErrorGeneric'));
 
                 return;
             }
@@ -106,11 +110,11 @@ export default function GuceCertificatesCreate() {
 
             setExtractionStatus('success');
             setExtractionMessage(filled > 0
-                ? `${filled} champ(s) pré-rempli(s) automatiquement — vérifiez les valeurs avant de valider.`
-                : "Aucune donnée reconnue dans ce document — merci de compléter manuellement.");
+                ? t('guce.create.fileSection.extractionSuccess', { count: filled })
+                : t('guce.create.fileSection.extractionNoData'));
         } catch {
             setExtractionStatus('error');
-            setExtractionMessage("Extraction automatique indisponible — merci de compléter le formulaire manuellement.");
+            setExtractionMessage(t('guce.create.fileSection.extractionErrorFallback'));
         } finally {
             setExtracting(false);
         }
@@ -177,7 +181,7 @@ fileInputRef.current.value = '';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Importer un certificat GUCE" />
+            <Head title={t('guce.create.title')} />
 
             <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
 
@@ -190,10 +194,10 @@ fileInputRef.current.value = '';
                     </Link>
                     <div>
                         <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                            Importer un certificat GUCE
+                            {t('guce.create.heading')}
                         </h1>
                         <p style={{ color: '#64748b', fontSize: '13px', margin: '2px 0 0' }}>
-                            Uploadez le fichier et renseignez les références du certificat
+                            {t('guce.create.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -203,7 +207,7 @@ fileInputRef.current.value = '';
                     {/* Zone d'upload */}
                     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 14px' }}>
-                            Fichier du certificat <span style={{ color: '#dc2626' }}>*</span>
+                            {t('guce.create.fileSection.title')} <span style={{ color: '#dc2626' }}>*</span>
                         </h2>
 
                         {selectedFile ? (
@@ -212,7 +216,7 @@ fileInputRef.current.value = '';
                                 <div style={{ flex: 1 }}>
                                     <p style={{ margin: 0, fontWeight: 600, fontSize: '13px', color: '#15803d' }}>{selectedFile.name}</p>
                                     <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                                        {(selectedFile.size / 1024).toFixed(0)} Ko
+                                        {t('guce.create.fileSection.sizeKo', { size: (selectedFile.size / 1024).toFixed(0) })}
                                     </p>
                                 </div>
                                 <button type="button" onClick={removeFile}
@@ -223,7 +227,7 @@ fileInputRef.current.value = '';
                         ) : (
                             <div
                                 onDragOver={e => {
- e.preventDefault(); setDragOver(true); 
+ e.preventDefault(); setDragOver(true);
 }}
                                 onDragLeave={() => setDragOver(false)}
                                 onDrop={handleDrop}
@@ -236,10 +240,10 @@ fileInputRef.current.value = '';
                                 }}>
                                 <Upload size={28} style={{ margin: '0 auto 8px', display: 'block', color: '#94a3b8' }} />
                                 <p style={{ margin: '0 0 4px', fontWeight: 600, color: '#374151', fontSize: '14px' }}>
-                                    Glissez-déposez ou cliquez pour sélectionner
+                                    {t('guce.create.fileSection.dropText')}
                                 </p>
                                 <p style={{ margin: 0, color: '#94a3b8', fontSize: '12px' }}>
-                                    PDF, DOC ou DOCX — 10 Mo maximum
+                                    {t('guce.create.fileSection.dropHint')}
                                 </p>
                             </div>
                         )}
@@ -253,7 +257,7 @@ fileInputRef.current.value = '';
 
  if (f) {
 handleFile(f);
-} 
+}
 }}
                         />
                         {errors.file && <p style={errorStyle}><AlertCircle size={12} />{errors.file}</p>}
@@ -261,7 +265,7 @@ handleFile(f);
                         {extracting && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', padding: '10px 12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '13px', color: '#1d4ed8' }}>
                                 <Loader2 size={14} className="animate-spin" />
-                                Extraction automatique des données en cours…
+                                {t('guce.create.fileSection.extracting')}
                             </div>
                         )}
                         {!extracting && extractionStatus === 'success' && (
@@ -281,29 +285,29 @@ handleFile(f);
                     {/* Références GUCE */}
                     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
-                            Références GUCE
+                            {t('guce.create.references.title')}
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                            <Field label="Référence requête GUCE" name="guce_reference" required placeholder="ex: INS2024101765" />
-                            <Field label="N° Certificat" name="certificate_number" required placeholder="ex: 41612024005384" />
-                            <Field label="Application à la police N°" name="policy_number" placeholder="ex: 4300616200005F" />
-                            <Field label="Référence FDI" name="fdi_reference" placeholder="ex: 240118075 DU 2024-08-22" />
+                            <Field label={t('guce.create.references.guceReference')} name="guce_reference" required placeholder={t('guce.create.references.guceReferencePlaceholder')} />
+                            <Field label={t('guce.create.references.certificateNumber')} name="certificate_number" required placeholder={t('guce.create.references.certificateNumberPlaceholder')} />
+                            <Field label={t('guce.create.references.policyNumber')} name="policy_number" placeholder={t('guce.create.references.policyNumberPlaceholder')} />
+                            <Field label={t('guce.create.references.fdiReference')} name="fdi_reference" placeholder={t('guce.create.references.fdiReferencePlaceholder')} />
                         </div>
                     </div>
 
                     {/* Assuré */}
                     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
-                            Assuré
+                            {t('guce.create.insured.title')}
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                            <Field label="Nom de l'assuré" name="insured_name" required placeholder="ex: SOS BOULONNERIE" />
+                            <Field label={t('guce.create.insured.name')} name="insured_name" required placeholder={t('guce.create.insured.namePlaceholder')} />
                             <div>
-                                <label style={labelStyle}>Adresse</label>
+                                <label style={labelStyle}>{t('guce.create.insured.address')}</label>
                                 <textarea
                                     value={data.insured_address}
                                     onChange={e => setData('insured_address', e.target.value)}
-                                    placeholder="01 BP 1262 ABIDJAN..."
+                                    placeholder={t('guce.create.insured.addressPlaceholder')}
                                     rows={2}
                                     style={{ ...inputStyle, resize: 'vertical' }}
                                 />
@@ -314,26 +318,26 @@ handleFile(f);
                     {/* Transport & marchandises */}
                     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
-                            Transport & Marchandises
+                            {t('guce.create.transport.title')}
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                            <Field label="Navire / Moyen de transport" name="vessel" placeholder="ex: CMA CGM EIFFEL 0BAJFS1MA" />
-                            <Field label="Date du voyage" name="transit_date" type="date" />
-                            <Field label="Départ (Origine)" name="origin" placeholder="ex: France (LE HAVRE)" />
-                            <Field label="Destination" name="destination" placeholder="ex: Cote d'Ivoire (ABIDJAN)" />
+                            <Field label={t('guce.create.transport.vessel')} name="vessel" placeholder={t('guce.create.transport.vesselPlaceholder')} />
+                            <Field label={t('guce.create.transport.transitDate')} name="transit_date" type="date" />
+                            <Field label={t('guce.create.transport.origin')} name="origin" placeholder={t('guce.create.transport.originPlaceholder')} />
+                            <Field label={t('guce.create.transport.destination')} name="destination" placeholder={t('guce.create.transport.destinationPlaceholder')} />
                             <div>
-                                <label style={labelStyle}>Description des marchandises</label>
+                                <label style={labelStyle}>{t('guce.create.transport.cargoDescription')}</label>
                                 <textarea
                                     value={data.cargo_description}
                                     onChange={e => setData('cargo_description', e.target.value)}
-                                    placeholder="1 Palettes DE FILMEE NOIR BOULONNERIE..."
+                                    placeholder={t('guce.create.transport.cargoDescriptionPlaceholder')}
                                     rows={2}
                                     style={{ ...inputStyle, resize: 'vertical' }}
                                 />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                <Field label="Poids" name="weight" placeholder="ex: 228 kg" />
-                                <Field label="Marques" name="marks" placeholder="ex: TGBU938632/7" />
+                                <Field label={t('guce.create.transport.weight')} name="weight" placeholder={t('guce.create.transport.weightPlaceholder')} />
+                                <Field label={t('guce.create.transport.marks')} name="marks" placeholder={t('guce.create.transport.marksPlaceholder')} />
                             </div>
                         </div>
                     </div>
@@ -341,22 +345,22 @@ handleFile(f);
                     {/* Valeurs financières */}
                     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
-                            Valeurs financières
+                            {t('guce.create.financial.title')}
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                            <Field label="Valeur assurée" name="insured_value" type="number" placeholder="ex: 1181398.24" />
-                            <Field label="Prime nette" name="net_premium" type="number" placeholder="ex: 1251283" />
-                            <Field label="Prime totale" name="total_premium" type="number" placeholder="ex: 7500" />
+                            <Field label={t('guce.create.financial.insuredValue')} name="insured_value" type="number" placeholder={t('guce.create.financial.insuredValuePlaceholder')} />
+                            <Field label={t('guce.create.financial.netPremium')} name="net_premium" type="number" placeholder={t('guce.create.financial.netPremiumPlaceholder')} />
+                            <Field label={t('guce.create.financial.totalPremium')} name="total_premium" type="number" placeholder={t('guce.create.financial.totalPremiumPlaceholder')} />
                             <div>
-                                <label style={labelStyle}>Devise</label>
+                                <label style={labelStyle}>{t('guce.create.financial.currency')}</label>
                                 <select
                                     value={data.currency}
                                     onChange={e => setData('currency', e.target.value)}
                                     style={{ ...inputStyle }}>
-                                    <option value="XOF">XOF (Franc CFA)</option>
-                                    <option value="EUR">EUR (Euro)</option>
-                                    <option value="USD">USD (Dollar)</option>
-                                    <option value="XAF">XAF (Franc CFA CEMAC)</option>
+                                    <option value="XOF">{t('guce.create.financial.currencyOptions.XOF')}</option>
+                                    <option value="EUR">{t('guce.create.financial.currencyOptions.EUR')}</option>
+                                    <option value="USD">{t('guce.create.financial.currencyOptions.USD')}</option>
+                                    <option value="XAF">{t('guce.create.financial.currencyOptions.XAF')}</option>
                                 </select>
                             </div>
                         </div>
@@ -365,12 +369,12 @@ handleFile(f);
                     {/* Notes */}
                     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>
-                            Notes
+                            {t('guce.create.notes.title')}
                         </h2>
                         <textarea
                             value={data.notes}
                             onChange={e => setData('notes', e.target.value)}
-                            placeholder="Informations complémentaires..."
+                            placeholder={t('guce.create.notes.placeholder')}
                             rows={3}
                             style={{ ...inputStyle, resize: 'vertical' }}
                         />
@@ -379,14 +383,14 @@ handleFile(f);
                     {/* Actions */}
                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                         <Link href="/admin/guce-certificates">
-                            <Button type="button" variant="outline">Annuler</Button>
+                            <Button type="button" variant="outline">{tc('actions.cancel')}</Button>
                         </Link>
                         <Button
                             type="submit"
                             disabled={processing}
                             style={{ background: '#16a34a', color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <Upload size={15} />
-                            {processing ? 'Importation...' : 'Importer le certificat'}
+                            {processing ? t('guce.create.importing') : t('guce.create.import')}
                         </Button>
                     </div>
                 </form>

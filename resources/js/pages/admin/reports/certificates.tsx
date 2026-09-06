@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import {
@@ -7,13 +8,6 @@ import {
     FileText, Download, Search, Filter,
     Ship, Plane, Truck, ChevronLeft, ChevronRight, X,
 } from 'lucide-react';
-
-// ── Breadcrumbs ──────────────────────────────────────────────
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'Rapports' },
-    { title: 'État des certificats par période' },
-];
 
 // ── Types ────────────────────────────────────────────────────
 interface CertRow {
@@ -51,28 +45,22 @@ interface Props {
 }
 
 // ── Constants ────────────────────────────────────────────────
-const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-    ISSUED:    { label: 'Approuvé', color: '#15803d', bg: '#f0fdf4' },
-    SUBMITTED: { label: 'Soumis',   color: '#d97706', bg: '#fef3c7' },
-    DRAFT:     { label: 'Stocké',   color: '#64748b', bg: '#f8fafc' },
-    REJECTED:  { label: 'Rejeté',   color: '#dc2626', bg: '#fef2f2' },
-    REPLACED:  { label: 'Remplacé', color: '#475569', bg: '#f1f5f9' },
-    CANCELLED: { label: 'Annulé',   color: '#991b1b', bg: '#fef2f2' },
+const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
+    ISSUED:    { color: '#15803d', bg: '#f0fdf4' },
+    SUBMITTED: { color: '#d97706', bg: '#fef3c7' },
+    DRAFT:     { color: '#64748b', bg: '#f8fafc' },
+    REJECTED:  { color: '#dc2626', bg: '#fef2f2' },
+    REPLACED:  { color: '#475569', bg: '#f1f5f9' },
+    CANCELLED: { color: '#991b1b', bg: '#fef2f2' },
 };
 
-const TRANSPORT_META: Record<string, { label: string; icon: any; color: string }> = {
-    SEA:        { label: 'Maritime',    icon: Ship,  color: '#0284c7' },
-    AIR:        { label: 'Aérien',      icon: Plane, color: '#7c3aed' },
-    ROAD:       { label: 'Routier',     icon: Truck, color: '#059669' },
-    RAIL:       { label: 'Ferroviaire', icon: Truck, color: '#d97706' },
-    MULTIMODAL: { label: 'Multimodal',  icon: Truck, color: '#0891b2' },
-    AUTRE:      { label: 'Autre',       icon: Award, color: '#94a3b8' },
-};
-
-const DATE_FIELD_LABELS: Record<string, string> = {
-    created_at:   'Date de création',
-    issued_at:    "Date d'émission",
-    voyage_date:  'Date de voyage',
+const TRANSPORT_ICONS: Record<string, { icon: any; color: string }> = {
+    SEA:        { icon: Ship,  color: '#0284c7' },
+    AIR:        { icon: Plane, color: '#7c3aed' },
+    ROAD:       { icon: Truck, color: '#059669' },
+    RAIL:       { icon: Truck, color: '#d97706' },
+    MULTIMODAL: { icon: Truck, color: '#0891b2' },
+    AUTRE:      { icon: Award, color: '#94a3b8' },
 };
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -106,22 +94,24 @@ function StatCard({ label, value, sub, color, bg, border, icon: Icon }: {
 }
 
 function TransportBar({ rows, total }: { rows: BreakdownRow[]; total: number }) {
+    const { t } = useTranslation('reports');
     if (rows.length === 0) return (
         <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '14px 0' }}>
-            Aucune donnée
+            {t('certificates.panels.noData')}
         </div>
     );
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {rows.map(r => {
-                const meta = TRANSPORT_META[r.transport_type] ?? TRANSPORT_META.AUTRE;
+                const meta = TRANSPORT_ICONS[r.transport_type] ?? TRANSPORT_ICONS.AUTRE;
+                const label = t(`certificates.transportModes.${r.transport_type}`, { defaultValue: t('certificates.transportModes.AUTRE') });
                 const Icon = meta.icon;
                 const pct  = total > 0 ? Math.round((r.count / total) * 100) : 0;
                 return (
                     <div key={r.transport_type}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#475569' }}>
-                                <Icon size={11} color={meta.color}/> {meta.label}
+                                <Icon size={11} color={meta.color}/> {label}
                             </div>
                             <div style={{ fontSize: 11, color: '#1e293b' }}>
                                 <strong>{r.count}</strong>
@@ -132,7 +122,7 @@ function TransportBar({ rows, total }: { rows: BreakdownRow[]; total: number }) 
                             <div style={{ height: '100%', width: `${pct}%`, background: meta.color, borderRadius: 3 }}/>
                         </div>
                         <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>
-                            Valeur : {fmtAmt(r.total_value)}
+                            {t('certificates.panels.valueLabel', { value: fmtAmt(r.total_value) })}
                         </div>
                     </div>
                 );
@@ -145,6 +135,22 @@ function TransportBar({ rows, total }: { rows: BreakdownRow[]; total: number }) 
 export default function CertificatesReport({
     certificates, stats, byTransport, byStatus, brokers, tenants, filters, isSA,
 }: Props) {
+    const { t } = useTranslation('reports');
+    const { t: tc } = useTranslation('common');
+    const { t: tn } = useTranslation('navigation');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: tn('sections.dashboard'), href: route('admin.dashboard') },
+        { title: t('breadcrumb.section') },
+        { title: t('breadcrumb.certificates') },
+    ];
+
+    const DATE_FIELD_LABELS: Record<string, string> = {
+        created_at:  t('certificates.dateFields.created_at'),
+        issued_at:   t('certificates.dateFields.issued_at'),
+        voyage_date: t('certificates.dateFields.voyage_date'),
+    };
+
     const [local, setLocal] = useState({ ...filters });
     const [showAdv, setShowAdv] = useState(
         !!(filters.broker_id || filters.tenant_id || filters.transport || filters.search)
@@ -187,7 +193,7 @@ export default function CertificatesReport({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="État des certificats par période — NSIA Transport"/>
+            <Head title={t('certificates.title')}/>
             <style>{`
                 .rpt-page  { padding: 4px; display: flex; flex-direction: column; gap: 14px; }
                 .rpt-panel { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
@@ -237,10 +243,10 @@ export default function CertificatesReport({
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
                             <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
-                                État des certificats par période
+                                {t('certificates.heading')}
                             </h1>
                             <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
-                                Filtre : {DATE_FIELD_LABELS[filters.date_field]} · {fmt(filters.date_from)} → {fmt(filters.date_to)}
+                                {t('certificates.filterSummary', { field: DATE_FIELD_LABELS[filters.date_field], from: fmt(filters.date_from), to: fmt(filters.date_to) })}
                             </p>
                         </div>
                         <a href={exportUrl()}
@@ -248,7 +254,7 @@ export default function CertificatesReport({
                                     display: 'flex', alignItems: 'center', gap: 5,
                                     background: '#f0fdf4', padding: '6px 12px', borderRadius: 8,
                                     border: '1px solid #bbf7d0' }}>
-                            <Download size={13}/> Exporter CSV
+                            <Download size={13}/> {t('certificates.exportCsv')}
                         </a>
                     </div>
 
@@ -258,9 +264,9 @@ export default function CertificatesReport({
                             <select className="fin fin-sel"
                                     value={local.date_field}
                                     onChange={e => setLocal(p => ({ ...p, date_field: e.target.value }))}>
-                                <option value="created_at">Date de création</option>
-                                <option value="issued_at">Date d'émission</option>
-                                <option value="voyage_date">Date de voyage</option>
+                                <option value="created_at">{t('certificates.dateFields.created_at')}</option>
+                                <option value="issued_at">{t('certificates.dateFields.issued_at')}</option>
+                                <option value="voyage_date">{t('certificates.dateFields.voyage_date')}</option>
                             </select>
                             <input type="date" className="fin fin-date"
                                    value={local.date_from}
@@ -272,22 +278,22 @@ export default function CertificatesReport({
                             <select className="fin fin-sel"
                                     value={local.status}
                                     onChange={e => setLocal(p => ({ ...p, status: e.target.value }))}>
-                                <option value="ALL">Tous les statuts</option>
-                                <option value="ISSUED">Approuvé</option>
-                                <option value="SUBMITTED">Soumis</option>
-                                <option value="DRAFT">Stocké</option>
-                                <option value="REJECTED">Rejeté</option>
-                                <option value="REPLACED">Remplacé</option>
-                                <option value="CANCELLED">Annulé</option>
+                                <option value="ALL">{t('certificates.allStatuses')}</option>
+                                <option value="ISSUED">{tc('certificateStatus.ISSUED')}</option>
+                                <option value="SUBMITTED">{tc('certificateStatus.SUBMITTED')}</option>
+                                <option value="DRAFT">{tc('certificateStatus.DRAFT')}</option>
+                                <option value="REJECTED">{tc('certificateStatus.REJECTED')}</option>
+                                <option value="REPLACED">{tc('certificateStatus.REPLACED')}</option>
+                                <option value="CANCELLED">{tc('certificateStatus.CANCELLED')}</option>
                             </select>
                             <button className="btn btn-secondary" onClick={() => setShowAdv(v => !v)}>
-                                <Filter size={12}/> Filtres {showAdv ? '▲' : '▼'}
+                                <Filter size={12}/> {t('certificates.filtersToggle')} {showAdv ? '▲' : '▼'}
                             </button>
                             <button className="btn btn-primary" onClick={apply}>
-                                <Search size={12}/> Appliquer
+                                <Search size={12}/> {t('certificates.apply')}
                             </button>
                             {hasActiveFilters && (
-                                <button className="btn btn-danger" onClick={reset} title="Réinitialiser">
+                                <button className="btn btn-danger" onClick={reset} title={t('certificates.resetTitle')}>
                                     <X size={12}/>
                                 </button>
                             )}
@@ -296,24 +302,24 @@ export default function CertificatesReport({
                         {showAdv && (
                             <div className="adv-section">
                                 <div className="filter-row">
-                                    <input className="fin fin-search" placeholder="N° certificat, client ou assuré…"
+                                    <input className="fin fin-search" placeholder={t('certificates.searchPlaceholder')}
                                            value={local.search ?? ''}
                                            onChange={e => setLocal(p => ({ ...p, search: e.target.value }))}/>
                                     <select className="fin fin-sel"
                                             value={local.transport ?? ''}
                                             onChange={e => setLocal(p => ({ ...p, transport: e.target.value || null }))}>
-                                        <option value="">Tous modes transport</option>
-                                        <option value="SEA">Maritime</option>
-                                        <option value="AIR">Aérien</option>
-                                        <option value="ROAD">Routier</option>
-                                        <option value="RAIL">Ferroviaire</option>
-                                        <option value="MULTIMODAL">Multimodal</option>
+                                        <option value="">{t('certificates.transportModes.all')}</option>
+                                        <option value="SEA">{t('certificates.transportModes.SEA')}</option>
+                                        <option value="AIR">{t('certificates.transportModes.AIR')}</option>
+                                        <option value="ROAD">{t('certificates.transportModes.ROAD')}</option>
+                                        <option value="RAIL">{t('certificates.transportModes.RAIL')}</option>
+                                        <option value="MULTIMODAL">{t('certificates.transportModes.MULTIMODAL')}</option>
                                     </select>
                                     {brokers.length > 0 && (
                                         <select className="fin fin-sel"
                                                 value={local.broker_id ?? ''}
                                                 onChange={e => setLocal(p => ({ ...p, broker_id: e.target.value || null }))}>
-                                            <option value="">Tous les courtiers</option>
+                                            <option value="">{t('certificates.allBrokers')}</option>
                                             {brokers.map(b => (
                                                 <option key={b.id} value={b.id}>{b.name}</option>
                                             ))}
@@ -323,9 +329,9 @@ export default function CertificatesReport({
                                         <select className="fin fin-sel"
                                                 value={local.tenant_id ?? ''}
                                                 onChange={e => setLocal(p => ({ ...p, tenant_id: e.target.value || null }))}>
-                                            <option value="">Toutes les filiales</option>
-                                            {tenants.map(t => (
-                                                <option key={t.id} value={t.id}>[{t.code}] {t.name}</option>
+                                            <option value="">{t('certificates.allTenants')}</option>
+                                            {tenants.map(ten => (
+                                                <option key={ten.id} value={ten.id}>[{ten.code}] {ten.name}</option>
                                             ))}
                                         </select>
                                     )}
@@ -336,25 +342,25 @@ export default function CertificatesReport({
 
                     {/* ── Statistiques ─────────────────────────── */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr) repeat(2,1fr)', gap: 10 }}>
-                        <StatCard label="Total période" value={stats.total}
+                        <StatCard label={t('certificates.stats.total')} value={stats.total}
                                   color="#1e293b" icon={FileText}/>
-                        <StatCard label="Émis"    value={stats.issued}
+                        <StatCard label={t('certificates.stats.issued')}    value={stats.issued}
                                   color="#15803d" bg="#f0fdf4" border="#bbf7d0" icon={CheckCircle}/>
-                        <StatCard label="En attente" value={stats.submitted}
+                        <StatCard label={t('certificates.stats.pending')} value={stats.submitted}
                                   color={stats.submitted > 0 ? '#d97706' : '#64748b'}
                                   bg={stats.submitted > 0 ? '#fef3c7' : '#fff'}
                                   border={stats.submitted > 0 ? '#fde68a' : '#e2e8f0'} icon={Clock}/>
-                        <StatCard label="Brouillons"  value={stats.draft}   color="#64748b" icon={FileText}/>
-                        <StatCard label="Annulés"     value={stats.cancelled}
+                        <StatCard label={t('certificates.stats.drafts')}  value={stats.draft}   color="#64748b" icon={FileText}/>
+                        <StatCard label={t('certificates.stats.cancelled')}     value={stats.cancelled}
                                   color={stats.cancelled > 0 ? '#dc2626' : '#64748b'}
                                   icon={AlertTriangle}/>
-                        <StatCard label="Valeur totale assurée"
+                        <StatCard label={t('certificates.stats.totalInsuredValue')}
                                   value={fmtAmt(stats.total_insured)}
-                                  sub={`Émis : ${fmtAmt(stats.issued_insured)}`}
+                                  sub={t('certificates.stats.issuedPrefix', { value: fmtAmt(stats.issued_insured) })}
                                   color="#1d4ed8" icon={Award}/>
-                        <StatCard label="Prime totale"
+                        <StatCard label={t('certificates.stats.totalPrime')}
                                   value={fmtAmt(stats.total_prime)}
-                                  sub={`Émis : ${fmtAmt(stats.issued_prime)}`}
+                                  sub={t('certificates.stats.issuedPrefix', { value: fmtAmt(stats.issued_prime) })}
                                   color="#7c3aed" icon={Award}/>
                     </div>
 
@@ -366,40 +372,42 @@ export default function CertificatesReport({
                             <div className="rpt-panel-hdr">
                                 <div className="rpt-panel-hdr-title">
                                     <Award size={14} color="#1d4ed8"/>
-                                    Certificats ({certificates.total})
+                                    {t('certificates.panels.certificatesTitle', { count: certificates.total })}
                                 </div>
                                 <Link href={route('admin.certificates.index')}
                                       style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
-                                    Gestion →
+                                    {t('certificates.panels.manageLink')}
                                 </Link>
                             </div>
 
                             {certificates.data.length === 0 ? (
                                 <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
                                     <FileText size={28} style={{ marginBottom: 8, opacity: .4 }}/>
-                                    <div>Aucun certificat pour cette période</div>
+                                    <div>{t('certificates.panels.empty')}</div>
                                 </div>
                             ) : (
                                 <>
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>N° Certificat</th>
-                                                <th>Assuré</th>
-                                                <th>Courtier / Contrat</th>
-                                                <th>Voyage</th>
-                                                <th>Mode</th>
-                                                <th>Valeur assurée</th>
-                                                <th>Prime</th>
-                                                {isSA && <th>Filiale</th>}
-                                                <th>Statut</th>
-                                                <th>Date émission</th>
+                                                <th>{t('certificates.table.number')}</th>
+                                                <th>{t('certificates.table.insured')}</th>
+                                                <th>{t('certificates.table.brokerContract')}</th>
+                                                <th>{t('certificates.table.voyage')}</th>
+                                                <th>{t('certificates.table.mode')}</th>
+                                                <th>{t('certificates.table.insuredValue')}</th>
+                                                <th>{t('certificates.table.prime')}</th>
+                                                {isSA && <th>{t('certificates.table.tenant')}</th>}
+                                                <th>{t('certificates.table.status')}</th>
+                                                <th>{t('certificates.table.issuedDate')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {certificates.data.map(cert => {
-                                                const s    = STATUS_META[cert.status] ?? { label: cert.status, color: '#64748b', bg: '#f8fafc' };
-                                                const trMeta = TRANSPORT_META[cert.transport_type ?? 'AUTRE'] ?? TRANSPORT_META.AUTRE;
+                                                const sColors = STATUS_COLORS[cert.status] ?? { color: '#64748b', bg: '#f8fafc' };
+                                                const sLabel  = tc(`certificateStatus.${cert.status}`, { defaultValue: cert.status });
+                                                const trMeta = TRANSPORT_ICONS[cert.transport_type ?? 'AUTRE'] ?? TRANSPORT_ICONS.AUTRE;
+                                                const trLabel = t(`certificates.transportModes.${cert.transport_type ?? 'AUTRE'}`, { defaultValue: t('certificates.transportModes.AUTRE') });
                                                 const TIcon  = trMeta.icon;
                                                 return (
                                                     <tr key={cert.id}>
@@ -431,7 +439,7 @@ export default function CertificatesReport({
                                                         </td>
                                                         <td>
                                                             <span style={{ fontSize: 10, color: trMeta.color, background: `${trMeta.color}14`, padding: '1px 6px', borderRadius: 6, fontWeight: 600 }}>
-                                                                {trMeta.label}
+                                                                {trLabel}
                                                             </span>
                                                         </td>
                                                         <td>
@@ -453,8 +461,8 @@ export default function CertificatesReport({
                                                             </td>
                                                         )}
                                                         <td>
-                                                            <span className="badge" style={{ color: s.color, background: s.bg }}>
-                                                                {s.label}
+                                                            <span className="badge" style={{ color: sColors.color, background: sColors.bg }}>
+                                                                {sLabel}
                                                             </span>
                                                         </td>
                                                         <td>
@@ -527,18 +535,19 @@ export default function CertificatesReport({
                                 <div className="rpt-panel-body">
                                     {byStatus.length === 0 ? (
                                         <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '10px 0' }}>
-                                            Aucune donnée
+                                            {t('certificates.panels.noData')}
                                         </div>
                                     ) : (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                                             {byStatus.map(r => {
-                                                const s   = STATUS_META[r.status] ?? { label: r.status, color: '#64748b', bg: '#f8fafc' };
+                                                const s   = STATUS_COLORS[r.status] ?? { color: '#64748b', bg: '#f8fafc' };
+                                                const sLabel = tc(`certificateStatus.${r.status}`, { defaultValue: r.status });
                                                 const pct = stats.total > 0 ? Math.round((r.count / stats.total) * 100) : 0;
                                                 return (
                                                     <div key={r.status}>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
                                                             <span className="badge" style={{ color: s.color, background: s.bg }}>
-                                                                {s.label}
+                                                                {sLabel}
                                                             </span>
                                                             <span style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>
                                                                 {r.count} <span style={{ color: '#94a3b8', fontWeight: 400 }}>({pct}%)</span>

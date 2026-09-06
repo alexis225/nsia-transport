@@ -1,0 +1,224 @@
+{
+    "breadcrumb": "Tableau de bord",
+    "title": "Tableau de bord — NSIA Transport",
+    "heading": "Rapport général",
+    "detailedKpis": "KPIs détaillés",
+    "mini": {
+        "brokersActive": "Courtiers actifs (total)",
+        "primeAllTime": "Primes émises (cumul)"
+    },
+    "monthly": {
+        "title": "Certificats émis — mensuel",
+        "subtitle": "Évolution 12 mois",
+        "seeReport": "Voir rapport",
+        "empty": "Aucune émission sur les 12 derniers mois",
+        "tooltip": "{{month}} : {{issued}} cert.",
+        "totalIssued": "Certificats émis (12 mois)",
+        "totalPrime": "Primes totales"
+    },
+    "tops": {
+        "brokers": "Top courtiers",
+        "insured": "Top assurés",
+        "filiales": "Top 3 filiales",
+        "byVolume": "Par volume · ce mois",
+        "seeMore": "Voir plus",
+        "empty": "Aucune émission ce mois"
+    },
+    "recent": {
+        "title": "Certificats récents",
+        "seeAll": "Voir tous",
+        "empty": "Aucun certificat récent",
+        "number": "N° Certificat",
+        "client": "Client",
+        "amount": "Montant",
+        "status": "Statut",
+        "date": "Date"
+    },
+    "operational": {
+        "title": "Suivi opérationnel",
+        "subtitle": "Demandes de certificats — portail partenaires",
+        "received": "Demandes reçues",
+        "pending": "Demandes en attente",
+        "processed": "Demandes traitées"
+    },
+    "partner": {
+        "title": "Espace partenaire — NSIA Transport",
+        "breadcrumb": "Tableau de bord",
+        "hero": "Espace partenaire",
+        "welcome": "Bienvenue sur votre espace",
+        "newRequest": "Nouvelle demande",
+        "unlinked": {
+            "title": "Compte non rattaché",
+            "text": "Votre compte n'est pas encore rattaché à une fiche courtier. Contactez votre administrateur filiale NSIA pour finaliser la configuration de votre accès."
+        },
+        "stats": {
+            "pending": "En attente",
+            "inReview": "En cours d'examen",
+            "approved": "Approuvées",
+            "rejected": "Rejetées"
+        },
+        "charts": {
+            "requests": "Répartition des demandes",
+            "certificates": "Origine des certificats",
+            "issued": "Émis",
+            "guce": "Importés (GUCE)"
+        },
+        "allRequests": "Voir toutes mes demandes"
+    },
+    "dtag": {
+        "breadcrumbHome": "Dashboard",
+        "breadcrumb": "Dashboard DTAG (Multi-filiales)",
+        "headTitle": "Dashboard DTAG Multi-filiales — NSIA Transport",
+        "heading": "Dashboard DTAG — Consolidé groupe",
+        "subtitle": "{{count}} filiales actives · {{month}} · Exercice {{year}}",
+        "subsidiaryDashboard": "Dashboard filiale",
+        "kpis": {
+            "issuedMonth": "Cert. émis ce mois",
+            "issuedYear": "Cert. émis {{year}}",
+            "pendingGroup": "En attente (groupe)",
+            "activeContracts": "Contrats actifs",
+            "primeMonth": "Primes ce mois"
+        },
+        "table": {
+            "title": "Performance par filiale — {{month}}",
+            "subsidiary": "Filiale",
+            "certMonth": "Cert. mois",
+            "trend": "Tendance",
+            "volume": "Volume",
+            "ytd": "YTD",
+            "pending": "En attente",
+            "contracts": "Contrats",
+            "expiration": "Expiration"
+        },
+        "monthlyChart": {
+            "title": "Émissions groupe (12 mois)",
+            "certificates": "Certificats (12 mois)",
+            "totalPrime": "Primes totales"
+        },
+        "topSubsidiaries": {
+            "title": "Top filiales ce mois",
+            "primeSuffix": "{{amount}} primes"
+        }
+    },
+    "kpi": {
+        "breadcrumbHome": "Dashboard",
+        "breadcrumb": "KPIs Filiale",
+        "headTitle": "Dashboard KPIs — NSIA Transport",
+        "heading": "Dashboard KPIs",
+        "subtitle": "Indicateurs de performance — {{month}} · Exercice {{year}}",
+        "validationQueue": "File de validation",
+        "sections": {
+            "certificates": "Certificats"
+        },
+        "cards": {
+            "issuedMonth": "Émis ce mois",
+            "issuedMonthSub": "vs {{count}} mois préc.",
+            "issuedYtd": "Émis {{year}} (YTD)",
+            "pending": "En attente",
+            "draft": "Brouillons",
+            "cancelledMonth": "Annulés ce mois",
+            "avgProcessing": "Délai moyen traitement",
+            "avgProcessingSub": "soumission → émission"
+        },
+        "monthlyChart": {
+            "title": "Émissions par mois (12 mois)",
+            "badge": "Certificats Approuvés"
+        },
+        "transport": {
+            "title": "Par mode (ce mois)",
+            "empty": "Aucune donnée ce mois",
+            "labels": {
+                "SEA": "Maritime",
+                "AIR": "Aérien",
+                "ROAD": "Routier",
+                "RAIL": "Ferroviaire",
+                "AUTRE": "Autre"
+            }
+        },
+        "contracts": {
+            "title": "Contrats",
+            "seeAll": "Voir →",
+            "active": "Actifs",
+            "expiring30": "Expirant dans 30j",
+            "expiring7": "Expirant dans 7j",
+            "draft": "Brouillons",
+            "limitUsage": "Utilisation plafonds NN300 (moy.)"
+        },
+        "commissions": {
+            "title": "Commissions",
+            "bordereau": "Bordereau →",
+            "paidMonth": "Payées ce mois",
+            "pendingMonth": "En attente (mois)",
+            "pendingCount": "Dossiers en attente"
+        },
+        "escalades": {
+            "title": "Escalades NN300",
+            "seeAll": "Voir →",
+            "inProgress": "En cours",
+            "approvedMonth": "Approuvées (mois)",
+            "rejectedMonth": "Rejetées (mois)",
+            "approvalRate": "Taux d'approbation",
+            "noDecision": "Aucune décision ce mois"
+        },
+        "topBrokers": {
+            "title": "Top courtiers ce mois",
+            "seeAll": "Tous →",
+            "empty": "Aucune émission ce mois",
+            "value": "Valeur : {{amount}}",
+            "certSuffix": "cert."
+        },
+        "quickAccess": {
+            "label": "Accès rapide :",
+            "certificates": "Certificats",
+            "contracts": "Contrats",
+            "bordereau": "Bordereau",
+            "escalades": "Escalades",
+            "validationQueue": "File de validation"
+        }
+    },
+    "pending": {
+        "breadcrumbHome": "Dashboard",
+        "breadcrumb": "En attente de validation",
+        "headTitle": "En attente de validation — NSIA Transport",
+        "heading": "Dashboard validation",
+        "subtitle": "Certificats en attente d'émission",
+        "kpis": {
+            "pending": "En attente",
+            "issuedToday": "Émis aujourd'hui",
+            "issuedWeek": "Émis cette semaine",
+            "issuedMonth": "Émis ce mois",
+            "draft": "Brouillons",
+            "avgDelay": "Délai moyen"
+        },
+        "table": {
+            "title": "Certificats en attente",
+            "seeAll": "Voir tous →",
+            "emptyTitle": "Aucun certificat en attente",
+            "emptyText": "Tous les certificats ont été traités.",
+            "number": "N° Certificat",
+            "insured": "Assuré",
+            "voyage": "Voyage",
+            "value": "Valeur",
+            "submittedBy": "Soumis par",
+            "waiting": "Attente",
+            "actions": "Actions",
+            "process": "Traiter →"
+        },
+        "pagination": "Page {{current}}/{{last}} · {{total}} en attente",
+        "recent": {
+            "title": "Émissions récentes",
+            "empty": "Aucune émission récente",
+            "issuedBy": "par {{name}}"
+        },
+        "expiring": {
+            "title": "Contrats expirant bientôt",
+            "daysLeft": "J-{{days}}"
+        },
+        "quickAccess": {
+            "title": "Accès rapide",
+            "newCertificate": "Nouveau certificat",
+            "allCertificates": "Tous les certificats",
+            "activeContracts": "Contrats actifs"
+        }
+    }
+}

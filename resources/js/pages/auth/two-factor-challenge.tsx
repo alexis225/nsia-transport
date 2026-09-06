@@ -8,11 +8,7 @@ import {
     Copy, Check, Eye, EyeOff, RefreshCw, AlertCircle, Loader2
 } from 'lucide-react';
 import { useState } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Paramètres du profil', href: edit() },
-    { title: 'Double authentification' },
-];
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     mfaEnabled:    boolean;
@@ -24,6 +20,14 @@ interface Props {
 }
 
 export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey, recoveryCodes, status }: Props) {
+    const { t }     = useTranslation('auth');
+    const { t: ts } = useTranslation('settings');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: ts('breadcrumb.profile'), href: edit() },
+        { title: t('mfa.breadcrumb') },
+    ];
+
     const { auth }  = usePage().props as any;
     const user      = auth?.user;
     const initials  = `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
@@ -39,8 +43,8 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
     };
 
     const handleEnable    = () => router.post(route('mfa.enable'));
-    const handleDisable   = () => { if (confirm('Désactiver le MFA ?')) router.delete(route('mfa.disable')); };
-    const handleRegenerate= () => { if (confirm('Regénérer les codes ? Les anciens seront invalidés.')) router.post(route('mfa.recovery-codes.regenerate')); };
+    const handleDisable   = () => { if (confirm(t('mfa.confirmDisable'))) router.delete(route('mfa.disable')); };
+    const handleRegenerate= () => { if (confirm(t('mfa.recovery.confirmRegenerate'))) router.post(route('mfa.recovery-codes.regenerate')); };
 
     const handleConfirm = (e: React.FormEvent) => {
         e.preventDefault();
@@ -52,7 +56,7 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Double authentification — NSIA Transport"/>
+            <Head title={`${t('mfa.title')} — NSIA Transport`}/>
             <style>{`
                 .mfa-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .mfa-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:26px 24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -106,8 +110,8 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                     <div className="mfa-hero">
                         <div className="mfa-avatar">{initials}</div>
                         <div className="mfa-hero-info">
-                            <div className="mfa-hero-name">{fullName || 'Utilisateur'}</div>
-                            <div className="mfa-hero-sub">Sécurité · Double authentification (TOTP)</div>
+                            <div className="mfa-hero-name">{fullName || t('user.fallbackName')}</div>
+                            <div className="mfa-hero-sub">{t('mfa.subtitle')}</div>
                         </div>
                         <div className="mfa-hero-ico">
                             <Shield size={22} color="rgba(255,255,255,0.7)"/>
@@ -123,8 +127,8 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                                 {mfaEnabled ? <ShieldCheck size={17} color="#16a34a"/> : <Shield size={17} color="#3b82f6"/>}
                             </div>
                             <div>
-                                <div className="mfa-card-ttl">Authentification à deux facteurs</div>
-                                <div className="mfa-card-sub">Protégez votre compte avec Google Authenticator</div>
+                                <div className="mfa-card-ttl">{t('mfa.cardTitle')}</div>
+                                <div className="mfa-card-sub">{t('mfa.cardSubtitle')}</div>
                             </div>
                         </div>
                         <div className="mfa-card-body">
@@ -133,19 +137,19 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                             <div className="mfa-status-row">
                                 <div className="mfa-status-left">
                                     {mfaEnabled
-                                        ? <><ShieldCheck size={20} color="#16a34a"/><div><div className="mfa-status-label" style={{color:'#15803d'}}>Activé</div><div className="mfa-status-desc">Votre compte est protégé</div></div></>
-                                        : <><ShieldOff size={20} color="#94a3b8"/><div><div className="mfa-status-label" style={{color:'#64748b'}}>Désactivé</div><div className="mfa-status-desc">Activez pour sécuriser votre connexion</div></div></>
+                                        ? <><ShieldCheck size={20} color="#16a34a"/><div><div className="mfa-status-label" style={{color:'#15803d'}}>{t('mfa.enabled')}</div><div className="mfa-status-desc">{t('mfa.enabledDesc')}</div></div></>
+                                        : <><ShieldOff size={20} color="#94a3b8"/><div><div className="mfa-status-label" style={{color:'#64748b'}}>{t('mfa.disabled')}</div><div className="mfa-status-desc">{t('mfa.disabledDesc')}</div></div></>
                                     }
                                 </div>
                                 <span className={mfaEnabled ? 'pill-active' : 'pill-inactive'}>
-                                    {mfaEnabled ? '✓ Actif' : 'Inactif'}
+                                    {mfaEnabled ? t('mfa.pillActive') : t('mfa.pillInactive')}
                                 </span>
                             </div>
 
                             {/* Idle → activer */}
                             {!mfaEnabled && !mfaPending && (
                                 <Button onClick={handleEnable} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                    <Shield size={14}/> Activer le MFA
+                                    <Shield size={14}/> {t('mfa.enable')}
                                 </Button>
                             )}
 
@@ -153,7 +157,7 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                             {mfaPending && qrCodeSvg && (
                                 <>
                                     <div className="steps">
-                                        {['Installez Google Authenticator sur votre téléphone.','Scannez le QR code ou entrez la clé manuellement.','Entrez le code à 6 chiffres pour confirmer.'].map((s,i) => (
+                                        {[t('mfa.steps.install'), t('mfa.steps.scan'), t('mfa.steps.confirm')].map((s,i) => (
                                             <div key={i} className="step"><div className="step-num">{i+1}</div>{s}</div>
                                         ))}
                                     </div>
@@ -170,7 +174,7 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                                     </div>
                                     <form onSubmit={handleConfirm}>
                                         <label style={{fontSize:'10.5px',fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em',color:'#64748b',display:'block',marginBottom:6}}>
-                                            Code de confirmation
+                                            {t('mfa.confirmationCode')}
                                         </label>
                                         <div className="confirm-row">
                                             <input
@@ -180,7 +184,7 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                                             />
                                             <Button type="submit" disabled={submitting || code.length !== 6} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-auto px-5">
                                                 {submitting ? <Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/> : <Check size={14}/>}
-                                                Confirmer
+                                                {t('mfa.confirm')}
                                             </Button>
                                         </div>
                                     </form>
@@ -190,7 +194,7 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                             {/* Activé → désactiver */}
                             {mfaEnabled && (
                                 <Button onClick={handleDisable} variant="destructive" className="h-10 px-5">
-                                    <ShieldOff size={14}/> Désactiver le MFA
+                                    <ShieldOff size={14}/> {t('mfa.disable')}
                                 </Button>
                             )}
                         </div>
@@ -204,18 +208,18 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                                     <KeyRound size={17} color="#3b82f6"/>
                                 </div>
                                 <div>
-                                    <div className="mfa-card-ttl">Codes de récupération</div>
-                                    <div className="mfa-card-sub">8 codes à usage unique — conservez-les en lieu sûr</div>
+                                    <div className="mfa-card-ttl">{t('mfa.recovery.title')}</div>
+                                    <div className="mfa-card-sub">{t('mfa.recovery.subtitle')}</div>
                                 </div>
                             </div>
                             <div className="mfa-card-body">
                                 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                                     <Button variant="outline" className="h-9 px-4 text-sm" onClick={() => setShowCodes(s => !s)}>
                                         {showCodes ? <EyeOff size={14}/> : <Eye size={14}/>}
-                                        {showCodes ? 'Masquer' : 'Afficher les codes'}
+                                        {showCodes ? t('mfa.recovery.hide') : t('mfa.recovery.show')}
                                     </Button>
                                     <Button variant="outline" className="h-9 px-4 text-sm" onClick={handleRegenerate}>
-                                        <RefreshCw size={14}/> Regénérer
+                                        <RefreshCw size={14}/> {t('mfa.recovery.regenerate')}
                                     </Button>
                                 </div>
                                 {showCodes && (

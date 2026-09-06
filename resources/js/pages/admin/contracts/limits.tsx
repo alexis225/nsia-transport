@@ -1,13 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { TrendingUp, AlertTriangle, CheckCircle, XCircle, Eye, Search, Unlock } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Contrats', href: '/admin/contracts' },
-    { title: 'Suivi plafonds NN300' },
-];
 
 interface ContractLimit {
     id: string; contract_number: string; insured_name: string;
@@ -26,16 +22,22 @@ interface Props {
 }
 
 const ALERT_STYLES = {
-    critical: { bg:'#fef2f2', border:'#fecaca', bar:'#ef4444', text:'#dc2626', label:'Critique' },
-    warning:  { bg:'#fffbeb', border:'#fde68a', bar:'#f59e0b', text:'#92400e', label:'Alerte'   },
-    ok:       { bg:'#f0fdf4', border:'#bbf7d0', bar:'#22c55e', text:'#15803d', label:'Normal'   },
+    critical: { bg:'#fef2f2', border:'#fecaca', bar:'#ef4444', text:'#dc2626' },
+    warning:  { bg:'#fffbeb', border:'#fde68a', bar:'#f59e0b', text:'#92400e' },
+    ok:       { bg:'#f0fdf4', border:'#bbf7d0', bar:'#22c55e', text:'#15803d' },
 };
 
 const fmt = (n: number, currency: string) =>
     n.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' ' + currency;
 
 export default function ContractLimits({ contracts, stats, isSA }: Props) {
+    const { t } = useTranslation('contracts');
     const [search, setSearch] = useState('');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb.contracts'), href: '/admin/contracts' },
+        { title: t('breadcrumb.limits') },
+    ];
 
     const filteredContracts = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -51,7 +53,7 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Suivi plafonds NN300 — NSIA Transport"/>
+            <Head title={t('limits.title')}/>
             <style>{`
                 .lm-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .lm-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -104,31 +106,31 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
 
                     {/* Header */}
                     <div>
-                        <h1 className="lm-title">Suivi plafonds NN300</h1>
-                        <p className="lm-sub">Contrats actifs avec plafond de souscription</p>
+                        <h1 className="lm-title">{t('limits.heading')}</h1>
+                        <p className="lm-sub">{t('limits.subheading')}</p>
                     </div>
 
                     {/* KPIs */}
                     <div className="kpi-grid">
                         <div className="kpi-card">
                             <div className="kpi-val">{stats.total_contracts}</div>
-                            <div className="kpi-lbl">Contrats suivis</div>
+                            <div className="kpi-lbl">{t('limits.kpi.tracked')}</div>
                         </div>
                         <div className="kpi-card" style={{ borderColor: stats.critical > 0 ? '#fecaca' : undefined }}>
                             <div className="kpi-val" style={{ color: stats.critical > 0 ? '#dc2626' : '#1e293b' }}>
                                 {stats.critical}
                             </div>
-                            <div className="kpi-lbl">Critiques ≥ 95%</div>
+                            <div className="kpi-lbl">{t('limits.kpi.critical')}</div>
                         </div>
                         <div className="kpi-card" style={{ borderColor: stats.warning > 0 ? '#fde68a' : undefined }}>
                             <div className="kpi-val" style={{ color: stats.warning > 0 ? '#92400e' : '#1e293b' }}>
                                 {stats.warning}
                             </div>
-                            <div className="kpi-lbl">En alerte ≥ 80%</div>
+                            <div className="kpi-lbl">{t('limits.kpi.warning')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val" style={{ color:'#15803d' }}>{stats.ok}</div>
-                            <div className="kpi-lbl">Normaux</div>
+                            <div className="kpi-lbl">{t('limits.kpi.normal')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val" style={{ fontSize:16 }}>
@@ -136,7 +138,7 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                                     ? Math.round((stats.total_used / stats.total_limit) * 100) + '%'
                                     : '—'}
                             </div>
-                            <div className="kpi-lbl">Utilisation globale</div>
+                            <div className="kpi-lbl">{t('limits.kpi.globalUsage')}</div>
                         </div>
                     </div>
 
@@ -147,7 +149,7 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                             type="text"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="Rechercher un contrat, un assuré…"
+                            placeholder={t('limits.searchPlaceholder')}
                             style={{ width:'100%', padding:'8px 12px 8px 34px', fontSize:13, border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', boxSizing:'border-box' }}
                         />
                     </div>
@@ -156,12 +158,12 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                     {contracts.length === 0 ? (
                         <div className="empty">
                             <TrendingUp size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
-                            <div>Aucun contrat avec plafond NN300 actif.</div>
+                            <div>{t('limits.emptyAll')}</div>
                         </div>
                     ) : filteredContracts.length === 0 ? (
                         <div className="empty">
                             <Search size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
-                            <div>Aucun contrat ne correspond à « {search} ».</div>
+                            <div>{t('limits.emptySearch', { search })}</div>
                         </div>
                     ) : (
                         <div className="cards-grid">
@@ -182,16 +184,16 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                                                     {contract.alert_level === 'critical' && <AlertTriangle size={10}/>}
                                                     {contract.alert_level === 'warning'  && <AlertTriangle size={10}/>}
                                                     {contract.alert_level === 'ok'       && <CheckCircle  size={10}/>}
-                                                    {as.label}
+                                                    {t(`limits.alertLabels.${contract.alert_level}`)}
                                                 </span>
                                                 {contract.nn300_unlocked && (
                                                     <span className="alert-badge" style={{ background:'#eff6ff', border:'1px solid #bfdbfe', color:'#1d4ed8' }}>
-                                                        <Unlock size={9}/> Débloqué (Traité)
+                                                        <Unlock size={9}/> {t('limits.unlockedTreaty')}
                                                     </span>
                                                 )}
                                                 {!contract.can_issue && (
                                                     <span className="blocked-badge">
-                                                        <XCircle size={9}/> Bloqué
+                                                        <XCircle size={9}/> {t('limits.blocked')}
                                                     </span>
                                                 )}
                                             </div>
@@ -201,7 +203,7 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                                             {/* Barre progression */}
                                             <div className="progress-wrap">
                                                 <div className="progress-header">
-                                                    <span style={{ fontSize:11, color:'#64748b' }}>Utilisation plafond</span>
+                                                    <span style={{ fontSize:11, color:'#64748b' }}>{t('limits.usageLabel')}</span>
                                                     <span className="progress-pct" style={{ color: as.text }}>
                                                         {contract.usage_percent}%
                                                     </span>
@@ -215,27 +217,27 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                                             {/* Montants */}
                                             <div className="amounts-grid">
                                                 <div className="amount-item">
-                                                    <div className="amount-label">Utilisé</div>
+                                                    <div className="amount-label">{t('limits.used')}</div>
                                                     <div className="amount-value">
                                                         {fmt(contract.used_limit, contract.currency_code)}
                                                     </div>
                                                 </div>
                                                 <div className="amount-item">
-                                                    <div className="amount-label">Restant</div>
+                                                    <div className="amount-label">{t('limits.remaining')}</div>
                                                     <div className="amount-value" style={{ color: as.text }}>
                                                         {fmt(contract.remaining_limit, contract.currency_code)}
                                                     </div>
                                                 </div>
                                                 <div className="amount-item" style={{ gridColumn:'1/-1' }}>
                                                     <div className="amount-label">
-                                                        {contract.nn300_unlocked ? 'Plafond effectif (Traité)' : 'Plafond total NN300'}
+                                                        {contract.nn300_unlocked ? t('limits.effectiveTreatyLimit') : t('limits.totalNN300Limit')}
                                                     </div>
                                                     <div className="amount-value">
                                                         {fmt(contract.effective_limit ?? contract.subscription_limit, contract.currency_code)}
                                                     </div>
                                                     {contract.nn300_unlocked && contract.treaty_limit !== null && (
                                                         <div style={{ fontSize:10, color:'#94a3b8', marginTop:2 }}>
-                                                            Plafond NN300 standard : {fmt(contract.subscription_limit, contract.currency_code)}
+                                                            {t('limits.standardNN300Limit', { amount: fmt(contract.subscription_limit, contract.currency_code) })}
                                                         </div>
                                                     )}
                                                 </div>
@@ -245,12 +247,12 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                                             <div className="lm-card-footer">
                                                 <div className="cert-info">
                                                     <span style={{ color:'#1e293b', fontWeight:500 }}>{contract.certificates_count}</span>
-                                                    {contract.certificates_limit && ` / ${contract.certificates_limit}`} certificats
-                                                    {' · '} Exp. {contract.expiry_date}
+                                                    {contract.certificates_limit && ` / ${contract.certificates_limit}`} {t('limits.certificates', { count: contract.certificates_count })}
+                                                    {' · '} {t('limits.expiry', { date: contract.expiry_date })}
                                                 </div>
                                                 <Link href={route('admin.contracts.show', { contract: contract.id })}
                                                       className="btn-view">
-                                                    <Eye size={11}/> Voir
+                                                    <Eye size={11}/> {t('limits.view')}
                                                 </Link>
                                             </div>
                                         </div>

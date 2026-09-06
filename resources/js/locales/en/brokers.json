@@ -1,0 +1,136 @@
+{
+    "index": {
+        "breadcrumb": "Brokers",
+        "title": "Brokers — NSIA Transport",
+        "heading": "Brokers",
+        "count_one": "{{count}} broker",
+        "count_other": "{{count}} brokers",
+        "newBroker": "New broker",
+        "searchPlaceholder": "Search by name, code or email…",
+        "typeAll": "All types",
+        "typeLocal": "Local broker",
+        "typeForeign": "Foreign partner",
+        "statusAll": "All statuses",
+        "statusActive": "Active",
+        "statusInactive": "Inactive",
+        "clear": "Clear",
+        "empty": "No broker found.",
+        "table": {
+            "broker": "Broker",
+            "type": "Type",
+            "contact": "Contact",
+            "location": "Location",
+            "tenant": "Subsidiary",
+            "agreement": "Agreement",
+            "status": "Status",
+            "actions": "Actions"
+        },
+        "view": "View",
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "delete": "Delete",
+        "confirmDelete": "Delete broker \"{{name}}\"?",
+        "confirmDeactivate": "Deactivate {{name}}?",
+        "confirmActivate": "Activate {{name}}?",
+        "pageInfo": "Page {{current}} / {{last}} · {{total}} brokers"
+    },
+    "show": {
+        "typeLocal": "Local broker",
+        "typeForeign": "Foreign partner",
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "identification": {
+            "title": "Identification",
+            "code": "Code",
+            "agreementNumber": "Agreement No.",
+            "mainTenant": "Main subsidiary",
+            "commission": "Standard commission",
+            "createdAt": "Created on",
+            "additionalTenants": "Additional subsidiaries"
+        },
+        "contact": {
+            "title": "Contact & Location",
+            "email": "Email",
+            "phone": "Phone",
+            "phone2": "Phone 2",
+            "cityCountry": "City / Country",
+            "address": "Address"
+        },
+        "partnerAccess": {
+            "title": "Partner portal access",
+            "linkedAccount": "Linked account",
+            "none": "No login account is linked to this broker yet.",
+            "createAccount": "Create access account"
+        },
+        "backToList": "Back to brokers",
+        "confirmDeactivate": "Deactivate {{name}}?",
+        "confirmActivate": "Activate {{name}}?"
+    },
+    "create": {
+        "breadcrumb": "New broker",
+        "title": "New broker — NSIA Transport",
+        "submitLabel": "Create broker",
+        "heroTitle": "New broker",
+        "heroSub": "Register a new broker or foreign partner"
+    },
+    "edit": {
+        "breadcrumb": "Edit",
+        "title": "Edit {{name}} — NSIA Transport",
+        "submitLabel": "Save changes",
+        "heroTitle": "Edit {{name}}",
+        "heroSub": "Code: {{code}} · {{type}}"
+    },
+    "form": {
+        "identification": {
+            "title": "Identification",
+            "subtitle": "Broker identification information",
+            "name": "Name / Company name *",
+            "namePlaceholder": "Dupont & Associates Agency",
+            "code": "Code *",
+            "codePlaceholder": "e.g. CRTCI001",
+            "type": "Type *",
+            "typeLocal": "Local broker",
+            "typeForeign": "Foreign partner",
+            "registrationNumber": "Agreement number",
+            "registrationNumberPlaceholder": "e.g. AGR-CI-2024-001",
+            "mainTenant": "Main subsidiary",
+            "selectTenant": "Select a subsidiary",
+            "additionalTenants": "Additional subsidiaries",
+            "additionalTenantsHint": "This broker will also be able to operate in the subsidiaries checked below"
+        },
+        "commission": {
+            "title": "Commission",
+            "subtitle": "Standard rate applied by default on this broker's contracts",
+            "rate": "Standard commission — %",
+            "ratePlaceholder": "e.g. 5",
+            "hint": "Automatically used when issuing certificates, unless a specific rate is set on the contract."
+        },
+        "contact": {
+            "title": "Contact",
+            "subtitle": "Broker's contact details",
+            "email": "Email",
+            "emailPlaceholder": "contact@broker.com",
+            "phone": "Primary phone",
+            "phonePlaceholder": "+225 07 00 00 00 00",
+            "phoneSecondary": "Secondary phone"
+        },
+        "address": {
+            "title": "Address",
+            "subtitle": "Broker's location",
+            "address": "Address",
+            "addressPlaceholder": "Street, avenue, district…",
+            "city": "City",
+            "cityPlaceholder": "Abidjan",
+            "country": "Country"
+        },
+        "status": {
+            "title": "Status",
+            "active": "Active broker",
+            "inactive": "Inactive broker",
+            "activeHint": "Can be assigned to contracts",
+            "inactiveHint": "Cannot be used"
+        }
+    }
+}

@@ -1,0 +1,136 @@
+{
+    "index": {
+        "breadcrumb": "Corretores",
+        "title": "Corretores — NSIA Transport",
+        "heading": "Corretores",
+        "count_one": "{{count}} corretor",
+        "count_other": "{{count}} corretores",
+        "newBroker": "Novo corretor",
+        "searchPlaceholder": "Pesquisar por nome, código ou email…",
+        "typeAll": "Todos os tipos",
+        "typeLocal": "Corretor local",
+        "typeForeign": "Parceiro estrangeiro",
+        "statusAll": "Todos os estados",
+        "statusActive": "Ativos",
+        "statusInactive": "Inativos",
+        "clear": "Limpar",
+        "empty": "Nenhum corretor encontrado.",
+        "table": {
+            "broker": "Corretor",
+            "type": "Tipo",
+            "contact": "Contacto",
+            "location": "Localização",
+            "tenant": "Filial",
+            "agreement": "Registo",
+            "status": "Estado",
+            "actions": "Ações"
+        },
+        "view": "Ver",
+        "edit": "Editar",
+        "deactivate": "Desativar",
+        "activate": "Ativar",
+        "delete": "Eliminar",
+        "confirmDelete": "Eliminar o corretor « {{name}} »?",
+        "confirmDeactivate": "Desativar {{name}}?",
+        "confirmActivate": "Ativar {{name}}?",
+        "pageInfo": "Página {{current}} / {{last}} · {{total}} corretores"
+    },
+    "show": {
+        "typeLocal": "Corretor local",
+        "typeForeign": "Parceiro estrangeiro",
+        "edit": "Editar",
+        "deactivate": "Desativar",
+        "activate": "Ativar",
+        "identification": {
+            "title": "Identificação",
+            "code": "Código",
+            "agreementNumber": "N.º de registo",
+            "mainTenant": "Filial principal",
+            "commission": "Comissão padrão",
+            "createdAt": "Criado em",
+            "additionalTenants": "Filiais adicionais"
+        },
+        "contact": {
+            "title": "Contacto e Localização",
+            "email": "Email",
+            "phone": "Telefone",
+            "phone2": "Telefone 2",
+            "cityCountry": "Cidade / País",
+            "address": "Endereço"
+        },
+        "partnerAccess": {
+            "title": "Acesso à área de parceiro",
+            "linkedAccount": "Conta associada",
+            "none": "Nenhuma conta de acesso está ainda associada a este corretor.",
+            "createAccount": "Criar conta de acesso"
+        },
+        "backToList": "Voltar aos corretores",
+        "confirmDeactivate": "Desativar {{name}}?",
+        "confirmActivate": "Ativar {{name}}?"
+    },
+    "create": {
+        "breadcrumb": "Novo corretor",
+        "title": "Novo corretor — NSIA Transport",
+        "submitLabel": "Criar corretor",
+        "heroTitle": "Novo corretor",
+        "heroSub": "Registe um novo corretor ou parceiro estrangeiro"
+    },
+    "edit": {
+        "breadcrumb": "Editar",
+        "title": "Editar {{name}} — NSIA Transport",
+        "submitLabel": "Guardar alterações",
+        "heroTitle": "Editar {{name}}",
+        "heroSub": "Código: {{code}} · {{type}}"
+    },
+    "form": {
+        "identification": {
+            "title": "Identificação",
+            "subtitle": "Informações de identificação do corretor",
+            "name": "Nome / Razão social *",
+            "namePlaceholder": "Gabinete Dupont & Associados",
+            "code": "Código *",
+            "codePlaceholder": "ex: CRTCI001",
+            "type": "Tipo *",
+            "typeLocal": "Corretor local",
+            "typeForeign": "Parceiro estrangeiro",
+            "registrationNumber": "Número de registo",
+            "registrationNumberPlaceholder": "ex: AGR-CI-2024-001",
+            "mainTenant": "Filial principal",
+            "selectTenant": "Selecione uma filial",
+            "additionalTenants": "Filiais adicionais",
+            "additionalTenantsHint": "Este corretor também poderá operar nas filiais assinaladas abaixo"
+        },
+        "commission": {
+            "title": "Comissão",
+            "subtitle": "Taxa padrão aplicada por defeito nos contratos deste corretor",
+            "rate": "Comissão padrão — %",
+            "ratePlaceholder": "ex: 5",
+            "hint": "Utilizado automaticamente na emissão dos certificados, salvo se for definida uma taxa específica no contrato."
+        },
+        "contact": {
+            "title": "Contacto",
+            "subtitle": "Dados de contacto do corretor",
+            "email": "Email",
+            "emailPlaceholder": "contacto@corretor.com",
+            "phone": "Telefone principal",
+            "phonePlaceholder": "+225 07 00 00 00 00",
+            "phoneSecondary": "Telefone secundário"
+        },
+        "address": {
+            "title": "Endereço",
+            "subtitle": "Localização do corretor",
+            "address": "Endereço",
+            "addressPlaceholder": "Rua, avenida, bairro…",
+            "city": "Cidade",
+            "cityPlaceholder": "Abidjan",
+            "country": "País"
+        },
+        "status": {
+            "title": "Estado",
+            "active": "Corretor ativo",
+            "inactive": "Corretor inativo",
+            "activeHint": "Pode ser atribuído a contratos",
+            "inactiveHint": "Não pode ser utilizado"
+        }
+    }
+}

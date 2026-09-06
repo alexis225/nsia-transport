@@ -1,0 +1,99 @@
+{
+    "breadcrumb": {
+        "section": "Comissões",
+        "bordereau": "Relação",
+        "rules": "Regras de comissão"
+    },
+    "bordereau": {
+        "title": "Relação de comissões — NSIA Transport",
+        "heading": "Relação de comissões",
+        "subtitle": "Prémios brutos, comissões e prémios líquidos por corretor",
+        "export": {
+            "csv": "CSV",
+            "excel": "Excel",
+            "pdf": "PDF"
+        },
+        "kpis": {
+            "certificates": "Certificados",
+            "primeBrute": "Prémio bruto total",
+            "commission": "Comissão total",
+            "primeNette": "Prémio líquido total"
+        },
+        "filters": {
+            "periodFromTitle": "Período de",
+            "periodToTitle": "Período até",
+            "to": "até",
+            "allBrokers": "Todos os corretores",
+            "allStatuses": "Todos os estados",
+            "statusPending": "Pendente",
+            "statusPaid": "Paga",
+            "statusCancelled": "Anulada",
+            "clear": "Limpar"
+        },
+        "table": {
+            "certificate": "Certificado",
+            "insured": "Segurado",
+            "contract": "Contrato",
+            "broker": "Corretor",
+            "period": "Período",
+            "primeBrute": "Prémio bruto",
+            "rate": "Taxa",
+            "commission": "Comissão",
+            "primeNette": "Prémio líquido",
+            "status": "Estado"
+        },
+        "statuses": {
+            "PENDING": "Pendente",
+            "PAID": "Paga",
+            "CANCELLED": "Anulada"
+        },
+        "empty": "Nenhuma transação encontrada para o período.",
+        "total_one": "TOTAL — {{count}} transação",
+        "total_other": "TOTAL — {{count}} transações",
+        "pagination": "{{from}}–{{to}} de {{total}}"
+    },
+    "rules": {
+        "title": "Regras de comissão — NSIA Transport",
+        "heading": "Regras de comissão",
+        "subtitle": "Defina as taxas por corretor e por contrato",
+        "newRule": "Nova regra",
+        "form": {
+            "title": "Nova regra de comissão",
+            "broker": "Corretor *",
+            "chooseBroker": "— Selecionar —",
+            "contract": "Contrato (opcional)",
+            "generalRate": "— Taxa geral —",
+            "rate": "Taxa (%) *",
+            "ratePlaceholder": "ex.: 10.00",
+            "baseType": "Base de cálculo *",
+            "fixedAmount": "Montante fixo *",
+            "fixedAmountPlaceholder": "ex.: 500000",
+            "effectiveDate": "Data de vigência *",
+            "endDate": "Data de fim (opcional)",
+            "notes": "Notas (opcional)",
+            "notesPlaceholder": "ex.: Taxa negociada para 2026",
+            "hint": "Se existir uma taxa de contrato, esta prevalece sobre a taxa geral do corretor.",
+            "submit": "Criar regra"
+        },
+        "table": {
+            "broker": "Corretor",
+            "contract": "Contrato",
+            "general": "Geral",
+            "rate": "Taxa",
+            "effectiveDate": "Data de vigência",
+            "endDate": "Data de fim",
+            "status": "Estado",
+            "notes": "Notas",
+            "action": "Ação"
+        },
+        "status": {
+            "active": "Ativa",
+            "inactive": "Inativa"
+        },
+        "toggle": {
+            "deactivate": "Desativar",
+            "activate": "Ativar"
+        },
+        "empty": "Nenhuma regra de comissão definida."
+    }
+}

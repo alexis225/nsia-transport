@@ -1,0 +1,42 @@
+{
+    "breadcrumb": "Centro de notificações",
+    "title": "Centro de notificações — NSIA Transport",
+    "heading": "Centro de notificações",
+    "subtitle": "Histórico dos últimos 90 dias",
+    "markAllRead": "Marcar tudo como lido",
+    "deleteRead": "Eliminar as lidas",
+    "kpis": {
+        "total90Days": "Total 90 dias",
+        "unread": "Não lidas",
+        "today": "Hoje"
+    },
+    "tabs": {
+        "notifications": "Notificações",
+        "preferences": "Preferências"
+    },
+    "allTypes": "Todos os tipos",
+    "allStatuses": "Todos os estados",
+    "unreadOption": "Não lidas",
+    "readOption": "Lidas",
+    "clear": "Limpar",
+    "notificationCount_one": "{{count}} notificação",
+    "notificationCount_other": "{{count}} notificações",
+    "noNotifications": "Nenhuma notificação encontrada.",
+    "viewLink": "Ver →",
+    "markRead": "Marcar como lida",
+    "pagination": {
+        "range": "{{from}}–{{to}} de {{total}}"
+    },
+    "preferences": {
+        "title": "Preferências de notificações",
+        "subtitle": "Configure os canais de notificação por tipo de evento",
+        "saved": "Guardado",
+        "save": "Guardar",
+        "saving": "A guardar…",
+        "columns": {
+            "eventType": "Tipo de evento",
+            "inApp": "In-App",
+            "email": "Email"
+        }
+    }
+}

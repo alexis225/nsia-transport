@@ -1,0 +1,81 @@
+{
+    "language": {
+        "label": "Idioma",
+        "change": "Mudar de idioma"
+    },
+    "actions": {
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar",
+        "close": "Fechar",
+        "create": "Criar",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "search": "Pesquisar",
+        "filter": "Filtrar",
+        "reset": "Repor",
+        "export": "Exportar",
+        "print": "Imprimir",
+        "download": "Descarregar",
+        "back": "Voltar",
+        "next": "Seguinte",
+        "previous": "Anterior",
+        "view": "Consultar",
+        "duplicate": "Duplicar",
+        "validate": "Validar",
+        "reject": "Rejeitar",
+        "submit": "Submeter",
+        "send": "Enviar",
+        "add": "Adicionar",
+        "remove": "Remover"
+    },
+    "states": {
+        "loading": "A carregar…",
+        "saving": "A guardar…",
+        "processing": "A processar…",
+        "empty": "Sem resultados",
+        "none": "Nenhum",
+        "yes": "Sim",
+        "no": "Não",
+        "active": "Ativo",
+        "inactive": "Inativo",
+        "required": "Obrigatório",
+        "optional": "Facultativo"
+    },
+    "fields": {
+        "name": "Nome",
+        "email": "Endereço de email",
+        "phone": "Telefone",
+        "password": "Palavra-passe",
+        "status": "Estado",
+        "date": "Data",
+        "amount": "Montante",
+        "currency": "Moeda",
+        "createdAt": "Criado em",
+        "updatedAt": "Modificado em",
+        "actions": "Ações",
+        "comment": "Comentário"
+    },
+    "pagination": {
+        "showing": "{{from}}–{{to}} de {{total}}",
+        "perPage": "Por página",
+        "page": "Página {{current}} de {{last}}"
+    },
+    "confirm": {
+        "title": "Confirmar a ação",
+        "irreversible": "Esta ação é irreversível."
+    },
+    "errors": {
+        "generic": "Ocorreu um erro. Tente novamente.",
+        "unauthorized": "Não tem as permissões necessárias.",
+        "notFound": "Elemento não encontrado."
+    },
+    "certificateStatus": {
+        "CANCELLED": "Anulado",
+        "DRAFT": "Arquivado",
+        "ISSUED": "Aprovado",
+        "REJECTED": "Rejeitado",
+        "REPLACED": "Substituído",
+        "SUBMITTED": "Submetido"
+    }
+}

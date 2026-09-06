@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -30,36 +31,15 @@ interface Props {
     can:       { validate: boolean; edit: boolean };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
-    DRAFT:    { bg:'#f8fafc', color:'#64748b', label:'Brouillon',  dot:'#94a3b8' },
-    PENDING:  { bg:'#fffbeb', color:'#92400e', label:'En attente', dot:'#f59e0b' },
-    APPROVED: { bg:'#f0fdf4', color:'#15803d', label:'Approuvé',  dot:'#22c55e' },
-    REJECTED: { bg:'#fef2f2', color:'#dc2626', label:'Rejeté',    dot:'#ef4444' },
-};
-
-const FIELD_LABELS: Record<string, string> = {
-    // premium_rate/rate_surprime/rate_accessories/subscription_limit :
-    // conservés uniquement pour l'affichage lisible des avenants
-    // historiques — ne sont plus amendables (cf. create.tsx).
-    premium_rate:        'Taux prime global',
-    rate_ro:             'Taux R.O.',
-    rate_rg:             'Taux R.G.',
-    rate_surprime:       'Surprime',
-    rate_accessories:    'Accessoires (ancien, %)',
-    accessories_amount:  'Accessoires',
-    rate_tax:            'Taxe',
-    subscription_limit:  'Plafond NN300',
-    effective_date:     'Date d\'effet',
-    expiry_date:        'Date d\'expiration',
-    notice_period_days: 'Délai de préavis',
-    clauses:            'Clauses',
-    exclusions:         'Exclusions',
-    broker_id:          'Courtier',
-    incoterm_code:      'Incoterm',
-    coverage_type:      'Couverture',
+const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string }> = {
+    DRAFT:    { bg:'#f8fafc', color:'#64748b', dot:'#94a3b8' },
+    PENDING:  { bg:'#fffbeb', color:'#92400e', dot:'#f59e0b' },
+    APPROVED: { bg:'#f0fdf4', color:'#15803d', dot:'#22c55e' },
+    REJECTED: { bg:'#fef2f2', color:'#dc2626', dot:'#ef4444' },
 };
 
 function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose, requireReason = true }: any) {
+    const { t } = useTranslation('contracts');
     const [reason, setReason] = useState('');
     return (
         <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
@@ -76,13 +56,13 @@ function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose
                 <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
                     {requireReason && (
                         <div>
-                            <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>Motif *</label>
+                            <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>{t('amendments.show.modals.reasonLabel')}</label>
                             <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3}
                                       style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', resize:'vertical', boxSizing:'border-box' }}/>
                         </div>
                     )}
                     <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button variant="outline" onClick={onClose}>Annuler</Button>
+                        <Button variant="outline" onClick={onClose}>{t('amendments.show.modals.cancel')}</Button>
                         <Button onClick={() => onConfirm(reason)} disabled={requireReason && !reason.trim()}
                                 style={{ background: color, color:'#fff', border:'none' }}>
                             {actionLabel}
@@ -105,12 +85,35 @@ const formatValue = (field: string, value: any): string => {
 };
 
 export default function AmendmentShow({ contract, amendment, can }: Props) {
+    const { t } = useTranslation('contracts');
     const [modal, setModal] = useState<string | null>(null);
 
+    // premium_rate/rate_surprime/rate_accessories/subscription_limit :
+    // conservés uniquement pour l'affichage lisible des avenants
+    // historiques — ne sont plus amendables (cf. create.tsx).
+    const FIELD_LABELS: Record<string, string> = {
+        premium_rate:        t('amendmentFieldLabels.premium_rate'),
+        rate_ro:             t('amendmentFieldLabels.rate_ro'),
+        rate_rg:             t('amendmentFieldLabels.rate_rg'),
+        rate_surprime:       t('amendmentFieldLabels.rate_surprime'),
+        rate_accessories:    t('amendmentFieldLabels.rate_accessories'),
+        accessories_amount:  t('amendmentFieldLabels.accessories_amount'),
+        rate_tax:            t('amendmentFieldLabels.rate_tax'),
+        subscription_limit:  t('amendmentFieldLabels.subscription_limit'),
+        effective_date:      t('amendmentFieldLabels.effective_date'),
+        expiry_date:         t('amendmentFieldLabels.expiry_date'),
+        notice_period_days:  t('amendmentFieldLabels.notice_period_days'),
+        clauses:             t('amendmentFieldLabels.clauses'),
+        exclusions:          t('amendmentFieldLabels.exclusions'),
+        broker_id:           t('amendmentFieldLabels.broker_id'),
+        incoterm_code:       t('amendmentFieldLabels.incoterm_code'),
+        coverage_type:       t('amendmentFieldLabels.coverage_type'),
+    };
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Contrats',  href: '/admin/contracts' },
+        { title: t('breadcrumb.contracts'),  href: '/admin/contracts' },
         { title: contract.contract_number, href: route('admin.contracts.show', { contract: contract.id }) },
-        { title: 'Avenants',  href: route('admin.contracts.amendments.index', { contract: contract.id }) },
+        { title: t('breadcrumb.amendments'),  href: route('admin.contracts.amendments.index', { contract: contract.id }) },
         { title: amendment.amendment_number },
     ];
 
@@ -125,7 +128,7 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${amendment.amendment_number} — NSIA Transport`}/>
+            <Head title={t('amendments.show.title', { number: amendment.amendment_number })}/>
             <style>{`
                 .as-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .as-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:flex-start;gap:16px;position:relative;overflow:hidden;}
@@ -169,14 +172,14 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
                             </div>
                             <div className="as-hero-num">{amendment.amendment_number}</div>
                             <div className="as-hero-sub">
-                                Avenant n°{amendment.sequence} · {contract.contract_number} · {contract.tenant?.name}
+                                {t('amendments.show.sequenceInfo', { sequence: amendment.sequence, contractNumber: contract.contract_number, tenant: contract.tenant?.name })}
                             </div>
                             <div style={{ display:'flex', gap:6, marginTop:8 }}>
                                 <span className="as-badge" style={{ background:'rgba(255,255,255,0.1)', color:'#fff', border:'1px solid rgba(255,255,255,0.2)' }}>
-                                    <span style={{ width:6, height:6, borderRadius:'50%', background: ss.dot }}/>{ss.label}
+                                    <span style={{ width:6, height:6, borderRadius:'50%', background: ss.dot }}/>{t(`amendmentStatusLabels.${amendment.status}`)}
                                 </span>
                                 <span className="as-badge" style={{ background:'rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.7)', border:'1px solid rgba(255,255,255,0.15)' }}>
-                                    {changesCount} modification{changesCount > 1 ? 's' : ''}
+                                    {t('amendments.show.changesBadge', { count: changesCount })}
                                 </span>
                             </div>
                         </div>
@@ -186,10 +189,10 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
                     <div className="workflow-bar">
                         <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, fontWeight:500 }}>
                             <span style={{ width:8, height:8, borderRadius:'50%', background: ss.dot }}/>
-                            {ss.label}
+                            {t(`amendmentStatusLabels.${amendment.status}`)}
                             {amendment.applied_at && (
                                 <span style={{ fontSize:11, color:'#94a3b8' }}>
-                                    appliqué le {fmtDt(amendment.applied_at)}
+                                    {t('amendments.show.appliedOn', { date: fmtDt(amendment.applied_at) })}
                                 </span>
                             )}
                         </div>
@@ -197,16 +200,16 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
                             {amendment.status === 'DRAFT' && can.edit && (
                                 <button className="btn-wf btn-submit"
                                         onClick={() => action('admin.contracts.amendments.submit')}>
-                                    <Send size={12}/> Soumettre pour validation
+                                    <Send size={12}/> {t('amendments.show.submitForValidation')}
                                 </button>
                             )}
                             {amendment.status === 'PENDING' && can.validate && (
                                 <>
                                     <button className="btn-wf btn-approve" onClick={() => setModal('approve')}>
-                                        <CheckCircle size={12}/> Approuver & Appliquer
+                                        <CheckCircle size={12}/> {t('amendments.show.approveApply')}
                                     </button>
                                     <button className="btn-wf btn-reject" onClick={() => setModal('reject')}>
-                                        <XCircle size={12}/> Rejeter
+                                        <XCircle size={12}/> {t('amendments.show.reject')}
                                     </button>
                                 </>
                             )}
@@ -223,7 +226,7 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
                         }}>
                             <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4, fontWeight:600, fontSize:11 }}>
                                 <AlertCircle size={13}/>
-                                {amendment.review_notes.startsWith('REJETÉ') ? 'Motif de rejet' : 'Notes d\'approbation'}
+                                {amendment.review_notes.startsWith('REJETÉ') ? t('amendments.show.rejectionReason') : t('amendments.show.approvalNotes')}
                             </div>
                             {amendment.review_notes}
                         </div>
@@ -233,7 +236,7 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
                     <div className="as-card">
                         <div className="as-card-hdr">
                             <div className="as-card-ico" style={{ background:'#eff6ff' }}><FileText size={15} color="#3b82f6"/></div>
-                            <span className="as-card-ttl">Motif de l'avenant</span>
+                            <span className="as-card-ttl">{t('amendments.show.reasonSection.title')}</span>
                         </div>
                         <div className="as-card-body">
                             <div style={{ fontSize:13, fontWeight:500, color:'#1e293b', marginBottom: amendment.description ? 8 : 0 }}>
@@ -249,16 +252,16 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
                     <div className="as-card">
                         <div className="as-card-hdr">
                             <div className="as-card-ico" style={{ background:'#fff7ed' }}><Tag size={15} color="#f97316"/></div>
-                            <span className="as-card-ttl">Modifications ({changesCount})</span>
+                            <span className="as-card-ttl">{t('amendments.show.changesSection.title', { count: changesCount })}</span>
                         </div>
                         <div style={{ padding:0 }}>
                             <table className="changes-table">
                                 <thead>
                                     <tr>
-                                        <th>Champ</th>
-                                        <th>Valeur avant</th>
+                                        <th>{t('amendments.show.changesSection.field')}</th>
+                                        <th>{t('amendments.show.changesSection.before')}</th>
                                         <th></th>
-                                        <th>Valeur après</th>
+                                        <th>{t('amendments.show.changesSection.after')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -285,13 +288,13 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
                     <div className="as-card">
                         <div className="as-card-hdr">
                             <div className="as-card-ico" style={{ background:'#f8fafc' }}><Clock size={15} color="#64748b"/></div>
-                            <span className="as-card-ttl">Historique</span>
+                            <span className="as-card-ttl">{t('amendments.show.history.title')}</span>
                         </div>
                         <div className="as-card-body">
                             {[
-                                { date: amendment.created_at,   user: amendment.created_by,   label: 'Créé',    color:'#94a3b8' },
-                                { date: amendment.submitted_at,  user: amendment.submitted_by, label: 'Soumis',  color:'#f59e0b' },
-                                { date: amendment.reviewed_at,   user: amendment.reviewed_by,  label: amendment.status === 'APPROVED' ? 'Approuvé' : 'Rejeté', color: amendment.status === 'APPROVED' ? '#16a34a' : '#dc2626' },
+                                { date: amendment.created_at,   user: amendment.created_by,   label: t('amendments.show.history.created'),    color:'#94a3b8' },
+                                { date: amendment.submitted_at,  user: amendment.submitted_by, label: t('amendments.show.history.submitted'),  color:'#f59e0b' },
+                                { date: amendment.reviewed_at,   user: amendment.reviewed_by,  label: amendment.status === 'APPROVED' ? t('amendments.show.history.approved') : t('amendments.show.history.rejected'), color: amendment.status === 'APPROVED' ? '#16a34a' : '#dc2626' },
                             ].filter(e => e.date).map((event, i) => (
                                 <div key={i} style={{ display:'flex', gap:12, marginBottom:12 }}>
                                     <div style={{ width:8, height:8, borderRadius:'50%', background: event.color, flexShrink:0, marginTop:4 }}/>
@@ -299,7 +302,7 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
                                         <span style={{ fontSize:12, fontWeight:500, color:'#1e293b' }}>{event.label}</span>
                                         {event.user && (
                                             <span style={{ fontSize:11, color:'#64748b', marginLeft:6 }}>
-                                                par {event.user.first_name} {event.user.last_name}
+                                                {t('amendments.show.history.by', { name: `${event.user.first_name} ${event.user.last_name}` })}
                                             </span>
                                         )}
                                         <div style={{ fontSize:10, color:'#94a3b8' }}>
@@ -316,14 +319,14 @@ export default function AmendmentShow({ contract, amendment, can }: Props) {
 
             {/* Modals */}
             {modal === 'approve' && (
-                <ActionModal title="Approuver et appliquer l'avenant" icon={CheckCircle} color="#15803d"
-                    actionLabel="Approuver & Appliquer" requireReason={false}
+                <ActionModal title={t('amendments.show.modals.approveTitle')} icon={CheckCircle} color="#15803d"
+                    actionLabel={t('amendments.show.modals.approveAction')} requireReason={false}
                     onConfirm={(notes: string) => action('admin.contracts.amendments.approve', { notes })}
                     onClose={() => setModal(null)}/>
             )}
             {modal === 'reject' && (
-                <ActionModal title="Rejeter l'avenant" icon={XCircle} color="#dc2626"
-                    actionLabel="Rejeter"
+                <ActionModal title={t('amendments.show.modals.rejectTitle')} icon={XCircle} color="#dc2626"
+                    actionLabel={t('amendments.show.modals.rejectAction')}
                     onConfirm={(reason: string) => action('admin.contracts.amendments.reject', { reason })}
                     onClose={() => setModal(null)}/>
             )}

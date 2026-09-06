@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,30 +24,32 @@ interface Contract {
 }
 interface Props { contract: Contract; }
 
-// Taux prime global (somme R.O.+R.G.), Surprime (désormais par
-// certificat) et Plafond NN300 (paramètre général de l'application) ne
-// sont plus amendables au niveau du contrat.
-const FIELD_LABELS: Record<string, string> = {
-    rate_ro:             'Taux R.O. (%)',
-    rate_rg:             'Taux R.G. (%)',
-    accessories_amount:  'Accessoires (montant)',
-    rate_tax:            'Taxe (%)',
-    effective_date:      'Date d\'effet',
-    expiry_date:         'Date d\'expiration',
-    notice_period_days:  'Délai de préavis (jours)',
-    clauses:             'Clauses',
-    exclusions:          'Exclusions',
-    broker_id:           'Courtier',
-    incoterm_code:       'Incoterm',
-    coverage_type:       'Type de couverture',
-};
-
 export default function AmendmentCreate({ contract }: Props) {
+    const { t } = useTranslation('contracts');
+
+    // Taux prime global (somme R.O.+R.G.), Surprime (désormais par
+    // certificat) et Plafond NN300 (paramètre général de l'application) ne
+    // sont plus amendables au niveau du contrat.
+    const FIELD_LABELS: Record<string, string> = {
+        rate_ro:             t('amendmentEditableFieldLabels.rate_ro'),
+        rate_rg:             t('amendmentEditableFieldLabels.rate_rg'),
+        accessories_amount:  t('amendmentEditableFieldLabels.accessories_amount'),
+        rate_tax:            t('amendmentEditableFieldLabels.rate_tax'),
+        effective_date:      t('amendmentEditableFieldLabels.effective_date'),
+        expiry_date:         t('amendmentEditableFieldLabels.expiry_date'),
+        notice_period_days:  t('amendmentEditableFieldLabels.notice_period_days'),
+        clauses:             t('amendmentEditableFieldLabels.clauses'),
+        exclusions:          t('amendmentEditableFieldLabels.exclusions'),
+        broker_id:           t('amendmentEditableFieldLabels.broker_id'),
+        incoterm_code:       t('amendmentEditableFieldLabels.incoterm_code'),
+        coverage_type:       t('amendmentEditableFieldLabels.coverage_type'),
+    };
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Contrats',  href: '/admin/contracts' },
+        { title: t('breadcrumb.contracts'),  href: '/admin/contracts' },
         { title: contract.contract_number, href: route('admin.contracts.show', { contract: contract.id }) },
-        { title: 'Avenants',  href: route('admin.contracts.amendments.index', { contract: contract.id }) },
-        { title: 'Nouvel avenant' },
+        { title: t('breadcrumb.amendments'),  href: route('admin.contracts.amendments.index', { contract: contract.id }) },
+        { title: t('breadcrumb.newAmendment') },
     ];
 
     // Champs sélectionnés pour modification
@@ -98,7 +101,7 @@ export default function AmendmentCreate({ contract }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Nouvel avenant — ${contract.contract_number}`}/>
+            <Head title={t('amendments.create.title', { number: contract.contract_number })}/>
             <style>{`
                 .am-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .am-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;}
@@ -139,7 +142,7 @@ export default function AmendmentCreate({ contract }: Props) {
                     <div className="am-hero">
                         <div className="am-hero-ico"><FileText size={22} color="rgba(255,255,255,0.8)"/></div>
                         <div>
-                            <div className="am-hero-title">Nouvel avenant — {contract.contract_number}</div>
+                            <div className="am-hero-title">{t('amendments.create.heroTitle', { number: contract.contract_number })}</div>
                             <div className="am-hero-sub">{contract.insured_name} · {contract.tenant?.name}</div>
                         </div>
                     </div>
@@ -149,21 +152,21 @@ export default function AmendmentCreate({ contract }: Props) {
                         {/* Motif */}
                         <div className="am-card">
                             <div className="am-card-hdr">
-                                <div className="am-card-ttl">Motif de l'avenant</div>
+                                <div className="am-card-ttl">{t('amendments.create.reasonSection.title')}</div>
                             </div>
                             <div className="am-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="am-label">Motif *</Label>
+                                    <Label className="am-label">{t('amendments.create.reasonSection.reason')}</Label>
                                     <Input className="h-11" value={data.reason}
                                            onChange={e => setData('reason', e.target.value)}
-                                           placeholder="ex: Révision des taux suite à renouvellement…"/>
+                                           placeholder={t('amendments.create.reasonSection.reasonPlaceholder')}/>
                                     <InputError message={errors.reason}/>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="am-label">Description (facultatif)</Label>
+                                    <Label className="am-label">{t('amendments.create.reasonSection.description')}</Label>
                                     <textarea className="am-textarea" rows={3} value={data.description}
                                               onChange={e => setData('description', e.target.value)}
-                                              placeholder="Détails supplémentaires…"/>
+                                              placeholder={t('amendments.create.reasonSection.descriptionPlaceholder')}/>
                                 </div>
                             </div>
                         </div>
@@ -171,8 +174,8 @@ export default function AmendmentCreate({ contract }: Props) {
                         {/* Sélection des champs à modifier */}
                         <div className="am-card">
                             <div className="am-card-hdr">
-                                <div className="am-card-ttl">Champs à modifier</div>
-                                <div className="am-card-sub">Sélectionnez les champs concernés par cet avenant</div>
+                                <div className="am-card-ttl">{t('amendments.create.fieldsSection.title')}</div>
+                                <div className="am-card-sub">{t('amendments.create.fieldsSection.subtitle')}</div>
                             </div>
                             <div className="am-card-body">
                                 <div className="field-selector">
@@ -194,7 +197,7 @@ export default function AmendmentCreate({ contract }: Props) {
                         {selectedFields.some(f => rateFields.includes(f)) && (
                             <div className="am-card">
                                 <div className="am-card-hdr">
-                                    <div className="am-card-ttl">Taux de prime</div>
+                                    <div className="am-card-ttl">{t('amendments.create.ratesSection.title')}</div>
                                 </div>
                                 <div className="am-card-body">
                                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
@@ -207,7 +210,7 @@ export default function AmendmentCreate({ contract }: Props) {
                                                            value={(data as any)[field]}
                                                            onChange={e => setData(field as any, e.target.value)}/>
                                                     <div className="current-val">
-                                                        Actuel : {(contract as any)[field] ?? '—'} {isAmount ? contract.currency_code : '%'}
+                                                        {t('amendments.create.ratesSection.current', { value: (contract as any)[field] ?? '—', unit: isAmount ? contract.currency_code : '%' })}
                                                     </div>
                                                 </div>
                                             );
@@ -220,32 +223,32 @@ export default function AmendmentCreate({ contract }: Props) {
                         {/* Dates et délais */}
                         {selectedFields.some(f => [...dateFields, 'notice_period_days'].includes(f)) && (
                             <div className="am-card">
-                                <div className="am-card-hdr"><div className="am-card-ttl">Période de validité</div></div>
+                                <div className="am-card-hdr"><div className="am-card-ttl">{t('amendments.create.periodSection.title')}</div></div>
                                 <div className="am-card-body">
                                     <div className="form-grid">
                                         {selectedFields.includes('effective_date') && (
                                             <div className="grid gap-2">
-                                                <Label className="am-label">Date d'effet</Label>
+                                                <Label className="am-label">{t('amendments.create.periodSection.effectiveDate')}</Label>
                                                 <Input className="h-11" type="date" value={data.effective_date}
                                                        onChange={e => setData('effective_date', e.target.value)}/>
-                                                <div className="current-val">Actuel : {contract.effective_date}</div>
+                                                <div className="current-val">{t('amendments.create.periodSection.currentDate', { date: contract.effective_date })}</div>
                                             </div>
                                         )}
                                         {selectedFields.includes('expiry_date') && (
                                             <div className="grid gap-2">
-                                                <Label className="am-label">Date d'expiration</Label>
+                                                <Label className="am-label">{t('amendments.create.periodSection.expiryDate')}</Label>
                                                 <Input className="h-11" type="date" value={data.expiry_date}
                                                        onChange={e => setData('expiry_date', e.target.value)}/>
-                                                <div className="current-val">Actuel : {contract.expiry_date}</div>
+                                                <div className="current-val">{t('amendments.create.periodSection.currentDate', { date: contract.expiry_date })}</div>
                                             </div>
                                         )}
                                         {selectedFields.includes('notice_period_days') && (
                                             <div className="grid gap-2">
-                                                <Label className="am-label">Délai de préavis (jours)</Label>
+                                                <Label className="am-label">{t('amendments.create.periodSection.noticePeriod')}</Label>
                                                 <Input className="h-11" type="number" min={0}
                                                        value={data.notice_period_days}
                                                        onChange={e => setData('notice_period_days', Number(e.target.value))}/>
-                                                <div className="current-val">Actuel : {contract.notice_period_days} jours</div>
+                                                <div className="current-val">{t('amendments.create.periodSection.currentDays', { days: contract.notice_period_days })}</div>
                                             </div>
                                         )}
                                     </div>
@@ -256,29 +259,29 @@ export default function AmendmentCreate({ contract }: Props) {
                         {/* Couverture & Incoterm */}
                         {selectedFields.some(f => ['incoterm_code', 'coverage_type'].includes(f)) && (
                             <div className="am-card">
-                                <div className="am-card-hdr"><div className="am-card-ttl">Conditions de couverture</div></div>
+                                <div className="am-card-hdr"><div className="am-card-ttl">{t('amendments.create.coverageSection.title')}</div></div>
                                 <div className="am-card-body">
                                     <div className="form-grid">
                                         {selectedFields.includes('coverage_type') && (
                                             <div className="grid gap-2">
-                                                <Label className="am-label">Type de couverture</Label>
+                                                <Label className="am-label">{t('amendments.create.coverageSection.coverageType')}</Label>
                                                 <select className="am-select" value={data.coverage_type}
                                                         onChange={e => setData('coverage_type', e.target.value)}>
                                                     <option value="">—</option>
-                                                    <option value="TOUS_RISQUES">Tous risques</option>
-                                                    <option value="FAP_SAUF">FAP sauf</option>
-                                                    <option value="FAP_ABSOLUE">FAP absolue</option>
+                                                    <option value="TOUS_RISQUES">{t('amendments.create.coverageSection.allRisks')}</option>
+                                                    <option value="FAP_SAUF">{t('amendments.create.coverageSection.fapSauf')}</option>
+                                                    <option value="FAP_ABSOLUE">{t('amendments.create.coverageSection.fapAbsolue')}</option>
                                                 </select>
-                                                <div className="current-val">Actuel : {contract.coverage_type ?? '—'}</div>
+                                                <div className="current-val">{t('amendments.create.coverageSection.current', { value: contract.coverage_type ?? '—' })}</div>
                                             </div>
                                         )}
                                         {selectedFields.includes('incoterm_code') && (
                                             <div className="grid gap-2">
-                                                <Label className="am-label">Incoterm</Label>
+                                                <Label className="am-label">{t('amendments.create.coverageSection.incoterm')}</Label>
                                                 <Input className="h-11" value={data.incoterm_code}
                                                        onChange={e => setData('incoterm_code', e.target.value)}
-                                                       placeholder="ex: FOB, CIF, EXW…"/>
-                                                <div className="current-val">Actuel : {contract.incoterm_code ?? '—'}</div>
+                                                       placeholder={t('amendments.create.coverageSection.incotermPlaceholder')}/>
+                                                <div className="current-val">{t('amendments.create.coverageSection.current', { value: contract.incoterm_code ?? '—' })}</div>
                                             </div>
                                         )}
                                     </div>
@@ -289,11 +292,11 @@ export default function AmendmentCreate({ contract }: Props) {
                         {/* Clauses & Exclusions */}
                         {selectedFields.some(f => listFields.includes(f)) && (
                             <div className="am-card">
-                                <div className="am-card-hdr"><div className="am-card-ttl">Clauses & Exclusions</div></div>
+                                <div className="am-card-hdr"><div className="am-card-ttl">{t('amendments.create.listsSection.title')}</div></div>
                                 <div className="am-card-body">
                                     {selectedFields.includes('clauses') && (
                                         <div className="grid gap-2">
-                                            <Label className="am-label">Clauses</Label>
+                                            <Label className="am-label">{t('amendments.create.listsSection.clauses')}</Label>
                                             <div className="tag-list">
                                                 {data.clauses.map((c, i) => (
                                                     <span key={i} className="tag-chip">
@@ -309,7 +312,7 @@ export default function AmendmentCreate({ contract }: Props) {
                                                 <input className="tag-input" value={clauseInput}
                                                        onChange={e => setClauseInput(e.target.value)}
                                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addToList('clauses', clauseInput, setClauseInput); }}}
-                                                       placeholder="Ajouter une clause…"/>
+                                                       placeholder={t('amendments.create.listsSection.clausesPlaceholder')}/>
                                                 <button type="button" className="tag-add-btn"
                                                         onClick={() => addToList('clauses', clauseInput, setClauseInput)}>
                                                     <Plus size={12}/>
@@ -319,7 +322,7 @@ export default function AmendmentCreate({ contract }: Props) {
                                     )}
                                     {selectedFields.includes('exclusions') && (
                                         <div className="grid gap-2">
-                                            <Label className="am-label">Exclusions</Label>
+                                            <Label className="am-label">{t('amendments.create.listsSection.exclusions')}</Label>
                                             <div className="tag-list">
                                                 {data.exclusions.map((e, i) => (
                                                     <span key={i} className="tag-chip excl">
@@ -335,7 +338,7 @@ export default function AmendmentCreate({ contract }: Props) {
                                                 <input className="tag-input" value={exclusionInput}
                                                        onChange={e => setExclusionInput(e.target.value)}
                                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addToList('exclusions', exclusionInput, setExclusionInput); }}}
-                                                       placeholder="Ajouter une exclusion…"/>
+                                                       placeholder={t('amendments.create.listsSection.exclusionsPlaceholder')}/>
                                                 <button type="button" className="tag-add-btn"
                                                         onClick={() => addToList('exclusions', exclusionInput, setExclusionInput)}>
                                                     <Plus size={12}/>
@@ -349,16 +352,16 @@ export default function AmendmentCreate({ contract }: Props) {
 
                         {selectedFields.length === 0 && (
                             <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:10, padding:'12px 16px', fontSize:13, color:'#92400e' }}>
-                                Sélectionnez au moins un champ à modifier.
+                                {t('amendments.create.noFieldsWarning')}
                             </div>
                         )}
 
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing || selectedFields.length === 0}
                                     className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><FileText size={14}/> Créer l'avenant</>}
+                                {processing ? t('amendments.create.saving') : <><FileText size={14}/> {t('amendments.create.submit')}</>}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => window.history.back()}>Annuler</Button>
+                            <Button type="button" variant="outline" onClick={() => window.history.back()}>{t('amendments.create.cancel')}</Button>
                         </div>
                     </form>
                 </div>

@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import {
     FileText, AlertTriangle, CheckCircle, Clock,
     Search, Filter, ChevronLeft, ChevronRight, X,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'Rapports' },
-    { title: 'État des contrats' },
-];
 
 // ── Types ────────────────────────────────────────────────────
 interface ContractRow {
@@ -54,25 +49,12 @@ interface Props {
 }
 
 // ── Constants ────────────────────────────────────────────────
-const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-    ACTIVE:    { label: 'Actif',     color: '#15803d', bg: '#f0fdf4' },
-    DRAFT:     { label: 'Brouillon', color: '#64748b', bg: '#f8fafc' },
-    SUSPENDED: { label: 'Suspendu',  color: '#d97706', bg: '#fef3c7' },
-    EXPIRED:   { label: 'Expiré',    color: '#dc2626', bg: '#fef2f2' },
-    CANCELLED: { label: 'Annulé',    color: '#94a3b8', bg: '#f1f5f9' },
-};
-
-const TYPE_LABELS: Record<string, string> = {
-    OPEN_POLICY:    'Police ouverte',
-    VOYAGE:         'Voyage',
-    ANNUAL_VOYAGE:  'Voyage annuel',
-    TIERS_CHARGEUR: 'Police tiers chargeur',
-};
-
-const DATE_FIELD_LABELS: Record<string, string> = {
-    effective_date: "Date d'effet",
-    expiry_date:    "Date d'expiration",
-    created_at:     'Date de création',
+const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
+    ACTIVE:    { color: '#15803d', bg: '#f0fdf4' },
+    DRAFT:     { color: '#64748b', bg: '#f8fafc' },
+    SUSPENDED: { color: '#d97706', bg: '#fef3c7' },
+    EXPIRED:   { color: '#dc2626', bg: '#fef2f2' },
+    CANCELLED: { color: '#94a3b8', bg: '#f1f5f9' },
 };
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -127,6 +109,36 @@ function StatCard({ label, value, sub, color, bg, border, icon: Icon }: {
 export default function ContractsReport({
     contracts, stats, avgUsagePct, byType, byStatus, brokers, tenants, filters, isSA,
 }: Props) {
+    const { t } = useTranslation('reports');
+    const { t: tn } = useTranslation('navigation');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: tn('sections.dashboard'), href: route('admin.dashboard') },
+        { title: t('breadcrumb.section') },
+        { title: t('breadcrumb.contracts') },
+    ];
+
+    const TYPE_LABELS: Record<string, string> = {
+        OPEN_POLICY:    t('contracts.types.OPEN_POLICY'),
+        VOYAGE:         t('contracts.types.VOYAGE'),
+        ANNUAL_VOYAGE:  t('contracts.types.ANNUAL_VOYAGE'),
+        TIERS_CHARGEUR: t('contracts.types.TIERS_CHARGEUR'),
+    };
+
+    const STATUS_LABELS: Record<string, string> = {
+        ACTIVE:    t('contracts.statuses.ACTIVE'),
+        DRAFT:     t('contracts.statuses.DRAFT'),
+        SUSPENDED: t('contracts.statuses.SUSPENDED'),
+        EXPIRED:   t('contracts.statuses.EXPIRED'),
+        CANCELLED: t('contracts.statuses.CANCELLED'),
+    };
+
+    const DATE_FIELD_LABELS: Record<string, string> = {
+        effective_date: t('contracts.dateFields.effective_date'),
+        expiry_date:    t('contracts.dateFields.expiry_date'),
+        created_at:     t('contracts.dateFields.created_at'),
+    };
+
     const [local, setLocal] = useState({ ...filters });
     const [showAdv, setShowAdv] = useState(!!(filters.broker_id || filters.tenant_id || filters.date_from || filters.limit_min || filters.limit_max));
 
@@ -156,7 +168,7 @@ export default function ContractsReport({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="État des contrats — NSIA Transport"/>
+            <Head title={t('contracts.title')}/>
             <style>{`
                 .rpt-page  { padding:4px; display:flex; flex-direction:column; gap:14px; }
                 .rpt-panel { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
@@ -201,11 +213,11 @@ export default function ContractsReport({
                     {/* ── Header ──────────────────────────────── */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>État des contrats</h1>
+                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>{t('contracts.heading')}</h1>
                             <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
                                 {filters.date_from
-                                    ? `${DATE_FIELD_LABELS[filters.date_field]} · ${fmt(filters.date_from)} → ${filters.date_to ? fmt(filters.date_to) : '…'}`
-                                    : 'Tous les contrats'}
+                                    ? t('contracts.filterSummary', { field: DATE_FIELD_LABELS[filters.date_field], from: fmt(filters.date_from), to: filters.date_to ? fmt(filters.date_to) : '…' })
+                                    : t('contracts.allContracts')}
                             </p>
                         </div>
                         <Link href={route('admin.contracts.index')}
@@ -213,7 +225,7 @@ export default function ContractsReport({
                                        display: 'flex', alignItems: 'center', gap: 5,
                                        background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
                                        border: '1px solid #bfdbfe' }}>
-                            <FileText size={13}/> Gestion contrats →
+                            <FileText size={13}/> {t('contracts.manageLink')}
                         </Link>
                     </div>
 
@@ -222,32 +234,32 @@ export default function ContractsReport({
                         <div className="filter-row">
                             <select className="fin fin-sel" value={local.status}
                                     onChange={e => setLocal(p => ({ ...p, status: e.target.value }))}>
-                                <option value="ALL">Tous les statuts</option>
-                                <option value="ACTIVE">Actif</option>
-                                <option value="DRAFT">Brouillon</option>
-                                <option value="SUSPENDED">Suspendu</option>
-                                <option value="EXPIRED">Expiré</option>
-                                <option value="CANCELLED">Annulé</option>
+                                <option value="ALL">{t('contracts.statuses.ALL')}</option>
+                                <option value="ACTIVE">{t('contracts.statuses.ACTIVE')}</option>
+                                <option value="DRAFT">{t('contracts.statuses.DRAFT')}</option>
+                                <option value="SUSPENDED">{t('contracts.statuses.SUSPENDED')}</option>
+                                <option value="EXPIRED">{t('contracts.statuses.EXPIRED')}</option>
+                                <option value="CANCELLED">{t('contracts.statuses.CANCELLED')}</option>
                             </select>
                             <select className="fin fin-sel" value={local.type ?? ''}
                                     onChange={e => setLocal(p => ({ ...p, type: e.target.value || null }))}>
-                                <option value="">Tous les types</option>
-                                <option value="OPEN_POLICY">Police ouverte</option>
-                                <option value="VOYAGE">Voyage</option>
-                                <option value="ANNUAL_VOYAGE">Voyage annuel</option>
-                                <option value="TIERS_CHARGEUR">Police tiers chargeur</option>
+                                <option value="">{t('contracts.allTypes')}</option>
+                                <option value="OPEN_POLICY">{t('contracts.types.OPEN_POLICY')}</option>
+                                <option value="VOYAGE">{t('contracts.types.VOYAGE')}</option>
+                                <option value="ANNUAL_VOYAGE">{t('contracts.types.ANNUAL_VOYAGE')}</option>
+                                <option value="TIERS_CHARGEUR">{t('contracts.types.TIERS_CHARGEUR')}</option>
                             </select>
-                            <input className="fin fin-search" placeholder="Rechercher N°, assuré…"
+                            <input className="fin fin-search" placeholder={t('contracts.searchPlaceholder')}
                                    value={local.search ?? ''}
                                    onChange={e => setLocal(p => ({ ...p, search: e.target.value || null }))}/>
                             <button className="btn btn-secondary" onClick={() => setShowAdv(v => !v)}>
-                                <Filter size={12}/> Filtres {showAdv ? '▲' : '▼'}
+                                <Filter size={12}/> {t('contracts.filtersToggle')} {showAdv ? '▲' : '▼'}
                             </button>
                             <button className="btn btn-primary" onClick={apply}>
-                                <Search size={12}/> Appliquer
+                                <Search size={12}/> {t('contracts.apply')}
                             </button>
                             {hasActive && (
-                                <button className="btn btn-danger" onClick={reset} title="Réinitialiser">
+                                <button className="btn btn-danger" onClick={reset} title={t('contracts.resetTitle')}>
                                     <X size={12}/>
                                 </button>
                             )}
@@ -257,9 +269,9 @@ export default function ContractsReport({
                                 <div className="filter-row">
                                     <select className="fin fin-sel" value={local.date_field}
                                             onChange={e => setLocal(p => ({ ...p, date_field: e.target.value }))}>
-                                        <option value="effective_date">Date d'effet</option>
-                                        <option value="expiry_date">Date d'expiration</option>
-                                        <option value="created_at">Date de création</option>
+                                        <option value="effective_date">{t('contracts.dateFields.effective_date')}</option>
+                                        <option value="expiry_date">{t('contracts.dateFields.expiry_date')}</option>
+                                        <option value="created_at">{t('contracts.dateFields.created_at')}</option>
                                     </select>
                                     <input type="date" className="fin fin-date" value={local.date_from ?? ''}
                                            onChange={e => setLocal(p => ({ ...p, date_from: e.target.value || null }))}/>
@@ -269,7 +281,7 @@ export default function ContractsReport({
                                     {brokers.length > 0 && (
                                         <select className="fin fin-sel" value={local.broker_id ?? ''}
                                                 onChange={e => setLocal(p => ({ ...p, broker_id: e.target.value || null }))}>
-                                            <option value="">Tous les courtiers</option>
+                                            <option value="">{t('contracts.allBrokers')}</option>
                                             {brokers.map(b => (
                                                 <option key={b.id} value={b.id}>[{b.code}] {b.name}</option>
                                             ))}
@@ -278,20 +290,20 @@ export default function ContractsReport({
                                     {isSA && tenants.length > 0 && (
                                         <select className="fin fin-sel" value={local.tenant_id ?? ''}
                                                 onChange={e => setLocal(p => ({ ...p, tenant_id: e.target.value || null }))}>
-                                            <option value="">Toutes les filiales</option>
-                                            {tenants.map(t => (
-                                                <option key={t.id} value={t.id}>[{t.code}] {t.name}</option>
+                                            <option value="">{t('contracts.allTenants')}</option>
+                                            {tenants.map(ten => (
+                                                <option key={ten.id} value={ten.id}>[{ten.code}] {ten.name}</option>
                                             ))}
                                         </select>
                                     )}
                                 </div>
                                 <div className="filter-row">
-                                    <span style={{ fontSize: 11, color: '#94a3b8' }}>Plafond NN300</span>
-                                    <input type="number" min={0} className="fin fin-sel" placeholder="Seuil minimum"
+                                    <span style={{ fontSize: 11, color: '#94a3b8' }}>{t('contracts.limitLabel')}</span>
+                                    <input type="number" min={0} className="fin fin-sel" placeholder={t('contracts.limitMinPlaceholder')}
                                            value={local.limit_min ?? ''}
                                            onChange={e => setLocal(p => ({ ...p, limit_min: e.target.value || null }))}/>
                                     <span style={{ fontSize: 11, color: '#94a3b8' }}>→</span>
-                                    <input type="number" min={0} className="fin fin-sel" placeholder="Seuil maximum"
+                                    <input type="number" min={0} className="fin fin-sel" placeholder={t('contracts.limitMaxPlaceholder')}
                                            value={local.limit_max ?? ''}
                                            onChange={e => setLocal(p => ({ ...p, limit_max: e.target.value || null }))}/>
                                 </div>
@@ -301,26 +313,26 @@ export default function ContractsReport({
 
                     {/* ── Stats ────────────────────────────────── */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr) repeat(3,1fr)', gap: 10 }}>
-                        <StatCard label="Total" value={stats.total} color="#1e293b" icon={FileText}/>
-                        <StatCard label="Actifs" value={stats.active} color="#15803d" bg="#f0fdf4" border="#bbf7d0" icon={CheckCircle}/>
-                        <StatCard label="Expiration 30j"
+                        <StatCard label={t('contracts.stats.total')} value={stats.total} color="#1e293b" icon={FileText}/>
+                        <StatCard label={t('contracts.stats.active')} value={stats.active} color="#15803d" bg="#f0fdf4" border="#bbf7d0" icon={CheckCircle}/>
+                        <StatCard label={t('contracts.stats.expiring30')}
                                   value={stats.expiring_30}
                                   color={stats.expiring_30 > 0 ? '#d97706' : '#64748b'}
                                   bg={stats.expiring_30 > 0 ? '#fef3c7' : '#fff'}
                                   icon={Clock}
-                                  sub={stats.expiring_7 > 0 ? `dont ${stats.expiring_7} dans 7j` : undefined}/>
-                        <StatCard label="Suspendus / Annulés"
+                                  sub={stats.expiring_7 > 0 ? t('contracts.stats.expiringWithin7', { count: stats.expiring_7 }) : undefined}/>
+                        <StatCard label={t('contracts.stats.suspendedCancelled')}
                                   value={`${stats.suspended} / ${stats.cancelled}`}
                                   color={stats.suspended > 0 ? '#d97706' : '#64748b'}
                                   icon={AlertTriangle}/>
-                        <StatCard label="Plafond total (actifs)"
+                        <StatCard label={t('contracts.stats.totalLimit')}
                                   value={fmtAmt(stats.total_limit)}
                                   color="#1d4ed8" icon={FileText}/>
-                        <StatCard label="Engagé (actifs)"
+                        <StatCard label={t('contracts.stats.used')}
                                   value={fmtAmt(stats.total_used)}
-                                  sub={usageRemaining !== null ? `${usageRemaining}% disponible` : undefined}
+                                  sub={usageRemaining !== null ? t('contracts.stats.availablePct', { pct: usageRemaining }) : undefined}
                                   color="#7c3aed" icon={FileText}/>
-                        <StatCard label="Utilisation moy. plafonds"
+                        <StatCard label={t('contracts.stats.avgUsage')}
                                   value={avgUsagePct !== null ? `${avgUsagePct}%` : '—'}
                                   color={Number(avgUsagePct) > 80 ? '#dc2626' : '#059669'}
                                   icon={FileText}/>
@@ -334,34 +346,35 @@ export default function ContractsReport({
                             <div className="rpt-panel-hdr">
                                 <div className="rpt-panel-hdr-title">
                                     <FileText size={14} color="#1d4ed8"/>
-                                    Contrats ({contracts.total})
+                                    {t('contracts.panels.contractsTitle', { count: contracts.total })}
                                 </div>
                             </div>
 
                             {contracts.data.length === 0 ? (
                                 <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
                                     <FileText size={28} style={{ marginBottom: 8, opacity: .4 }}/>
-                                    <div>Aucun contrat pour ces critères</div>
+                                    <div>{t('contracts.panels.empty')}</div>
                                 </div>
                             ) : (
                                 <>
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>N° Contrat</th>
-                                                <th>Assuré</th>
-                                                <th>Courtier</th>
-                                                <th>Type</th>
-                                                <th>Utilisation plafond</th>
-                                                <th>Certificats</th>
-                                                <th>Effet / Expiration</th>
-                                                {isSA && <th>Filiale</th>}
-                                                <th>Statut</th>
+                                                <th>{t('contracts.table.number')}</th>
+                                                <th>{t('contracts.table.insured')}</th>
+                                                <th>{t('contracts.table.broker')}</th>
+                                                <th>{t('contracts.table.type')}</th>
+                                                <th>{t('contracts.table.limitUsage')}</th>
+                                                <th>{t('contracts.table.certificates')}</th>
+                                                <th>{t('contracts.table.effectiveExpiry')}</th>
+                                                {isSA && <th>{t('contracts.table.tenant')}</th>}
+                                                <th>{t('contracts.table.status')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {contracts.data.map(c => {
-                                                const s = STATUS_META[c.status] ?? { label: c.status, color: '#64748b', bg: '#f8fafc' };
+                                                const s = STATUS_COLORS[c.status] ?? { color: '#64748b', bg: '#f8fafc' };
+                                                const sLabel = STATUS_LABELS[c.status] ?? c.status;
                                                 const expDays = c.expiry_date ? daysUntil(c.expiry_date) : null;
                                                 return (
                                                     <tr key={c.id}>
@@ -382,7 +395,7 @@ export default function ContractsReport({
                                                                 {c.broker?.name ?? '—'}
                                                             </div>
                                                             {c.broker?.type === 'FOREIGN_PARTNER' && (
-                                                                <span style={{ fontSize: 9, color: '#7c3aed', background: '#fdf4ff', padding: '0 4px', borderRadius: 4 }}>Étranger</span>
+                                                                <span style={{ fontSize: 9, color: '#7c3aed', background: '#fdf4ff', padding: '0 4px', borderRadius: 4 }}>{t('contracts.foreign')}</span>
                                                             )}
                                                         </td>
                                                         <td>
@@ -395,7 +408,7 @@ export default function ContractsReport({
                                                         </td>
                                                         <td>
                                                             <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b' }}>{c.certificates_count}</div>
-                                                            <div style={{ fontSize: 10, color: '#15803d' }}>dont {c.issued_certificates_count} émis</div>
+                                                            <div style={{ fontSize: 10, color: '#15803d' }}>{t('contracts.table.ofWhichIssued', { count: c.issued_certificates_count })}</div>
                                                         </td>
                                                         <td>
                                                             <div style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>
@@ -415,7 +428,7 @@ export default function ContractsReport({
                                                             <td><span style={{ fontSize: 10, color: '#64748b' }}>{c.tenant?.code ?? '—'}</span></td>
                                                         )}
                                                         <td>
-                                                            <span className="badge" style={{ color: s.color, background: s.bg }}>{s.label}</span>
+                                                            <span className="badge" style={{ color: s.color, background: s.bg }}>{sLabel}</span>
                                                         </td>
                                                     </tr>
                                                 );
@@ -426,7 +439,7 @@ export default function ContractsReport({
                                     {contracts.last_page > 1 && (
                                         <div className="pg-row">
                                             <span className="pg-info">
-                                                {contracts.total} résultat(s) · Page {contracts.current_page}/{contracts.last_page}
+                                                {t('contracts.pagination', { total: contracts.total, current: contracts.current_page, last: contracts.last_page })}
                                             </span>
                                             <div className="pg-links">
                                                 <button className="pg-btn" disabled={contracts.current_page === 1}
@@ -458,17 +471,18 @@ export default function ContractsReport({
                             <div className="rpt-panel">
                                 <div className="rpt-panel-hdr">
                                     <div className="rpt-panel-hdr-title">
-                                        <CheckCircle size={13} color="#15803d"/> Par statut
+                                        <CheckCircle size={13} color="#15803d"/> {t('contracts.panels.byStatus')}
                                     </div>
                                 </div>
                                 <div className="rpt-panel-body">
                                     {byStatus.map(r => {
-                                        const s   = STATUS_META[r.status!] ?? { label: r.status, color: '#64748b', bg: '#f8fafc' };
+                                        const s   = STATUS_COLORS[r.status!] ?? { color: '#64748b', bg: '#f8fafc' };
+                                        const sLabel = STATUS_LABELS[r.status!] ?? r.status;
                                         const pct = stats.total > 0 ? Math.round((r.count / stats.total) * 100) : 0;
                                         return (
                                             <div key={r.status} style={{ marginBottom: 9 }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                                                    <span className="badge" style={{ color: s.color, background: s.bg }}>{s.label}</span>
+                                                    <span className="badge" style={{ color: s.color, background: s.bg }}>{sLabel}</span>
                                                     <span style={{ fontSize: 11, fontWeight: 600, color: '#1e293b' }}>
                                                         {r.count} <span style={{ color: '#94a3b8', fontWeight: 400 }}>({pct}%)</span>
                                                     </span>
@@ -486,7 +500,7 @@ export default function ContractsReport({
                             <div className="rpt-panel">
                                 <div className="rpt-panel-hdr">
                                     <div className="rpt-panel-hdr-title">
-                                        <FileText size={13} color="#1d4ed8"/> Par type
+                                        <FileText size={13} color="#1d4ed8"/> {t('contracts.panels.byType')}
                                     </div>
                                 </div>
                                 <div className="rpt-panel-body">
@@ -512,25 +526,25 @@ export default function ContractsReport({
                                 <div className="rpt-panel" style={{ border: '1.5px solid #fde68a' }}>
                                     <div className="rpt-panel-hdr" style={{ background: '#fef3c7', borderColor: '#fde68a' }}>
                                         <div className="rpt-panel-hdr-title" style={{ color: '#92400e' }}>
-                                            <AlertTriangle size={13} color="#d97706"/> Alertes
+                                            <AlertTriangle size={13} color="#d97706"/> {t('contracts.panels.alerts')}
                                         </div>
                                     </div>
                                     <div className="rpt-panel-body">
                                         {stats.expiring_7 > 0 && (
                                             <div className="side-row" style={{ color: '#dc2626' }}>
-                                                <span>Expirent dans 7j</span>
+                                                <span>{t('contracts.panels.expiringIn7')}</span>
                                                 <strong>{stats.expiring_7}</strong>
                                             </div>
                                         )}
                                         {stats.expiring_30 > 0 && (
                                             <div className="side-row" style={{ color: '#d97706' }}>
-                                                <span>Expirent dans 30j</span>
+                                                <span>{t('contracts.panels.expiringIn30')}</span>
                                                 <strong>{stats.expiring_30}</strong>
                                             </div>
                                         )}
                                         {stats.requires_approval_count > 0 && (
                                             <div className="side-row">
-                                                <span style={{ color: '#64748b', fontSize: 11 }}>Nécessitent approbation</span>
+                                                <span style={{ color: '#64748b', fontSize: 11 }}>{t('contracts.panels.requiresApproval')}</span>
                                                 <strong>{stats.requires_approval_count}</strong>
                                             </div>
                                         )}

@@ -6,11 +6,8 @@ import {
     Clock, FileText, Percent, BarChart2,
     Ship, Plane, Truck, Users,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'KPIs Filiale' },
-];
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 // ── Types ────────────────────────────────────────────────────
 interface MonthData  { label: string; count: number }
@@ -97,19 +94,16 @@ function BarChart({ data }: { data: MonthData[] }) {
 const TRANSPORT_COLORS: Record<string, string> = {
     SEA: '#0284c7', AIR: '#7c3aed', ROAD: '#059669', RAIL: '#d97706', AUTRE: '#94a3b8',
 };
-const TRANSPORT_LABELS: Record<string, string> = {
-    SEA: 'Maritime', AIR: 'Aérien', ROAD: 'Routier', RAIL: 'Ferroviaire', AUTRE: 'Autre',
-};
 const TRANSPORT_ICONS: Record<string, any> = {
     SEA: Ship, AIR: Plane, ROAD: Truck, RAIL: Truck, AUTRE: Award,
 };
 
-function TransportBreakdown({ data }: { data: Record<string, number> }) {
+function TransportBreakdown({ data, t }: { data: Record<string, number>; t: TFunction }) {
     const total = Object.values(data).reduce((s, v) => s + v, 0);
     if (total === 0) {
         return (
             <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '16px 0' }}>
-                Aucune donnée ce mois
+                {t('kpi.transport.empty')}
             </div>
         );
     }
@@ -124,7 +118,7 @@ function TransportBreakdown({ data }: { data: Record<string, number> }) {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#475569' }}>
                                 <Icon size={11} color={col}/>
-                                {TRANSPORT_LABELS[type] ?? type}
+                                {t(`kpi.transport.labels.${type}`, { defaultValue: type })}
                             </div>
                             <div style={{ fontSize: 11, fontWeight: 600, color: '#1e293b' }}>
                                 {count} <span style={{ fontSize: 10, color: '#94a3b8' }}>({pct}%)</span>
@@ -190,6 +184,12 @@ export default function KpiDashboard({
     contractStats, limitUsagePct, commStats, escaladeStats, approvalRate,
     topBrokers, isSA, currentMonth, currentYear,
 }: Props) {
+    const { t } = useTranslation('dashboard');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('kpi.breadcrumbHome'), href: route('admin.dashboard') },
+        { title: t('kpi.breadcrumb') },
+    ];
 
     const issuedEvolution = (
         <Trend curr={certStats.issued_month} prev={certStats.issued_prev_month}/>
@@ -197,7 +197,7 @@ export default function KpiDashboard({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard KPIs — NSIA Transport"/>
+            <Head title={t('kpi.headTitle')}/>
             <style>{`
                 .kpi-page { padding: 4px; display: flex; flex-direction: column; gap: 16px; }
                 .kpi-section-title {
@@ -243,10 +243,10 @@ export default function KpiDashboard({
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
                             <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
-                                Dashboard KPIs
+                                {t('kpi.heading')}
                             </h1>
                             <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
-                                Indicateurs de performance — {currentMonth} · Exercice {currentYear}
+                                {t('kpi.subtitle', { month: currentMonth, year: currentYear })}
                             </p>
                         </div>
                         <Link href={route('admin.dashboard.pending')}
@@ -254,7 +254,7 @@ export default function KpiDashboard({
                                        display: 'flex', alignItems: 'center', gap: 5,
                                        background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
                                        border: '1px solid #bfdbfe' }}>
-                            <Clock size={13}/> File de validation
+                            <Clock size={13}/> {t('kpi.validationQueue')}
                             {certStats.submitted > 0 && (
                                 <span style={{ background: '#dc2626', color: '#fff', borderRadius: 10,
                                                fontSize: 10, padding: '0 5px', fontWeight: 700 }}>
@@ -266,32 +266,32 @@ export default function KpiDashboard({
 
                     {/* ── KPIs Certificats (top row) ──────────── */}
                     <div>
-                        <div className="kpi-section-title">Certificats</div>
+                        <div className="kpi-section-title">{t('kpi.sections.certificates')}</div>
                         <div className="kpi-row kpi-row-4" style={{ gridTemplateColumns: 'repeat(4,1fr) repeat(2,1fr)', gap: 10 }}>
-                            <KpiCard label="Émis ce mois"
+                            <KpiCard label={t('kpi.cards.issuedMonth')}
                                      value={fmtNum(certStats.issued_month)}
-                                     sub={`vs ${fmtNum(certStats.issued_prev_month)} mois préc.`}
+                                     sub={t('kpi.cards.issuedMonthSub', { count: fmtNum(certStats.issued_prev_month) })}
                                      color="#1d4ed8" icon={Award}
                                      trend={issuedEvolution}/>
-                            <KpiCard label={`Émis ${currentYear} (YTD)`}
+                            <KpiCard label={t('kpi.cards.issuedYtd', { year: currentYear })}
                                      value={fmtNum(certStats.issued_ytd)}
                                      color="#0284c7" icon={TrendingUp}/>
-                            <KpiCard label="En attente"
+                            <KpiCard label={t('kpi.cards.pending')}
                                      value={fmtNum(certStats.submitted)}
                                      bg={certStats.submitted > 5 ? '#fef2f2' : '#fff'}
                                      border={certStats.submitted > 5 ? '#fecaca' : '#e2e8f0'}
                                      color={certStats.submitted > 5 ? '#dc2626' : '#f59e0b'}
                                      icon={Clock}/>
-                            <KpiCard label="Brouillons"
+                            <KpiCard label={t('kpi.cards.draft')}
                                      value={fmtNum(certStats.draft)}
                                      color="#64748b" icon={FileText}/>
-                            <KpiCard label="Annulés ce mois"
+                            <KpiCard label={t('kpi.cards.cancelledMonth')}
                                      value={fmtNum(certStats.cancelled_month)}
                                      color={certStats.cancelled_month > 0 ? '#dc2626' : '#94a3b8'}
                                      icon={AlertTriangle}/>
-                            <KpiCard label="Délai moyen traitement"
+                            <KpiCard label={t('kpi.cards.avgProcessing')}
                                      value={avgProcessingHours !== null ? `${avgProcessingHours}h` : '—'}
-                                     sub="soumission → émission"
+                                     sub={t('kpi.cards.avgProcessingSub')}
                                      color="#7c3aed" icon={Clock}/>
                         </div>
                     </div>
@@ -304,9 +304,9 @@ export default function KpiDashboard({
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
                                     <BarChart2 size={14} color="#1d4ed8"/>
-                                    Émissions par mois (12 mois)
+                                    {t('kpi.monthlyChart.title')}
                                 </div>
-                                <span style={{ fontSize: 10, color: '#94a3b8' }}>Certificats Approuvés</span>
+                                <span style={{ fontSize: 10, color: '#94a3b8' }}>{t('kpi.monthlyChart.badge')}</span>
                             </div>
                             <div className="kpi-panel-body">
                                 <BarChart data={monthlyData}/>
@@ -318,11 +318,11 @@ export default function KpiDashboard({
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
                                     <Ship size={14} color="#0284c7"/>
-                                    Par mode (ce mois)
+                                    {t('kpi.transport.title')}
                                 </div>
                             </div>
                             <div className="kpi-panel-body">
-                                <TransportBreakdown data={transportBreakdown}/>
+                                <TransportBreakdown data={transportBreakdown} t={t}/>
                             </div>
                         </div>
 
@@ -331,36 +331,36 @@ export default function KpiDashboard({
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
                                     <FileText size={14} color="#059669"/>
-                                    Contrats
+                                    {t('kpi.contracts.title')}
                                 </div>
                                 <Link href={route('admin.contracts.index')}
                                       style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
-                                    Voir →
+                                    {t('kpi.contracts.seeAll')}
                                 </Link>
                             </div>
                             <div className="kpi-panel-body">
                                 <div className="stat-row">
-                                    <span className="stat-lbl">Actifs</span>
+                                    <span className="stat-lbl">{t('kpi.contracts.active')}</span>
                                     <span className="stat-val" style={{ color: '#059669' }}>
                                         {contractStats.active}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">Expirant dans 30j</span>
+                                    <span className="stat-lbl">{t('kpi.contracts.expiring30')}</span>
                                     <span className="stat-val"
                                           style={{ color: contractStats.expiring_30 > 0 ? '#f59e0b' : '#64748b' }}>
                                         {contractStats.expiring_30}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">Expirant dans 7j</span>
+                                    <span className="stat-lbl">{t('kpi.contracts.expiring7')}</span>
                                     <span className="stat-val"
                                           style={{ color: contractStats.expiring_7 > 0 ? '#dc2626' : '#64748b' }}>
                                         {contractStats.expiring_7}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">Brouillons</span>
+                                    <span className="stat-lbl">{t('kpi.contracts.draft')}</span>
                                     <span className="stat-val" style={{ color: '#64748b' }}>
                                         {contractStats.draft}
                                     </span>
@@ -368,7 +368,7 @@ export default function KpiDashboard({
                                 {limitUsagePct !== null && (
                                     <div style={{ marginTop: 8 }}>
                                         <div style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>
-                                            Utilisation plafonds NN300 (moy.)
+                                            {t('kpi.contracts.limitUsage')}
                                         </div>
                                         <div style={{ fontSize: 14, fontWeight: 700,
                                                       color: Number(limitUsagePct) > 80 ? '#dc2626' : '#059669' }}>
@@ -391,22 +391,22 @@ export default function KpiDashboard({
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
                                     <Percent size={14} color="#7c3aed"/>
-                                    Commissions
+                                    {t('kpi.commissions.title')}
                                 </div>
                                 <Link href={route('admin.commissions.bordereau')}
                                       style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
-                                    Bordereau →
+                                    {t('kpi.commissions.bordereau')}
                                 </Link>
                             </div>
                             <div className="kpi-panel-body">
                                 <div className="stat-row">
-                                    <span className="stat-lbl">Payées ce mois</span>
+                                    <span className="stat-lbl">{t('kpi.commissions.paidMonth')}</span>
                                     <span className="stat-val" style={{ color: '#15803d', fontFamily: 'monospace' }}>
                                         {fmtAmt(commStats.paid_month)}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">En attente (mois)</span>
+                                    <span className="stat-lbl">{t('kpi.commissions.pendingMonth')}</span>
                                     <span className="stat-val"
                                           style={{ color: commStats.pending_amount > 0 ? '#f59e0b' : '#64748b',
                                                    fontFamily: 'monospace' }}>
@@ -414,7 +414,7 @@ export default function KpiDashboard({
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">Dossiers en attente</span>
+                                    <span className="stat-lbl">{t('kpi.commissions.pendingCount')}</span>
                                     <span className="stat-val">
                                         {commStats.pending_count}
                                     </span>
@@ -427,29 +427,29 @@ export default function KpiDashboard({
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
                                     <TrendingUp size={14} color="#f59e0b"/>
-                                    Escalades NN300
+                                    {t('kpi.escalades.title')}
                                 </div>
                                 <Link href={route('admin.approvals.index')}
                                       style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
-                                    Voir →
+                                    {t('kpi.escalades.seeAll')}
                                 </Link>
                             </div>
                             <div className="kpi-panel-body">
                                 <div className="stat-row">
-                                    <span className="stat-lbl">En cours</span>
+                                    <span className="stat-lbl">{t('kpi.escalades.inProgress')}</span>
                                     <span className="stat-val"
                                           style={{ color: escaladeStats.pending > 0 ? '#dc2626' : '#64748b' }}>
                                         {escaladeStats.pending}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">Approuvées (mois)</span>
+                                    <span className="stat-lbl">{t('kpi.escalades.approvedMonth')}</span>
                                     <span className="stat-val" style={{ color: '#15803d' }}>
                                         {escaladeStats.approved}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">Rejetées (mois)</span>
+                                    <span className="stat-lbl">{t('kpi.escalades.rejectedMonth')}</span>
                                     <span className="stat-val" style={{ color: '#dc2626' }}>
                                         {escaladeStats.rejected}
                                     </span>
@@ -457,7 +457,7 @@ export default function KpiDashboard({
                                 {approvalRate !== null && (
                                     <div style={{ marginTop: 8 }}>
                                         <div style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>
-                                            Taux d'approbation
+                                            {t('kpi.escalades.approvalRate')}
                                         </div>
                                         <div style={{ fontSize: 18, fontWeight: 700,
                                                       color: approvalRate >= 80 ? '#15803d' : '#f59e0b' }}>
@@ -470,7 +470,7 @@ export default function KpiDashboard({
                                 )}
                                 {approvalRate === null && (
                                     <div style={{ marginTop: 6, fontSize: 10, color: '#94a3b8' }}>
-                                        Aucune décision ce mois
+                                        {t('kpi.escalades.noDecision')}
                                     </div>
                                 )}
                             </div>
@@ -481,17 +481,17 @@ export default function KpiDashboard({
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
                                     <Users size={14} color="#1d4ed8"/>
-                                    Top courtiers ce mois
+                                    {t('kpi.topBrokers.title')}
                                 </div>
                                 <Link href={route('admin.brokers.index')}
                                       style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
-                                    Tous →
+                                    {t('kpi.topBrokers.seeAll')}
                                 </Link>
                             </div>
                             <div className="kpi-panel-body" style={{ padding: '8px 16px' }}>
                                 {topBrokers.length === 0 ? (
                                     <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '14px 0' }}>
-                                        Aucune émission ce mois
+                                        {t('kpi.topBrokers.empty')}
                                     </div>
                                 ) : topBrokers.map((b, i) => (
                                     <div key={b.broker_name} className="broker-row">
@@ -510,13 +510,13 @@ export default function KpiDashboard({
                                                     {b.broker_name}
                                                 </div>
                                                 <div className="broker-sub">
-                                                    Valeur : {fmtAmt(b.total_value)}
+                                                    {t('kpi.topBrokers.value', { amount: fmtAmt(b.total_value) })}
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="broker-cnt">
                                             {b.count}
-                                            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 400 }}>cert.</div>
+                                            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 400 }}>{t('kpi.topBrokers.certSuffix')}</div>
                                         </div>
                                     </div>
                                 ))}
@@ -529,14 +529,14 @@ export default function KpiDashboard({
                     <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10,
                                   padding: '10px 16px', display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b', alignSelf: 'center' }}>
-                            Accès rapide :
+                            {t('kpi.quickAccess.label')}
                         </span>
                         {[
-                            { href: route('admin.certificates.index'), icon: Award, label: 'Certificats' },
-                            { href: route('admin.contracts.index'),    icon: FileText, label: 'Contrats' },
-                            { href: route('admin.commissions.bordereau'), icon: Percent, label: 'Bordereau' },
-                            { href: route('admin.approvals.index'),    icon: TrendingUp, label: 'Escalades' },
-                            { href: route('admin.dashboard.pending'),  icon: Clock, label: 'File de validation' },
+                            { href: route('admin.certificates.index'), icon: Award, label: t('kpi.quickAccess.certificates') },
+                            { href: route('admin.contracts.index'),    icon: FileText, label: t('kpi.quickAccess.contracts') },
+                            { href: route('admin.commissions.bordereau'), icon: Percent, label: t('kpi.quickAccess.bordereau') },
+                            { href: route('admin.approvals.index'),    icon: TrendingUp, label: t('kpi.quickAccess.escalades') },
+                            { href: route('admin.dashboard.pending'),  icon: Clock, label: t('kpi.quickAccess.validationQueue') },
                         ].map(item => (
                             <Link key={item.label} href={item.href}
                                   style={{ fontSize: 11, color: '#1d4ed8', textDecoration: 'none',

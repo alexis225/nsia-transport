@@ -6,35 +6,37 @@ import { edit } from '@/routes/profile';
 import type { BreadcrumbItem } from '@/types';
 import { Palette, Monitor, Sun, Moon, Check, Type, Layout } from 'lucide-react';
 import { useState } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Paramètres du profil', href: edit() },
-    { title: 'Apparence' },
-];
+import { useTranslation } from 'react-i18next';
 
 type Theme = 'light' | 'dark' | 'system';
 
-const THEMES: { value: Theme; label: string; desc: string; Icon: React.FC<any> }[] = [
-    { value:'light',  label:'Clair',   desc:'Interface lumineuse',    Icon: Sun },
-    { value:'dark',   label:'Sombre',  desc:'Interface sombre',       Icon: Moon },
-    { value:'system', label:'Système', desc:'Suit les préférences OS', Icon: Monitor },
+// Les libelles sont resolus a l'affichage : seules les valeurs techniques
+// (persistees en preference) vivent ici.
+const THEMES: { value: Theme; Icon: React.FC<any> }[] = [
+    { value:'light',  Icon: Sun },
+    { value:'dark',   Icon: Moon },
+    { value:'system', Icon: Monitor },
 ];
 
 const FONT_SIZES = [
-    { value:'sm', label:'Petit',  size:'12px' },
-    { value:'md', label:'Moyen',  size:'14px' },
-    { value:'lg', label:'Grand',  size:'16px' },
+    { value:'sm', size:'12px' },
+    { value:'md', size:'14px' },
+    { value:'lg', size:'16px' },
 ];
 
 const ACCENT_COLORS = [
-    { value:'blue',   label:'Bleu',   hex:'#1e3a8a' },
-    { value:'indigo', label:'Indigo', hex:'#4338ca' },
-    { value:'violet', label:'Violet', hex:'#7c3aed' },
-    { value:'teal',   label:'Teal',   hex:'#0f766e' },
-    { value:'green',  label:'Vert',   hex:'#15803d' },
+    { value:'blue',   hex:'#1e3a8a' },
+    { value:'indigo', hex:'#4338ca' },
+    { value:'violet', hex:'#7c3aed' },
+    { value:'teal',   hex:'#0f766e' },
+    { value:'green',  hex:'#15803d' },
 ];
 
+const SIDEBAR_STATES = ['expanded', 'collapsed'] as const;
+
 export default function AppearancePage() {
+    const { t }     = useTranslation('settings');
+    const { t: ta } = useTranslation('auth');
     const { auth }                     = usePage().props as any;
     const user                         = auth?.user;
     const { appearance, updateAppearance } = useAppearance();
@@ -42,13 +44,18 @@ export default function AppearancePage() {
     const initials = `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
     const fullName  = user?.first_name ? `${user.first_name} ${user.last_name}` : (user?.name ?? '');
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb.profile'), href: edit() },
+        { title: t('breadcrumb.appearance') },
+    ];
+
     const [fontSize,     setFontSize]     = useState('md');
     const [accentColor,  setAccentColor]  = useState('blue');
     const [sidebarState, setSidebarState] = useState('expanded');
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Apparence — NSIA Transport"/>
+            <Head title={`${t('appearance.title')} — NSIA Transport`}/>
             <style>{`
                 .ap-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .ap-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:26px 24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -121,8 +128,8 @@ export default function AppearancePage() {
                     <div className="ap-hero">
                         <div className="ap-avatar">{initials}</div>
                         <div className="ap-hero-info">
-                            <div className="ap-hero-name">{fullName || 'Utilisateur'}</div>
-                            <div className="ap-hero-sub">Personnalisation · Thème et préférences visuelles</div>
+                            <div className="ap-hero-name">{fullName || ta('user.fallbackName')}</div>
+                            <div className="ap-hero-sub">{t('appearance.heroSubtitle')}</div>
                         </div>
                         <div className="ap-hero-ico">
                             <Palette size={22} color="rgba(255,255,255,0.7)"/>
@@ -133,14 +140,14 @@ export default function AppearancePage() {
                     <div className="ap-card">
                         <div className="ap-card-hdr">
                             <div className="ap-card-ico" style={{background:'#fdf4ff'}}><Palette size={17} color="#a855f7"/></div>
-                            <div><div className="ap-card-ttl">Thème</div><div className="ap-card-sub">Choisissez l'apparence de l'interface</div></div>
+                            <div><div className="ap-card-ttl">{t('appearance.theme.title')}</div><div className="ap-card-sub">{t('appearance.theme.subtitle')}</div></div>
                         </div>
                         <div className="ap-card-body">
                             <div className="theme-grid">
-                                {THEMES.map(({ value, label, desc, Icon }) => (
+                                {THEMES.map(({ value, Icon }) => (
                                     <div key={value} className={`theme-card ${appearance === value ? 'active' : ''}`} onClick={() => updateAppearance(value)}>
                                         <div className="theme-ico"><Icon size={19} color={appearance === value ? '#1d4ed8' : '#94a3b8'}/></div>
-                                        <div><div className="theme-label">{label}</div><div className="theme-desc">{desc}</div></div>
+                                        <div><div className="theme-label">{t(`appearance.theme.${value}`)}</div><div className="theme-desc">{t(`appearance.theme.${value}Desc`)}</div></div>
                                         <div className="theme-check">{appearance === value && <Check size={10} color="#fff"/>}</div>
                                     </div>
                                 ))}
@@ -170,14 +177,14 @@ export default function AppearancePage() {
                     <div className="ap-card">
                         <div className="ap-card-hdr">
                             <div className="ap-card-ico" style={{background:'#eff6ff'}}><Type size={17} color="#3b82f6"/></div>
-                            <div><div className="ap-card-ttl">Taille du texte</div><div className="ap-card-sub">Ajustez la lisibilité de l'interface</div></div>
+                            <div><div className="ap-card-ttl">{t('appearance.fontSize.title')}</div><div className="ap-card-sub">{t('appearance.fontSize.subtitle')}</div></div>
                         </div>
                         <div className="ap-card-body">
                             <div className="font-grid">
                                 {FONT_SIZES.map(f => (
                                     <div key={f.value} className={`font-card ${fontSize === f.value ? 'active' : ''}`} onClick={() => setFontSize(f.value)}>
                                         <div className="font-sample" style={{fontSize:f.size}}>Aa</div>
-                                        <div className="font-name">{f.label}</div>
+                                        <div className="font-name">{t(`appearance.fontSize.${f.value}`)}</div>
                                     </div>
                                 ))}
                             </div>
@@ -188,7 +195,7 @@ export default function AppearancePage() {
                     <div className="ap-card">
                         <div className="ap-card-hdr">
                             <div className="ap-card-ico" style={{background:'#fff7ed'}}><Palette size={17} color="#f97316"/></div>
-                            <div><div className="ap-card-ttl">Couleur principale</div><div className="ap-card-sub">Couleur des boutons et éléments actifs</div></div>
+                            <div><div className="ap-card-ttl">{t('appearance.accent.title')}</div><div className="ap-card-sub">{t('appearance.accent.subtitle')}</div></div>
                         </div>
                         <div className="ap-card-body">
                             <div className="color-grid">
@@ -197,7 +204,7 @@ export default function AppearancePage() {
                                         <div className={`color-swatch ${accentColor === c.value ? 'active' : ''}`} style={{background:c.hex}} onClick={() => setAccentColor(c.value)}>
                                             {accentColor === c.value && <Check size={13} color="#fff"/>}
                                         </div>
-                                        <span className="color-lbl">{c.label}</span>
+                                        <span className="color-lbl">{t(`appearance.accent.${c.value}`)}</span>
                                     </div>
                                 ))}
                             </div>
@@ -208,24 +215,24 @@ export default function AppearancePage() {
                     <div className="ap-card">
                         <div className="ap-card-hdr">
                             <div className="ap-card-ico" style={{background:'#f0fdf4'}}><Layout size={17} color="#16a34a"/></div>
-                            <div><div className="ap-card-ttl">Menu latéral</div><div className="ap-card-sub">État par défaut au chargement</div></div>
+                            <div><div className="ap-card-ttl">{t('appearance.sidebar.title')}</div><div className="ap-card-sub">{t('appearance.sidebar.subtitle')}</div></div>
                         </div>
                         <div className="ap-card-body">
                             <div className="sb-grid">
-                                {[{value:'expanded',label:'Déployé',sub:'Menu visible par défaut'},{value:'collapsed',label:'Réduit',sub:'Icônes uniquement'}].map(opt => (
-                                    <div key={opt.value} className={`sb-opt ${sidebarState === opt.value ? 'active' : ''}`} onClick={() => setSidebarState(opt.value)}>
-                                        <div style={{width:28,height:28,background:sidebarState===opt.value?'#eff6ff':'#f1f5f9',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                            <Layout size={14} color={sidebarState===opt.value?'#1d4ed8':'#94a3b8'}/>
+                                {SIDEBAR_STATES.map(value => (
+                                    <div key={value} className={`sb-opt ${sidebarState === value ? 'active' : ''}`} onClick={() => setSidebarState(value)}>
+                                        <div style={{width:28,height:28,background:sidebarState===value?'#eff6ff':'#f1f5f9',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                                            <Layout size={14} color={sidebarState===value?'#1d4ed8':'#94a3b8'}/>
                                         </div>
                                         <div>
-                                            <div className="sb-opt-ttl">{opt.label}</div>
-                                            <div className="sb-opt-sub">{opt.sub}</div>
+                                            <div className="sb-opt-ttl">{t(`appearance.sidebar.${value}`)}</div>
+                                            <div className="sb-opt-sub">{t(`appearance.sidebar.${value}Desc`)}</div>
                                         </div>
-                                        {sidebarState === opt.value && <Check size={13} color="#1d4ed8" style={{marginLeft:'auto',flexShrink:0}}/>}
+                                        {sidebarState === value && <Check size={13} color="#1d4ed8" style={{marginLeft:'auto',flexShrink:0}}/>}
                                     </div>
                                 ))}
                             </div>
-                            <p style={{fontSize:12,color:'#94a3b8',fontStyle:'italic'}}>Les préférences sont sauvegardées automatiquement.</p>
+                            <p style={{fontSize:12,color:'#94a3b8',fontStyle:'italic'}}>{t('appearance.autosave')}</p>
                         </div>
                     </div>
 

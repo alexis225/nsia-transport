@@ -1,0 +1,47 @@
+{
+    "breadcrumb": {
+        "section": "Impostos",
+        "rules": "Tabela de impostos"
+    },
+    "rules": {
+        "title": "Tabela de impostos — NSIA Transport",
+        "heading": "Tabela de impostos",
+        "subtitle": "Taxas por filial, modo de transporte e país — aplicadas automaticamente na emissão dos certificados",
+        "newRate": "Nova taxa",
+        "form": {
+            "title": "Nova taxa de imposto",
+            "tenant": "Filial *",
+            "chooseTenant": "— Selecionar —",
+            "transportMode": "Modo de transporte",
+            "allModesDefault": "Todos os modos (padrão)",
+            "country": "País de destino",
+            "allDestinationsDefault": "Todos os destinos (padrão)",
+            "rate": "Taxa (%) *",
+            "ratePlaceholder": "ex.: 18.00",
+            "effectiveDate": "Data de vigência *",
+            "endDate": "Data de fim (opcional)",
+            "notes": "Notas (opcional)",
+            "notesPlaceholder": "ex.: IVA + direitos aduaneiros 2026",
+            "hint": "Esta taxa substitui a introdução manual da taxa de imposto no contrato — é resolvida automaticamente na emissão consoante o modo de transporte e o país de destino do certificado. Deixar \"Modo de transporte\" e/ou \"País de destino\" vazios cria uma regra por defeito (imposto único da filial, ou taxa por modo independente do destino) utilizada quando nenhuma regra mais específica corresponde.",
+            "submit": "Criar taxa"
+        },
+        "table": {
+            "tenant": "Filial",
+            "transportMode": "Modo de transporte",
+            "country": "País",
+            "allModes": "Todos os modos",
+            "allDestinations": "Todos os destinos",
+            "rate": "Taxa",
+            "effectiveDate": "Data de vigência",
+            "endDate": "Data de fim",
+            "status": "Estado",
+            "notes": "Notas",
+            "action": "Ação"
+        },
+        "toggle": {
+            "deactivate": "Desativar",
+            "activate": "Ativar"
+        },
+        "empty": "Nenhuma taxa de imposto definida."
+    }
+}

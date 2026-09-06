@@ -98,28 +98,28 @@ class DashboardController extends Controller
 
         $kpis = [
             [
-                'label'  => 'Certificats émis',
+                'label'  => __('dashboard.kpis.certificates_issued'),
                 'value'  => number_format($issuedMonth, 0, ',', ' '),
                 'change' => $this->pctChange($issuedMonth, $issuedPrev),
-                'sub'    => 'Ce mois',
+                'sub'    => __('dashboard.periods.this_month'),
             ],
             [
-                'label'  => 'Primes émises',
+                'label'  => __('dashboard.kpis.premiums_issued'),
                 'value'  => $this->fmtAmount($primeMonth),
                 'change' => $this->pctChange($primeMonth, $primePrev),
-                'sub'    => 'Ce mois',
+                'sub'    => __('dashboard.periods.this_month'),
             ],
             [
-                'label'  => 'Contrats actifs',
+                'label'  => __('dashboard.kpis.contracts_active'),
                 'value'  => (string) $contractsActive,
                 'change' => $this->pctChange($contractsNewMonth, $contractsNewPrev),
-                'sub'    => 'Total',
+                'sub'    => __('dashboard.periods.total'),
             ],
             [
-                'label'  => 'Courtiers actifs',
+                'label'  => __('dashboard.kpis.brokers_active'),
                 'value'  => (string) $brokersMonth,
                 'change' => $this->pctChange($brokersMonth, $brokersPrev),
-                'sub'    => 'Ce mois',
+                'sub'    => __('dashboard.periods.this_month'),
             ],
         ];
 
@@ -146,7 +146,7 @@ class DashboardController extends Controller
             $date          = now()->subMonths($i);
             $key           = $date->format('Y-m');
             $monthlyData[] = [
-                'month'  => $date->locale('fr')->isoFormat('MMM'),
+                'month'  => $date->locale(app()->getLocale())->isoFormat('MMM'),
                 'issued' => (int) ($rawCounts[$key] ?? 0),
                 'amount' => (float) ($rawMonthly[$key] ?? 0),
             ];
@@ -256,7 +256,7 @@ class DashboardController extends Controller
             'topInsured'         => $topInsured,
             'topFiliales'        => $topFiliales,
             'monthlyData'        => $monthlyData,
-            'period'             => now()->locale('fr')->isoFormat('MMMM YYYY'),
+            'period'             => now()->locale(app()->getLocale())->isoFormat('MMMM YYYY'),
             'tenantName'         => $user->tenant?->name ?? 'Toutes filiales',
             'isSA'               => $isSA,
             'brokersActiveTotal' => $brokersActiveTotal,

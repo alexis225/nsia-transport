@@ -1,13 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { FilePlus2, Eye, ChevronLeft, ChevronRight, Inbox, Search, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Mes demandes', href: '/partner/certificate-requests' },
-];
 
 type RequestStatus = 'DRAFT' | 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'COMPLETED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
 
@@ -36,19 +33,37 @@ interface Props {
     filters: { search?: string; status?: string };
 }
 
-const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
-    DRAFT:          { bg: '#f1f5f9', color: '#64748b', label: 'Brouillon' },
-    PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
-    IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
-    INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
-    COMPLETED:      { bg: '#eef2ff', color: '#4338ca', label: 'Complétée' },
-    APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
-    FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
-    CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
-    REJECTED:       { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
+const STATUS_COLORS: Record<RequestStatus, { bg: string; color: string }> = {
+    DRAFT:          { bg: '#f1f5f9', color: '#64748b' },
+    PENDING:        { bg: '#fffbeb', color: '#b45309' },
+    IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8' },
+    INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c' },
+    COMPLETED:      { bg: '#eef2ff', color: '#4338ca' },
+    APPROVED:       { bg: '#f0fdf4', color: '#15803d' },
+    FULFILLED:      { bg: '#f0fdf4', color: '#15803d' },
+    CLOSED:         { bg: '#f1f5f9', color: '#475569' },
+    REJECTED:       { bg: '#fef2f2', color: '#b91c1c' },
 };
 
 export default function PartnerCertificateRequestsIndex({ certificateRequests, filters }: Props) {
+    const { t } = useTranslation('certificates');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('partner.requests.index.breadcrumb'), href: '/partner/certificate-requests' },
+    ];
+
+    const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
+        DRAFT:          { ...STATUS_COLORS.DRAFT,          label: t('shared.requestStatus.DRAFT') },
+        PENDING:        { ...STATUS_COLORS.PENDING,        label: t('shared.requestStatus.PENDING') },
+        IN_REVIEW:      { ...STATUS_COLORS.IN_REVIEW,      label: t('shared.requestStatus.IN_REVIEW') },
+        INFO_REQUESTED: { ...STATUS_COLORS.INFO_REQUESTED, label: t('shared.requestStatus.INFO_REQUESTED') },
+        COMPLETED:      { ...STATUS_COLORS.COMPLETED,      label: t('shared.requestStatus.COMPLETED') },
+        APPROVED:       { ...STATUS_COLORS.APPROVED,       label: t('shared.requestStatus.APPROVED') },
+        FULFILLED:      { ...STATUS_COLORS.FULFILLED,      label: t('shared.requestStatus.FULFILLED') },
+        CLOSED:         { ...STATUS_COLORS.CLOSED,         label: t('shared.requestStatus.CLOSED') },
+        REJECTED:       { ...STATUS_COLORS.REJECTED,       label: t('shared.requestStatus.REJECTED') },
+    };
+
     const [search, setSearch] = useState(filters.search ?? '');
     const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -58,17 +73,17 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Mes demandes de certificat — NSIA Transport" />
+            <Head title={t('partner.requests.index.title')} />
 
             <div style={{ padding: '24px', width: '100%' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <div>
-                        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Mes demandes de certificat</h1>
-                        <p style={{ color: '#64748b', fontSize: '13px', margin: '4px 0 0' }}>Suivez l'état de vos demandes soumises à NSIA</p>
+                        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('partner.requests.index.heading')}</h1>
+                        <p style={{ color: '#64748b', fontSize: '13px', margin: '4px 0 0' }}>{t('partner.requests.index.subtitle')}</p>
                     </div>
                     <Link href={route('partner.certificate-requests.create')}>
                         <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <FilePlus2 size={15} /> Nouvelle demande
+                            <FilePlus2 size={15} /> {t('partner.requests.index.newRequest')}
                         </Button>
                     </Link>
                 </div>
@@ -80,7 +95,7 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && applyFilters({ search })}
-                            placeholder="Assuré, trajet..."
+                            placeholder={t('partner.requests.index.searchPlaceholder')}
                             style={{ width: '100%', padding: '8px 8px 8px 34px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
                         />
                         {search && (
@@ -95,16 +110,16 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                     </div>
                     <select value={filters.status ?? ''} onChange={e => applyFilters({ status: e.target.value })}
                             style={{ padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>
-                        <option value="">Tous statuts</option>
-                        <option value="DRAFT">Brouillon</option>
-                        <option value="PENDING">Transmise</option>
-                        <option value="IN_REVIEW">En cours d'analyse</option>
-                        <option value="INFO_REQUESTED">Complément demandé</option>
-                        <option value="COMPLETED">Complétée</option>
-                        <option value="APPROVED">Validée</option>
-                        <option value="FULFILLED">Certificat émis</option>
-                        <option value="CLOSED">Clôturée</option>
-                        <option value="REJECTED">Rejetée</option>
+                        <option value="">{t('partner.requests.index.allStatuses')}</option>
+                        <option value="DRAFT">{t('shared.requestStatus.DRAFT')}</option>
+                        <option value="PENDING">{t('shared.requestStatus.PENDING')}</option>
+                        <option value="IN_REVIEW">{t('shared.requestStatus.IN_REVIEW')}</option>
+                        <option value="INFO_REQUESTED">{t('shared.requestStatus.INFO_REQUESTED')}</option>
+                        <option value="COMPLETED">{t('shared.requestStatus.COMPLETED')}</option>
+                        <option value="APPROVED">{t('shared.requestStatus.APPROVED')}</option>
+                        <option value="FULFILLED">{t('shared.requestStatus.FULFILLED')}</option>
+                        <option value="CLOSED">{t('shared.requestStatus.CLOSED')}</option>
+                        <option value="REJECTED">{t('shared.requestStatus.REJECTED')}</option>
                     </select>
                 </div>
 
@@ -112,7 +127,14 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                {['Référence', 'Date', 'Assuré', 'Trajet', 'Statut', ''].map(h => (
+                                {[
+                                    t('partner.requests.index.table.reference'),
+                                    t('partner.requests.index.table.date'),
+                                    t('partner.requests.index.table.insured'),
+                                    t('partner.requests.index.table.route'),
+                                    t('partner.requests.index.table.status'),
+                                    '',
+                                ].map(h => (
                                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>{h}</th>
                                 ))}
                             </tr>
@@ -122,7 +144,7 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                                 <tr>
                                     <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
                                         <Inbox size={32} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.4 }} />
-                                        Aucune demande soumise pour le moment
+                                        {t('partner.requests.index.empty')}
                                     </td>
                                 </tr>
                             ) : certificateRequests.data.map((cr, i) => {
@@ -143,7 +165,7 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                                         </td>
                                         <td style={{ padding: '10px 14px' }}>
                                             <Link href={route('partner.certificate-requests.show', { certificateRequest: cr.id })}>
-                                                <button title="Voir" style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', color: '#3b82f6' }}>
+                                                <button title={t('partner.requests.index.view')} style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', color: '#3b82f6' }}>
                                                     <Eye size={14} />
                                                 </button>
                                             </Link>

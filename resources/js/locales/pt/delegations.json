@@ -1,0 +1,57 @@
+{
+    "index": {
+        "breadcrumb": "Delegações de função",
+        "title": "Delegações de função — NSIA Transport",
+        "heading": "Delegações de função",
+        "subtitle": "Delegação temporária de funções de validação (férias, ausências)",
+        "newDelegation": "Nova delegação",
+        "status": {
+            "active": "Ativa",
+            "expired": "Expirada",
+            "revoked": "Revogada"
+        },
+        "card": {
+            "from": "De: {{name}}",
+            "grantedOn": "Concedida em {{date}}",
+            "expiresOn": "Expira em {{date}}",
+            "revokedBy": "Revogada por {{name}}",
+            "revokedOn": " em {{date}}",
+            "revoke": "Revogar"
+        },
+        "revokeModal": {
+            "title": "Revogar a delegação",
+            "descriptionPrefix": "Delegação da função",
+            "descriptionTo": "a",
+            "descriptionExpiry": " — expira em {{date}}",
+            "reasonLabel": "Motivo da revogação (facultativo)",
+            "reasonPlaceholder": "ex: Regresso antecipado de férias…",
+            "confirm": "Revogar"
+        },
+        "receivedBanner": {
+            "title_one": "Tem {{count}} delegação de função ativa",
+            "title_other": "Tem {{count}} delegações de função ativas",
+            "role": "Função {{role}}",
+            "from": "De {{name}}",
+            "until": "até {{date}}"
+        },
+        "form": {
+            "title": "Nova delegação de função",
+            "granteeLabel": "Delegado *",
+            "granteePlaceholder": "— Escolher um colega —",
+            "roleLabel": "Função a delegar *",
+            "rolePlaceholder": "— Escolher uma função —",
+            "expiresLabel": "Data de expiração *",
+            "reasonLabel": "Motivo (facultativo)",
+            "reasonPlaceholder": "ex: Férias, deslocação…",
+            "warning": "O delegado herdará todas as permissões da função delegada até à data de expiração.",
+            "creating": "A guardar…",
+            "create": "Criar delegação"
+        },
+        "sections": {
+            "active": "Delegações ativas ({{count}})",
+            "activeEmpty": "Nenhuma delegação ativa.",
+            "history": "Histórico ({{count}})",
+            "historyEmpty": "Sem histórico."
+        }
+    }
+}

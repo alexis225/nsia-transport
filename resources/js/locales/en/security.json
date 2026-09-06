@@ -1,0 +1,48 @@
+{
+    "ipBlacklist": {
+        "breadcrumbDashboard": "Dashboard",
+        "breadcrumbSecurity": "Security",
+        "breadcrumbIpBlacklist": "IP Blacklist",
+        "title": "IP Blacklist — NSIA Transport",
+        "heading": "IP Blacklist & Intrusion Detection",
+        "subtitle": "Block IP/CIDR ranges · Monitor login attempts",
+        "blockIp": "Block an IP",
+        "addErrorFallback": "Error while adding.",
+        "me": "Me",
+        "panel": {
+            "blockedRanges": "Blocked IP ranges ({{count}})",
+            "ipOrCidr": "IP or CIDR range *",
+            "ipOrCidrPlaceholder": "e.g.: 192.168.1.5 or 10.0.0.0/24",
+            "reason": "Reason",
+            "reasonPlaceholder": "Reason for blocking…",
+            "expiration": "Expiration (optional)",
+            "block": "Block",
+            "noBlockedIp": "No blocked IP",
+            "columns": {
+                "ipRange": "IP / CIDR range",
+                "reason": "Reason",
+                "blockedBy": "Blocked by",
+                "expiration": "Expiration",
+                "status": "Status",
+                "addedOn": "Added on"
+            },
+            "permanent": "Permanent",
+            "active": "Active",
+            "expired": "Expired",
+            "delete": "Delete"
+        },
+        "suspicious": {
+            "title": "Suspicious accounts (attempts > 3)",
+            "noSuspicious": "No suspicious account",
+            "columns": {
+                "user": "User",
+                "email": "Email",
+                "failedAttempts": "Failed attempts",
+                "lastIp": "Last IP",
+                "lockedUntil": "Locked until",
+                "action": "Action"
+            },
+            "unlock": "Unlock"
+        }
+    }
+}

@@ -1,0 +1,224 @@
+{
+    "breadcrumb": "Dashboard",
+    "title": "Dashboard — NSIA Transport",
+    "heading": "General report",
+    "detailedKpis": "Detailed KPIs",
+    "mini": {
+        "brokersActive": "Active brokers (total)",
+        "primeAllTime": "Premiums issued (all time)"
+    },
+    "monthly": {
+        "title": "Certificates issued — monthly",
+        "subtitle": "12-month trend",
+        "seeReport": "View report",
+        "empty": "No certificates issued in the last 12 months",
+        "tooltip": "{{month}}: {{issued}} cert.",
+        "totalIssued": "Certificates issued (12 months)",
+        "totalPrime": "Total premiums"
+    },
+    "tops": {
+        "brokers": "Top brokers",
+        "insured": "Top policyholders",
+        "filiales": "Top 3 subsidiaries",
+        "byVolume": "By volume · this month",
+        "seeMore": "See more",
+        "empty": "No certificates issued this month"
+    },
+    "recent": {
+        "title": "Recent certificates",
+        "seeAll": "View all",
+        "empty": "No recent certificates",
+        "number": "Certificate no.",
+        "client": "Client",
+        "amount": "Amount",
+        "status": "Status",
+        "date": "Date"
+    },
+    "operational": {
+        "title": "Operational tracking",
+        "subtitle": "Certificate requests — partner portal",
+        "received": "Requests received",
+        "pending": "Requests pending",
+        "processed": "Requests processed"
+    },
+    "partner": {
+        "title": "Partner portal — NSIA Transport",
+        "breadcrumb": "Dashboard",
+        "hero": "Partner portal",
+        "welcome": "Welcome to your portal",
+        "newRequest": "New request",
+        "unlinked": {
+            "title": "Account not linked",
+            "text": "Your account is not yet linked to a broker record. Contact your NSIA subsidiary administrator to finish setting up your access."
+        },
+        "stats": {
+            "pending": "Pending",
+            "inReview": "Under review",
+            "approved": "Approved",
+            "rejected": "Rejected"
+        },
+        "charts": {
+            "requests": "Requests breakdown",
+            "certificates": "Certificate origin",
+            "issued": "Issued",
+            "guce": "Imported (GUCE)"
+        },
+        "allRequests": "View all my requests"
+    },
+    "dtag": {
+        "breadcrumbHome": "Dashboard",
+        "breadcrumb": "DTAG Dashboard (Multi-subsidiary)",
+        "headTitle": "DTAG Multi-subsidiary Dashboard — NSIA Transport",
+        "heading": "DTAG Dashboard — Group consolidated",
+        "subtitle": "{{count}} active subsidiaries · {{month}} · Fiscal year {{year}}",
+        "subsidiaryDashboard": "Subsidiary dashboard",
+        "kpis": {
+            "issuedMonth": "Cert. issued this month",
+            "issuedYear": "Cert. issued {{year}}",
+            "pendingGroup": "Pending (group)",
+            "activeContracts": "Active contracts",
+            "primeMonth": "Premiums this month"
+        },
+        "table": {
+            "title": "Performance by subsidiary — {{month}}",
+            "subsidiary": "Subsidiary",
+            "certMonth": "Cert. month",
+            "trend": "Trend",
+            "volume": "Volume",
+            "ytd": "YTD",
+            "pending": "Pending",
+            "contracts": "Contracts",
+            "expiration": "Expiration"
+        },
+        "monthlyChart": {
+            "title": "Group issuances (12 months)",
+            "certificates": "Certificates (12 months)",
+            "totalPrime": "Total premiums"
+        },
+        "topSubsidiaries": {
+            "title": "Top subsidiaries this month",
+            "primeSuffix": "{{amount}} premiums"
+        }
+    },
+    "kpi": {
+        "breadcrumbHome": "Dashboard",
+        "breadcrumb": "Subsidiary KPIs",
+        "headTitle": "KPI Dashboard — NSIA Transport",
+        "heading": "KPI Dashboard",
+        "subtitle": "Performance indicators — {{month}} · Fiscal year {{year}}",
+        "validationQueue": "Validation queue",
+        "sections": {
+            "certificates": "Certificates"
+        },
+        "cards": {
+            "issuedMonth": "Issued this month",
+            "issuedMonthSub": "vs {{count}} last month",
+            "issuedYtd": "Issued {{year}} (YTD)",
+            "pending": "Pending",
+            "draft": "Drafts",
+            "cancelledMonth": "Cancelled this month",
+            "avgProcessing": "Average processing time",
+            "avgProcessingSub": "submission → issuance"
+        },
+        "monthlyChart": {
+            "title": "Issuances by month (12 months)",
+            "badge": "Approved certificates"
+        },
+        "transport": {
+            "title": "By mode (this month)",
+            "empty": "No data this month",
+            "labels": {
+                "SEA": "Sea",
+                "AIR": "Air",
+                "ROAD": "Road",
+                "RAIL": "Rail",
+                "AUTRE": "Other"
+            }
+        },
+        "contracts": {
+            "title": "Contracts",
+            "seeAll": "View →",
+            "active": "Active",
+            "expiring30": "Expiring in 30d",
+            "expiring7": "Expiring in 7d",
+            "draft": "Drafts",
+            "limitUsage": "NN300 limit usage (avg.)"
+        },
+        "commissions": {
+            "title": "Commissions",
+            "bordereau": "Statement →",
+            "paidMonth": "Paid this month",
+            "pendingMonth": "Pending (month)",
+            "pendingCount": "Pending cases"
+        },
+        "escalades": {
+            "title": "NN300 Escalations",
+            "seeAll": "View →",
+            "inProgress": "In progress",
+            "approvedMonth": "Approved (month)",
+            "rejectedMonth": "Rejected (month)",
+            "approvalRate": "Approval rate",
+            "noDecision": "No decision this month"
+        },
+        "topBrokers": {
+            "title": "Top brokers this month",
+            "seeAll": "All →",
+            "empty": "No certificates issued this month",
+            "value": "Value: {{amount}}",
+            "certSuffix": "cert."
+        },
+        "quickAccess": {
+            "label": "Quick access:",
+            "certificates": "Certificates",
+            "contracts": "Contracts",
+            "bordereau": "Statement",
+            "escalades": "Escalations",
+            "validationQueue": "Validation queue"
+        }
+    },
+    "pending": {
+        "breadcrumbHome": "Dashboard",
+        "breadcrumb": "Pending validation",
+        "headTitle": "Pending validation — NSIA Transport",
+        "heading": "Validation dashboard",
+        "subtitle": "Certificates awaiting issuance",
+        "kpis": {
+            "pending": "Pending",
+            "issuedToday": "Issued today",
+            "issuedWeek": "Issued this week",
+            "issuedMonth": "Issued this month",
+            "draft": "Drafts",
+            "avgDelay": "Average delay"
+        },
+        "table": {
+            "title": "Pending certificates",
+            "seeAll": "View all →",
+            "emptyTitle": "No certificates pending",
+            "emptyText": "All certificates have been processed.",
+            "number": "Certificate no.",
+            "insured": "Insured",
+            "voyage": "Voyage",
+            "value": "Value",
+            "submittedBy": "Submitted by",
+            "waiting": "Waiting",
+            "actions": "Actions",
+            "process": "Process →"
+        },
+        "pagination": "Page {{current}}/{{last}} · {{total}} pending",
+        "recent": {
+            "title": "Recent issuances",
+            "empty": "No recent issuances",
+            "issuedBy": "by {{name}}"
+        },
+        "expiring": {
+            "title": "Contracts expiring soon",
+            "daysLeft": "D-{{days}}"
+        },
+        "quickAccess": {
+            "title": "Quick access",
+            "newCertificate": "New certificate",
+            "allCertificates": "All certificates",
+            "activeContracts": "Active contracts"
+        }
+    }
+}

@@ -1,15 +1,10 @@
 import { useState } from 'react';
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Shield, Plus, Trash2, AlertTriangle, User, X, CheckCircle } from 'lucide-react';
 import axios from 'axios';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'Sécurité' },
-    { title: 'Blacklist IP' },
-];
 
 interface Entry     { id: string; ip_range: string; reason: string | null; is_active: boolean; expires_at: string | null; created_at: string; blocked_by: string }
 interface SuspiciousUser { id: string; first_name: string; last_name: string; email: string; failed_login_attempts: number; last_login_ip: string | null; locked_until: string | null }
@@ -21,6 +16,12 @@ export default function IpBlacklist({
     entries: Entry[];
     suspiciousUsers: SuspiciousUser[];
 }) {
+    const { t } = useTranslation('security');
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('ipBlacklist.breadcrumbDashboard'), href: route('admin.dashboard') },
+        { title: t('ipBlacklist.breadcrumbSecurity') },
+        { title: t('ipBlacklist.breadcrumbIpBlacklist') },
+    ];
     const [entries, setEntries]          = useState(initial);
     const [suspicious, setSuspicious]    = useState(initialSuspicious);
     const [showForm, setShowForm]        = useState(false);
@@ -37,12 +38,12 @@ export default function IpBlacklist({
                 is_active: true,
                 expires_at: form.expires_at || null,
                 created_at: new Date().toLocaleDateString('fr-FR'),
-                blocked_by: 'Moi',
+                blocked_by: t('ipBlacklist.me'),
             }, ...prev]);
             setForm({ ip_range: '', reason: '', expires_at: '' });
             setShowForm(false);
         } catch (e: any) {
-            setError(e.response?.data?.message ?? 'Erreur lors de l\'ajout.');
+            setError(e.response?.data?.message ?? t('ipBlacklist.addErrorFallback'));
         } finally { setLoading(false); }
     };
 
@@ -58,7 +59,7 @@ export default function IpBlacklist({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Blacklist IP — NSIA Transport"/>
+            <Head title={t('ipBlacklist.title')}/>
             <style>{`
                 .sec-page { padding:4px; display:flex; flex-direction:column; gap:14px; }
                 .panel { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
@@ -89,14 +90,14 @@ export default function IpBlacklist({
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
                             <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b' }}>
-                                Blacklist IP &amp; Détection d'intrusion
+                                {t('ipBlacklist.heading')}
                             </h1>
                             <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
-                                Bloc plages IP/CIDR · Surveillance des tentatives de connexion
+                                {t('ipBlacklist.subtitle')}
                             </p>
                         </div>
                         <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-                            <Plus size={13}/> Bloquer une IP
+                            <Plus size={13}/> {t('ipBlacklist.blockIp')}
                         </button>
                     </div>
 
@@ -104,34 +105,34 @@ export default function IpBlacklist({
                     <div className="panel">
                         <div className="panel-hdr">
                             <div className="panel-hdr-title">
-                                <Shield size={14} color="#dc2626"/> Plages IP bloquées ({entries.length})
+                                <Shield size={14} color="#dc2626"/> {t('ipBlacklist.panel.blockedRanges', { count: entries.length })}
                             </div>
                         </div>
                         {showForm && (
                             <div className="form-row">
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                    <label style={{ fontSize: 10, color: '#64748b' }}>IP ou plage CIDR *</label>
+                                    <label style={{ fontSize: 10, color: '#64748b' }}>{t('ipBlacklist.panel.ipOrCidr')}</label>
                                     <input className="fin" style={{ width: 170 }}
-                                           placeholder="ex: 192.168.1.5 ou 10.0.0.0/24"
+                                           placeholder={t('ipBlacklist.panel.ipOrCidrPlaceholder')}
                                            value={form.ip_range}
                                            onChange={e => setForm(p => ({ ...p, ip_range: e.target.value }))}/>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
-                                    <label style={{ fontSize: 10, color: '#64748b' }}>Raison</label>
+                                    <label style={{ fontSize: 10, color: '#64748b' }}>{t('ipBlacklist.panel.reason')}</label>
                                     <input className="fin" style={{ minWidth: 200 }}
-                                           placeholder="Raison du blocage…"
+                                           placeholder={t('ipBlacklist.panel.reasonPlaceholder')}
                                            value={form.reason}
                                            onChange={e => setForm(p => ({ ...p, reason: e.target.value }))}/>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                    <label style={{ fontSize: 10, color: '#64748b' }}>Expiration (optionnel)</label>
+                                    <label style={{ fontSize: 10, color: '#64748b' }}>{t('ipBlacklist.panel.expiration')}</label>
                                     <input type="datetime-local" className="fin" style={{ width: 180 }}
                                            value={form.expires_at}
                                            onChange={e => setForm(p => ({ ...p, expires_at: e.target.value }))}/>
                                 </div>
                                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', paddingBottom: 1 }}>
                                     <button className="btn btn-primary" onClick={addEntry} disabled={loading || !form.ip_range}>
-                                        {loading ? '…' : 'Bloquer'}
+                                        {loading ? '…' : t('ipBlacklist.panel.block')}
                                     </button>
                                     <button className="btn btn-sec" onClick={() => { setShowForm(false); setError(''); }}>
                                         <X size={12}/>
@@ -143,18 +144,18 @@ export default function IpBlacklist({
                         {entries.length === 0 ? (
                             <div className="empty">
                                 <CheckCircle size={24} style={{ marginBottom: 6, opacity: .4 }}/>
-                                <div>Aucune IP bloquée</div>
+                                <div>{t('ipBlacklist.panel.noBlockedIp')}</div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>IP / Plage CIDR</th>
-                                        <th>Raison</th>
-                                        <th>Bloqué par</th>
-                                        <th>Expiration</th>
-                                        <th>Statut</th>
-                                        <th>Ajouté le</th>
+                                        <th>{t('ipBlacklist.panel.columns.ipRange')}</th>
+                                        <th>{t('ipBlacklist.panel.columns.reason')}</th>
+                                        <th>{t('ipBlacklist.panel.columns.blockedBy')}</th>
+                                        <th>{t('ipBlacklist.panel.columns.expiration')}</th>
+                                        <th>{t('ipBlacklist.panel.columns.status')}</th>
+                                        <th>{t('ipBlacklist.panel.columns.addedOn')}</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -165,16 +166,16 @@ export default function IpBlacklist({
                                             <td style={{ color: '#64748b' }}>{e.reason ?? '—'}</td>
                                             <td style={{ fontSize: 11, color: '#64748b' }}>{e.blocked_by}</td>
                                             <td style={{ fontSize: 11, color: e.expires_at ? '#d97706' : '#94a3b8' }}>
-                                                {e.expires_at ?? 'Permanent'}
+                                                {e.expires_at ?? t('ipBlacklist.panel.permanent')}
                                             </td>
                                             <td>
                                                 <span className={e.is_active ? 'badge-active' : 'badge-exp'}>
-                                                    {e.is_active ? 'Actif' : 'Expiré'}
+                                                    {e.is_active ? t('ipBlacklist.panel.active') : t('ipBlacklist.panel.expired')}
                                                 </span>
                                             </td>
                                             <td style={{ fontSize: 11, color: '#94a3b8' }}>{e.created_at}</td>
                                             <td>
-                                                <button className="btn-del" onClick={() => removeEntry(e.id)} title="Supprimer">
+                                                <button className="btn-del" onClick={() => removeEntry(e.id)} title={t('ipBlacklist.panel.delete')}>
                                                     <Trash2 size={13}/>
                                                 </button>
                                             </td>
@@ -190,24 +191,24 @@ export default function IpBlacklist({
                         <div className="panel-hdr">
                             <div className="panel-hdr-title">
                                 <AlertTriangle size={14} color="#d97706"/>
-                                Comptes suspects (tentatives &gt; 3)
+                                {t('ipBlacklist.suspicious.title')}
                             </div>
                         </div>
                         {suspicious.length === 0 ? (
                             <div className="empty">
                                 <CheckCircle size={24} style={{ marginBottom: 6, opacity: .4 }}/>
-                                <div>Aucun compte suspect</div>
+                                <div>{t('ipBlacklist.suspicious.noSuspicious')}</div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Utilisateur</th>
-                                        <th>Email</th>
-                                        <th>Tentatives échouées</th>
-                                        <th>Dernière IP</th>
-                                        <th>Verrouillé jusqu'à</th>
-                                        <th>Action</th>
+                                        <th>{t('ipBlacklist.suspicious.columns.user')}</th>
+                                        <th>{t('ipBlacklist.suspicious.columns.email')}</th>
+                                        <th>{t('ipBlacklist.suspicious.columns.failedAttempts')}</th>
+                                        <th>{t('ipBlacklist.suspicious.columns.lastIp')}</th>
+                                        <th>{t('ipBlacklist.suspicious.columns.lockedUntil')}</th>
+                                        <th>{t('ipBlacklist.suspicious.columns.action')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -227,7 +228,7 @@ export default function IpBlacklist({
                                             </td>
                                             <td>
                                                 <button className="btn-unlock" onClick={() => unlockUser(u.id)}>
-                                                    <User size={10}/> Déverrouiller
+                                                    <User size={10}/> {t('ipBlacklist.suspicious.unlock')}
                                                 </button>
                                             </td>
                                         </tr>

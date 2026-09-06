@@ -1,0 +1,57 @@
+{
+    "index": {
+        "breadcrumb": "Registos de auditoria",
+        "title": "Registos de auditoria — NSIA Transport",
+        "heading": "Registos de auditoria",
+        "eventsRecorded_one": "{{count}} evento registado",
+        "eventsRecorded_other": "{{count}} eventos registados",
+        "exportCsv": "Exportar CSV",
+        "purge": "Purgar",
+        "searchPlaceholder": "Pesquisar por utilizador, ação, IP…",
+        "allActions": "Todas as ações",
+        "allEntities": "Todas as entidades",
+        "advancedFilters": "Filtros avançados",
+        "clear": "Limpar",
+        "dateFrom": "Data inicial",
+        "dateTo": "Data final",
+        "tenant": "Filial",
+        "tenantPlaceholder": "ID da filial…",
+        "noLogs": "Nenhum registo encontrado.",
+        "columns": {
+            "date": "Data",
+            "user": "Utilizador",
+            "action": "Ação",
+            "entity": "Entidade",
+            "tenant": "Filial",
+            "ip": "IP",
+            "detail": "Detalhe"
+        },
+        "system": "Sistema",
+        "view": "Ver",
+        "pageInfo": "Página {{current}} / {{last}} · {{total}} registos",
+        "purgeModal": {
+            "title": "Purga de registos",
+            "subtitle": "Ação irreversível",
+            "warning": "⚠ Esta ação eliminará definitivamente todos os registos mais antigos do que o número de dias especificado.",
+            "daysLabel": "Eliminar registos anteriores a (dias)",
+            "daysHint": "Mínimo 30 dias · Recomendado: 365 dias"
+        }
+    },
+    "show": {
+        "breadcrumb": "Registos de auditoria",
+        "title": "Registo {{action}} — NSIA Transport",
+        "generalInfo": "Informações gerais",
+        "user": "Utilizador",
+        "system": "Sistema",
+        "tenant": "Filial",
+        "entity": "Entidade",
+        "ip": "Endereço IP",
+        "userAgent": "User agent",
+        "modifications": "Alterações",
+        "before": "Antes",
+        "after": "Depois",
+        "noPreviousValue": "Nenhum valor anterior",
+        "noNewValue": "Nenhum novo valor",
+        "backToLogs": "Voltar aos registos"
+    }
+}

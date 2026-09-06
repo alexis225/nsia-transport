@@ -1,0 +1,83 @@
+{
+    "brand": {
+        "name": "NSIA",
+        "suffix": "TRANSPORT"
+    },
+    "sections": {
+        "dashboard": "Painel",
+        "kpi": "KPIs da filial",
+        "dtag": "Painel DTAG",
+        "users": "Utilizadores",
+        "brokers": "Corretores",
+        "certificateRequests": "Pedidos de certificados de seguro",
+        "coinsurers": "Cosseguradores",
+        "experts": "Peritos",
+        "reference": "Referências",
+        "certificateTemplates": "Modelos de certificados",
+        "contracts": "Contratos",
+        "certificates": "Certificados",
+        "commissions": "Comissões",
+        "taxes": "Impostos",
+        "reports": "Relatórios",
+        "security": "Segurança",
+        "settings": "Definições"
+    },
+    "items": {
+        "list": "Lista",
+        "new": "Novo",
+        "blockedUsers": "Bloqueados",
+        "newUser": "Novo",
+        "roles": "Funções e permissões",
+        "newRole": "Nova função",
+        "tenants": "Filiais",
+        "newTenant": "Nova filial",
+        "newBroker": "Novo corretor",
+        "countries": "Países",
+        "currencies": "Moedas",
+        "incoterms": "Incoterms",
+        "transportModes": "Transportes",
+        "merchandiseCategories": "Mercadorias",
+        "fieldPositions": "Posições dos campos (JSON)",
+        "visualCalibrator": "Calibrador visual (talão)",
+        "limits": "Limites NN300",
+        "advancedSearch": "Pesquisa avançada",
+        "printModels": "Modelos de impressão",
+        "pending": "Pendentes",
+        "guceCertificates": "Certificados GUCE",
+        "guceImport": "Importar GUCE",
+        "commissionRules": "Regras",
+        "commissionBordereau": "Borderô",
+        "reportCertificates": "Estado dos certificados",
+        "reportContracts": "Estado dos contratos",
+        "reportIntermediaries": "Intermediários",
+        "ipBlacklist": "Lista negra de IP",
+        "profile": "Perfil",
+        "accountSecurity": "Segurança",
+        "mfa": "MFA",
+        "appearance": "Aparência",
+        "escalations": "Escalonamentos NN300",
+        "thresholds": "Limiares NN300",
+        "delegations": "Delegações",
+        "auditLogs": "Registos de auditoria",
+        "notifications": "Notificações",
+        "exports": "As minhas exportações"
+    },
+    "partner": {
+        "dashboard": "Painel",
+        "requests": "Os meus pedidos",
+        "newRequest": "Novo pedido",
+        "certificates": "Os meus certificados"
+    },
+    "user": {
+        "settings": "Definições",
+        "logout": "Terminar sessão"
+    },
+    "notifications": {
+        "title": "Notificações",
+        "unread_one": "{{count}} por ler",
+        "unread_other": "{{count}} por ler",
+        "markAll": "Marcar todas",
+        "empty": "Sem notificações",
+        "seeAll": "Ver todas as notificações"
+    }
+}

@@ -1,13 +1,9 @@
 import { Head, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
 import { FileText, Download, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Commissions', href: '/admin/commissions/rules' },
-    { title: 'Bordereau' },
-];
 
 interface Transaction {
     id: string; period_month: string; status: string;
@@ -29,16 +25,22 @@ interface Props {
     isSA:    boolean;
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string; label: string }> = {
-    PENDING:   { bg:'#fffbeb', color:'#92400e', dot:'#f59e0b', label:'En attente' },
-    PAID:      { bg:'#f0fdf4', color:'#15803d', dot:'#22c55e', label:'Payée' },
-    CANCELLED: { bg:'#f8fafc', color:'#94a3b8', dot:'#cbd5e1', label:'Annulée' },
+const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string }> = {
+    PENDING:   { bg:'#fffbeb', color:'#92400e', dot:'#f59e0b' },
+    PAID:      { bg:'#f0fdf4', color:'#15803d', dot:'#22c55e' },
+    CANCELLED: { bg:'#f8fafc', color:'#94a3b8', dot:'#cbd5e1' },
 };
 
 const fmt    = (n: number, c: string) => n.toLocaleString('fr-FR', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' ' + c;
 const fmtDt  = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
 
 export default function CommissionBordereau({ transactions, totals, brokers, filters, isSA }: Props) {
+    const { t } = useTranslation('commissions');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb.section'), href: '/admin/commissions/rules' },
+        { title: t('breadcrumb.bordereau') },
+    ];
 
     const applyFilter = (params: Record<string, string>) =>
         router.get('/admin/commissions/bordereau', { ...filters, ...params, page: '1' }, { preserveState: true, replace: true });
@@ -53,7 +55,7 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Bordereau de commissions — NSIA Transport"/>
+            <Head title={t('bordereau.title')}/>
             <style>{`
                 .bd-page{padding:4px;display:flex;flex-direction:column;gap:14px;}
                 .bd-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -91,23 +93,23 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
                     {/* Header */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10 }}>
                         <div>
-                            <h1 className="bd-title">Bordereau de commissions</h1>
-                            <p className="bd-sub">Primes brutes, commissions et primes nettes par courtier</p>
+                            <h1 className="bd-title">{t('bordereau.heading')}</h1>
+                            <p className="bd-sub">{t('bordereau.subtitle')}</p>
                         </div>
                         <div style={{ display:'flex', gap:6 }}>
                             <a href={exportUrl('csv')}>
                                 <Button variant="outline" className="h-9 px-3 text-xs">
-                                    <Download size={12}/> CSV
+                                    <Download size={12}/> {t('bordereau.export.csv')}
                                 </Button>
                             </a>
                             <a href={exportUrl('xlsx')}>
                                 <Button variant="outline" className="h-9 px-3 text-xs" style={{ borderColor:'#16a34a', color:'#15803d' }}>
-                                    <Download size={12}/> Excel
+                                    <Download size={12}/> {t('bordereau.export.excel')}
                                 </Button>
                             </a>
                             <a href={exportUrl('pdf')}>
                                 <Button variant="outline" className="h-9 px-3 text-xs" style={{ borderColor:'#dc2626', color:'#dc2626' }}>
-                                    <FileText size={12}/> PDF
+                                    <FileText size={12}/> {t('bordereau.export.pdf')}
                                 </Button>
                             </a>
                         </div>
@@ -117,25 +119,25 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
                     <div className="kpi-grid">
                         <div className="kpi-card">
                             <div className="kpi-val">{totals.count}</div>
-                            <div className="kpi-lbl">Certificats</div>
+                            <div className="kpi-lbl">{t('bordereau.kpis.certificates')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val" style={{ fontSize:14 }}>
                                 {totals.prime_brute.toLocaleString('fr-FR', { maximumFractionDigits:0 })}
                             </div>
-                            <div className="kpi-lbl">Prime brute totale</div>
+                            <div className="kpi-lbl">{t('bordereau.kpis.primeBrute')}</div>
                         </div>
                         <div className="kpi-card" style={{ borderColor:'#bfdbfe' }}>
                             <div className="kpi-val" style={{ fontSize:14, color:'#1d4ed8' }}>
                                 {totals.commission.toLocaleString('fr-FR', { maximumFractionDigits:0 })}
                             </div>
-                            <div className="kpi-lbl">Commission totale</div>
+                            <div className="kpi-lbl">{t('bordereau.kpis.commission')}</div>
                         </div>
                         <div className="kpi-card" style={{ borderColor:'#bbf7d0' }}>
                             <div className="kpi-val" style={{ fontSize:14, color:'#15803d' }}>
                                 {totals.prime_nette.toLocaleString('fr-FR', { maximumFractionDigits:0 })}
                             </div>
-                            <div className="kpi-lbl">Prime nette totale</div>
+                            <div className="kpi-lbl">{t('bordereau.kpis.primeNette')}</div>
                         </div>
                     </div>
 
@@ -145,16 +147,16 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
                         <input type="date" className="hs-date"
                                value={filters?.period_from ?? defaultFrom}
                                onChange={e => applyFilter({ period_from: e.target.value })}
-                               title="Période du"/>
-                        <span style={{ fontSize:11, color:'#94a3b8' }}>au</span>
+                               title={t('bordereau.filters.periodFromTitle')}/>
+                        <span style={{ fontSize:11, color:'#94a3b8' }}>{t('bordereau.filters.to')}</span>
                         <input type="date" className="hs-date"
                                value={filters?.period_to ?? defaultTo}
                                onChange={e => applyFilter({ period_to: e.target.value })}
-                               title="Période au"/>
+                               title={t('bordereau.filters.periodToTitle')}/>
 
                         <select className="hs-select" value={filters?.broker_id ?? ''}
                                 onChange={e => applyFilter({ broker_id: e.target.value })}>
-                            <option value="">Tous les courtiers</option>
+                            <option value="">{t('bordereau.filters.allBrokers')}</option>
                             {brokers.map(b => (
                                 <option key={b.id} value={b.id}>{b.name}</option>
                             ))}
@@ -162,16 +164,16 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
 
                         <select className="hs-select" value={filters?.status ?? ''}
                                 onChange={e => applyFilter({ status: e.target.value })}>
-                            <option value="">Tous les statuts</option>
-                            <option value="PENDING">En attente</option>
-                            <option value="PAID">Payées</option>
-                            <option value="CANCELLED">Annulées</option>
+                            <option value="">{t('bordereau.filters.allStatuses')}</option>
+                            <option value="PENDING">{t('bordereau.filters.statusPending')}</option>
+                            <option value="PAID">{t('bordereau.filters.statusPaid')}</option>
+                            <option value="CANCELLED">{t('bordereau.filters.statusCancelled')}</option>
                         </select>
 
                         {(filters?.broker_id || filters?.status) && (
                             <button onClick={() => router.get('/admin/commissions/bordereau')}
                                     style={{ fontSize:11, color:'#94a3b8', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:3 }}>
-                                <X size={11}/> Effacer
+                                <X size={11}/> {t('bordereau.filters.clear')}
                             </button>
                         )}
                     </div>
@@ -181,23 +183,23 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
                         {transactions.data.length === 0 ? (
                             <div className="empty">
                                 <FileText size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
-                                <div>Aucune transaction trouvée pour la période.</div>
+                                <div>{t('bordereau.empty')}</div>
                             </div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Certificat</th>
-                                            <th>Assuré</th>
-                                            <th>Contrat</th>
-                                            <th>Courtier</th>
-                                            <th>Période</th>
-                                            <th style={{ textAlign:'right' }}>Prime brute</th>
-                                            <th style={{ textAlign:'center' }}>Taux</th>
-                                            <th style={{ textAlign:'right' }}>Commission</th>
-                                            <th style={{ textAlign:'right' }}>Prime nette</th>
-                                            <th>Statut</th>
+                                            <th>{t('bordereau.table.certificate')}</th>
+                                            <th>{t('bordereau.table.insured')}</th>
+                                            <th>{t('bordereau.table.contract')}</th>
+                                            <th>{t('bordereau.table.broker')}</th>
+                                            <th>{t('bordereau.table.period')}</th>
+                                            <th style={{ textAlign:'right' }}>{t('bordereau.table.primeBrute')}</th>
+                                            <th style={{ textAlign:'center' }}>{t('bordereau.table.rate')}</th>
+                                            <th style={{ textAlign:'right' }}>{t('bordereau.table.commission')}</th>
+                                            <th style={{ textAlign:'right' }}>{t('bordereau.table.primeNette')}</th>
+                                            <th>{t('bordereau.table.status')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -243,7 +245,7 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
                                                     <td>
                                                         <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 7px', borderRadius:8, fontSize:11, fontWeight:500, background: ss.bg, color: ss.color }}>
                                                             <span style={{ width:5, height:5, borderRadius:'50%', background: ss.dot }}/>
-                                                            {ss.label}
+                                                            {t(`bordereau.statuses.${tx.status}`, { defaultValue: t('bordereau.statuses.PENDING') })}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -254,7 +256,7 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
                                     <tfoot>
                                         <tr className="tfoot-row">
                                             <td colSpan={5} style={{ fontFamily:'inherit', fontWeight:600, color:'#1e293b' }}>
-                                                TOTAL — {transactions.total} transaction{transactions.total > 1 ? 's' : ''}
+                                                {t('bordereau.total', { count: transactions.total })}
                                             </td>
                                             <td className="num" style={{ textAlign:'right' }}>
                                                 {totals.prime_brute.toLocaleString('fr-FR', { minimumFractionDigits:2 })}
@@ -275,7 +277,7 @@ export default function CommissionBordereau({ transactions, totals, brokers, fil
                                 {transactions.last_page > 1 && (
                                     <div className="pg-wrap">
                                         <span className="pg-info">
-                                            {transactions.from}–{transactions.to} sur {transactions.total}
+                                            {t('bordereau.pagination', { from: transactions.from, to: transactions.to, total: transactions.total })}
                                         </span>
                                         <div className="pg-links">
                                             <button className="pg-btn" disabled={transactions.current_page === 1}

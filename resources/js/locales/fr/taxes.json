@@ -1,0 +1,47 @@
+{
+    "breadcrumb": {
+        "section": "Taxes",
+        "rules": "Référentiel de taxes"
+    },
+    "rules": {
+        "title": "Référentiel de taxes — NSIA Transport",
+        "heading": "Référentiel de taxes",
+        "subtitle": "Taux par filiale, mode de transport et pays — appliqué automatiquement à l'émission des certificats",
+        "newRate": "Nouveau taux",
+        "form": {
+            "title": "Nouveau taux de taxe",
+            "tenant": "Filiale *",
+            "chooseTenant": "— Choisir —",
+            "transportMode": "Mode de transport",
+            "allModesDefault": "Tous les modes (par défaut)",
+            "country": "Pays de destination",
+            "allDestinationsDefault": "Toutes destinations (par défaut)",
+            "rate": "Taux (%) *",
+            "ratePlaceholder": "ex: 18.00",
+            "effectiveDate": "Date d'effet *",
+            "endDate": "Date de fin (optionnel)",
+            "notes": "Notes (optionnel)",
+            "notesPlaceholder": "ex: TVA + droits de douane 2026",
+            "hint": "Ce taux remplace la saisie manuelle du taux de taxe sur le contrat — il est résolu automatiquement à l'émission selon le mode de transport et le pays de destination du certificat. Laisser « Mode de transport » et/ou « Pays de destination » vides crée une règle par défaut (taxe unique de la filiale, ou taux par mode indépendant de la destination) utilisée quand aucune règle plus précise ne correspond.",
+            "submit": "Créer le taux"
+        },
+        "table": {
+            "tenant": "Filiale",
+            "transportMode": "Mode de transport",
+            "country": "Pays",
+            "allModes": "Tous les modes",
+            "allDestinations": "Toutes destinations",
+            "rate": "Taux",
+            "effectiveDate": "Date d'effet",
+            "endDate": "Date de fin",
+            "status": "Statut",
+            "notes": "Notes",
+            "action": "Action"
+        },
+        "toggle": {
+            "deactivate": "Désactiver",
+            "activate": "Activer"
+        },
+        "empty": "Aucun taux de taxe défini."
+    }
+}

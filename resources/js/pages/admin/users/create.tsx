@@ -1,17 +1,13 @@
 import { Head, useForm } from '@inertiajs/react';
 import { UserPlus, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Utilisateurs', href: '/admin/users' },
-    { title: 'Nouvel utilisateur' },
-];
 
 interface Props {
     roles:   string[];
@@ -23,6 +19,14 @@ interface Props {
 const PARTNER_ROLES = ['courtier_local', 'partenaire_etranger'];
 
 export default function UserCreate({ roles, tenants, brokers, prefill }: Props) {
+    const { t } = useTranslation('users');
+    const { t: tc } = useTranslation('common');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('create.breadcrumb'), href: '/admin/users' },
+        { title: t('create.breadcrumbNew') },
+    ];
+
     const [showPw,      setShowPw]      = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -47,7 +51,7 @@ export default function UserCreate({ roles, tenants, brokers, prefill }: Props) 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouvel utilisateur — NSIA Transport"/>
+            <Head title={`${t('create.title')} — NSIA Transport`}/>
             <style>{`
                 .uc-wrap{width:100%;max-width:760px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .uc-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
@@ -80,16 +84,16 @@ export default function UserCreate({ roles, tenants, brokers, prefill }: Props) 
                     <div className="uc-hero">
                         <div className="uc-hero-ico"><UserPlus size={22} color="rgba(255,255,255,0.8)"/></div>
                         <div className="uc-hero-info">
-                            <div className="uc-hero-title">Créer un utilisateur</div>
-                            <div className="uc-hero-sub">Un email de bienvenue sera envoyé automatiquement</div>
+                            <div className="uc-hero-title">{t('create.hero.title')}</div>
+                            <div className="uc-hero-sub">{t('create.hero.subtitle')}</div>
                         </div>
                     </div>
 
                     {/* Formulaire */}
                     <div className="uc-card">
                         <div className="uc-card-hdr">
-                            <div className="uc-card-ttl">Informations personnelles</div>
-                            <div className="uc-card-sub">Tous les champs marqués * sont obligatoires</div>
+                            <div className="uc-card-ttl">{t('create.form.title')}</div>
+                            <div className="uc-card-sub">{t('create.form.subtitle')}</div>
                         </div>
                         <div className="uc-card-body">
                             <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
@@ -97,36 +101,36 @@ export default function UserCreate({ roles, tenants, brokers, prefill }: Props) 
                                 {/* Prénom + Nom */}
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="uc-label">Prénom *</Label>
-                                        <Input className="uc-input" value={data.first_name} onChange={e => setData('first_name', e.target.value)} placeholder="Prénom" autoComplete="given-name"/>
+                                        <Label className="uc-label">{t('create.fields.firstName')}</Label>
+                                        <Input className="uc-input" value={data.first_name} onChange={e => setData('first_name', e.target.value)} placeholder={t('create.fields.firstNamePlaceholder')} autoComplete="given-name"/>
                                         <InputError message={errors.first_name}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="uc-label">Nom *</Label>
-                                        <Input className="uc-input" value={data.last_name} onChange={e => setData('last_name', e.target.value)} placeholder="Nom de famille" autoComplete="family-name"/>
+                                        <Label className="uc-label">{t('create.fields.lastName')}</Label>
+                                        <Input className="uc-input" value={data.last_name} onChange={e => setData('last_name', e.target.value)} placeholder={t('create.fields.lastNamePlaceholder')} autoComplete="family-name"/>
                                         <InputError message={errors.last_name}/>
                                     </div>
                                 </div>
 
                                 {/* Email */}
                                 <div className="grid gap-2">
-                                    <Label className="uc-label">Adresse email *</Label>
-                                    <Input className="uc-input" type="email" value={data.email} onChange={e => setData('email', e.target.value)} placeholder="prenom.nom@nsia.com" autoComplete="email"/>
+                                    <Label className="uc-label">{t('create.fields.email')}</Label>
+                                    <Input className="uc-input" type="email" value={data.email} onChange={e => setData('email', e.target.value)} placeholder={t('create.fields.emailPlaceholder')} autoComplete="email"/>
                                     <InputError message={errors.email}/>
                                 </div>
 
                                 {/* Téléphone */}
                                 <div className="grid gap-2">
-                                    <Label className="uc-label">Téléphone</Label>
-                                    <Input className="uc-input" type="tel" value={data.phone} onChange={e => setData('phone', e.target.value)} placeholder="+225 07 00 00 00 00"/>
+                                    <Label className="uc-label">{t('create.fields.phone')}</Label>
+                                    <Input className="uc-input" type="tel" value={data.phone} onChange={e => setData('phone', e.target.value)} placeholder={t('create.fields.phonePlaceholder')}/>
                                     <InputError message={errors.phone}/>
                                 </div>
 
                                 {/* Rôle */}
                                 <div className="grid gap-2">
-                                    <Label className="uc-label">Rôle *</Label>
+                                    <Label className="uc-label">{t('create.fields.role')}</Label>
                                     <select className="uc-select" value={data.role} onChange={e => setData('role', e.target.value)}>
-                                        <option value="">Sélectionnez un rôle</option>
+                                        <option value="">{t('create.fields.roleSelect')}</option>
                                         {roles.map(r => <option key={r} value={r}>{r.replace(/_/g,' ')}</option>)}
                                     </select>
                                     <InputError message={errors.role}/>
@@ -135,9 +139,9 @@ export default function UserCreate({ roles, tenants, brokers, prefill }: Props) 
                                 {/* Courtier à rattacher (rôles partenaires) */}
                                 {isPartnerRole && (
                                     <div className="grid gap-2">
-                                        <Label className="uc-label">Courtier à rattacher</Label>
+                                        <Label className="uc-label">{t('create.fields.broker')}</Label>
                                         <select className="uc-select" value={data.broker_id} onChange={e => setData('broker_id', e.target.value)}>
-                                            <option value="">Aucun (à rattacher plus tard)</option>
+                                            <option value="">{t('create.fields.brokerNone')}</option>
                                             {brokers.map(b => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
                                         </select>
                                         <InputError message={errors.broker_id}/>
@@ -147,9 +151,9 @@ export default function UserCreate({ roles, tenants, brokers, prefill }: Props) 
                                 {/* Filiale (super admin seulement) */}
                                 {tenants.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="uc-label">Filiale</Label>
+                                        <Label className="uc-label">{t('create.fields.tenant')}</Label>
                                         <select className="uc-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
-                                            <option value="">Filiale de l'admin connecté</option>
+                                            <option value="">{t('create.fields.tenantDefault')}</option>
                                             {tenants.map(t => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
                                         </select>
                                         <InputError message={errors.tenant_id}/>
@@ -159,7 +163,7 @@ export default function UserCreate({ roles, tenants, brokers, prefill }: Props) 
                                 {/* Mot de passe */}
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="uc-label">Mot de passe *</Label>
+                                        <Label className="uc-label">{t('create.fields.password')}</Label>
                                         <div className="pw-wrap">
                                             <Input className="uc-input" type={showPw ? 'text' : 'password'} value={data.password} onChange={e => setData('password', e.target.value)} placeholder="••••••••" autoComplete="new-password"/>
                                             <button type="button" className="pw-eye" onClick={() => setShowPw(s => !s)}>
@@ -169,7 +173,7 @@ export default function UserCreate({ roles, tenants, brokers, prefill }: Props) 
                                         <InputError message={errors.password}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="uc-label">Confirmer *</Label>
+                                        <Label className="uc-label">{t('create.fields.passwordConfirm')}</Label>
                                         <div className="pw-wrap">
                                             <Input className="uc-input" type={showConfirm ? 'text' : 'password'} value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} placeholder="••••••••" autoComplete="new-password"/>
                                             <button type="button" className="pw-eye" onClick={() => setShowConfirm(s => !s)}>
@@ -183,10 +187,10 @@ export default function UserCreate({ roles, tenants, brokers, prefill }: Props) 
                                 {/* Actions */}
                                 <div style={{ display:'flex', gap:8, paddingTop:4, borderTop:'1px solid #f8fafc', marginTop:4 }}>
                                     <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                        {processing ? 'Création…' : <><UserPlus size={14}/> Créer l'utilisateur</>}
+                                        {processing ? t('create.actions.creating') : <><UserPlus size={14}/> {t('create.actions.create')}</>}
                                     </Button>
                                     <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                                        Annuler
+                                        {tc('actions.cancel')}
                                     </Button>
                                 </div>
                             </form>

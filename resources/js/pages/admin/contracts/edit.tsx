@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { ContractForm } from './create';
@@ -36,10 +37,12 @@ interface Props {
 }
 
 export default function ContractEdit({ contract, tenants, brokers, coinsurers, experts, subscribers, incoterms, transportModes, currencies, commissionRate }: Props) {
+    const { t } = useTranslation('contracts');
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Contrats', href: '/admin/contracts' },
+        { title: t('breadcrumb.contracts'), href: '/admin/contracts' },
         { title: contract.contract_number },
-        { title: 'Modifier' },
+        { title: t('breadcrumb.edit') },
     ];
 
     const { data, setData, put, processing, errors } = useForm({
@@ -88,16 +91,16 @@ export default function ContractEdit({ contract, tenants, brokers, coinsurers, e
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Modifier ${contract.contract_number} — NSIA Transport`}/>
+            <Head title={t('edit.title', { number: contract.contract_number })}/>
             <ContractForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants} brokers={brokers} coinsurers={coinsurers} experts={experts} subscribers={subscribers}
                 incoterms={incoterms} transportModes={transportModes}
                 currencies={currencies}
-                heroTitle={`Modifier — ${contract.contract_number}`}
-                heroSub="Modification du contrat d'assurance transport"
-                submitLabel="Enregistrer les modifications"
+                heroTitle={t('edit.heroTitle', { number: contract.contract_number })}
+                heroSub={t('edit.heroSub')}
+                submitLabel={t('edit.submitLabel')}
             />
         </AppLayout>
     );

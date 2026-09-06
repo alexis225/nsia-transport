@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -22,26 +23,27 @@ interface Props {
     can:        { create: boolean; validate: boolean };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string; icon: any }> = {
-    DRAFT:    { bg:'#f8fafc', color:'#64748b', label:'Brouillon',  dot:'#94a3b8', icon: FileText },
-    PENDING:  { bg:'#fffbeb', color:'#92400e', label:'En attente', dot:'#f59e0b', icon: Clock },
-    APPROVED: { bg:'#f0fdf4', color:'#15803d', label:'Approuvé',  dot:'#22c55e', icon: CheckCircle },
-    REJECTED: { bg:'#fef2f2', color:'#dc2626', label:'Rejeté',    dot:'#ef4444', icon: XCircle },
+const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string; icon: any }> = {
+    DRAFT:    { bg:'#f8fafc', color:'#64748b', dot:'#94a3b8', icon: FileText },
+    PENDING:  { bg:'#fffbeb', color:'#92400e', dot:'#f59e0b', icon: Clock },
+    APPROVED: { bg:'#f0fdf4', color:'#15803d', dot:'#22c55e', icon: CheckCircle },
+    REJECTED: { bg:'#fef2f2', color:'#dc2626', dot:'#ef4444', icon: XCircle },
 };
 
 const fmt   = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
 const fmtDt = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 
 export default function AmendmentsIndex({ contract, amendments, can }: Props) {
+    const { t } = useTranslation('contracts');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Contrats',  href: '/admin/contracts' },
+        { title: t('breadcrumb.contracts'),  href: '/admin/contracts' },
         { title: contract.contract_number, href: route('admin.contracts.show', { contract: contract.id }) },
-        { title: 'Avenants' },
+        { title: t('breadcrumb.amendments') },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Avenants — ${contract.contract_number}`}/>
+            <Head title={t('amendments.index.title', { number: contract.contract_number })}/>
             <style>{`
                 .ai-page{padding:4px;display:flex;flex-direction:column;gap:16px;max-width:860px;margin:0 auto;}
                 .ai-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -67,13 +69,13 @@ export default function AmendmentsIndex({ contract, amendments, can }: Props) {
                 <div className="ai-page">
                     <div className="ai-hdr">
                         <div>
-                            <h1 className="ai-title">Avenants — {contract.contract_number}</h1>
-                            <p className="ai-sub">{contract.insured_name} · {contract.tenant?.name} · {amendments.length} avenant{amendments.length > 1 ? 's' : ''}</p>
+                            <h1 className="ai-title">{t('amendments.index.heading', { number: contract.contract_number })}</h1>
+                            <p className="ai-sub">{contract.insured_name} · {contract.tenant?.name} · {t('amendments.index.count', { count: amendments.length })}</p>
                         </div>
                         {can.create && contract.status === 'ACTIVE' && (
                             <Link href={route('admin.contracts.amendments.create', { contract: contract.id })}>
                                 <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={14}/> Nouvel avenant
+                                    <Plus size={14}/> {t('amendments.index.newAmendment')}
                                 </Button>
                             </Link>
                         )}
@@ -83,7 +85,7 @@ export default function AmendmentsIndex({ contract, amendments, can }: Props) {
                     {amendments.some(a => a.status === 'PENDING') && can.validate && (
                         <div className="pending-banner">
                             <Clock size={14}/>
-                            {amendments.filter(a => a.status === 'PENDING').length} avenant(s) en attente de votre validation.
+                            {t('amendments.index.pendingBanner', { count: amendments.filter(a => a.status === 'PENDING').length })}
                         </div>
                     )}
 
@@ -91,19 +93,19 @@ export default function AmendmentsIndex({ contract, amendments, can }: Props) {
                         {amendments.length === 0 ? (
                             <div className="empty">
                                 <FileText size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
-                                <div>Aucun avenant pour ce contrat.</div>
+                                <div>{t('amendments.index.empty')}</div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>N° Avenant</th>
-                                        <th>Motif</th>
-                                        <th>Modifications</th>
-                                        <th>Créé le</th>
-                                        <th>Appliqué le</th>
-                                        <th>Statut</th>
-                                        <th>Actions</th>
+                                        <th>{t('amendments.index.table.number')}</th>
+                                        <th>{t('amendments.index.table.reason')}</th>
+                                        <th>{t('amendments.index.table.changes')}</th>
+                                        <th>{t('amendments.index.table.createdAt')}</th>
+                                        <th>{t('amendments.index.table.appliedAt')}</th>
+                                        <th>{t('amendments.index.table.status')}</th>
+                                        <th>{t('amendments.index.table.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -115,7 +117,7 @@ export default function AmendmentsIndex({ contract, amendments, can }: Props) {
                                             <tr key={a.id}>
                                                 <td>
                                                     <div className="amend-num">{a.amendment_number}</div>
-                                                    <div style={{ fontSize:10, color:'#94a3b8' }}>Avenant n°{a.sequence}</div>
+                                                    <div style={{ fontSize:10, color:'#94a3b8' }}>{t('amendments.index.sequenceLabel', { sequence: a.sequence })}</div>
                                                 </td>
                                                 <td>
                                                     <div style={{ maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#1e293b', fontWeight:500 }}>
@@ -123,13 +125,13 @@ export default function AmendmentsIndex({ contract, amendments, can }: Props) {
                                                     </div>
                                                     {a.created_by && (
                                                         <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                            par {a.created_by.first_name} {a.created_by.last_name}
+                                                            {t('amendments.index.createdBy', { name: `${a.created_by.first_name} ${a.created_by.last_name}` })}
                                                         </div>
                                                     )}
                                                 </td>
                                                 <td>
                                                     <span style={{ background:'#f1f5f9', color:'#475569', borderRadius:8, padding:'2px 8px', fontSize:11, fontWeight:500 }}>
-                                                        {changesCount} champ{changesCount > 1 ? 's' : ''}
+                                                        {t('amendments.index.fields', { count: changesCount })}
                                                     </span>
                                                 </td>
                                                 <td style={{ fontSize:11, color:'#64748b' }}>{fmt(a.created_at)}</td>
@@ -138,13 +140,13 @@ export default function AmendmentsIndex({ contract, amendments, can }: Props) {
                                                 </td>
                                                 <td>
                                                     <span className="status-badge" style={{ background: ss.bg, color: ss.color }}>
-                                                        <span className="s-dot" style={{ background: ss.dot }}/>{ss.label}
+                                                        <span className="s-dot" style={{ background: ss.dot }}/>{t(`amendmentStatusLabels.${a.status}`)}
                                                     </span>
                                                 </td>
                                                 <td>
                                                     <Link href={route('admin.contracts.amendments.show', { contract: contract.id, amendment: a.id })}
                                                           className="btn-view">
-                                                        <Eye size={11}/> Voir
+                                                        <Eye size={11}/> {t('amendments.index.view')}
                                                     </Link>
                                                 </td>
                                             </tr>

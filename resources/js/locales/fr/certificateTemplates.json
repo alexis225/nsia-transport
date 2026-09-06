@@ -1,0 +1,184 @@
+{
+    "index": {
+        "headTitle": "Modèles de certificats — NSIA Transport",
+        "title": "Modèles de certificats",
+        "subtitle_one": "{{count}} modèle configuré",
+        "subtitle_other": "{{count}} modèles configurés",
+        "newTemplate": "Nouveau modèle",
+        "missingAlert_one": "{{count}} filiale sans modèle de certificat",
+        "missingAlert_other": "{{count}} filiales sans modèle de certificat",
+        "empty": "Aucun modèle configuré. Créez le premier modèle.",
+        "nextNumber": "Prochain N° :",
+        "bilingualBadge": "Bilingue FR/EN",
+        "view": "Voir",
+        "edit": "Éditer",
+        "confirmDelete": "Supprimer le modèle « {{name}} » ?",
+        "types": {
+            "carnet_ordre": "Certificat Carnet d'Ordre",
+            "certificat_assurance": "Certificat d'Assurance",
+            "certificat_etatique": "Certificat Étatique (GUCE, GUOT, etc.)"
+        }
+    },
+    "form": {
+        "logo": {
+            "title": "Logo de la filiale",
+            "subtitleOptional": "Optionnel · JPG, PNG, WebP ou SVG · Max 2 Mo",
+            "choose": "Choisir un logo",
+            "hint": "Format JPG, PNG, WebP ou SVG · Max 2 Mo"
+        },
+        "identification": {
+            "title": "Identification",
+            "tenant": "Filiale *",
+            "tenantPlaceholder": "Sélectionnez une filiale",
+            "conflict": "⚠ Cette filiale a déjà un modèle actif (« {{name}} ») — le réassigner ici échouera tant que l'autre modèle n'est pas supprimé ou déplacé vers une autre filiale.",
+            "type": "Type *",
+            "name": "Nom du modèle *",
+            "namePlaceholder": "ex: Ordre d'assurance NSIA Gabon",
+            "code": "Code *",
+            "codePlaceholder": "ex: GA",
+            "currency": "Devise *",
+            "city": "Ville (ex: LIBREVILLE)",
+            "cityPlaceholder": "ABIDJAN",
+            "numberPrefix": "Préfixe numéro",
+            "numberPrefixPlaceholder": "N° ou Nr",
+            "numberPadding": "Longueur numéro (chiffres)"
+        },
+        "company": {
+            "title": "Informations société",
+            "subtitle": "Apparaissent dans l'en-tête du certificat",
+            "name": "Raison sociale *",
+            "namePlaceholder": "NSIA Gabon",
+            "address": "Adresse",
+            "phone": "Téléphone",
+            "email": "Email",
+            "website": "Site web",
+            "rccm": "N° RCCM",
+            "capital": "Capital social",
+            "capitalPlaceholder": "1.200.000.000 F CFA",
+            "legalFramework": "Cadre légal (régime CIMA…)"
+        },
+        "options": {
+            "title": "Options du formulaire",
+            "subtitle": "Champs à afficher sur le certificat",
+            "bilingual": "Bilingue FR / EN",
+            "bilingualHint": "Ajoute les traductions anglaises (Guinée)",
+            "containerOptions": "Options Container / Groupage / Conventionnel",
+            "containerOptionsHint": "Gabon",
+            "flightNumber": "Numéro de vol",
+            "flightNumberHint": "Avion",
+            "vesselName": "Nom du navire (S/S)",
+            "vesselNameHint": "Maritime",
+            "currencyRate": "Unité monétaire + Cours",
+            "currencyRateHint": "Togo"
+        },
+        "primeLines": {
+            "title": "Lignes du décompte de prime",
+            "subtitle": "Définissez les lignes RO, RG, Surprime, etc.",
+            "columnKey": "Clé",
+            "columnLabelFr": "Libellé FR",
+            "columnLabelEn": "Libellé EN",
+            "keyPlaceholder": "ro",
+            "labelPlaceholder": "R.O./C.F.A",
+            "labelEnPlaceholder": "O.R (optionnel)",
+            "add": "Ajouter une ligne"
+        },
+        "footer": {
+            "title": "Texte IMPORTANT (pied de page)",
+            "placeholder": "LE PRESENT ORDRE D'ASSURANCE NE VAUT CERTIFICAT…"
+        },
+        "saving": "Enregistrement…"
+    },
+    "create": {
+        "breadcrumb": "Nouveau modèle",
+        "headTitle": "Nouveau modèle — NSIA Transport",
+        "heroTitle": "Nouveau modèle de certificat",
+        "heroSub": "Configurez le template selon la filiale",
+        "submit": "Créer le modèle"
+    },
+    "edit": {
+        "breadcrumb": "Modifier",
+        "headTitle": "Modifier {{name}} — NSIA Transport",
+        "heroTitle": "Modifier — {{name}}",
+        "submit": "Enregistrer les modifications",
+        "confirmRemoveLogo": "Supprimer le logo de ce modèle ?",
+        "logoCard": {
+            "subtitle": "JPG, PNG, WebP ou SVG · Max 2 Mo",
+            "uploading": "Upload…"
+        }
+    },
+    "show": {
+        "breadcrumb": "Modifier",
+        "headTitle": "Modifier {{name}} — NSIA Transport",
+        "heroTitle": "Modifier — {{name}}",
+        "submit": "Enregistrer les modifications",
+        "confirmRemoveLogo": "Supprimer le logo de ce modèle ?",
+        "logoCard": {
+            "subtitle": "JPG, PNG, WebP ou SVG · Max 2 Mo",
+            "uploading": "Upload…"
+        }
+    },
+    "printPositions": {
+        "breadcrumbs": {
+            "certificates": "Certificats",
+            "printModels": "Modèles d'impression",
+            "fieldPositions": "Positions des champs (JSON)"
+        },
+        "index": {
+            "headTitle": "Positions des champs — Modèles d'impression — NSIA Transport",
+            "title": "Positions des champs (JSON)",
+            "descriptionIntro": "Modifiez directement les coordonnées (mm) de chaque carnet sans passer par un déploiement de code — collez ou importez le JSON, et joignez éventuellement le PDF de la souche scannée comme repère visuel. Une fois enregistrée, la surcharge s'applique immédiatement aux deux modes d'impression (« Aperçu HTML » et « Imprimer sur souche »/FPDF). Pour recalibrer visuellement un champ, utilisez le calibreur (",
+            "descriptionEnd": ") : glissez-déposez les champs sur une image de la souche, copiez le JSON généré, puis collez-le ou importez-le ci-dessous.",
+            "customized": "Personnalisé",
+            "default": "Par défaut",
+            "updatedAt": "Mis à jour le {{date}}",
+            "fieldCount_one": "{{count}} champ",
+            "fieldCount_other": "{{count}} champs",
+            "editJson": "Éditer le JSON"
+        },
+        "edit": {
+            "validation": {
+                "mustBeArray": "Le JSON doit être un tableau de champs.",
+                "arrayEmpty": "Le tableau ne peut pas être vide.",
+                "itemMustBeObject": "Élément #{{index}} : doit être un objet.",
+                "keyRequired": "Élément #{{index}} : \"key\" (string) est requis.",
+                "topRequired": "Élément #{{index}} ({{key}}) : \"top\" (nombre, mm) est requis.",
+                "leftRequired": "Élément #{{index}} ({{key}}) : \"left\" (nombre, mm) est requis."
+            },
+            "invalidJson": "JSON invalide — vérifiez la syntaxe (virgules, guillemets, accolades).",
+            "conversion": {
+                "fieldsConverted_one": "{{count}} champ converti",
+                "fieldsConverted_other": "{{count}} champs convertis",
+                "pdfExtracted": "PDF de fond extrait automatiquement",
+                "skippedFields_one": "{{count}} élément sans variable ignoré",
+                "skippedFields_other": "{{count}} éléments sans variable ignorés",
+                "skippedPages_one": "{{count}} page supplémentaire ignorée (recto simple uniquement)",
+                "skippedPages_other": "{{count}} pages supplémentaires ignorées (recto simple uniquement)"
+            },
+            "headTitle": "Positions — {{name}} — NSIA Transport",
+            "backToList": "Retour à la liste",
+            "referencePdf": {
+                "title": "PDF de référence (souche scannée)",
+                "subtitle": "Sert de repère visuel pour calibrer les coordonnées — n'est jamais imprimé par-dessus, uniquement consultable.",
+                "viewCurrent": "Voir le PDF actuel",
+                "choose": "Choisir un PDF…"
+            },
+            "positionsJson": {
+                "title": "JSON des positions (mm)",
+                "import": "Importer un fichier .json",
+                "descIntro": "Tableau d'objets ",
+                "descAfterCode": " — coordonnées en millimètres depuis le coin haut-gauche de la page. Vous pouvez aussi coller/importer directement l'export JSON du ",
+                "descAfterStrong": " (avec ",
+                "descEnd": ") : il sera converti automatiquement et le PDF de fond en sera extrait.",
+                "pdfmeDetected": "Export du Designer pdfme détecté — prêt à convertir vers notre format et à extraire le PDF de fond.",
+                "convertNow": "Convertir maintenant",
+                "valid_one": "JSON valide — {{count}} champ.",
+                "valid_other": "JSON valide — {{count}} champs."
+            },
+            "save": "Enregistrer",
+            "saving": "Enregistrement…",
+            "saved": "Enregistré",
+            "reset": "Réinitialiser aux valeurs par défaut",
+            "confirmReset": "Réinitialiser le modèle « {{name}} » aux coordonnées par défaut du code ? La surcharge JSON et le PDF de référence seront supprimés."
+        }
+    }
+}

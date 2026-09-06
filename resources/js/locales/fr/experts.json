@@ -1,0 +1,88 @@
+{
+    "index": {
+        "breadcrumb": "Experts",
+        "title": "Experts — NSIA Transport",
+        "heading": "Experts d'assurance",
+        "count_one": "{{count}} expert",
+        "count_other": "{{count}} experts",
+        "newExpert": "Nouvel expert",
+        "searchPlaceholder": "Rechercher par nom ou email…",
+        "statusAll": "Tous les statuts",
+        "statusActive": "Actifs",
+        "statusInactive": "Inactifs",
+        "clear": "Effacer",
+        "empty": "Aucun expert trouvé.",
+        "table": {
+            "expert": "Expert",
+            "contact": "Contact",
+            "country": "Pays",
+            "tenant": "Filiale",
+            "status": "Statut",
+            "actions": "Actions"
+        },
+        "view": "Voir",
+        "edit": "Éditer",
+        "deactivate": "Désactiver",
+        "activate": "Activer",
+        "delete": "Supprimer",
+        "confirmDelete": "Supprimer l'expert « {{name}} » ?",
+        "confirmDeactivate": "Désactiver {{name}} ?",
+        "confirmActivate": "Activer {{name}} ?",
+        "pageInfo": "Page {{current}} / {{last}} · {{total}} experts"
+    },
+    "show": {
+        "title": "Informations",
+        "fields": {
+            "name": "Nom",
+            "country": "Pays",
+            "email": "Email",
+            "phone": "Téléphone",
+            "tenant": "Filiale",
+            "status": "Statut",
+            "createdAt": "Créé le"
+        },
+        "edit": "Modifier",
+        "deactivate": "Désactiver",
+        "activate": "Activer",
+        "backToList": "Retour à la liste",
+        "confirmDeactivate": "Désactiver {{name}} ?",
+        "confirmActivate": "Activer {{name}} ?"
+    },
+    "create": {
+        "breadcrumb": "Nouvel expert",
+        "title": "Nouvel expert — NSIA Transport",
+        "submitLabel": "Créer l'expert",
+        "heroTitle": "Nouvel expert",
+        "heroSub": "Enregistrez un nouvel expert d'assurance"
+    },
+    "edit": {
+        "breadcrumb": "Modifier",
+        "title": "Modifier {{name}} — NSIA Transport",
+        "submitLabel": "Enregistrer les modifications",
+        "heroTitle": "Modifier : {{name}}",
+        "heroSub": "Mettez à jour les informations de l'expert"
+    },
+    "form": {
+        "identification": {
+            "title": "Identification",
+            "subtitle": "Informations de l'expert",
+            "name": "Nom complet *",
+            "namePlaceholder": "Jean-Paul Martin",
+            "email": "Email",
+            "emailPlaceholder": "expert@assurance.com",
+            "phone": "Téléphone",
+            "phonePlaceholder": "+225 07 00 00 00 00",
+            "country": "Pays",
+            "noneOption": "— Aucun —",
+            "tenant": "Filiale",
+            "selectTenant": "Sélectionnez une filiale"
+        },
+        "status": {
+            "title": "Statut",
+            "active": "Expert actif",
+            "inactive": "Expert inactif",
+            "activeHint": "Peut être assigné aux dossiers",
+            "inactiveHint": "Ne peut pas être utilisé"
+        }
+    }
+}

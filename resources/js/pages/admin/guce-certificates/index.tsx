@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -8,10 +9,6 @@ import {
     ChevronLeft, ChevronRight, FileText,
     Download, Upload,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Certificats GUCE', href: '/admin/guce-certificates' },
-];
 
 interface GuceCertificate {
     id: string;
@@ -47,6 +44,13 @@ interface Props {
 }
 
 export default function GuceCertificatesIndex({ certificates, filters }: Props) {
+    const { t } = useTranslation('certificates');
+    const { t: tc } = useTranslation('common');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('guce.index.heading'), href: '/admin/guce-certificates' },
+    ];
+
     const [search, setSearch] = useState(filters.search ?? '');
 
     function applySearch(e: React.FormEvent) {
@@ -60,7 +64,7 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
     }
 
     function handleDelete(id: string, ref: string) {
-        if (!confirm(`Supprimer le certificat GUCE "${ref}" ? Cette action est irréversible.`)) return;
+        if (!confirm(t('guce.index.confirmDelete', { reference: ref }))) return;
         router.delete(`/admin/guce-certificates/${id}`);
     }
 
@@ -71,7 +75,7 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Certificats GUCE" />
+            <Head title={t('guce.index.title')} />
 
             <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
 
@@ -79,15 +83,15 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <div>
                         <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                            Certificats GUCE
+                            {t('guce.index.heading')}
                         </h1>
                         <p style={{ color: '#64748b', fontSize: '14px', margin: '4px 0 0' }}>
-                            Certificats importés depuis le Guichet Unique du Commerce Extérieur
+                            {t('guce.index.subtitle')}
                         </p>
                     </div>
                     <Link href="/admin/guce-certificates/create">
                         <Button style={{ background: '#16a34a', color: '#fff', gap: '6px', display: 'flex', alignItems: 'center' }}>
-                            <Upload size={16} /> Importer un certificat
+                            <Upload size={16} /> {t('guce.index.importButton')}
                         </Button>
                     </Link>
                 </div>
@@ -99,7 +103,7 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="Référence GUCE, N° certificat, police, assuré..."
+                            placeholder={t('guce.index.searchPlaceholder')}
                             style={{
                                 width: '100%', padding: '8px 8px 8px 34px', border: '1px solid #e2e8f0',
                                 borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
@@ -112,13 +116,13 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
                             </button>
                         )}
                     </div>
-                    <Button type="submit" variant="outline">Rechercher</Button>
+                    <Button type="submit" variant="outline">{t('guce.index.searchBtn')}</Button>
                 </form>
 
                 {/* Compteur */}
                 <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '12px' }}>
-                    {certificates.total} certificat{certificates.total !== 1 ? 's' : ''} importé{certificates.total !== 1 ? 's' : ''}
-                    {certificates.total > 0 && ` — affichage ${certificates.from}–${certificates.to}`}
+                    {t(certificates.total > 1 ? 'guce.index.count_plural' : 'guce.index.count', { count: certificates.total })}
+                    {certificates.total > 0 && t('guce.index.countRange', { from: certificates.from, to: certificates.to })}
                 </p>
 
                 {/* Tableau */}
@@ -126,7 +130,17 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                {['Référence GUCE', 'N° Certificat', 'Police', 'Assuré', 'Voyage', 'Valeur assurée', 'Fichier', 'Importé par', 'Actions'].map(h => (
+                                {[
+                                    t('guce.index.table.guceReference'),
+                                    t('guce.index.table.certificateNumber'),
+                                    t('guce.index.table.policy'),
+                                    t('guce.index.table.insured'),
+                                    t('guce.index.table.voyage'),
+                                    t('guce.index.table.insuredValue'),
+                                    t('guce.index.table.file'),
+                                    t('guce.index.table.importedBy'),
+                                    t('guce.index.table.actions'),
+                                ].map(h => (
                                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>{h}</th>
                                 ))}
                             </tr>
@@ -136,7 +150,7 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
                                 <tr>
                                     <td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
                                         <FileText size={32} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.4 }} />
-                                        Aucun certificat GUCE importé
+                                        {t('guce.index.empty')}
                                     </td>
                                 </tr>
                             ) : certificates.data.map((cert, i) => (
@@ -181,17 +195,17 @@ export default function GuceCertificatesIndex({ certificates, filters }: Props) 
                                     <td style={{ padding: '10px 14px' }}>
                                         <div style={{ display: 'flex', gap: '6px' }}>
                                             <Link href={`/admin/guce-certificates/${cert.id}`}>
-                                                <button title="Voir" style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', color: '#3b82f6' }}>
+                                                <button title={tc('actions.view')} style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', color: '#3b82f6' }}>
                                                     <Eye size={14} />
                                                 </button>
                                             </Link>
-                                            <a href={`/admin/guce-certificates/${cert.id}/download`} title="Télécharger">
+                                            <a href={`/admin/guce-certificates/${cert.id}/download`} title={t('guce.show.download')}>
                                                 <button style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', color: '#16a34a' }}>
                                                     <Download size={14} />
                                                 </button>
                                             </a>
                                             <button
-                                                title="Supprimer"
+                                                title={tc('actions.delete')}
                                                 onClick={() => handleDelete(cert.id, cert.guce_reference)}
                                                 style={{ border: '1px solid #fee2e2', background: '#fff', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', color: '#dc2626' }}>
                                                 <Trash2 size={14} />

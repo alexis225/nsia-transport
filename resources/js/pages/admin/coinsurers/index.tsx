@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -9,10 +10,6 @@ import {
     ChevronLeft, ChevronRight,
     Users2,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Coassureurs', href: '/admin/coinsurers' },
-];
 
 interface Tenant { id: string; name: string; code: string; }
 interface Coinsurer {
@@ -43,25 +40,33 @@ const COLORS = [
 ];
 
 export default function CoinsurerIndex({ coinsurers, filters, isSA, can }: Props) {
+    const { t } = useTranslation('coinsurers');
+    const { t: tc } = useTranslation('common');
     const [search, setSearch] = useState(filters?.search ?? '');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/coinsurers' },
+    ];
 
     const applyFilter = (params: Record<string, string>) =>
         router.get('/admin/coinsurers', { ...filters, ...params }, { preserveState: true, replace: true });
 
     const handleDelete = (c: Coinsurer) => {
-        if (confirm(`Supprimer le coassureur « ${c.name} » ?`))
+        if (confirm(t('index.confirmDelete', { name: c.name })))
             router.delete(route('admin.coinsurers.destroy', { coinsurer: c.id }));
     };
 
     const handleToggle = (c: Coinsurer) => {
-        const action = c.is_active ? 'désactiver' : 'activer';
-        if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${c.name} ?`))
+        const msg = c.is_active
+            ? t('index.confirmDeactivate', { name: c.name })
+            : t('index.confirmActivate', { name: c.name });
+        if (confirm(msg))
             router.patch(route('admin.coinsurers.toggle', { coinsurer: c.id }));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Coassureurs — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .ci-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .ci-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -108,13 +113,13 @@ export default function CoinsurerIndex({ coinsurers, filters, isSA, can }: Props
                     {/* Header */}
                     <div className="ci-hdr">
                         <div>
-                            <h1 className="ci-title">Coassureurs</h1>
-                            <p className="ci-sub">{coinsurers.total} coassureur{coinsurers.total > 1 ? 's' : ''}</p>
+                            <h1 className="ci-title">{t('index.heading')}</h1>
+                            <p className="ci-sub">{t('index.count', { count: coinsurers.total })}</p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.coinsurers.create')}>
                                 <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> Nouveau coassureur
+                                    <Plus size={15}/> {t('index.newCoinsurer')}
                                 </Button>
                             </Link>
                         )}
@@ -123,17 +128,17 @@ export default function CoinsurerIndex({ coinsurers, filters, isSA, can }: Props
                     {/* Toolbar */}
                     <div className="ci-toolbar">
                         <form className="ci-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page: '1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom…"/>
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.searchPlaceholder')}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         <select className="ci-select" value={filters?.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page: '1' })}>
-                            <option value="">Tous les statuts</option>
-                            <option value="active">Actifs</option>
-                            <option value="inactive">Inactifs</option>
+                            <option value="">{t('index.statusAll')}</option>
+                            <option value="active">{t('index.statusActive')}</option>
+                            <option value="inactive">{t('index.statusInactive')}</option>
                         </select>
                         {(filters?.search || filters?.status) && (
                             <button onClick={() => router.get('/admin/coinsurers')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('index.clear')}
                             </button>
                         )}
                     </div>
@@ -141,18 +146,18 @@ export default function CoinsurerIndex({ coinsurers, filters, isSA, can }: Props
                     {/* Tableau */}
                     <div className="ci-card">
                         {coinsurers.data.length === 0 ? (
-                            <div className="ci-empty">Aucun coassureur trouvé.</div>
+                            <div className="ci-empty">{t('index.empty')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Coassureur</th>
-                                            <th>Pays</th>
-                                            <th>Contact</th>
-                                            {isSA && <th>Filiale</th>}
-                                            <th>Statut</th>
-                                            <th>Actions</th>
+                                            <th>{t('index.table.coinsurer')}</th>
+                                            <th>{t('index.table.country')}</th>
+                                            <th>{t('index.table.contact')}</th>
+                                            {isSA && <th>{t('index.table.tenant')}</th>}
+                                            <th>{t('index.table.status')}</th>
+                                            <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -182,27 +187,27 @@ export default function CoinsurerIndex({ coinsurers, filters, isSA, can }: Props
                                                     )}
                                                     <td>
                                                         {ci.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>Actif</span>
-                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>Inactif</span>}
+                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{tc('states.active')}</span>
+                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{tc('states.inactive')}</span>}
                                                     </td>
                                                     <td>
                                                         <div className="actions">
                                                             <Link href={route('admin.coinsurers.show', { coinsurer: ci.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> Voir
+                                                                <Eye size={12}/> {t('index.view')}
                                                             </Link>
                                                             {can.edit && (
                                                                 <Link href={route('admin.coinsurers.edit', { coinsurer: ci.id })} className="btn-act btn-edit">
-                                                                    <Edit2 size={12}/> Éditer
+                                                                    <Edit2 size={12}/> {t('index.edit')}
                                                                 </Link>
                                                             )}
                                                             {can.edit && (
                                                                 <button className={`btn-act ${ci.is_active ? 'btn-on' : 'btn-off'}`} onClick={() => handleToggle(ci)}>
-                                                                    {ci.is_active ? <><ToggleLeft size={12}/> Désactiver</> : <><ToggleRight size={12}/> Activer</>}
+                                                                    {ci.is_active ? <><ToggleLeft size={12}/> {t('index.deactivate')}</> : <><ToggleRight size={12}/> {t('index.activate')}</>}
                                                                 </button>
                                                             )}
                                                             {can.delete && (
                                                                 <button className="btn-act btn-del" onClick={() => handleDelete(ci)}>
-                                                                    <Trash2 size={12}/> Supprimer
+                                                                    <Trash2 size={12}/> {t('index.delete')}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -215,7 +220,7 @@ export default function CoinsurerIndex({ coinsurers, filters, isSA, can }: Props
 
                                 {coinsurers.last_page > 1 && (
                                     <div className="ci-pagination">
-                                        <span className="ci-pg-info">Page {coinsurers.current_page} / {coinsurers.last_page} · {coinsurers.total} coassureurs</span>
+                                        <span className="ci-pg-info">{t('index.pageInfo', { current: coinsurers.current_page, last: coinsurers.last_page, total: coinsurers.total })}</span>
                                         <div className="ci-pg-links">
                                             <button className="pg-btn" disabled={coinsurers.current_page === 1} onClick={() => applyFilter({ page: String(coinsurers.current_page - 1) })}><ChevronLeft size={13}/></button>
                                             {coinsurers.links.map((link, i) => {

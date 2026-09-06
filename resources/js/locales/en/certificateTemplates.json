@@ -1,0 +1,184 @@
+{
+    "index": {
+        "headTitle": "Certificate templates — NSIA Transport",
+        "title": "Certificate templates",
+        "subtitle_one": "{{count}} template configured",
+        "subtitle_other": "{{count}} templates configured",
+        "newTemplate": "New template",
+        "missingAlert_one": "{{count}} subsidiary without a certificate template",
+        "missingAlert_other": "{{count}} subsidiaries without a certificate template",
+        "empty": "No template configured. Create the first one.",
+        "nextNumber": "Next No.:",
+        "bilingualBadge": "Bilingual FR/EN",
+        "view": "View",
+        "edit": "Edit",
+        "confirmDelete": "Delete template « {{name}} »?",
+        "types": {
+            "carnet_ordre": "Order Book Certificate",
+            "certificat_assurance": "Insurance Certificate",
+            "certificat_etatique": "Government Certificate (GUCE, GUOT, etc.)"
+        }
+    },
+    "form": {
+        "logo": {
+            "title": "Subsidiary logo",
+            "subtitleOptional": "Optional · JPG, PNG, WebP or SVG · Max 2 MB",
+            "choose": "Choose a logo",
+            "hint": "JPG, PNG, WebP or SVG format · Max 2 MB"
+        },
+        "identification": {
+            "title": "Identification",
+            "tenant": "Subsidiary *",
+            "tenantPlaceholder": "Select a subsidiary",
+            "conflict": "⚠ This subsidiary already has an active template (« {{name}} ») — reassigning it here will fail until the other template is deleted or moved to another subsidiary.",
+            "type": "Type *",
+            "name": "Template name *",
+            "namePlaceholder": "e.g.: NSIA Gabon insurance order",
+            "code": "Code *",
+            "codePlaceholder": "e.g.: GA",
+            "currency": "Currency *",
+            "city": "City (e.g.: LIBREVILLE)",
+            "cityPlaceholder": "ABIDJAN",
+            "numberPrefix": "Number prefix",
+            "numberPrefixPlaceholder": "No. or Nr",
+            "numberPadding": "Number length (digits)"
+        },
+        "company": {
+            "title": "Company information",
+            "subtitle": "Appears in the certificate header",
+            "name": "Company name *",
+            "namePlaceholder": "NSIA Gabon",
+            "address": "Address",
+            "phone": "Phone",
+            "email": "Email",
+            "website": "Website",
+            "rccm": "Registration No. (RCCM)",
+            "capital": "Share capital",
+            "capitalPlaceholder": "1,200,000,000 F CFA",
+            "legalFramework": "Legal framework (CIMA regime…)"
+        },
+        "options": {
+            "title": "Form options",
+            "subtitle": "Fields to display on the certificate",
+            "bilingual": "Bilingual FR / EN",
+            "bilingualHint": "Adds English translations (Guinea)",
+            "containerOptions": "Container / Groupage / Conventional options",
+            "containerOptionsHint": "Gabon",
+            "flightNumber": "Flight number",
+            "flightNumberHint": "Air",
+            "vesselName": "Vessel name (S/S)",
+            "vesselNameHint": "Maritime",
+            "currencyRate": "Currency unit + exchange rate",
+            "currencyRateHint": "Togo"
+        },
+        "primeLines": {
+            "title": "Premium breakdown lines",
+            "subtitle": "Define the RO, RG, Surcharge, etc. lines",
+            "columnKey": "Key",
+            "columnLabelFr": "FR label",
+            "columnLabelEn": "EN label",
+            "keyPlaceholder": "ro",
+            "labelPlaceholder": "R.O./C.F.A",
+            "labelEnPlaceholder": "O.R (optional)",
+            "add": "Add a line"
+        },
+        "footer": {
+            "title": "IMPORTANT text (footer)",
+            "placeholder": "THIS INSURANCE ORDER DOES NOT CONSTITUTE A CERTIFICATE…"
+        },
+        "saving": "Saving…"
+    },
+    "create": {
+        "breadcrumb": "New template",
+        "headTitle": "New template — NSIA Transport",
+        "heroTitle": "New certificate template",
+        "heroSub": "Configure the template for the subsidiary",
+        "submit": "Create template"
+    },
+    "edit": {
+        "breadcrumb": "Edit",
+        "headTitle": "Edit {{name}} — NSIA Transport",
+        "heroTitle": "Edit — {{name}}",
+        "submit": "Save changes",
+        "confirmRemoveLogo": "Delete this template's logo?",
+        "logoCard": {
+            "subtitle": "JPG, PNG, WebP or SVG · Max 2 MB",
+            "uploading": "Uploading…"
+        }
+    },
+    "show": {
+        "breadcrumb": "Edit",
+        "headTitle": "Edit {{name}} — NSIA Transport",
+        "heroTitle": "Edit — {{name}}",
+        "submit": "Save changes",
+        "confirmRemoveLogo": "Delete this template's logo?",
+        "logoCard": {
+            "subtitle": "JPG, PNG, WebP or SVG · Max 2 MB",
+            "uploading": "Uploading…"
+        }
+    },
+    "printPositions": {
+        "breadcrumbs": {
+            "certificates": "Certificates",
+            "printModels": "Print templates",
+            "fieldPositions": "Field positions (JSON)"
+        },
+        "index": {
+            "headTitle": "Field positions — Print templates — NSIA Transport",
+            "title": "Field positions (JSON)",
+            "descriptionIntro": "Directly edit the coordinates (mm) of each certificate stub without a code deployment — paste or import the JSON, and optionally attach the scanned stub PDF as a visual guide. Once saved, the override applies immediately to both print modes («HTML preview» and «Print on stub»/FPDF). To recalibrate a field visually, use the calibrator (",
+            "descriptionEnd": ") : drag and drop the fields onto an image of the stub, copy the generated JSON, then paste or import it below.",
+            "customized": "Customized",
+            "default": "Default",
+            "updatedAt": "Updated on {{date}}",
+            "fieldCount_one": "{{count}} field",
+            "fieldCount_other": "{{count}} fields",
+            "editJson": "Edit JSON"
+        },
+        "edit": {
+            "validation": {
+                "mustBeArray": "The JSON must be an array of fields.",
+                "arrayEmpty": "The array cannot be empty.",
+                "itemMustBeObject": "Item #{{index}}: must be an object.",
+                "keyRequired": "Item #{{index}}: \"key\" (string) is required.",
+                "topRequired": "Item #{{index}} ({{key}}): \"top\" (number, mm) is required.",
+                "leftRequired": "Item #{{index}} ({{key}}): \"left\" (number, mm) is required."
+            },
+            "invalidJson": "Invalid JSON — check the syntax (commas, quotes, braces).",
+            "conversion": {
+                "fieldsConverted_one": "{{count}} field converted",
+                "fieldsConverted_other": "{{count}} fields converted",
+                "pdfExtracted": "Background PDF extracted automatically",
+                "skippedFields_one": "{{count}} item without a variable skipped",
+                "skippedFields_other": "{{count}} items without a variable skipped",
+                "skippedPages_one": "{{count}} extra page skipped (single-sided only)",
+                "skippedPages_other": "{{count}} extra pages skipped (single-sided only)"
+            },
+            "headTitle": "Positions — {{name}} — NSIA Transport",
+            "backToList": "Back to list",
+            "referencePdf": {
+                "title": "Reference PDF (scanned stub)",
+                "subtitle": "Used as a visual guide to calibrate the coordinates — never printed over, view-only.",
+                "viewCurrent": "View current PDF",
+                "choose": "Choose a PDF…"
+            },
+            "positionsJson": {
+                "title": "Positions JSON (mm)",
+                "import": "Import a .json file",
+                "descIntro": "Array of objects ",
+                "descAfterCode": " — coordinates in millimeters from the top-left corner of the page. You can also paste/import directly the JSON export from the ",
+                "descAfterStrong": " (with ",
+                "descEnd": "): it will be automatically converted and the background PDF extracted from it.",
+                "pdfmeDetected": "pdfme Designer export detected — ready to convert to our format and extract the background PDF.",
+                "convertNow": "Convert now",
+                "valid_one": "Valid JSON — {{count}} field.",
+                "valid_other": "Valid JSON — {{count}} fields."
+            },
+            "save": "Save",
+            "saving": "Saving…",
+            "saved": "Saved",
+            "reset": "Reset to defaults",
+            "confirmReset": "Reset the template « {{name}} » to the code's default coordinates? The JSON override and reference PDF will be deleted."
+        }
+    }
+}

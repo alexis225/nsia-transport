@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { FileText, Check, Plus, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AmountInput } from '@/components/amount-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -29,12 +30,14 @@ interface Props {
     defaultTenantId: string | null;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Contrats', href: '/admin/contracts' },
-    { title: 'Nouveau contrat' },
-];
-
 export default function ContractCreate({ tenants, brokers, coinsurers, experts, subscribers, incoterms, transportModes, currencies, defaultTenantId }: Props) {
+    const { t } = useTranslation('contracts');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb.contracts'), href: '/admin/contracts' },
+        { title: t('breadcrumb.newContract') },
+    ];
+
     const { data, setData, post, processing, errors } = useForm({
         tenant_id:              defaultTenantId ?? '',
         broker_id:              '',
@@ -81,16 +84,16 @@ export default function ContractCreate({ tenants, brokers, coinsurers, experts, 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouveau contrat — NSIA Transport"/>
+            <Head title={t('create.title')}/>
             <ContractForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants} brokers={brokers} coinsurers={coinsurers} experts={experts} subscribers={subscribers}
                 incoterms={incoterms} transportModes={transportModes}
                 currencies={currencies}
-                heroTitle="Nouveau contrat d'assurance transport"
-                heroSub="Créez une police d'assurance pour un assuré"
-                submitLabel="Créer le contrat"
+                heroTitle={t('create.heroTitle')}
+                heroSub={t('create.heroSub')}
+                submitLabel={t('create.submitLabel')}
             />
         </AppLayout>
     );
@@ -112,6 +115,7 @@ function Toggle({ data, setData, field, label, hint }: any) {
 }
 
 function TagList({ data, setData, field, input, setInput, placeholder }: any) {
+    const { t } = useTranslation('contracts');
     const addToList = () => {
         if (!input.trim()) {
             return;
@@ -147,7 +151,7 @@ function TagList({ data, setData, field, input, setInput, placeholder }: any) {
                        style={{ flex:1, padding:'8px 12px', fontSize:12, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:8, outline:'none' }}/>
                 <button type="button" onClick={addToList}
                         style={{ padding:'8px 12px', background:'#1e3a8a', border:'none', borderRadius:8, color:'#fff', cursor:'pointer', fontSize:12, fontFamily:'inherit', display:'flex', alignItems:'center', gap:4 }}>
-                    <Plus size={12}/> Ajouter
+                    <Plus size={12}/> {t('form.coverage.addTag')}
                 </button>
             </div>
         </div>
@@ -158,6 +162,9 @@ function TagList({ data, setData, field, input, setInput, placeholder }: any) {
 export function ContractForm({ data, setData, errors, processing, onSubmit,
     tenants, brokers, coinsurers, experts, subscribers, incoterms, transportModes, currencies,
     heroTitle, heroSub, submitLabel }: any) {
+
+    const { t } = useTranslation('contracts');
+    const { t: tc } = useTranslation('common');
 
     const [clauseInput, setClauseInput]       = useState('');
     const [exclusionInput, setExclusionInput] = useState('');
@@ -225,62 +232,64 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Identification ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Identification</div>
+                                <div className="cf-card-ttl">{t('form.identification.title')}</div>
                             </div>
                             <div className="cf-card-body">
                                 <div className="form-grid">
                                     {tenants?.length > 0 && (
                                         <div className="grid gap-2">
-                                            <Label className="cf-label">Filiale *</Label>
+                                            <Label className="cf-label">{t('form.identification.tenant')}</Label>
                                             <select className="cf-select" value={data.tenant_id} onChange={e => {
                                                 const tenantId = e.target.value;
                                                 setData('tenant_id', tenantId);
                                                 const tenant = tenants.find((t: Tenant) => t.id === tenantId);
                                                 if (tenant) setData('currency_code', tenant.currency_code);
                                             }}>
-                                                <option value="">Sélectionnez une filiale</option>
+                                                <option value="">{t('form.identification.tenantPlaceholder')}</option>
                                                 {tenants.map((t: Tenant) => <option key={t.id} value={t.id}>{t.name} ({t.code}) — {t.currency_code}</option>)}
                                             </select>
                                             <InputError message={errors.tenant_id}/>
                                         </div>
                                     )}
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Type de contrat *</Label>
+                                        <Label className="cf-label">{t('form.identification.type')}</Label>
                                         <select className="cf-select" value={data.type} onChange={e => setData('type', e.target.value)}>
-                                            <option value="OPEN_POLICY">Police ouverte (plusieurs voyages)</option>
-                                            <option value="VOYAGE">Au voyage (unique)</option>
-                                            <option value="ANNUAL_VOYAGE">Annuel voyages</option>
-                                            <option value="TIERS_CHARGEUR">Police tiers chargeur (plusieurs voyages)</option>
+                                            <option value="OPEN_POLICY">{t('form.identification.typeOpenPolicy')}</option>
+                                            <option value="VOYAGE">{t('form.identification.typeVoyage')}</option>
+                                            <option value="ANNUAL_VOYAGE">{t('form.identification.typeAnnualVoyage')}</option>
+                                            <option value="TIERS_CHARGEUR">{t('form.identification.typeTiersChargeur')}</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Courtier (optionnel)</Label>
+                                        <Label className="cf-label">{t('form.identification.broker')}</Label>
                                         <select className="cf-select" value={data.broker_id ?? ''} onChange={e => setData('broker_id', e.target.value)}>
-                                            <option value="">Sans courtier</option>
+                                            <option value="">{t('form.identification.noBroker')}</option>
                                             {brokers?.map((b: Broker) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
                                         </select>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Gestionnaire du dossier (optionnel)</Label>
+                                        <Label className="cf-label">{t('form.identification.subscriber')}</Label>
                                         <select className="cf-select" value={data.subscriber_id ?? ''} onChange={e => setData('subscriber_id', e.target.value)}>
-                                            <option value="">Non assigné</option>
+                                            <option value="">{t('form.identification.noSubscriber')}</option>
                                             {subscribers?.map((s: Subscriber) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
                                         </select>
-                                        <p style={{ fontSize:11, color:'#94a3b8' }}>Utilisateur NSIA en charge du dossier — distinct du souscripteur (contractant) ci-dessous.</p>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>{t('form.identification.subscriberHint')}</p>
                                     </div>
                                 </div>
                                 {data.broker_id && (
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Commission courtier pour ce contrat — % (optionnel)</Label>
+                                        <Label className="cf-label">{t('form.identification.commissionRate')}</Label>
                                         <Input className="h-11" type="number" step="0.01" min={0} max={100}
                                                value={data.commission_rate ?? ''} onChange={e => setData('commission_rate', e.target.value)}
-                                               placeholder="Laisser vide = taux général du courtier"/>
+                                               placeholder={t('form.identification.commissionRatePlaceholder')}/>
                                         <InputError message={errors.commission_rate}/>
                                         <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                            Commission standard de {selectedBroker?.name ?? 'ce courtier'} : {selectedBroker?.commission_rate ?? '—'}%.
-                                            Si renseigné ci-dessus, ce taux remplace le taux standard pour ce contrat uniquement.
+                                            {t('form.identification.commissionRateHint', {
+                                                brokerName: selectedBroker?.name ?? t('form.identification.defaultBrokerName'),
+                                                rate: selectedBroker?.commission_rate ?? '—',
+                                            })}
                                         </p>
                                     </div>
                                 )}
@@ -290,8 +299,8 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Coassureurs ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Coassureurs (optionnel)</div>
-                                <div className="cf-card-sub">Part de coassurance propre à ce contrat — un même coassureur peut avoir un taux différent sur un autre contrat</div>
+                                <div className="cf-card-ttl">{t('form.coinsurers.title')}</div>
+                                <div className="cf-card-sub">{t('form.coinsurers.subtitle')}</div>
                             </div>
                             <div className="cf-card-body">
                                 {contractCoinsurers.length > 0 && (
@@ -312,7 +321,7 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                                         <Input className="h-11" type="number" step="0.01" min={0.01} max={100}
                                                                value={row.share_rate}
                                                                onChange={e => updateCoinsurerRow(i, 'share_rate', e.target.value)}
-                                                               placeholder="Part %"/>
+                                                               placeholder={t('form.coinsurers.sharePlaceholder')}/>
                                                         <InputError message={errors[`coinsurers.${i}.share_rate`]}/>
                                                     </div>
                                                     <button type="button" onClick={() => removeCoinsurerRow(i)}
@@ -323,18 +332,18 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                             );
                                         })}
                                         <p style={{ fontSize:11, color: totalShareRate > 100 ? '#dc2626' : '#94a3b8' }}>
-                                            Total des parts : {totalShareRate.toFixed(2)}%
-                                            {totalShareRate > 100 && ' — dépasse 100%'}
+                                            {t('form.coinsurers.totalShare', { total: totalShareRate.toFixed(2) })}
+                                            {totalShareRate > 100 && t('form.coinsurers.exceeds100')}
                                         </p>
                                     </div>
                                 )}
                                 <button type="button" onClick={addCoinsurerRow} disabled={!availableCoinsurers.length}
                                         style={{ padding:'8px 14px', background:'#f8fafc', border:'1.5px dashed #cbd5e1', borderRadius:8, cursor: availableCoinsurers.length ? 'pointer' : 'not-allowed', opacity: availableCoinsurers.length ? 1 : 0.5, fontSize:12, color:'#475569', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit', marginTop: contractCoinsurers.length ? 10 : 0 }}>
-                                    <Plus size={12}/> Ajouter un coassureur
+                                    <Plus size={12}/> {t('form.coinsurers.add')}
                                 </button>
                                 {!coinsurers?.length && (
                                     <p style={{ fontSize:11, color:'#94a3b8', marginTop:8 }}>
-                                        Aucun coassureur créé pour cette filiale — créez-en un depuis le module Coassureurs.
+                                        {t('form.coinsurers.none')}
                                     </p>
                                 )}
                             </div>
@@ -343,13 +352,13 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Experts ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Experts (optionnel)</div>
-                                <div className="cf-card-sub">Experts mandatés sur ce contrat pour l'expertise / le suivi des sinistres</div>
+                                <div className="cf-card-ttl">{t('form.experts.title')}</div>
+                                <div className="cf-card-sub">{t('form.experts.subtitle')}</div>
                             </div>
                             <div className="cf-card-body">
                                 {(experts ?? []).length === 0 ? (
                                     <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                        Aucun expert créé pour cette filiale — créez-en un depuis le module Experts.
+                                        {t('form.experts.none')}
                                     </p>
                                 ) : (
                                     <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
@@ -381,29 +390,29 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Souscripteur (contractant) ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Souscripteur</div>
-                                <div className="cf-card-sub">Le contractant — celui qui souscrit et paye les primes (peut être distinct de l'Assuré)</div>
+                                <div className="cf-card-ttl">{t('form.subscriber.title')}</div>
+                                <div className="cf-card-sub">{t('form.subscriber.subtitle')}</div>
                             </div>
                             <div className="cf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Nom / Raison sociale</Label>
-                                    <Input className="h-11" value={data.subscriber_name ?? ''} onChange={e => setData('subscriber_name', e.target.value)} placeholder="Nom du souscripteur"/>
+                                    <Label className="cf-label">{t('form.subscriber.name')}</Label>
+                                    <Input className="h-11" value={data.subscriber_name ?? ''} onChange={e => setData('subscriber_name', e.target.value)} placeholder={t('form.subscriber.namePlaceholder')}/>
                                     <InputError message={errors.subscriber_name}/>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Email</Label>
+                                        <Label className="cf-label">{t('form.subscriber.email')}</Label>
                                         <Input className="h-11" type="email" value={data.subscriber_email ?? ''} onChange={e => setData('subscriber_email', e.target.value)}/>
                                         <InputError message={errors.subscriber_email}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Téléphone</Label>
+                                        <Label className="cf-label">{t('form.subscriber.phone')}</Label>
                                         <Input className="h-11" value={data.subscriber_phone ?? ''} onChange={e => setData('subscriber_phone', e.target.value)}/>
                                         <InputError message={errors.subscriber_phone}/>
                                     </div>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Adresse</Label>
+                                    <Label className="cf-label">{t('form.subscriber.address')}</Label>
                                     <Input className="h-11" value={data.subscriber_address ?? ''} onChange={e => setData('subscriber_address', e.target.value)}/>
                                     <InputError message={errors.subscriber_address}/>
                                 </div>
@@ -413,26 +422,26 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Assuré ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Assuré</div>
+                                <div className="cf-card-ttl">{t('form.insured.title')}</div>
                             </div>
                             <div className="cf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Nom / Raison sociale *</Label>
-                                    <Input className="h-11" value={data.insured_name} onChange={e => setData('insured_name', e.target.value)} placeholder="Nom de l'assuré"/>
+                                    <Label className="cf-label">{t('form.insured.name')}</Label>
+                                    <Input className="h-11" value={data.insured_name} onChange={e => setData('insured_name', e.target.value)} placeholder={t('form.insured.namePlaceholder')}/>
                                     <InputError message={errors.insured_name}/>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Email</Label>
+                                        <Label className="cf-label">{t('form.insured.email')}</Label>
                                         <Input className="h-11" type="email" value={data.insured_email ?? ''} onChange={e => setData('insured_email', e.target.value)}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Téléphone</Label>
+                                        <Label className="cf-label">{t('form.insured.phone')}</Label>
                                         <Input className="h-11" value={data.insured_phone ?? ''} onChange={e => setData('insured_phone', e.target.value)}/>
                                     </div>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Adresse</Label>
+                                    <Label className="cf-label">{t('form.insured.address')}</Label>
                                     <textarea className="cf-textarea" rows={2} value={data.insured_address ?? ''} onChange={e => setData('insured_address', e.target.value)}/>
                                 </div>
                             </div>
@@ -441,23 +450,23 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Période ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Période de validité</div>
+                                <div className="cf-card-ttl">{t('form.period.title')}</div>
                             </div>
                             <div className="cf-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Date d'effet *</Label>
+                                        <Label className="cf-label">{t('form.period.effectiveDate')}</Label>
                                         <Input className="h-11" type="date" value={data.effective_date} onChange={e => setData('effective_date', e.target.value)}/>
                                         <InputError message={errors.effective_date}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Date d'expiration *</Label>
+                                        <Label className="cf-label">{t('form.period.expiryDate')}</Label>
                                         <Input className="h-11" type="date" value={data.expiry_date ?? ''} onChange={e => setData('expiry_date', e.target.value)}/>
                                         <InputError message={errors.expiry_date}/>
                                     </div>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Délai de préavis (jours)</Label>
+                                    <Label className="cf-label">{t('form.period.noticePeriod')}</Label>
                                     <Input className="h-11" type="number" min={0} max={365} value={data.notice_period_days} onChange={e => setData('notice_period_days', Number(e.target.value))}/>
                                 </div>
                             </div>
@@ -466,44 +475,44 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Garanties ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Garanties & Couverture</div>
+                                <div className="cf-card-ttl">{t('form.coverage.title')}</div>
                             </div>
                             <div className="cf-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Type de couverture</Label>
+                                        <Label className="cf-label">{t('form.coverage.coverageType')}</Label>
                                         <select className="cf-select" value={data.coverage_type ?? ''} onChange={e => setData('coverage_type', e.target.value)}>
-                                            <option value="">Non spécifié</option>
-                                            <option value="TOUS_RISQUES">Tous risques</option>
-                                            <option value="FAP_SAUF">FAP sauf</option>
-                                            <option value="FAP_ABSOLUE">FAP absolue</option>
+                                            <option value="">{t('form.coverage.unspecified')}</option>
+                                            <option value="TOUS_RISQUES">{t('form.coverage.allRisks')}</option>
+                                            <option value="FAP_SAUF">{t('form.coverage.fapSauf')}</option>
+                                            <option value="FAP_ABSOLUE">{t('form.coverage.fapAbsolue')}</option>
                                         </select>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Incoterm</Label>
+                                        <Label className="cf-label">{t('form.coverage.incoterm')}</Label>
                                         <select className="cf-select" value={data.incoterm_code ?? ''} onChange={e => setData('incoterm_code', e.target.value)}>
-                                            <option value="">Tous</option>
+                                            <option value="">{t('form.coverage.allIncoterms')}</option>
                                             {incoterms?.map((i: Incoterm) => <option key={i.code} value={i.code}>{i.code} — {i.name}</option>)}
                                         </select>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Mode de transport</Label>
+                                        <Label className="cf-label">{t('form.coverage.transportMode')}</Label>
                                         <select className="cf-select" value={data.transport_mode_id ?? ''} onChange={e => setData('transport_mode_id', e.target.value)}>
-                                            <option value="">Tous modes</option>
+                                            <option value="">{t('form.coverage.allModes')}</option>
                                             {transportModes?.map((m: TransportMode) => <option key={m.id} value={m.id}>{m.name_fr}</option>)}
                                         </select>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Type de conditionnement</Label>
+                                        <Label className="cf-label">{t('form.coverage.conditioningType')}</Label>
                                         <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                                             {[
-                                                { value:'CONTAINER',      label:'Conteneur' },
-                                                { value:'CONVENTIONNEL',  label:'Conventionnel' },
-                                                { value:'VRAC',           label:'Vrac' },
-                                                { value:'GROUPAGE',       label:'Groupage' },
-                                                { value:'BOUT_EN_BOUT',   label:'Bout en bout' },
+                                                { value:'CONTAINER',      label: t('form.coverage.conditioningContainer') },
+                                                { value:'CONVENTIONNEL',  label: t('form.coverage.conditioningConventional') },
+                                                { value:'VRAC',           label: t('form.coverage.conditioningBulk') },
+                                                { value:'GROUPAGE',       label: t('form.coverage.conditioningGroupage') },
+                                                { value:'BOUT_EN_BOUT',   label: t('form.coverage.conditioningEndToEnd') },
                                             ].map(({ value, label }) => {
                                                 const checked = (data.conditioning_types ?? []).includes(value);
                                                 return (
@@ -526,17 +535,17 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                             })}
                                         </div>
                                         <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                            Conditionnements possibles dans cette police — repris automatiquement comme options du mode sur les certificats de ce contrat.
+                                            {t('form.coverage.conditioningHint')}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Clauses</Label>
-                                    <TagList data={data} setData={setData} field="clauses" input={clauseInput} setInput={setClauseInput} placeholder="ex: Clause grève, Clause guerre…"/>
+                                    <Label className="cf-label">{t('form.coverage.clauses')}</Label>
+                                    <TagList data={data} setData={setData} field="clauses" input={clauseInput} setInput={setClauseInput} placeholder={t('form.coverage.clausesPlaceholder')}/>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Exclusions</Label>
-                                    <TagList data={data} setData={setData} field="exclusions" input={exclusionInput} setInput={setExclusionInput} placeholder="ex: Vice propre, Défaut d'emballage…"/>
+                                    <Label className="cf-label">{t('form.coverage.exclusions')}</Label>
+                                    <TagList data={data} setData={setData} field="exclusions" input={exclusionInput} setInput={setExclusionInput} placeholder={t('form.coverage.exclusionsPlaceholder')}/>
                                 </div>
                             </div>
                         </div>
@@ -544,37 +553,37 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Conditions financières ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Conditions financières</div>
+                                <div className="cf-card-ttl">{t('form.financial.title')}</div>
                             </div>
                             <div className="cf-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Devise</Label>
+                                        <Label className="cf-label">{t('form.financial.currency')}</Label>
                                         <Input className="h-11" value={data.currency_code} readOnly disabled
                                                style={{ background:'#f8fafc', fontFamily:'monospace', fontWeight:600 }}/>
                                         <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                            Devise du pays de la filiale — tous les montants du contrat et de ses certificats y sont exprimés.
+                                            {t('form.financial.currencyHint')}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Taux prime global (%)</Label>
+                                        <Label className="cf-label">{t('form.financial.globalPremiumRate')}</Label>
                                         <Input className="h-11" value={premiumRate.toFixed(4)} readOnly disabled
                                                style={{ background:'#f8fafc', fontFamily:'monospace', fontWeight:600 }}/>
-                                        <p style={{ fontSize:11, color:'#94a3b8' }}>Somme des taux R.O. + R.G. ci-dessous.</p>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>{t('form.financial.globalPremiumRateHint')}</p>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Franchise</Label>
+                                        <Label className="cf-label">{t('form.financial.deductible')}</Label>
                                         <AmountInput className="h-11" value={data.deductible ?? '0'} onChange={v => setData('deductible', v)}/>
                                     </div>
                                 </div>
                                 <div>
-                                    <Label className="cf-label" style={{ display:'block', marginBottom:8 }}>Taux détaillés (%)</Label>
+                                    <Label className="cf-label" style={{ display:'block', marginBottom:8 }}>{t('form.financial.detailedRates')}</Label>
                                     <div className="rate-group">
                                         {[
-                                            { field:'rate_ro', label:'R.O.' },
-                                            { field:'rate_rg', label:'R.G.' },
+                                            { field:'rate_ro', label: t('form.financial.rateRO') },
+                                            { field:'rate_rg', label: t('form.financial.rateRG') },
                                         ].map(({ field, label }) => (
                                             <div key={field} className="grid gap-1">
                                                 <label style={{ fontSize:10, color:'#94a3b8', fontWeight:600, textTransform:'uppercase' }}>{label}</label>
@@ -586,19 +595,18 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                                         ))}
                                     </div>
                                     <p style={{ fontSize:11, color:'#94a3b8', marginTop:6 }}>
-                                        Divers et Surprime se précisent au cas par cas à l'établissement de chaque certificat.
-                                        La taxe est calculée automatiquement à l'émission depuis le référentiel de taxes (Taxes &gt; Référentiel).
+                                        {t('form.financial.detailedRatesHint')}
                                     </p>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Accessoires (montant fixe)</Label>
-                                    <AmountInput className="h-11" value={data.accessories_amount ?? ''} onChange={v => setData('accessories_amount', v)} placeholder="ex: 500"/>
+                                    <Label className="cf-label">{t('form.financial.accessories')}</Label>
+                                    <AmountInput className="h-11" value={data.accessories_amount ?? ''} onChange={v => setData('accessories_amount', v)} placeholder={t('form.financial.accessoriesPlaceholder')}/>
                                     <InputError message={errors.accessories_amount}/>
-                                    <p style={{ fontSize:11, color:'#94a3b8' }}>Montant fixe (à partir de 500 {data.currency_code || 'FCFA'}), pas un taux.</p>
+                                    <p style={{ fontSize:11, color:'#94a3b8' }}>{t('form.financial.accessoriesHint', { currency: data.currency_code || t('form.financial.defaultCurrency') })}</p>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Limite de certificats</Label>
-                                    <Input className="h-11" type="number" min={1} value={data.certificates_limit ?? ''} onChange={e => setData('certificates_limit', e.target.value)} placeholder="Illimité si vide"/>
+                                    <Label className="cf-label">{t('form.financial.certificatesLimit')}</Label>
+                                    <Input className="h-11" type="number" min={1} value={data.certificates_limit ?? ''} onChange={e => setData('certificates_limit', e.target.value)} placeholder={t('form.financial.certificatesLimitPlaceholder')}/>
                                 </div>
                             </div>
                         </div>
@@ -606,25 +614,24 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Paramètres métiers & Escalade ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Paramètres métiers & Escalade</div>
-                                <div className="cf-card-sub">Plein d'Assurance et déclenchement automatique de la validation NN300</div>
+                                <div className="cf-card-ttl">{t('form.escalade.title')}</div>
+                                <div className="cf-card-sub">{t('form.escalade.subtitle')}</div>
                             </div>
                             <div className="cf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Plein d'Assurance</Label>
-                                    <AmountInput className="h-11" value={data.plein ?? ''} onChange={v => setData('plein', v)} placeholder="Valeur maximum assurée par voyage et par moyen de transport"/>
+                                    <Label className="cf-label">{t('form.escalade.plein')}</Label>
+                                    <AmountInput className="h-11" value={data.plein ?? ''} onChange={v => setData('plein', v)} placeholder={t('form.escalade.pleinPlaceholder')}/>
                                     <InputError message={errors.plein}/>
                                     <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                        Valeur maximum assurée par voyage et par moyen de transport — propre à ce contrat/client.
-                                        Au-delà du plafond NN300 (paramètre général de l'application), une validation DTAG est requise avant activation.
+                                        {t('form.escalade.pleinHint')}
                                     </p>
                                 </div>
-                                <Toggle data={data} setData={setData} field="escalade_enabled" label="Escalade automatique activée"
-                                        hint="Déclenche une validation NN300 si la valeur assurée dépasse le seuil ci-dessous"/>
+                                <Toggle data={data} setData={setData} field="escalade_enabled" label={t('form.escalade.enabledLabel')}
+                                        hint={t('form.escalade.enabledHint')}/>
                                 {data.escalade_enabled && (
                                     <div className="grid gap-2">
-                                        <Label className="cf-label">Seuil d'escalade (%)</Label>
-                                        <Input className="h-11" type="number" step="0.01" min={0} max={100} value={data.escalade_threshold_pct ?? ''} onChange={e => setData('escalade_threshold_pct', e.target.value)} placeholder="15% par défaut"/>
+                                        <Label className="cf-label">{t('form.escalade.threshold')}</Label>
+                                        <Input className="h-11" type="number" step="0.01" min={0} max={100} value={data.escalade_threshold_pct ?? ''} onChange={e => setData('escalade_threshold_pct', e.target.value)} placeholder={t('form.escalade.thresholdPlaceholder')}/>
                                         <InputError message={errors.escalade_threshold_pct}/>
                                     </div>
                                 )}
@@ -634,23 +641,23 @@ export function ContractForm({ data, setData, errors, processing, onSubmit,
                         {/* ── Options & Notes ── */}
                         <div className="cf-card">
                             <div className="cf-card-hdr">
-                                <div className="cf-card-ttl">Options & Notes</div>
+                                <div className="cf-card-ttl">{t('form.options.title')}</div>
                             </div>
                             <div className="cf-card-body">
-                                <Toggle data={data} setData={setData} field="requires_approval" label="Approbation requise"
-                                        hint="Le contrat devra être approuvé par un superviseur avant activation"/>
+                                <Toggle data={data} setData={setData} field="requires_approval" label={t('form.options.requiresApprovalLabel')}
+                                        hint={t('form.options.requiresApprovalHint')}/>
                                 <div className="grid gap-2">
-                                    <Label className="cf-label">Notes internes</Label>
-                                    <textarea className="cf-textarea" rows={3} value={data.notes ?? ''} onChange={e => setData('notes', e.target.value)} placeholder="Observations, conditions particulières…"/>
+                                    <Label className="cf-label">{t('form.options.internalNotes')}</Label>
+                                    <textarea className="cf-textarea" rows={3} value={data.notes ?? ''} onChange={e => setData('notes', e.target.value)} placeholder={t('form.options.internalNotesPlaceholder')}/>
                                 </div>
                             </div>
                         </div>
 
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><Check size={14}/> {submitLabel}</>}
+                                {processing ? t('form.saving') : <><Check size={14}/> {submitLabel}</>}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => window.history.back()}>Annuler</Button>
+                            <Button type="button" variant="outline" onClick={() => window.history.back()}>{tc('actions.cancel')}</Button>
                         </div>
 
                     </form>

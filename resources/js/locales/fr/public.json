@@ -1,0 +1,60 @@
+{
+    "verify": {
+        "headTitle": "Vérification certificat — NSIA Transport",
+        "brandSub": "Vérification d'authenticité",
+        "logoAlt": "Logo",
+        "status": {
+            "valid": "Certificat authentique et valide",
+            "cancelled": "Certificat annulé",
+            "replaced": "Certificat remplacé",
+            "notFound": "Certificat introuvable",
+            "invalid": "Certificat non valide"
+        },
+        "statusSub": {
+            "valid": "Émis par {{tenant}} · Vérifié le {{date}}",
+            "cancelled": "Ce certificat a été annulé — non valide",
+            "replacedWithNumber": "Remplacé par le certificat N° {{number}} — non valide",
+            "replaced": "Ce certificat a été remplacé — non valide",
+            "notFound": "Aucun certificat ne correspond à ce QR code",
+            "invalid": "Ce certificat n'est pas dans un état valide"
+        },
+        "shipment": {
+            "title": "Détails de l'expédition",
+            "insured": "Assuré",
+            "policyNumber": "Police N°",
+            "voyageDate": "Date d'expédition",
+            "from": "De",
+            "to": "À",
+            "transport": "Transport",
+            "transportTypes": {
+                "SEA": "Maritime",
+                "AIR": "Aérien",
+                "ROAD": "Routier",
+                "RAIL": "Ferroviaire"
+            }
+        },
+        "company": {
+            "title": "Compagnie d'assurance",
+            "name": "Société",
+            "subsidiary": "Filiale",
+            "issuedAt": "Date d'émission"
+        },
+        "issuedBy": "Émis et signé par <1>{{issuer}}</1> — {{tenant}}",
+        "verifiedCount": "Ce certificat a été vérifié {{count}} fois",
+        "footer": "NSIA Assurances Transport — Plateforme de vérification sécurisée",
+        "verifiedOn": "Vérifié le {{date}}"
+    },
+    "welcome": {
+        "headTitle": "Welcome",
+        "dashboard": "Tableau de bord",
+        "login": "Connexion",
+        "register": "S'inscrire",
+        "gettingStarted": "Pour commencer",
+        "ecosystemIntro": "Laravel dispose d'un écosystème incroyablement riche.",
+        "ecosystemSuggestion": "Nous vous suggérons de commencer par ce qui suit.",
+        "readThe": "Consultez la",
+        "documentation": "Documentation",
+        "watchTutorials": "Regardez des tutoriels vidéo sur",
+        "deployNow": "Déployer maintenant"
+    }
+}

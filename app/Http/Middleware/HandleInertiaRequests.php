@@ -25,6 +25,12 @@ class HandleInertiaRequests extends Middleware
             'name'        => config('app.name'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
 
+            // Langue resolue par SetLocale + catalogue pour le selecteur.
+            // Les traductions elles-memes vivent dans resources/js/locales/
+            // et sont chargees par le bundle, pas transmises ici.
+            'locale'  => app()->getLocale(),
+            'locales' => config('app.locale_names'),
+
             // ── Auth + permissions + rôles ────────────────────
             'auth' => $user ? [
                 'user' => array_merge($user->toArray(), [

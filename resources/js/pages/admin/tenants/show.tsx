@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -26,30 +27,33 @@ const FLAG: Record<string, string> = {
     MG:'🇲🇬', GW:'🇬🇼', NG:'🇳🇬', GH:'🇬🇭',
 };
 
-const TEMPLATE_TYPE_LABELS: Record<string, string> = {
-    certificat_assurance: "Certificat d'Assurance",
-    certificat_etatique:  'Certificat Étatique (GUCE, GUOT, etc.)',
-    carnet_ordre:         "Certificat Carnet d'Ordre",
-    ordre_assurance:      "Certificat Carnet d'Ordre",
-};
-
 export default function TenantShow({ tenant, users, certificateTemplate }: Props) {
+    const { t } = useTranslation('tenants');
+
+    const TEMPLATE_TYPE_LABELS: Record<string, string> = {
+        certificat_assurance: t('show.template.types.certificat_assurance'),
+        certificat_etatique:  t('show.template.types.certificat_etatique'),
+        carnet_ordre:         t('show.template.types.carnet_ordre'),
+        ordre_assurance:      t('show.template.types.ordre_assurance'),
+    };
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Filiales', href: '/admin/tenants' },
+        { title: t('show.breadcrumb'), href: '/admin/tenants' },
         { title: tenant.name },
     ];
 
     const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
 
     const handleToggle = () => {
-        const action = tenant.is_active ? 'désactiver' : 'activer';
-        if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} la filiale ${tenant.name} ?`))
+        const actionVerb = tenant.is_active ? t('show.deactivateVerb') : t('show.activateVerb');
+        const action = actionVerb.charAt(0).toUpperCase() + actionVerb.slice(1);
+        if (confirm(t('show.confirmToggle', { action, name: tenant.name })))
             router.patch(route('admin.tenants.toggle', { tenant: tenant.id }));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${tenant.name} — NSIA Transport`}/>
+            <Head title={t('show.title', { name: tenant.name })}/>
             <style>{`
                 .ts-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .ts-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -87,21 +91,21 @@ export default function TenantShow({ tenant, users, certificateTemplate }: Props
                             <div className="ts-hero-sub">{tenant.code} · {tenant.currency_code} · {tenant.settings?.timezone ?? '—'}</div>
                             <div className="ts-hero-badges">
                                 <span className="ts-badge" style={{ background: tenant.is_active ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)', color: tenant.is_active ? '#86efac' : '#fca5a5', border:`1px solid ${tenant.is_active ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
-                                    {tenant.is_active ? '● Active' : '● Inactive'}
+                                    {tenant.is_active ? `● ${t('show.status.active')}` : `● ${t('show.status.inactive')}`}
                                 </span>
                                 <span className="ts-badge" style={{ background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.7)', border:'1px solid rgba(255,255,255,0.15)' }}>
-                                    <Users size={10}/>{tenant.users_count} utilisateur{tenant.users_count > 1 ? 's' : ''}
+                                    <Users size={10}/>{t('show.usersCount', { count: tenant.users_count })}
                                 </span>
                             </div>
                         </div>
                         <div style={{ display:'flex', gap:8, position:'relative', zIndex:1 }}>
                             <Link href={route('admin.tenants.edit', { tenant: tenant.id })}>
                                 <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                    <Edit2 size={13}/> Modifier
+                                    <Edit2 size={13}/> {t('show.edit')}
                                 </Button>
                             </Link>
                             <Button onClick={handleToggle} className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                {tenant.is_active ? <><ToggleLeft size={13}/> Désactiver</> : <><ToggleRight size={13}/> Activer</>}
+                                {tenant.is_active ? <><ToggleLeft size={13}/> {t('show.deactivate')}</> : <><ToggleRight size={13}/> {t('show.activate')}</>}
                             </Button>
                         </div>
                     </div>
@@ -110,34 +114,34 @@ export default function TenantShow({ tenant, users, certificateTemplate }: Props
                     <div className="ts-card">
                         <div className="ts-card-hdr">
                             <div className="ts-card-ico" style={{ background:'#eff6ff' }}><Building2 size={15} color="#3b82f6"/></div>
-                            <span className="ts-card-ttl">Configuration</span>
+                            <span className="ts-card-ttl">{t('show.config.title')}</span>
                         </div>
                         <div className="ts-card-body">
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label"><Globe size={10}/>Code pays</span>
+                                    <span className="info-label"><Globe size={10}/>{t('show.config.countryCode')}</span>
                                     <span className="info-value">{tenant.country_code}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><DollarSign size={10}/>Devise</span>
+                                    <span className="info-label"><DollarSign size={10}/>{t('show.config.currency')}</span>
                                     <span className="info-value">{tenant.currency_code}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Globe size={10}/>Langue</span>
-                                    <span className="info-value">{tenant.settings?.locale === 'fr' ? 'Français' : 'English'}</span>
+                                    <span className="info-label"><Globe size={10}/>{t('show.config.locale')}</span>
+                                    <span className="info-value">{tenant.settings?.locale === 'fr' ? t('show.config.localeFr') : t('show.config.localeEn')}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Clock size={10}/>Fuseau horaire</span>
+                                    <span className="info-label"><Clock size={10}/>{t('show.config.timezone')}</span>
                                     <span className="info-value">{tenant.settings?.timezone ?? '—'}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Shield size={10}/>Plafond NN300</span>
+                                    <span className="info-label"><Shield size={10}/>{t('show.config.nn300Limit')}</span>
                                     <span className="info-value">
                                         {(tenant.subscription_limit_config?.nn300_limit ?? 0).toLocaleString('fr-FR')} {tenant.currency_code}
                                     </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Clock size={10}/>Créée le</span>
+                                    <span className="info-label"><Clock size={10}/>{t('show.config.createdAt')}</span>
                                     <span className="info-value">{fmt(tenant.created_at)}</span>
                                 </div>
                             </div>
@@ -148,7 +152,7 @@ export default function TenantShow({ tenant, users, certificateTemplate }: Props
                     <div className="ts-card">
                         <div className="ts-card-hdr">
                             <div className="ts-card-ico" style={{ background:'#fdf4ff' }}><FileBadge size={15} color="#7c3aed"/></div>
-                            <span className="ts-card-ttl">Modèle de certificat</span>
+                            <span className="ts-card-ttl">{t('show.template.title')}</span>
                         </div>
                         <div className="ts-card-body">
                             {certificateTemplate ? (
@@ -160,21 +164,21 @@ export default function TenantShow({ tenant, users, certificateTemplate }: Props
                                                 {TEMPLATE_TYPE_LABELS[certificateTemplate.type] ?? certificateTemplate.type}
                                             </span>
                                             <span style={{ fontSize:11, fontWeight:500, padding:'2px 7px', borderRadius:8, background: certificateTemplate.is_active ? '#f0fdf4' : '#f8fafc', color: certificateTemplate.is_active ? '#15803d' : '#94a3b8' }}>
-                                                {certificateTemplate.is_active ? 'Activé' : 'Désactivé'}
+                                                {certificateTemplate.is_active ? t('show.template.activated') : t('show.template.deactivated')}
                                             </span>
                                         </div>
                                     </div>
                                     <Link href={route('admin.certificate-templates.edit', { certificateTemplate: certificateTemplate.id })}>
-                                        <Button variant="outline" className="h-9 px-4 text-sm"><Edit2 size={13}/> Configurer</Button>
+                                        <Button variant="outline" className="h-9 px-4 text-sm"><Edit2 size={13}/> {t('show.template.configure')}</Button>
                                     </Link>
                                 </div>
                             ) : (
                                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
                                     <div style={{ fontSize:12, color:'#94a3b8' }}>
-                                        Aucun modèle configuré — les certificats de cette filiale sortent sans en-tête ni numérotation officielle.
+                                        {t('show.template.none')}
                                     </div>
                                     <Link href={route('admin.certificate-templates.create', { tenant_id: tenant.id })} style={{ flexShrink:0 }}>
-                                        <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-9 px-4 text-sm"><Plus size={13}/> Activer un modèle</Button>
+                                        <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-9 px-4 text-sm"><Plus size={13}/> {t('show.template.activate')}</Button>
                                     </Link>
                                 </div>
                             )}
@@ -186,9 +190,9 @@ export default function TenantShow({ tenant, users, certificateTemplate }: Props
                         <div className="ts-card">
                             <div className="ts-card-hdr">
                                 <div className="ts-card-ico" style={{ background:'#f0fdf4' }}><Users size={15} color="#16a34a"/></div>
-                                <span className="ts-card-ttl">Utilisateurs ({tenant.users_count})</span>
+                                <span className="ts-card-ttl">{t('show.usersSection.title', { count: tenant.users_count })}</span>
                                 <Link href={`/admin/users?tenant=${tenant.id}`} style={{ marginLeft:'auto', fontSize:12, color:'#3b82f6', textDecoration:'none' }}>
-                                    Voir tous →
+                                    {t('show.usersSection.seeAll')}
                                 </Link>
                             </div>
                             <div className="ts-card-body" style={{ padding:'12px 20px' }}>
@@ -214,7 +218,7 @@ export default function TenantShow({ tenant, users, certificateTemplate }: Props
                     )}
 
                     <Link href="/admin/tenants" style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13, color:'#64748b', textDecoration:'none' }}>
-                        <ArrowLeft size={14}/> Retour aux filiales
+                        <ArrowLeft size={14}/> {t('show.backToList')}
                     </Link>
                 </div>
             </div>

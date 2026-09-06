@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +10,6 @@ import {
     UserX, UserCheck, X, ChevronLeft,
     ChevronRight, AlertCircle, Loader2, Filter,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Utilisateurs', href: '/admin/users' },
-];
 
 interface Role { name: string; }
 interface User {
@@ -45,6 +42,8 @@ const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
 
 // ── Modal blocage ─────────────────────────────────────────────
 function BlockModal({ user, onClose }: { user: User; onClose: () => void }) {
+    const { t } = useTranslation('users');
+    const { t: tc } = useTranslation('common');
     const { data, setData, patch, processing, errors, reset } = useForm({ reason: '' });
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,7 +60,7 @@ function BlockModal({ user, onClose }: { user: User; onClose: () => void }) {
                             <UserX size={17} color="#dc2626"/>
                         </div>
                         <div>
-                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Bloquer l'utilisateur</p>
+                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('index.blockModal.title')}</p>
                             <p style={{ fontSize:12, color:'#94a3b8' }}>{user.first_name} {user.last_name}</p>
                         </div>
                     </div>
@@ -70,20 +69,20 @@ function BlockModal({ user, onClose }: { user: User; onClose: () => void }) {
                 <form onSubmit={submit} style={{ padding:'20px 22px' }}>
                     <div style={{ marginBottom:16 }}>
                         <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>
-                            Motif de blocage *
+                            {t('index.blockModal.reasonLabel')}
                         </label>
                         <textarea
                             value={data.reason} onChange={e => setData('reason', e.target.value)}
-                            rows={3} placeholder="Décrivez la raison du blocage…"
+                            rows={3} placeholder={t('index.blockModal.reasonPlaceholder')}
                             style={{ width:'100%', padding:'10px 12px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:`1.5px solid ${errors.reason ? '#ef4444' : '#e2e8f0'}`, borderRadius:9, outline:'none', resize:'vertical', boxSizing:'border-box' }}
                         />
                         {errors.reason && <p style={{ fontSize:11, color:'#ef4444', marginTop:4, display:'flex', alignItems:'center', gap:4 }}><AlertCircle size={11}/>{errors.reason}</p>}
                     </div>
                     <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
+                        <Button type="button" variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
                         <Button type="submit" disabled={processing} className="bg-red-600 hover:bg-red-700 text-white">
                             {processing ? <Loader2 size={14} className="animate-spin"/> : <UserX size={14}/>}
-                            Bloquer
+                            {t('index.blockModal.confirm')}
                         </Button>
                     </div>
                 </form>
@@ -94,6 +93,12 @@ function BlockModal({ user, onClose }: { user: User; onClose: () => void }) {
 
 // ── Page principale ───────────────────────────────────────────
 export default function UsersIndex({ users, filters, roles, can }: Props) {
+    const { t } = useTranslation('users');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/users' },
+    ];
+
     const [blockTarget, setBlockTarget] = useState<User | null>(null);
     const [search,      setSearch]      = useState(filters.search ?? '');
 
@@ -101,12 +106,12 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
         router.get('/admin/users', { ...filters, ...params }, { preserveState:true, replace:true });
 
     const handleUnblock = (user: User) => {
-        if (confirm(`Débloquer ${user.first_name} ${user.last_name} ?`))
+        if (confirm(t('index.confirmUnblock', { name: `${user.first_name} ${user.last_name}` })))
             router.patch(route('admin.users.unblock', { user: user.id }));
     };
 
     const handleDelete = (user: User) => {
-        if (confirm(`Supprimer définitivement ${user.first_name} ${user.last_name} ?`))
+        if (confirm(t('index.confirmDelete', { name: `${user.first_name} ${user.last_name}` })))
             router.delete(route('admin.users.destroy', { user: user.id }));
     };
 
@@ -114,7 +119,7 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Utilisateurs — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .u-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .u-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -163,13 +168,13 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
                     {/* Header */}
                     <div className="u-hdr">
                         <div>
-                            <h1 className="u-title">Utilisateurs</h1>
-                            <p className="u-sub">{users.total} utilisateur{users.total > 1 ? 's' : ''}</p>
+                            <h1 className="u-title">{t('index.heading')}</h1>
+                            <p className="u-sub">{t('index.count', { count: users.total })}</p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.users.create')}>
                                 <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> Nouvel utilisateur
+                                    <Plus size={15}/> {t('index.newUser')}
                                 </Button>
                             </Link>
                         )}
@@ -178,21 +183,21 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
                     {/* Toolbar */}
                     <div className="u-toolbar">
                         <form className="u-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom ou email…"/>
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.search.placeholder')}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         <select className="u-select" value={filters.role ?? ''} onChange={e => applyFilter({ role: e.target.value, page:'1' })}>
-                            <option value="">Tous les rôles</option>
+                            <option value="">{t('index.filters.allRoles')}</option>
                             {roles.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
                         </select>
                         <select className="u-select" value={filters.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page:'1' })}>
-                            <option value="">Tous les statuts</option>
-                            <option value="active">Actifs</option>
-                            <option value="blocked">Bloqués</option>
+                            <option value="">{t('index.filters.allStatuses')}</option>
+                            <option value="active">{t('index.filters.active')}</option>
+                            <option value="blocked">{t('index.filters.blocked')}</option>
                         </select>
                         {(filters.search || filters.role || filters.status) && (
                             <button onClick={() => router.get('/admin/users')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('index.filters.clear')}
                             </button>
                         )}
                     </div>
@@ -200,18 +205,18 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
                     {/* Table */}
                     <div className="u-card">
                         {users.data.length === 0 ? (
-                            <div className="u-empty">Aucun utilisateur trouvé.</div>
+                            <div className="u-empty">{t('index.empty')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Utilisateur</th>
-                                            <th>Rôle</th>
-                                            <th>Filiale</th>
-                                            <th>Statut</th>
-                                            <th>Dernière connexion</th>
-                                            <th>Actions</th>
+                                            <th>{t('index.table.user')}</th>
+                                            <th>{t('index.table.role')}</th>
+                                            <th>{t('index.table.tenant')}</th>
+                                            <th>{t('index.table.status')}</th>
+                                            <th>{t('index.table.lastLogin')}</th>
+                                            <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -243,18 +248,18 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
                                                     <td style={{ fontSize:12, color:'#64748b' }}>{user.tenant?.name ?? '—'}</td>
                                                     <td>
                                                         {user.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>Actif</span>
-                                                            : <span className="s-blocked"><span className="s-dot" style={{ background:'#ef4444' }}/>Bloqué</span>
+                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{t('index.status.active')}</span>
+                                                            : <span className="s-blocked"><span className="s-dot" style={{ background:'#ef4444' }}/>{t('index.status.blocked')}</span>
                                                         }
                                                     </td>
                                                     <td style={{ fontSize:12, color:'#94a3b8' }}>{fmt(user.last_login_at)}</td>
                                                     <td>
                                                         <div className="actions">
-                                                            <Link href={route('admin.users.show', { user: user.id })} className="btn-act btn-view"><Eye size={12}/> Voir</Link>
-                                                            {can.edit && <Link href={route('admin.users.edit', { user: user.id })} className="btn-act btn-edit"><Edit2 size={12}/> Éditer</Link>}
-                                                            {can.block && user.is_active && <button className="btn-act btn-block" onClick={() => setBlockTarget(user)}><UserX size={12}/> Bloquer</button>}
-                                                            {can.unblock && !user.is_active && <button className="btn-act btn-unblock" onClick={() => handleUnblock(user)}><UserCheck size={12}/> Débloquer</button>}
-                                                            {can.delete && <button className="btn-act btn-del" onClick={() => handleDelete(user)}><Trash2 size={12}/> Supprimer</button>}
+                                                            <Link href={route('admin.users.show', { user: user.id })} className="btn-act btn-view"><Eye size={12}/> {t('index.actions.view')}</Link>
+                                                            {can.edit && <Link href={route('admin.users.edit', { user: user.id })} className="btn-act btn-edit"><Edit2 size={12}/> {t('index.actions.edit')}</Link>}
+                                                            {can.block && user.is_active && <button className="btn-act btn-block" onClick={() => setBlockTarget(user)}><UserX size={12}/> {t('index.actions.block')}</button>}
+                                                            {can.unblock && !user.is_active && <button className="btn-act btn-unblock" onClick={() => handleUnblock(user)}><UserCheck size={12}/> {t('index.actions.unblock')}</button>}
+                                                            {can.delete && <button className="btn-act btn-del" onClick={() => handleDelete(user)}><Trash2 size={12}/> {t('index.actions.delete')}</button>}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -265,7 +270,7 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
 
                                 {users.last_page > 1 && (
                                     <div className="u-pagination">
-                                        <span className="u-pg-info">Page {users.current_page} / {users.last_page} · {users.total} résultats</span>
+                                        <span className="u-pg-info">{t('index.pagination.info', { current: users.current_page, last: users.last_page, total: users.total })}</span>
                                         <div className="u-pg-links">
                                             <button className="pg-btn" disabled={users.current_page === 1} onClick={() => applyFilter({ page: String(users.current_page - 1) })}><ChevronLeft size={13}/></button>
                                             {users.links.slice(1,-1).map((link, i) => (

@@ -1,0 +1,92 @@
+{
+    "index": {
+        "breadcrumb": "Coassureurs",
+        "title": "Coassureurs — NSIA Transport",
+        "heading": "Coassureurs",
+        "count_one": "{{count}} coassureur",
+        "count_other": "{{count}} coassureurs",
+        "newCoinsurer": "Nouveau coassureur",
+        "searchPlaceholder": "Rechercher par nom…",
+        "statusAll": "Tous les statuts",
+        "statusActive": "Actifs",
+        "statusInactive": "Inactifs",
+        "clear": "Effacer",
+        "empty": "Aucun coassureur trouvé.",
+        "table": {
+            "coinsurer": "Coassureur",
+            "country": "Pays",
+            "contact": "Contact",
+            "tenant": "Filiale",
+            "status": "Statut",
+            "actions": "Actions"
+        },
+        "view": "Voir",
+        "edit": "Éditer",
+        "deactivate": "Désactiver",
+        "activate": "Activer",
+        "delete": "Supprimer",
+        "confirmDelete": "Supprimer le coassureur « {{name}} » ?",
+        "confirmDeactivate": "Désactiver {{name}} ?",
+        "confirmActivate": "Activer {{name}} ?",
+        "pageInfo": "Page {{current}} / {{last}} · {{total}} coassureurs"
+    },
+    "show": {
+        "title": "Informations",
+        "fields": {
+            "name": "Nom",
+            "country": "Pays",
+            "email": "Email",
+            "phone": "Téléphone",
+            "address": "Adresse",
+            "tenant": "Filiale",
+            "status": "Statut",
+            "createdAt": "Créé le"
+        },
+        "edit": "Modifier",
+        "deactivate": "Désactiver",
+        "activate": "Activer",
+        "backToList": "Retour à la liste",
+        "confirmDeactivate": "Désactiver {{name}} ?",
+        "confirmActivate": "Activer {{name}} ?"
+    },
+    "create": {
+        "breadcrumb": "Nouveau coassureur",
+        "title": "Nouveau coassureur — NSIA Transport",
+        "submitLabel": "Créer le coassureur",
+        "heroTitle": "Nouveau coassureur",
+        "heroSub": "Enregistrez un nouveau coassureur participant aux contrats"
+    },
+    "edit": {
+        "breadcrumb": "Modifier",
+        "title": "Modifier {{name}} — NSIA Transport",
+        "submitLabel": "Enregistrer les modifications",
+        "heroTitle": "Modifier : {{name}}",
+        "heroSub": "Mettez à jour les informations du coassureur"
+    },
+    "form": {
+        "identification": {
+            "title": "Identification",
+            "subtitle": "Informations du coassureur",
+            "name": "Nom / Raison sociale *",
+            "namePlaceholder": "Assurances Dupont SA",
+            "country": "Pays",
+            "noneOption": "— Aucun —",
+            "phone": "Téléphone",
+            "phonePlaceholder": "+225 XX XX XX XX XX",
+            "email": "Email",
+            "emailPlaceholder": "contact@coassureur.com",
+            "address": "Adresse",
+            "addressPlaceholder": "Adresse du siège",
+            "rateHint": "Le taux de coassurance ne se saisit pas ici — il se précise au cas par cas lors de l'association du coassureur à un contrat.",
+            "tenant": "Filiale",
+            "selectTenant": "Sélectionnez une filiale"
+        },
+        "status": {
+            "title": "Statut",
+            "active": "Coassureur actif",
+            "inactive": "Coassureur inactif",
+            "activeHint": "Peut participer aux contrats",
+            "inactiveHint": "Ne peut pas être utilisé"
+        }
+    }
+}

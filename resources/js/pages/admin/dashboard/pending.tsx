@@ -8,11 +8,7 @@ import {
     AlertTriangle, TrendingUp, Calendar,
     User, Ship, Plane, Truck, X,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'En attente de validation' },
-];
+import { useTranslation } from 'react-i18next';
 
 interface Certificate {
     id: string; certificate_number: string; status: string;
@@ -69,13 +65,19 @@ function waitingTime(submittedAt: string | null): { label: string; color: string
 export default function PendingDashboard({
     pending, stats, avgProcessingHours, recentIssued, expiringContracts, filters, isSA, can,
 }: Props) {
+    const { t } = useTranslation('dashboard');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('pending.breadcrumbHome'), href: route('admin.dashboard') },
+        { title: t('pending.breadcrumb') },
+    ];
 
     const applyFilter = (params: Record<string, string>) =>
         router.get(route('admin.dashboard.pending'), { ...filters, ...params }, { preserveState:true, replace:true });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="En attente de validation — NSIA Transport"/>
+            <Head title={t('pending.headTitle')}/>
             <style>{`
                 .pd-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .pd-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -148,8 +150,8 @@ export default function PendingDashboard({
 
                     {/* Header */}
                     <div>
-                        <h1 className="pd-title">Dashboard validation</h1>
-                        <p className="pd-sub">Certificats en attente d'émission</p>
+                        <h1 className="pd-title">{t('pending.heading')}</h1>
+                        <p className="pd-sub">{t('pending.subtitle')}</p>
                     </div>
 
                     {/* KPIs */}
@@ -158,29 +160,29 @@ export default function PendingDashboard({
                             <div className="kpi-val" style={{ color: stats.submitted > 0 ? '#dc2626' : '#1e293b' }}>
                                 {stats.submitted}
                             </div>
-                            <div className="kpi-lbl">En attente</div>
+                            <div className="kpi-lbl">{t('pending.kpis.pending')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val" style={{ color:'#15803d' }}>{stats.issued_today}</div>
-                            <div className="kpi-lbl">Émis aujourd'hui</div>
+                            <div className="kpi-lbl">{t('pending.kpis.issuedToday')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val" style={{ color:'#1d4ed8' }}>{stats.issued_week}</div>
-                            <div className="kpi-lbl">Émis cette semaine</div>
+                            <div className="kpi-lbl">{t('pending.kpis.issuedWeek')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val">{stats.issued_month}</div>
-                            <div className="kpi-lbl">Émis ce mois</div>
+                            <div className="kpi-lbl">{t('pending.kpis.issuedMonth')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val" style={{ color:'#64748b' }}>{stats.draft}</div>
-                            <div className="kpi-lbl">Brouillons</div>
+                            <div className="kpi-lbl">{t('pending.kpis.draft')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val">
                                 {avgProcessingHours !== null ? `${avgProcessingHours}h` : '—'}
                             </div>
-                            <div className="kpi-lbl">Délai moyen</div>
+                            <div className="kpi-lbl">{t('pending.kpis.avgDelay')}</div>
                         </div>
                     </div>
 
@@ -192,7 +194,7 @@ export default function PendingDashboard({
                             <div className="pd-card-hdr">
                                 <div className="pd-card-ttl">
                                     <Clock size={15} color="#f59e0b"/>
-                                    Certificats en attente
+                                    {t('pending.table.title')}
                                     {stats.submitted > 0 && (
                                         <span style={{ background:'#fef2f2', color:'#dc2626', borderRadius:10, fontSize:11, padding:'1px 7px', fontWeight:600 }}>
                                             {stats.submitted}
@@ -201,28 +203,28 @@ export default function PendingDashboard({
                                 </div>
                                 <Link href={route('admin.certificates.index') + '?status=SUBMITTED'}
                                       style={{ fontSize:11, color:'#1d4ed8', textDecoration:'none' }}>
-                                    Voir tous →
+                                    {t('pending.table.seeAll')}
                                 </Link>
                             </div>
 
                             {pending.data.length === 0 ? (
                                 <div className="pd-empty">
                                     <CheckCircle size={32} color="#bbf7d0" style={{ marginBottom:8 }}/>
-                                    <div style={{ fontWeight:500, color:'#15803d' }}>Aucun certificat en attente</div>
-                                    <div style={{ fontSize:11, marginTop:4 }}>Tous les certificats ont été traités.</div>
+                                    <div style={{ fontWeight:500, color:'#15803d' }}>{t('pending.table.emptyTitle')}</div>
+                                    <div style={{ fontSize:11, marginTop:4 }}>{t('pending.table.emptyText')}</div>
                                 </div>
                             ) : (
                                 <>
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>N° Certificat</th>
-                                                <th>Assuré</th>
-                                                <th>Voyage</th>
-                                                <th>Valeur</th>
-                                                <th>Soumis par</th>
-                                                <th>Attente</th>
-                                                <th>Actions</th>
+                                                <th>{t('pending.table.number')}</th>
+                                                <th>{t('pending.table.insured')}</th>
+                                                <th>{t('pending.table.voyage')}</th>
+                                                <th>{t('pending.table.value')}</th>
+                                                <th>{t('pending.table.submittedBy')}</th>
+                                                <th>{t('pending.table.waiting')}</th>
+                                                <th>{t('pending.table.actions')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>

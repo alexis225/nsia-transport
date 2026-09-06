@@ -1,0 +1,15 @@
+{
+    "breadcrumb": "Configurações gerais",
+    "title": "Configurações gerais — NSIA Transport",
+    "heading": "Configurações gerais",
+    "subtitle": "Configurações únicas para toda a aplicação — não por filial, não por contrato",
+    "ceilings": {
+        "title": "Tetos NN300 / Tratado",
+        "description": "Um contrato cujo \"Capital Seguro\" ultrapassa o teto NN300 é automaticamente submetido como rascunho para validação pelo Grupo (DTAG). Uma vez validado, os seus certificados ficam cobertos até ao Teto do Tratado sem nova escalada.",
+        "nn300Label": "Teto NN300 (FCFA) *",
+        "treatyLabel": "Teto ou limite do Tratado (FCFA) *",
+        "treatyHint": "Além disso, é gerado um alerta para colocação em resseguro facultativo."
+    },
+    "saving": "A guardar…",
+    "saved": "Guardado"
+}

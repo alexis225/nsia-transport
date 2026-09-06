@@ -1,0 +1,48 @@
+{
+    "ipBlacklist": {
+        "breadcrumbDashboard": "Dashboard",
+        "breadcrumbSecurity": "Sécurité",
+        "breadcrumbIpBlacklist": "Blacklist IP",
+        "title": "Blacklist IP — NSIA Transport",
+        "heading": "Blacklist IP & Détection d'intrusion",
+        "subtitle": "Bloc plages IP/CIDR · Surveillance des tentatives de connexion",
+        "blockIp": "Bloquer une IP",
+        "addErrorFallback": "Erreur lors de l'ajout.",
+        "me": "Moi",
+        "panel": {
+            "blockedRanges": "Plages IP bloquées ({{count}})",
+            "ipOrCidr": "IP ou plage CIDR *",
+            "ipOrCidrPlaceholder": "ex: 192.168.1.5 ou 10.0.0.0/24",
+            "reason": "Raison",
+            "reasonPlaceholder": "Raison du blocage…",
+            "expiration": "Expiration (optionnel)",
+            "block": "Bloquer",
+            "noBlockedIp": "Aucune IP bloquée",
+            "columns": {
+                "ipRange": "IP / Plage CIDR",
+                "reason": "Raison",
+                "blockedBy": "Bloqué par",
+                "expiration": "Expiration",
+                "status": "Statut",
+                "addedOn": "Ajouté le"
+            },
+            "permanent": "Permanent",
+            "active": "Actif",
+            "expired": "Expiré",
+            "delete": "Supprimer"
+        },
+        "suspicious": {
+            "title": "Comptes suspects (tentatives > 3)",
+            "noSuspicious": "Aucun compte suspect",
+            "columns": {
+                "user": "Utilisateur",
+                "email": "Email",
+                "failedAttempts": "Tentatives échouées",
+                "lastIp": "Dernière IP",
+                "lockedUntil": "Verrouillé jusqu'à",
+                "action": "Action"
+            },
+            "unlock": "Déverrouiller"
+        }
+    }
+}

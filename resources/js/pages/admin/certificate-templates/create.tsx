@@ -7,6 +7,7 @@ import InputError from '@/components/input-error';
 import type { BreadcrumbItem } from '@/types';
 import { FileText, Plus, Trash2, Check, Camera } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Tenant { id: string; name: string; code: string; }
 interface Props   { tenants: Tenant[]; types: Record<string, string>; defaultTenantId: string | null; }
@@ -14,9 +15,10 @@ interface Props   { tenants: Tenant[]; types: Record<string, string>; defaultTen
 const CURRENCIES = ['XOF','XAF','GNF','MGA','NGN','EUR','USD'];
 
 export default function CertificateTemplateCreate({ tenants, types, defaultTenantId }: Props) {
+    const { t } = useTranslation('certificateTemplates');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Modèles de certificats', href: '/admin/certificate-templates' },
-        { title: 'Nouveau modèle' },
+        { title: t('index.title'), href: '/admin/certificate-templates' },
+        { title: t('create.breadcrumb') },
     ];
 
     const { data, setData, post, processing, errors } = useForm({
@@ -82,14 +84,14 @@ export default function CertificateTemplateCreate({ tenants, types, defaultTenan
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouveau modèle — NSIA Transport"/>
+            <Head title={t('create.headTitle')}/>
             <TemplateForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants} types={types}
-                heroTitle="Nouveau modèle de certificat"
-                heroSub="Configurez le template selon la filiale"
-                submitLabel="Créer le modèle"
+                heroTitle={t('create.heroTitle')}
+                heroSub={t('create.heroSub')}
+                submitLabel={t('create.submit')}
             />
         </AppLayout>
     );
@@ -97,6 +99,8 @@ export default function CertificateTemplateCreate({ tenants, types, defaultTenan
 
 // ── Formulaire partagé ────────────────────────────────────────
 export function TemplateForm({ data, setData, errors, processing, onSubmit, tenants, types, tenantsWithOtherTemplate, heroTitle, heroSub, submitLabel, logoCard }: any) {
+    const { t } = useTranslation('certificateTemplates');
+    const { t: tc } = useTranslation('common');
     const conflictingTemplateName = tenantsWithOtherTemplate?.[data.tenant_id];
 
     const fileRef                       = useRef<HTMLInputElement>(null);
@@ -190,8 +194,8 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                         {logoCard ? logoCard : (
                             <div className="tf-card">
                                 <div className="tf-card-hdr">
-                                    <div className="tf-card-ttl">Logo de la filiale</div>
-                                    <div className="tf-card-sub">Optionnel · JPG, PNG, WebP ou SVG · Max 2 Mo</div>
+                                    <div className="tf-card-ttl">{t('form.logo.title')}</div>
+                                    <div className="tf-card-sub">{t('form.logo.subtitleOptional')}</div>
                                 </div>
                                 <div className="tf-card-body">
                                     <div className="logo-zone">
@@ -206,11 +210,11 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                                                    accept="image/jpeg,image/png,image/webp,image/svg+xml"
                                                    style={{ display:'none' }} onChange={handleLogoChange}/>
                                             <button type="button" className="logo-upload-btn" onClick={() => fileRef.current?.click()}>
-                                                <Camera size={13}/> Choisir un logo
+                                                <Camera size={13}/> {t('form.logo.choose')}
                                             </button>
                                             {data.logo
                                                 ? <div className="logo-selected"><Check size={11}/>{(data.logo as File).name}</div>
-                                                : <div className="logo-hint">Format JPG, PNG, WebP ou SVG · Max 2 Mo</div>
+                                                : <div className="logo-hint">{t('form.logo.hint')}</div>
                                             }
                                         </div>
                                     </div>
@@ -222,28 +226,28 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                         {/* ── Identification ── */}
                         <div className="tf-card">
                             <div className="tf-card-hdr">
-                                <div className="tf-card-ttl">Identification</div>
+                                <div className="tf-card-ttl">{t('form.identification.title')}</div>
                             </div>
                             <div className="tf-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Filiale *</Label>
+                                        <Label className="tf-label">{t('form.identification.tenant')}</Label>
                                         <select className="tf-select" value={data.tenant_id}
                                                 onChange={e => setData('tenant_id', e.target.value)}>
-                                            <option value="">Sélectionnez une filiale</option>
-                                            {tenants?.map((t: Tenant) => (
-                                                <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
+                                            <option value="">{t('form.identification.tenantPlaceholder')}</option>
+                                            {tenants?.map((tn: Tenant) => (
+                                                <option key={tn.id} value={tn.id}>{tn.name} ({tn.code})</option>
                                             ))}
                                         </select>
                                         <InputError message={errors.tenant_id}/>
                                         {conflictingTemplateName && (
                                             <p style={{ fontSize:11, color:'#c2410c', background:'#fff7ed', border:'1px solid #fed7aa', borderRadius:7, padding:'6px 10px' }}>
-                                                ⚠ Cette filiale a déjà un modèle actif (« {conflictingTemplateName} ») — le réassigner ici échouera tant que l'autre modèle n'est pas supprimé ou déplacé vers une autre filiale.
+                                                {t('form.identification.conflict', { name: conflictingTemplateName })}
                                             </p>
                                         )}
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Type *</Label>
+                                        <Label className="tf-label">{t('form.identification.type')}</Label>
                                         <select className="tf-select" value={data.type}
                                                 onChange={e => setData('type', e.target.value)}>
                                             {Object.entries(types || {}).map(([value, label]: [string, any]) => (
@@ -254,45 +258,45 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Nom du modèle *</Label>
+                                        <Label className="tf-label">{t('form.identification.name')}</Label>
                                         <Input className="h-11" value={data.name ?? ''}
                                                onChange={e => setData('name', e.target.value)}
-                                               placeholder="ex: Ordre d'assurance NSIA Gabon"/>
+                                               placeholder={t('form.identification.namePlaceholder')}/>
                                         <InputError message={errors.name}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Code *</Label>
+                                        <Label className="tf-label">{t('form.identification.code')}</Label>
                                         <Input className="h-11" value={data.code ?? ''}
                                                onChange={e => setData('code', e.target.value.toUpperCase())}
-                                               placeholder="ex: GA" maxLength={20}
+                                               placeholder={t('form.identification.codePlaceholder')} maxLength={20}
                                                style={{ fontFamily:'monospace' }}/>
                                         <InputError message={errors.code}/>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Devise *</Label>
+                                        <Label className="tf-label">{t('form.identification.currency')}</Label>
                                         <select className="tf-select" value={data.currency_code}
                                                 onChange={e => setData('currency_code', e.target.value)}>
                                             {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                                         </select>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Ville (ex: LIBREVILLE)</Label>
+                                        <Label className="tf-label">{t('form.identification.city')}</Label>
                                         <Input className="h-11" value={data.city ?? ''}
                                                onChange={e => setData('city', e.target.value.toUpperCase())}
-                                               placeholder="ABIDJAN"/>
+                                               placeholder={t('form.identification.cityPlaceholder')}/>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Préfixe numéro</Label>
+                                        <Label className="tf-label">{t('form.identification.numberPrefix')}</Label>
                                         <Input className="h-11" value={data.number_prefix ?? ''}
                                                onChange={e => setData('number_prefix', e.target.value)}
-                                               placeholder="N° ou Nr"/>
+                                               placeholder={t('form.identification.numberPrefixPlaceholder')}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Longueur numéro (chiffres)</Label>
+                                        <Label className="tf-label">{t('form.identification.numberPadding')}</Label>
                                         <Input className="h-11" type="number" min={4} max={10}
                                                value={data.number_padding}
                                                onChange={e => setData('number_padding', Number(e.target.value))}/>
@@ -304,56 +308,56 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                         {/* ── Informations société ── */}
                         <div className="tf-card">
                             <div className="tf-card-hdr">
-                                <div className="tf-card-ttl">Informations société</div>
-                                <div className="tf-card-sub">Apparaissent dans l'en-tête du certificat</div>
+                                <div className="tf-card-ttl">{t('form.company.title')}</div>
+                                <div className="tf-card-sub">{t('form.company.subtitle')}</div>
                             </div>
                             <div className="tf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="tf-label">Raison sociale *</Label>
+                                    <Label className="tf-label">{t('form.company.name')}</Label>
                                     <Input className="h-11" value={data.company_name ?? ''}
                                            onChange={e => setData('company_name', e.target.value)}
-                                           placeholder="NSIA Gabon"/>
+                                           placeholder={t('form.company.namePlaceholder')}/>
                                     <InputError message={errors.company_name}/>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Adresse</Label>
+                                        <Label className="tf-label">{t('form.company.address')}</Label>
                                         <Input className="h-11" value={data.company_address ?? ''}
                                                onChange={e => setData('company_address', e.target.value)}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Téléphone</Label>
+                                        <Label className="tf-label">{t('form.company.phone')}</Label>
                                         <Input className="h-11" value={data.company_phone ?? ''}
                                                onChange={e => setData('company_phone', e.target.value)}/>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Email</Label>
+                                        <Label className="tf-label">{t('form.company.email')}</Label>
                                         <Input className="h-11" type="email" value={data.company_email ?? ''}
                                                onChange={e => setData('company_email', e.target.value)}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Site web</Label>
+                                        <Label className="tf-label">{t('form.company.website')}</Label>
                                         <Input className="h-11" value={data.company_website ?? ''}
                                                onChange={e => setData('company_website', e.target.value)}/>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">N° RCCM</Label>
+                                        <Label className="tf-label">{t('form.company.rccm')}</Label>
                                         <Input className="h-11" value={data.company_rccm ?? ''}
                                                onChange={e => setData('company_rccm', e.target.value)}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tf-label">Capital social</Label>
+                                        <Label className="tf-label">{t('form.company.capital')}</Label>
                                         <Input className="h-11" value={data.company_capital ?? ''}
                                                onChange={e => setData('company_capital', e.target.value)}
-                                               placeholder="1.200.000.000 F CFA"/>
+                                               placeholder={t('form.company.capitalPlaceholder')}/>
                                     </div>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="tf-label">Cadre légal (régime CIMA…)</Label>
+                                    <Label className="tf-label">{t('form.company.legalFramework')}</Label>
                                     <textarea className="tf-textarea" rows={2} value={data.legal_framework ?? ''}
                                               onChange={e => setData('legal_framework', e.target.value)}/>
                                 </div>
@@ -363,42 +367,42 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                         {/* ── Options formulaire ── */}
                         <div className="tf-card">
                             <div className="tf-card-hdr">
-                                <div className="tf-card-ttl">Options du formulaire</div>
-                                <div className="tf-card-sub">Champs à afficher sur le certificat</div>
+                                <div className="tf-card-ttl">{t('form.options.title')}</div>
+                                <div className="tf-card-sub">{t('form.options.subtitle')}</div>
                             </div>
                             <div className="tf-card-body">
-                                <Toggle field="is_bilingual" label="Bilingue FR / EN" hint="Ajoute les traductions anglaises (Guinée)"/>
-                                <Toggle field="has_container_options" label="Options Container / Groupage / Conventionnel" hint="Gabon"/>
-                                <Toggle field="has_flight_number" label="Numéro de vol" hint="Avion"/>
-                                <Toggle field="has_vessel_name" label="Nom du navire (S/S)" hint="Maritime"/>
-                                <Toggle field="has_currency_rate" label="Unité monétaire + Cours" hint="Togo"/>
+                                <Toggle field="is_bilingual" label={t('form.options.bilingual')} hint={t('form.options.bilingualHint')}/>
+                                <Toggle field="has_container_options" label={t('form.options.containerOptions')} hint={t('form.options.containerOptionsHint')}/>
+                                <Toggle field="has_flight_number" label={t('form.options.flightNumber')} hint={t('form.options.flightNumberHint')}/>
+                                <Toggle field="has_vessel_name" label={t('form.options.vesselName')} hint={t('form.options.vesselNameHint')}/>
+                                <Toggle field="has_currency_rate" label={t('form.options.currencyRate')} hint={t('form.options.currencyRateHint')}/>
                             </div>
                         </div>
 
                         {/* ── Décompte prime ── */}
                         <div className="tf-card">
                             <div className="tf-card-hdr">
-                                <div className="tf-card-ttl">Lignes du décompte de prime</div>
-                                <div className="tf-card-sub">Définissez les lignes RO, RG, Surprime, etc.</div>
+                                <div className="tf-card-ttl">{t('form.primeLines.title')}</div>
+                                <div className="tf-card-sub">{t('form.primeLines.subtitle')}</div>
                             </div>
                             <div className="tf-card-body">
                                 <div style={{ display:'grid', gridTemplateColumns:'120px 1fr 1fr 32px', gap:8, marginBottom:8 }}>
-                                    <span style={{ fontSize:10, fontWeight:600, color:'#94a3b8', textTransform:'uppercase' }}>Clé</span>
-                                    <span style={{ fontSize:10, fontWeight:600, color:'#94a3b8', textTransform:'uppercase' }}>Libellé FR</span>
-                                    <span style={{ fontSize:10, fontWeight:600, color:'#94a3b8', textTransform:'uppercase' }}>Libellé EN</span>
+                                    <span style={{ fontSize:10, fontWeight:600, color:'#94a3b8', textTransform:'uppercase' }}>{t('form.primeLines.columnKey')}</span>
+                                    <span style={{ fontSize:10, fontWeight:600, color:'#94a3b8', textTransform:'uppercase' }}>{t('form.primeLines.columnLabelFr')}</span>
+                                    <span style={{ fontSize:10, fontWeight:600, color:'#94a3b8', textTransform:'uppercase' }}>{t('form.primeLines.columnLabelEn')}</span>
                                     <span/>
                                 </div>
                                 {data.prime_breakdown_lines.map((line: any, i: number) => (
                                     <div key={i} className="prime-row">
                                         <input className="prime-input" value={line.key ?? ''}
                                                onChange={e => updatePrimeLine(i, 'key', e.target.value)}
-                                               placeholder="ro"/>
+                                               placeholder={t('form.primeLines.keyPlaceholder')}/>
                                         <input className="prime-input" value={line.label ?? ''}
                                                onChange={e => updatePrimeLine(i, 'label', e.target.value)}
-                                               placeholder="R.O./C.F.A"/>
+                                               placeholder={t('form.primeLines.labelPlaceholder')}/>
                                         <input className="prime-input" value={line.label_en ?? ''}
                                                onChange={e => updatePrimeLine(i, 'label_en', e.target.value)}
-                                               placeholder="O.R (optionnel)"/>
+                                               placeholder={t('form.primeLines.labelEnPlaceholder')}/>
                                         <button type="button" onClick={() => removePrimeLine(i)}
                                                 style={{ width:28, height:28, background:'#fef2f2', border:'1px solid #fecaca', borderRadius:6, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#dc2626' }}>
                                             <Trash2 size={11}/>
@@ -407,7 +411,7 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                                 ))}
                                 <button type="button" onClick={addPrimeLine}
                                         style={{ marginTop:8, padding:'6px 12px', background:'#f8fafc', border:'1.5px dashed #cbd5e1', borderRadius:8, cursor:'pointer', fontSize:12, color:'#475569', display:'flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
-                                    <Plus size={12}/> Ajouter une ligne
+                                    <Plus size={12}/> {t('form.primeLines.add')}
                                 </button>
                             </div>
                         </div>
@@ -415,12 +419,12 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                         {/* ── Texte footer ── */}
                         <div className="tf-card">
                             <div className="tf-card-hdr">
-                                <div className="tf-card-ttl">Texte IMPORTANT (pied de page)</div>
+                                <div className="tf-card-ttl">{t('form.footer.title')}</div>
                             </div>
                             <div className="tf-card-body">
                                 <textarea className="tf-textarea" rows={3} value={data.footer_text ?? ''}
                                           onChange={e => setData('footer_text', e.target.value)}
-                                          placeholder="LE PRESENT ORDRE D'ASSURANCE NE VAUT CERTIFICAT…"/>
+                                          placeholder={t('form.footer.placeholder')}/>
                             </div>
                         </div>
 
@@ -428,10 +432,10 @@ export function TemplateForm({ data, setData, errors, processing, onSubmit, tena
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing}
                                     className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><Check size={14}/> {submitLabel}</>}
+                                {processing ? t('form.saving') : <><Check size={14}/> {submitLabel}</>}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                                Annuler
+                                {tc('actions.cancel')}
                             </Button>
                         </div>
 

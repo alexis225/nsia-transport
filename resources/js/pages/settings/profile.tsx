@@ -9,12 +9,10 @@ import AppLayout from '@/layouts/app-layout';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { BreadcrumbItem } from '@/types';
-import { User, Camera, Check, Shield, Phone, Trash2 } from 'lucide-react';
+import { User, Camera, Check, Shield, Phone, Trash2, Languages } from 'lucide-react';
 import { useRef, useState } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Paramètres du profil', href: edit() },
-];
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/language-switcher';
 
 export default function Profile({
     mustVerifyEmail,
@@ -23,18 +21,21 @@ export default function Profile({
     mustVerifyEmail: boolean;
     status?: string;
 }) {
+    const { t } = useTranslation('settings');
     const { auth } = usePage().props as any;
     const user     = auth?.user;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb.profile'), href: edit() },
+    ];
 
     const initials = `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
     const fullName  = user?.first_name ? `${user.first_name} ${user.last_name}` : (user?.name ?? '');
 
-    const roleLabels: Record<string, string> = {
-        super_admin: 'Super Administrateur', admin_filiale: 'Admin Filiale',
-        souscripteur: 'Souscripteur', courtier_local: 'Courtier Local',
-        partenaire_etranger: 'Partenaire Étranger', client: 'Client',
-    };
     const userRole = user?.roles?.[0] ?? '';
+    // Un role absent du catalogue est affiche tel quel plutot que remplace
+    // par la cle brute.
+    const roleLabel = userRole ? t(`roles.${userRole}`, { defaultValue: userRole }) : '';
 
     // ── Avatar upload ─────────────────────────────────────────
     const fileRef                     = useRef<HTMLInputElement>(null);
@@ -64,7 +65,7 @@ export default function Profile({
     };
 
     const handleAvatarRemove = () => {
-        if (!confirm('Supprimer votre photo de profil ?')) return;
+        if (!confirm(t('profile.avatar.confirmRemove'))) return;
         router.delete('/settings/avatar', {
             onSuccess: () => { setPreview(null); setAvatarFile(null); },
         });
@@ -72,7 +73,7 @@ export default function Profile({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Paramètres du profil — NSIA Transport"/>
+            <Head title={`${t('profile.title')} — NSIA Transport`}/>
             <style>{`
                 .pf-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
 
@@ -137,18 +138,18 @@ export default function Profile({
                                     : initials
                                 }
                             </div>
-                            <div className="pf-avatar-overlay" onClick={() => fileRef.current?.click()} title="Changer la photo">
+                            <div className="pf-avatar-overlay" onClick={() => fileRef.current?.click()} title={t('profile.avatar.changePhoto')}>
                                 <Camera size={12} color="#fff"/>
                             </div>
                             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp"
                                    style={{display:'none'}} onChange={handleFileChange}/>
                         </div>
                         <div className="pf-hero-info">
-                            <div className="pf-hero-name">{fullName || 'Utilisateur'}</div>
+                            <div className="pf-hero-name">{fullName || t('profile.defaultUserName')}</div>
                             <div className="pf-hero-sub">{user?.email}</div>
                             {userRole && (
                                 <span className="pf-role">
-                                    <Shield size={10}/>{roleLabels[userRole] ?? userRole}
+                                    <Shield size={10}/>{roleLabel}
                                 </span>
                             )}
                         </div>
@@ -161,13 +162,13 @@ export default function Profile({
                                 <Camera size={17} color="#16a34a"/>
                             </div>
                             <div>
-                                <div className="pf-card-ttl">Photo de profil</div>
-                                <div className="pf-card-sub">JPG, PNG ou WebP · Max 2 Mo</div>
+                                <div className="pf-card-ttl">{t('profile.avatar.title')}</div>
+                                <div className="pf-card-sub">{t('profile.avatar.subtitle')}</div>
                             </div>
                         </div>
                         <div className="pf-card-body">
                             {uploadDone && (
-                                <div className="status-ok"><Check size={13}/>Photo mise à jour.</div>
+                                <div className="status-ok"><Check size={13}/>{t('profile.avatar.updated')}</div>
                             )}
                             <div className="avatar-section">
                                 <div className="avatar-preview">
@@ -179,24 +180,40 @@ export default function Profile({
                                 <div className="avatar-actions">
                                     <div className="avatar-btn-row">
                                         <button type="button" className="avatar-upload-btn" onClick={() => fileRef.current?.click()}>
-                                            <Camera size={13}/> Choisir une photo
+                                            <Camera size={13}/> {t('profile.avatar.choose')}
                                         </button>
                                         {(preview || user?.avatar_path) && (
                                             <button type="button" onClick={handleAvatarRemove}
                                                     style={{padding:'8px 12px',background:'#fef2f2',border:'1px solid #fecaca',borderRadius:9,fontSize:12,color:'#dc2626',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:5,fontFamily:'inherit'}}>
-                                                <Trash2 size={12}/> Supprimer
+                                                <Trash2 size={12}/> {t('profile.avatar.remove')}
                                             </button>
                                         )}
                                     </div>
-                                    <span className="avatar-hint">Format JPG, PNG ou WebP · Taille max 2 Mo</span>
+                                    <span className="avatar-hint">{t('profile.avatar.hint')}</span>
                                 </div>
                                 {avatarFile && (
                                     <Button onClick={handleAvatarUpload} disabled={uploading}
                                             className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5 flex-shrink-0">
-                                        {uploading ? 'Upload…' : <><Check size={14}/> Enregistrer</>}
+                                        {uploading ? t('profile.avatar.uploading') : <><Check size={14}/> {t('profile.save')}</>}
                                     </Button>
                                 )}
                             </div>
+                        </div>
+                    </div>
+
+                    {/* ── Langue de l'interface ── */}
+                    <div className="pf-card">
+                        <div className="pf-card-hdr">
+                            <div className="pf-card-ico" style={{background:'#faf5ff'}}>
+                                <Languages size={17} color="#9333ea"/>
+                            </div>
+                            <div>
+                                <div className="pf-card-ttl">{t('profile.language.title')}</div>
+                                <div className="pf-card-sub">{t('profile.language.subtitle')}</div>
+                            </div>
+                        </div>
+                        <div className="pf-card-body">
+                            <LanguageSwitcher variant="full" />
                         </div>
                     </div>
 
@@ -207,8 +224,8 @@ export default function Profile({
                                 <User size={17} color="#3b82f6"/>
                             </div>
                             <div>
-                                <div className="pf-card-ttl">Informations personnelles</div>
-                                <div className="pf-card-sub">Prénom, nom, email et téléphone</div>
+                                <div className="pf-card-ttl">{t('profile.personal.title')}</div>
+                                <div className="pf-card-sub">{t('profile.personal.subtitle')}</div>
                             </div>
                         </div>
                         <div className="pf-card-body">
@@ -222,24 +239,24 @@ export default function Profile({
                                         {/* Prénom + Nom */}
                                         <div className="form-grid">
                                             <div className="grid gap-2">
-                                                <Label className="pf-label">Prénom</Label>
+                                                <Label className="pf-label">{t('profile.personal.firstName')}</Label>
                                                 <Input
                                                     id="first_name" name="first_name"
                                                     className="h-11"
                                                     defaultValue={user?.first_name ?? ''}
                                                     autoComplete="given-name"
-                                                    placeholder="Prénom"
+                                                    placeholder={t('profile.personal.firstNamePlaceholder')}
                                                 />
                                                 <InputError message={errors.first_name}/>
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label className="pf-label">Nom</Label>
+                                                <Label className="pf-label">{t('profile.personal.lastName')}</Label>
                                                 <Input
                                                     id="last_name" name="last_name"
                                                     className="h-11"
                                                     defaultValue={user?.last_name ?? ''}
                                                     autoComplete="family-name"
-                                                    placeholder="Nom de famille"
+                                                    placeholder={t('profile.personal.lastNamePlaceholder')}
                                                 />
                                                 <InputError message={errors.last_name}/>
                                             </div>
@@ -248,10 +265,10 @@ export default function Profile({
                                         {/* Email */}
                                         <div className="grid gap-2">
                                             <Label className="pf-label">
-                                                Adresse email
+                                                {t('profile.personal.email')}
                                                 {user?.email_verified_at
-                                                    ? <span className="pill-ok"><Check size={9}/>Vérifiée</span>
-                                                    : <span className="pill-warn">Non vérifiée</span>
+                                                    ? <span className="pill-ok"><Check size={9}/>{t('profile.personal.emailVerified')}</span>
+                                                    : <span className="pill-warn">{t('profile.personal.emailUnverified')}</span>
                                                 }
                                             </Label>
                                             <Input
@@ -259,7 +276,7 @@ export default function Profile({
                                                 className="h-11"
                                                 defaultValue={user?.email}
                                                 required autoComplete="username"
-                                                placeholder="prenom.nom@nsia.com"
+                                                placeholder={t('profile.personal.emailPlaceholder')}
                                             />
                                             <InputError message={errors.email}/>
                                         </div>
@@ -268,7 +285,7 @@ export default function Profile({
                                         <div className="grid gap-2">
                                             <Label className="pf-label">
                                                 <span style={{display:'flex',alignItems:'center',gap:5}}>
-                                                    <Phone size={11}/> Téléphone
+                                                    <Phone size={11}/> {t('profile.personal.phone')}
                                                 </span>
                                             </Label>
                                             <Input
@@ -276,7 +293,7 @@ export default function Profile({
                                                 className="h-11"
                                                 defaultValue={user?.phone ?? ''}
                                                 autoComplete="tel"
-                                                placeholder="+225 07 00 00 00 00"
+                                                placeholder={t('profile.personal.phonePlaceholder')}
                                             />
                                             <InputError message={errors.phone}/>
                                         </div>
@@ -285,14 +302,14 @@ export default function Profile({
                                         {mustVerifyEmail && user?.email_verified_at === null && (
                                             <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
                                                 <p className="text-sm text-amber-800">
-                                                    Votre adresse email n'est pas vérifiée.{' '}
+                                                    {t('profile.verify.notice')}{' '}
                                                     <Link href={send()} as="button" className="font-medium underline text-amber-900 hover:text-amber-700 transition-colors">
-                                                        Renvoyer l'email de vérification.
+                                                        {t('profile.verify.resend')}
                                                     </Link>
                                                 </p>
                                                 {status === 'verification-link-sent' && (
                                                     <p className="mt-2 text-sm font-medium text-green-600 flex items-center gap-1">
-                                                        <Check size={12}/>Lien envoyé.
+                                                        <Check size={12}/>{t('profile.verify.sent')}
                                                     </p>
                                                 )}
                                             </div>
@@ -303,7 +320,7 @@ export default function Profile({
                                             <Button disabled={processing}
                                                     className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5"
                                                     data-test="update-profile-button">
-                                                {processing ? 'Enregistrement…' : 'Enregistrer'}
+                                                {processing ? t('profile.saving') : t('profile.save')}
                                             </Button>
                                             <Transition
                                                 show={recentlySuccessful}
@@ -313,7 +330,7 @@ export default function Profile({
                                                 leaveTo="opacity-0"
                                             >
                                                 <p className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
-                                                    <Check size={13}/>Enregistré
+                                                    <Check size={13}/>{t('profile.saved')}
                                                 </p>
                                             </Transition>
                                         </div>

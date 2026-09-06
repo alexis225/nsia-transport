@@ -1,0 +1,57 @@
+{
+    "index": {
+        "breadcrumb": "Audit Logs",
+        "title": "Audit Logs — NSIA Transport",
+        "heading": "Audit Logs",
+        "eventsRecorded_one": "{{count}} event recorded",
+        "eventsRecorded_other": "{{count}} events recorded",
+        "exportCsv": "Export CSV",
+        "purge": "Purge",
+        "searchPlaceholder": "Search by user, action, IP…",
+        "allActions": "All actions",
+        "allEntities": "All entities",
+        "advancedFilters": "Advanced filters",
+        "clear": "Clear",
+        "dateFrom": "Start date",
+        "dateTo": "End date",
+        "tenant": "Subsidiary",
+        "tenantPlaceholder": "Subsidiary ID…",
+        "noLogs": "No logs found.",
+        "columns": {
+            "date": "Date",
+            "user": "User",
+            "action": "Action",
+            "entity": "Entity",
+            "tenant": "Subsidiary",
+            "ip": "IP",
+            "detail": "Detail"
+        },
+        "system": "System",
+        "view": "View",
+        "pageInfo": "Page {{current}} / {{last}} · {{total}} logs",
+        "purgeModal": {
+            "title": "Purge logs",
+            "subtitle": "Irreversible action",
+            "warning": "⚠ This action will permanently delete all logs older than the specified number of days.",
+            "daysLabel": "Delete logs older than (days)",
+            "daysHint": "Minimum 30 days · Recommended: 365 days"
+        }
+    },
+    "show": {
+        "breadcrumb": "Audit Logs",
+        "title": "Log {{action}} — NSIA Transport",
+        "generalInfo": "General information",
+        "user": "User",
+        "system": "System",
+        "tenant": "Subsidiary",
+        "entity": "Entity",
+        "ip": "IP address",
+        "userAgent": "User agent",
+        "modifications": "Changes",
+        "before": "Before",
+        "after": "After",
+        "noPreviousValue": "No previous value",
+        "noNewValue": "No new value",
+        "backToLogs": "Back to logs"
+    }
+}

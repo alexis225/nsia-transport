@@ -1,0 +1,88 @@
+{
+    "index": {
+        "breadcrumb": "Peritos",
+        "title": "Peritos — NSIA Transport",
+        "heading": "Peritos de seguros",
+        "count_one": "{{count}} perito",
+        "count_other": "{{count}} peritos",
+        "newExpert": "Novo perito",
+        "searchPlaceholder": "Pesquisar por nome ou email…",
+        "statusAll": "Todos os estados",
+        "statusActive": "Ativos",
+        "statusInactive": "Inativos",
+        "clear": "Limpar",
+        "empty": "Nenhum perito encontrado.",
+        "table": {
+            "expert": "Perito",
+            "contact": "Contacto",
+            "country": "País",
+            "tenant": "Filial",
+            "status": "Estado",
+            "actions": "Ações"
+        },
+        "view": "Ver",
+        "edit": "Editar",
+        "deactivate": "Desativar",
+        "activate": "Ativar",
+        "delete": "Eliminar",
+        "confirmDelete": "Eliminar o perito « {{name}} »?",
+        "confirmDeactivate": "Desativar {{name}}?",
+        "confirmActivate": "Ativar {{name}}?",
+        "pageInfo": "Página {{current}} / {{last}} · {{total}} peritos"
+    },
+    "show": {
+        "title": "Informações",
+        "fields": {
+            "name": "Nome",
+            "country": "País",
+            "email": "Email",
+            "phone": "Telefone",
+            "tenant": "Filial",
+            "status": "Estado",
+            "createdAt": "Criado em"
+        },
+        "edit": "Editar",
+        "deactivate": "Desativar",
+        "activate": "Ativar",
+        "backToList": "Voltar à lista",
+        "confirmDeactivate": "Desativar {{name}}?",
+        "confirmActivate": "Ativar {{name}}?"
+    },
+    "create": {
+        "breadcrumb": "Novo perito",
+        "title": "Novo perito — NSIA Transport",
+        "submitLabel": "Criar perito",
+        "heroTitle": "Novo perito",
+        "heroSub": "Registe um novo perito de seguros"
+    },
+    "edit": {
+        "breadcrumb": "Editar",
+        "title": "Editar {{name}} — NSIA Transport",
+        "submitLabel": "Guardar alterações",
+        "heroTitle": "Editar: {{name}}",
+        "heroSub": "Atualize as informações do perito"
+    },
+    "form": {
+        "identification": {
+            "title": "Identificação",
+            "subtitle": "Informações do perito",
+            "name": "Nome completo *",
+            "namePlaceholder": "Jean-Paul Martin",
+            "email": "Email",
+            "emailPlaceholder": "perito@seguros.com",
+            "phone": "Telefone",
+            "phonePlaceholder": "+225 07 00 00 00 00",
+            "country": "País",
+            "noneOption": "— Nenhum —",
+            "tenant": "Filial",
+            "selectTenant": "Selecione uma filial"
+        },
+        "status": {
+            "title": "Estado",
+            "active": "Perito ativo",
+            "inactive": "Perito inativo",
+            "activeHint": "Pode ser atribuído a processos",
+            "inactiveHint": "Não pode ser utilizado"
+        }
+    }
+}

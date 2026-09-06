@@ -1,0 +1,476 @@
+{
+    "statusLabels": {
+        "DRAFT": "Brouillon",
+        "PENDING_APPROVAL": "En attente appro.",
+        "ACTIVE": "Actif",
+        "SUSPENDED": "Suspendu",
+        "EXPIRED": "Expiré",
+        "CANCELLED": "Annulé"
+    },
+    "typeLabels": {
+        "OPEN_POLICY": "Police ouverte",
+        "VOYAGE": "Au voyage",
+        "ANNUAL_VOYAGE": "Annuel voyages",
+        "TIERS_CHARGEUR": "Police tiers chargeur"
+    },
+    "coverageLabels": {
+        "TOUS_RISQUES": "Tous risques",
+        "FAP_SAUF": "FAP sauf",
+        "FAP_ABSOLUE": "FAP absolue"
+    },
+    "conditioningLabels": {
+        "CONTAINER": "Conteneur",
+        "GROUPAGE": "Groupage",
+        "CONVENTIONNEL": "Conventionnel",
+        "BOUT_EN_BOUT": "Bout en bout",
+        "VRAC": "Vrac"
+    },
+    "amendmentStatusLabels": {
+        "DRAFT": "Brouillon",
+        "PENDING": "En attente",
+        "APPROVED": "Approuvé",
+        "REJECTED": "Rejeté"
+    },
+    "amendmentFieldLabels": {
+        "premium_rate": "Taux prime global",
+        "rate_ro": "Taux R.O.",
+        "rate_rg": "Taux R.G.",
+        "rate_surprime": "Surprime",
+        "rate_accessories": "Accessoires (ancien, %)",
+        "accessories_amount": "Accessoires",
+        "rate_tax": "Taxe",
+        "subscription_limit": "Plafond NN300",
+        "effective_date": "Date d'effet",
+        "expiry_date": "Date d'expiration",
+        "notice_period_days": "Délai de préavis",
+        "clauses": "Clauses",
+        "exclusions": "Exclusions",
+        "broker_id": "Courtier",
+        "incoterm_code": "Incoterm",
+        "coverage_type": "Couverture"
+    },
+    "amendmentEditableFieldLabels": {
+        "rate_ro": "Taux R.O. (%)",
+        "rate_rg": "Taux R.G. (%)",
+        "accessories_amount": "Accessoires (montant)",
+        "rate_tax": "Taxe (%)",
+        "effective_date": "Date d'effet",
+        "expiry_date": "Date d'expiration",
+        "notice_period_days": "Délai de préavis (jours)",
+        "clauses": "Clauses",
+        "exclusions": "Exclusions",
+        "broker_id": "Courtier",
+        "incoterm_code": "Incoterm",
+        "coverage_type": "Type de couverture"
+    },
+    "breadcrumb": {
+        "contracts": "Contrats",
+        "newContract": "Nouveau contrat",
+        "edit": "Modifier",
+        "limits": "Suivi plafonds NN300",
+        "amendments": "Avenants",
+        "newAmendment": "Nouvel avenant"
+    },
+    "index": {
+        "title": "Contrats — NSIA Transport",
+        "heading": "Contrats d'assurance",
+        "count_one": "{{count}} contrat",
+        "count_other": "{{count}} contrats",
+        "newContract": "Nouveau contrat",
+        "searchPlaceholder": "N° contrat, assuré, courtier…",
+        "allStatuses": "Tous les statuts",
+        "allTypes": "Tous les types",
+        "allTenants": "Toutes les filiales",
+        "clear": "Effacer",
+        "empty": "Aucun contrat trouvé.",
+        "table": {
+            "number": "N° Contrat",
+            "insuredBroker": "Assuré / Courtier",
+            "tenant": "Filiale",
+            "type": "Type",
+            "period": "Période",
+            "usage": "Utilisation",
+            "status": "Statut",
+            "actions": "Actions"
+        },
+        "unlimited": "Illimité",
+        "view": "Voir",
+        "edit": "Éditer",
+        "delete": "Supprimer",
+        "confirmDelete": "Supprimer le contrat « {{number}} » ?",
+        "pageInfo": "Page {{current}}/{{last}} · {{total}} contrats"
+    },
+    "create": {
+        "title": "Nouveau contrat — NSIA Transport",
+        "heroTitle": "Nouveau contrat d'assurance transport",
+        "heroSub": "Créez une police d'assurance pour un assuré",
+        "submitLabel": "Créer le contrat"
+    },
+    "edit": {
+        "title": "Modifier {{number}} — NSIA Transport",
+        "heroTitle": "Modifier — {{number}}",
+        "heroSub": "Modification du contrat d'assurance transport",
+        "submitLabel": "Enregistrer les modifications"
+    },
+    "form": {
+        "saving": "Enregistrement…",
+        "cancel": "Annuler",
+        "identification": {
+            "title": "Identification",
+            "tenant": "Filiale *",
+            "tenantPlaceholder": "Sélectionnez une filiale",
+            "type": "Type de contrat *",
+            "typeOpenPolicy": "Police ouverte (plusieurs voyages)",
+            "typeVoyage": "Au voyage (unique)",
+            "typeAnnualVoyage": "Annuel voyages",
+            "typeTiersChargeur": "Police tiers chargeur (plusieurs voyages)",
+            "broker": "Courtier (optionnel)",
+            "noBroker": "Sans courtier",
+            "subscriber": "Gestionnaire du dossier (optionnel)",
+            "noSubscriber": "Non assigné",
+            "subscriberHint": "Utilisateur NSIA en charge du dossier — distinct du souscripteur (contractant) ci-dessous.",
+            "commissionRate": "Commission courtier pour ce contrat — % (optionnel)",
+            "commissionRatePlaceholder": "Laisser vide = taux général du courtier",
+            "commissionRateHint": "Commission standard de {{brokerName}} : {{rate}}%. Si renseigné ci-dessus, ce taux remplace le taux standard pour ce contrat uniquement.",
+            "defaultBrokerName": "ce courtier"
+        },
+        "coinsurers": {
+            "title": "Coassureurs (optionnel)",
+            "subtitle": "Part de coassurance propre à ce contrat — un même coassureur peut avoir un taux différent sur un autre contrat",
+            "sharePlaceholder": "Part %",
+            "totalShare": "Total des parts : {{total}}%",
+            "exceeds100": " — dépasse 100%",
+            "add": "Ajouter un coassureur",
+            "none": "Aucun coassureur créé pour cette filiale — créez-en un depuis le module Coassureurs."
+        },
+        "experts": {
+            "title": "Experts (optionnel)",
+            "subtitle": "Experts mandatés sur ce contrat pour l'expertise / le suivi des sinistres",
+            "none": "Aucun expert créé pour cette filiale — créez-en un depuis le module Experts."
+        },
+        "subscriber": {
+            "title": "Souscripteur",
+            "subtitle": "Le contractant — celui qui souscrit et paye les primes (peut être distinct de l'Assuré)",
+            "name": "Nom / Raison sociale",
+            "namePlaceholder": "Nom du souscripteur",
+            "email": "Email",
+            "phone": "Téléphone",
+            "address": "Adresse"
+        },
+        "insured": {
+            "title": "Assuré",
+            "name": "Nom / Raison sociale *",
+            "namePlaceholder": "Nom de l'assuré",
+            "email": "Email",
+            "phone": "Téléphone",
+            "address": "Adresse"
+        },
+        "period": {
+            "title": "Période de validité",
+            "effectiveDate": "Date d'effet *",
+            "expiryDate": "Date d'expiration *",
+            "noticePeriod": "Délai de préavis (jours)"
+        },
+        "coverage": {
+            "title": "Garanties & Couverture",
+            "coverageType": "Type de couverture",
+            "unspecified": "Non spécifié",
+            "allRisks": "Tous risques",
+            "fapSauf": "FAP sauf",
+            "fapAbsolue": "FAP absolue",
+            "incoterm": "Incoterm",
+            "allIncoterms": "Tous",
+            "transportMode": "Mode de transport",
+            "allModes": "Tous modes",
+            "conditioningType": "Type de conditionnement",
+            "conditioningContainer": "Conteneur",
+            "conditioningConventional": "Conventionnel",
+            "conditioningBulk": "Vrac",
+            "conditioningGroupage": "Groupage",
+            "conditioningEndToEnd": "Bout en bout",
+            "conditioningHint": "Conditionnements possibles dans cette police — repris automatiquement comme options du mode sur les certificats de ce contrat.",
+            "clauses": "Clauses",
+            "clausesPlaceholder": "ex: Clause grève, Clause guerre…",
+            "exclusions": "Exclusions",
+            "exclusionsPlaceholder": "ex: Vice propre, Défaut d'emballage…",
+            "addTag": "Ajouter"
+        },
+        "financial": {
+            "title": "Conditions financières",
+            "currency": "Devise",
+            "currencyHint": "Devise du pays de la filiale — tous les montants du contrat et de ses certificats y sont exprimés.",
+            "globalPremiumRate": "Taux prime global (%)",
+            "globalPremiumRateHint": "Somme des taux R.O. + R.G. ci-dessous.",
+            "deductible": "Franchise",
+            "detailedRates": "Taux détaillés (%)",
+            "rateRO": "R.O.",
+            "rateRG": "R.G.",
+            "detailedRatesHint": "Divers et Surprime se précisent au cas par cas à l'établissement de chaque certificat. La taxe est calculée automatiquement à l'émission depuis le référentiel de taxes (Taxes > Référentiel).",
+            "accessories": "Accessoires (montant fixe)",
+            "accessoriesPlaceholder": "ex: 500",
+            "accessoriesHint": "Montant fixe (à partir de 500 {{currency}}), pas un taux.",
+            "defaultCurrency": "FCFA",
+            "certificatesLimit": "Limite de certificats",
+            "certificatesLimitPlaceholder": "Illimité si vide"
+        },
+        "escalade": {
+            "title": "Paramètres métiers & Escalade",
+            "subtitle": "Plein d'Assurance et déclenchement automatique de la validation NN300",
+            "plein": "Plein d'Assurance",
+            "pleinPlaceholder": "Valeur maximum assurée par voyage et par moyen de transport",
+            "pleinHint": "Valeur maximum assurée par voyage et par moyen de transport — propre à ce contrat/client. Au-delà du plafond NN300 (paramètre général de l'application), une validation DTAG est requise avant activation.",
+            "enabledLabel": "Escalade automatique activée",
+            "enabledHint": "Déclenche une validation NN300 si la valeur assurée dépasse le seuil ci-dessous",
+            "threshold": "Seuil d'escalade (%)",
+            "thresholdPlaceholder": "15% par défaut"
+        },
+        "options": {
+            "title": "Options & Notes",
+            "requiresApprovalLabel": "Approbation requise",
+            "requiresApprovalHint": "Le contrat devra être approuvé par un superviseur avant activation",
+            "internalNotes": "Notes internes",
+            "internalNotesPlaceholder": "Observations, conditions particulières…"
+        }
+    },
+    "show": {
+        "title": "{{number}} — NSIA Transport",
+        "certLabel": "cert.",
+        "amendments": "Avenants",
+        "edit": "Modifier",
+        "submit": "Soumettre",
+        "approveActivate": "Approuver & Activer",
+        "reject": "Rejeter",
+        "suspend": "Suspendre",
+        "reactivate": "Réactiver",
+        "cancelContract": "Annuler le contrat",
+        "rejectionReason": "Motif de rejet",
+        "approvalNotes": "Notes d'approbation",
+        "usage": {
+            "title": "Utilisation du plafond NN300",
+            "almostReached": "Plafond presque atteint"
+        },
+        "insuredBroker": {
+            "title": "Assuré & Courtier",
+            "insured": "Assuré",
+            "broker": "Courtier",
+            "subscriber": "Gestionnaire du dossier",
+            "address": "Adresse"
+        },
+        "subscriberSection": {
+            "title": "Souscripteur (contractant)",
+            "name": "Nom",
+            "address": "Adresse"
+        },
+        "coinsurers": {
+            "title": "Coassureurs"
+        },
+        "experts": {
+            "title": "Experts"
+        },
+        "period": {
+            "title": "Période de validité",
+            "effectiveDate": "Date d'effet",
+            "expiryDate": "Date d'expiration",
+            "noticePeriod": "Préavis résiliation",
+            "days": "jours"
+        },
+        "transportCoverage": {
+            "title": "Transport & Couverture",
+            "coverage": "Couverture",
+            "incoterm": "Incoterm",
+            "transportMode": "Mode transport",
+            "conditioningType": "Type de conditionnement"
+        },
+        "clauses": {
+            "title": "Clauses"
+        },
+        "exclusions": {
+            "title": "Exclusions"
+        },
+        "financial": {
+            "title": "Conditions financières",
+            "currency": "Devise",
+            "nn300Limit": "Plafond NN300",
+            "unlimited": "Illimité",
+            "treatyLimit": "Plafond ou limite Traité",
+            "notDefined": "Non défini",
+            "globalPremiumRate": "Taux prime global",
+            "deductible": "Franchise",
+            "contractPlein": "Plein du contrat",
+            "escalade": "Escalade NN300",
+            "escaladeEnabled": "Activée · seuil {{threshold}} %",
+            "escaladeDisabled": "Désactivée",
+            "detailedRates": "Taux détaillés",
+            "rateRO": "R.O.",
+            "rateRG": "R.G.",
+            "tax": "Taxe",
+            "accessories": "Accessoires",
+            "note": "Divers et Surprime se précisent au cas par cas sur chaque certificat."
+        },
+        "notes": {
+            "title": "Notes internes"
+        },
+        "meta": {
+            "createdBy": "Créé par {{name}}",
+            "approvedBy": "· Approuvé par {{name}}",
+            "approvedOn": " le {{date}}",
+            "suspendedOn": "· Suspendu le {{date}}"
+        },
+        "modals": {
+            "approveTitle": "Approuver et activer",
+            "approveAction": "Approuver & Activer",
+            "rejectTitle": "Rejeter le contrat",
+            "rejectAction": "Rejeter",
+            "suspendTitle": "Suspendre le contrat",
+            "suspendAction": "Suspendre",
+            "cancelTitle": "Annuler le contrat",
+            "cancelAction": "Annuler définitivement",
+            "reasonLabel": "Motif *",
+            "reasonPlaceholder": "Précisez le motif…",
+            "cancel": "Annuler"
+        }
+    },
+    "limits": {
+        "title": "Suivi plafonds NN300 — NSIA Transport",
+        "heading": "Suivi plafonds NN300",
+        "subheading": "Contrats actifs avec plafond de souscription",
+        "kpi": {
+            "tracked": "Contrats suivis",
+            "critical": "Critiques ≥ 95%",
+            "warning": "En alerte ≥ 80%",
+            "normal": "Normaux",
+            "globalUsage": "Utilisation globale"
+        },
+        "searchPlaceholder": "Rechercher un contrat, un assuré…",
+        "emptyAll": "Aucun contrat avec plafond NN300 actif.",
+        "emptySearch": "Aucun contrat ne correspond à « {{search}} ».",
+        "alertLabels": {
+            "critical": "Critique",
+            "warning": "Alerte",
+            "ok": "Normal"
+        },
+        "unlockedTreaty": "Débloqué (Traité)",
+        "blocked": "Bloqué",
+        "usageLabel": "Utilisation plafond",
+        "used": "Utilisé",
+        "remaining": "Restant",
+        "effectiveTreatyLimit": "Plafond effectif (Traité)",
+        "totalNN300Limit": "Plafond total NN300",
+        "standardNN300Limit": "Plafond NN300 standard : {{amount}}",
+        "certificates_one": "certificat",
+        "certificates_other": "certificats",
+        "expiry": "Exp. {{date}}",
+        "view": "Voir"
+    },
+    "amendments": {
+        "create": {
+            "title": "Nouvel avenant — {{number}}",
+            "heroTitle": "Nouvel avenant — {{number}}",
+            "reasonSection": {
+                "title": "Motif de l'avenant",
+                "reason": "Motif *",
+                "reasonPlaceholder": "ex: Révision des taux suite à renouvellement…",
+                "description": "Description (facultatif)",
+                "descriptionPlaceholder": "Détails supplémentaires…"
+            },
+            "fieldsSection": {
+                "title": "Champs à modifier",
+                "subtitle": "Sélectionnez les champs concernés par cet avenant"
+            },
+            "ratesSection": {
+                "title": "Taux de prime",
+                "current": "Actuel : {{value}} {{unit}}"
+            },
+            "periodSection": {
+                "title": "Période de validité",
+                "effectiveDate": "Date d'effet",
+                "expiryDate": "Date d'expiration",
+                "noticePeriod": "Délai de préavis (jours)",
+                "currentDate": "Actuel : {{date}}",
+                "currentDays": "Actuel : {{days}} jours"
+            },
+            "coverageSection": {
+                "title": "Conditions de couverture",
+                "coverageType": "Type de couverture",
+                "allRisks": "Tous risques",
+                "fapSauf": "FAP sauf",
+                "fapAbsolue": "FAP absolue",
+                "incoterm": "Incoterm",
+                "incotermPlaceholder": "ex: FOB, CIF, EXW…",
+                "current": "Actuel : {{value}}"
+            },
+            "listsSection": {
+                "title": "Clauses & Exclusions",
+                "clauses": "Clauses",
+                "clausesPlaceholder": "Ajouter une clause…",
+                "exclusions": "Exclusions",
+                "exclusionsPlaceholder": "Ajouter une exclusion…"
+            },
+            "noFieldsWarning": "Sélectionnez au moins un champ à modifier.",
+            "saving": "Enregistrement…",
+            "submit": "Créer l'avenant",
+            "cancel": "Annuler"
+        },
+        "index": {
+            "title": "Avenants — {{number}}",
+            "heading": "Avenants — {{number}}",
+            "count_one": "{{count}} avenant",
+            "count_other": "{{count}} avenants",
+            "newAmendment": "Nouvel avenant",
+            "pendingBanner_one": "{{count}} avenant en attente de votre validation.",
+            "pendingBanner_other": "{{count}} avenants en attente de votre validation.",
+            "empty": "Aucun avenant pour ce contrat.",
+            "table": {
+                "number": "N° Avenant",
+                "reason": "Motif",
+                "changes": "Modifications",
+                "createdAt": "Créé le",
+                "appliedAt": "Appliqué le",
+                "status": "Statut",
+                "actions": "Actions"
+            },
+            "sequenceLabel": "Avenant n°{{sequence}}",
+            "createdBy": "par {{name}}",
+            "fields_one": "{{count}} champ",
+            "fields_other": "{{count}} champs",
+            "view": "Voir"
+        },
+        "show": {
+            "title": "{{number}} — NSIA Transport",
+            "sequenceInfo": "Avenant n°{{sequence}} · {{contractNumber}} · {{tenant}}",
+            "changesBadge_one": "{{count}} modification",
+            "changesBadge_other": "{{count}} modifications",
+            "appliedOn": "appliqué le {{date}}",
+            "submitForValidation": "Soumettre pour validation",
+            "approveApply": "Approuver & Appliquer",
+            "reject": "Rejeter",
+            "rejectionReason": "Motif de rejet",
+            "approvalNotes": "Notes d'approbation",
+            "reasonSection": {
+                "title": "Motif de l'avenant"
+            },
+            "changesSection": {
+                "title": "Modifications ({{count}})",
+                "field": "Champ",
+                "before": "Valeur avant",
+                "after": "Valeur après"
+            },
+            "history": {
+                "title": "Historique",
+                "created": "Créé",
+                "submitted": "Soumis",
+                "approved": "Approuvé",
+                "rejected": "Rejeté",
+                "by": "par {{name}}"
+            },
+            "modals": {
+                "approveTitle": "Approuver et appliquer l'avenant",
+                "approveAction": "Approuver & Appliquer",
+                "rejectTitle": "Rejeter l'avenant",
+                "rejectAction": "Rejeter",
+                "reasonLabel": "Motif *",
+                "cancel": "Annuler"
+            }
+        }
+    }
+}

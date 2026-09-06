@@ -1,16 +1,12 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Plus, X, ToggleLeft, ToggleRight, Trash2, Pencil, ShieldAlert, Search } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Escalades NN300', href: '/admin/approvals' },
-    { title: 'Seuils & validations' },
-];
 
 type TriggerType = 'insured_value_pct_of_contract' | 'subscription_limit_exceeded' | 'certificates_limit_reached';
 
@@ -31,17 +27,6 @@ interface Props {
     defaultTenantId: string | null;
 }
 
-const TRIGGER_LABELS: Record<TriggerType, string> = {
-    insured_value_pct_of_contract: 'Dépassement du plein (%)',
-    subscription_limit_exceeded:   'Plafond NN300 cumulé dépassé',
-    certificates_limit_reached:    'Nombre de certificats max. atteint',
-};
-
-const ROLE_LABELS: Record<string, string> = {
-    admin_filiale: 'Admin Filiale',
-    super_admin:   'Super Admin (DTAG)',
-};
-
 type StepForm = { role: string; timeout_hours: string };
 
 const emptyForm = (defaultTenantId: string | null) => ({
@@ -56,6 +41,21 @@ const emptyForm = (defaultTenantId: string | null) => ({
 });
 
 export default function ApprovalConfigs({ configs, tenants, filters, isSA, defaultTenantId }: Props) {
+    const { t } = useTranslation('approvals');
+    const { t: tc } = useTranslation('common');
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/approvals' },
+        { title: t('configs.breadcrumbCurrent') },
+    ];
+    const TRIGGER_LABELS: Record<TriggerType, string> = {
+        insured_value_pct_of_contract: t('configs.triggers.insured_value_pct_of_contract'),
+        subscription_limit_exceeded:   t('configs.triggers.subscription_limit_exceeded'),
+        certificates_limit_reached:    t('configs.triggers.certificates_limit_reached'),
+    };
+    const ROLE_LABELS: Record<string, string> = {
+        admin_filiale: t('configs.roles.admin_filiale'),
+        super_admin:   t('configs.roles.super_admin'),
+    };
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [search, setSearch] = useState(filters.search ?? '');
@@ -107,7 +107,7 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
 
     const toggle  = (id: string) => router.patch(route('admin.approvals.configs.toggle', { config: id }));
     const destroy = (id: string) => {
-        if (confirm('Supprimer cette règle d\'escalade ?')) {
+        if (confirm(t('configs.deleteConfirm'))) {
             router.delete(route('admin.approvals.configs.destroy', { config: id }));
         }
     };
@@ -120,7 +120,7 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Seuils & validations NN300 — NSIA Transport"/>
+            <Head title={t('configs.title')}/>
             <style>{`
                 .ac-page{padding:4px;display:flex;flex-direction:column;gap:14px;}
                 .ac-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -153,12 +153,12 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
 
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                         <div>
-                            <h1 className="ac-title">Seuils & validations NN300</h1>
-                            <p className="ac-sub">Renforcement — déclencheurs d'escalade et chaîne de validation hiérarchique, par filiale</p>
+                            <h1 className="ac-title">{t('configs.heading')}</h1>
+                            <p className="ac-sub">{t('configs.subtitle')}</p>
                         </div>
                         {!showForm && (
                             <Button onClick={startCreate} className="bg-[#7c1f1f] hover:bg-[#991b1b] text-white h-10 px-4">
-                                <Plus size={14}/> Nouvelle règle
+                                <Plus size={14}/> {t('configs.newRule')}
                             </Button>
                         )}
                     </div>
@@ -171,7 +171,7 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && applyFilters({ search })}
-                                    placeholder="Nom de la règle..."
+                                    placeholder={t('configs.searchPlaceholder')}
                                     style={{ width:'100%', padding:'7px 8px 7px 32px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, outline:'none', boxSizing:'border-box' }}
                                 />
                                 {search && (
@@ -183,22 +183,22 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
                             </div>
                             <select value={filters.trigger_type ?? ''} onChange={e => applyFilters({ trigger_type: e.target.value })}
                                     style={{ padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, cursor:'pointer' }}>
-                                <option value="">Tous déclencheurs</option>
-                                {(Object.keys(TRIGGER_LABELS) as TriggerType[]).map(t => (
-                                    <option key={t} value={t}>{TRIGGER_LABELS[t]}</option>
+                                <option value="">{t('configs.allTriggers')}</option>
+                                {(Object.keys(TRIGGER_LABELS) as TriggerType[]).map(trig => (
+                                    <option key={trig} value={trig}>{TRIGGER_LABELS[trig]}</option>
                                 ))}
                             </select>
                             <select value={filters.status ?? ''} onChange={e => applyFilters({ status: e.target.value })}
                                     style={{ padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, cursor:'pointer' }}>
-                                <option value="">Tous statuts</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
+                                <option value="">{t('configs.allStatuses')}</option>
+                                <option value="active">{t('configs.active')}</option>
+                                <option value="inactive">{t('configs.inactive')}</option>
                             </select>
                             {isSA && tenants.length > 0 && (
                                 <select value={filters.tenant_id ?? ''} onChange={e => applyFilters({ tenant_id: e.target.value })}
                                         style={{ padding:'7px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:12.5, cursor:'pointer' }}>
-                                    <option value="">Toutes filiales</option>
-                                    {tenants.map(t => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                    <option value="">{t('configs.allTenants')}</option>
+                                    {tenants.map(tn => <option key={tn.id} value={tn.id}>{tn.name} ({tn.code})</option>)}
                                 </select>
                             )}
                         </div>
@@ -207,7 +207,7 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
                     {showForm && (
                         <div className="form-card">
                             <div className="form-card-hdr">
-                                <span className="form-card-ttl">{editingId ? 'Modifier la règle' : 'Nouvelle règle d\'escalade'}</span>
+                                <span className="form-card-ttl">{editingId ? t('configs.form.editTitle') : t('configs.form.createTitle')}</span>
                                 <button onClick={cancelForm} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.7)' }}>
                                     <X size={16}/>
                                 </button>
@@ -216,11 +216,11 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
                                 {isSA && tenants?.length > 0 && (
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Filiale *
+                                            {t('configs.form.tenantLabel')}
                                         </Label>
                                         <select value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)} className="hs-select">
-                                            <option value="">— Choisir —</option>
-                                            {tenants.map(t => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                            <option value="">{t('configs.form.tenantPlaceholder')}</option>
+                                            {tenants.map(tn => <option key={tn.id} value={tn.id}>{tn.name} ({tn.code})</option>)}
                                         </select>
                                         {errors.tenant_id && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.tenant_id}</p>}
                                     </div>
@@ -228,32 +228,32 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
 
                                 <div className="grid gap-2">
                                     <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                        Nom de la règle *
+                                        {t('configs.form.nameLabel')}
                                     </Label>
                                     <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)}
-                                           placeholder="ex: Escalade Plafond NN300 — Sénégal"/>
+                                           placeholder={t('configs.form.namePlaceholder')}/>
                                     {errors.name && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.name}</p>}
                                 </div>
 
                                 <div className="form-grid-2">
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Déclencheur *
+                                            {t('configs.form.triggerLabel')}
                                         </Label>
                                         <select value={data.trigger_type} onChange={e => setData('trigger_type', e.target.value as TriggerType)} className="hs-select">
-                                            {(Object.keys(TRIGGER_LABELS) as TriggerType[]).map(t => (
-                                                <option key={t} value={t}>{TRIGGER_LABELS[t]}</option>
+                                            {(Object.keys(TRIGGER_LABELS) as TriggerType[]).map(trig => (
+                                                <option key={trig} value={trig}>{TRIGGER_LABELS[trig]}</option>
                                             ))}
                                         </select>
                                     </div>
                                     {data.trigger_type === 'insured_value_pct_of_contract' && (
                                         <div className="grid gap-2">
                                             <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                                Seuil (% du plein) *
+                                                {t('configs.form.thresholdLabel')}
                                             </Label>
                                             <Input type="number" min="0" max="100" step="0.5" className="h-11"
                                                    value={data.threshold_pct} onChange={e => setData('threshold_pct', e.target.value)}
-                                                   placeholder="ex: 15"/>
+                                                   placeholder={t('configs.form.thresholdPlaceholder')}/>
                                             {errors.threshold_pct && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.threshold_pct}</p>}
                                         </div>
                                     )}
@@ -261,28 +261,28 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
 
                                 <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#92400e' }}>
                                     {data.trigger_type === 'insured_value_pct_of_contract' &&
-                                        'Se déclenche quand la valeur assurée d\'un certificat dépasse ce pourcentage du "plein" du contrat (peut être surchargé par contrat).'}
+                                        t('configs.form.triggerHelp.insured_value_pct_of_contract')}
                                     {data.trigger_type === 'subscription_limit_exceeded' &&
-                                        'Se déclenche quand la soumission du certificat ferait dépasser le plafond NN300 cumulé du contrat — remplace l\'ancien blocage strict.'}
+                                        t('configs.form.triggerHelp.subscription_limit_exceeded')}
                                     {data.trigger_type === 'certificates_limit_reached' &&
-                                        'Se déclenche quand le contrat a déjà atteint son nombre maximal de certificats émis — remplace l\'ancien blocage strict.'}
+                                        t('configs.form.triggerHelp.certificates_limit_reached')}
                                 </div>
 
                                 <div className="grid gap-2">
                                     <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                        Chaîne de validation hiérarchique *
+                                        {t('configs.form.chainLabel')}
                                     </Label>
                                     {data.steps.map((s, i) => (
                                         <div key={i} className="step-row">
                                             <div className="grid gap-1">
-                                                <span style={{ fontSize:10, color:'#94a3b8' }}>Étape {i + 1} — Approbateur</span>
+                                                <span style={{ fontSize:10, color:'#94a3b8' }}>{t('configs.form.stepLabel', { n: i + 1 })}</span>
                                                 <select value={s.role} onChange={e => setStep(i, 'role', e.target.value)} className="hs-select">
-                                                    <option value="admin_filiale">Admin Filiale</option>
-                                                    <option value="super_admin">Super Admin (DTAG)</option>
+                                                    <option value="admin_filiale">{t('configs.roles.admin_filiale')}</option>
+                                                    <option value="super_admin">{t('configs.roles.super_admin')}</option>
                                                 </select>
                                             </div>
                                             <div className="grid gap-1">
-                                                <span style={{ fontSize:10, color:'#94a3b8' }}>Délai (heures ouvrables)</span>
+                                                <span style={{ fontSize:10, color:'#94a3b8' }}>{t('configs.form.delayLabel')}</span>
                                                 <Input type="number" min="1" max="240" className="h-11"
                                                        value={s.timeout_hours} onChange={e => setStep(i, 'timeout_hours', e.target.value)}/>
                                             </div>
@@ -295,7 +295,7 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
                                     ))}
                                     {data.steps.length < 2 && (
                                         <button type="button" className="icon-btn" onClick={addStep} style={{ alignSelf:'flex-start' }}>
-                                            <Plus size={13}/> Ajouter une étape
+                                            <Plus size={13}/> {t('configs.form.addStep')}
                                         </button>
                                     )}
                                     {errors['steps.0.role'] && <p style={{ fontSize:11, color:'#dc2626' }}>{errors['steps.0.role']}</p>}
@@ -305,9 +305,9 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
                                     <Button disabled={processing || !data.name || data.steps.length === 0}
                                             onClick={handleSubmit}
                                             className="bg-[#7c1f1f] hover:bg-[#991b1b] text-white h-10 px-5">
-                                        {processing ? 'Enregistrement…' : <><ShieldAlert size={13}/> {editingId ? 'Enregistrer' : 'Créer la règle'}</>}
+                                        {processing ? tc('states.saving') : <><ShieldAlert size={13}/> {editingId ? tc('actions.save') : t('configs.form.create')}</>}
                                     </Button>
-                                    <Button variant="outline" onClick={cancelForm}>Annuler</Button>
+                                    <Button variant="outline" onClick={cancelForm}>{tc('actions.cancel')}</Button>
                                 </div>
                             </div>
                         </div>
@@ -319,20 +319,20 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
                                 <ShieldAlert size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
                                 <div>
                                     {filters.search || filters.trigger_type || filters.status || filters.tenant_id
-                                        ? 'Aucune règle ne correspond aux filtres.'
-                                        : 'Aucune règle d\'escalade configurée.'}
+                                        ? t('configs.emptyFiltered')
+                                        : t('configs.emptyNone')}
                                 </div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Règle</th>
-                                        {isSA && <th>Filiale</th>}
-                                        <th>Déclencheur</th>
-                                        <th>Validation</th>
-                                        <th>Statut</th>
-                                        <th>Actions</th>
+                                        <th>{t('configs.table.rule')}</th>
+                                        {isSA && <th>{t('configs.table.tenant')}</th>}
+                                        <th>{t('configs.table.trigger')}</th>
+                                        <th>{t('configs.table.validation')}</th>
+                                        <th>{t('configs.table.status')}</th>
+                                        <th>{t('configs.table.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -363,13 +363,13 @@ export default function ApprovalConfigs({ configs, tenants, filters, isSA, defau
                                                     color:      c.is_active ? '#15803d' : '#94a3b8',
                                                 }}>
                                                     <span style={{ width:5, height:5, borderRadius:'50%', background: c.is_active ? '#22c55e' : '#cbd5e1' }}/>
-                                                    {c.is_active ? 'Active' : 'Inactive'}
+                                                    {c.is_active ? t('configs.active') : t('configs.inactive')}
                                                 </span>
                                             </td>
                                             <td>
                                                 <div style={{ display:'flex', gap:2 }}>
                                                     <button className="icon-btn" onClick={() => startEdit(c)}>
-                                                        <Pencil size={13}/> Modifier
+                                                        <Pencil size={13}/> {tc('actions.edit')}
                                                     </button>
                                                     <button className="icon-btn" onClick={() => toggle(c.id)}>
                                                         {c.is_active ? <ToggleRight size={15} color="#15803d"/> : <ToggleLeft size={15} color="#94a3b8"/>}

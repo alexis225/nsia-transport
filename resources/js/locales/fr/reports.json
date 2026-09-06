@@ -1,0 +1,238 @@
+{
+    "breadcrumb": {
+        "section": "Rapports",
+        "certificates": "État des certificats par période",
+        "contracts": "État des contrats",
+        "intermediaries": "État des intermédiaires"
+    },
+    "certificates": {
+        "title": "État des certificats par période — NSIA Transport",
+        "heading": "État des certificats par période",
+        "filterSummary": "Filtre : {{field}} · {{from}} → {{to}}",
+        "exportCsv": "Exporter CSV",
+        "dateFields": {
+            "created_at": "Date de création",
+            "issued_at": "Date d'émission",
+            "voyage_date": "Date de voyage"
+        },
+        "allStatuses": "Tous les statuts",
+        "filtersToggle": "Filtres",
+        "apply": "Appliquer",
+        "resetTitle": "Réinitialiser",
+        "searchPlaceholder": "N° certificat, client ou assuré…",
+        "transportModes": {
+            "all": "Tous modes transport",
+            "SEA": "Maritime",
+            "AIR": "Aérien",
+            "ROAD": "Routier",
+            "RAIL": "Ferroviaire",
+            "MULTIMODAL": "Multimodal",
+            "AUTRE": "Autre"
+        },
+        "allBrokers": "Tous les courtiers",
+        "allTenants": "Toutes les filiales",
+        "stats": {
+            "total": "Total période",
+            "issued": "Émis",
+            "pending": "En attente",
+            "drafts": "Brouillons",
+            "cancelled": "Annulés",
+            "totalInsuredValue": "Valeur totale assurée",
+            "totalPrime": "Prime totale",
+            "issuedPrefix": "Émis : {{value}}"
+        },
+        "panels": {
+            "certificatesTitle": "Certificats ({{count}})",
+            "manageLink": "Gestion →",
+            "empty": "Aucun certificat pour cette période",
+            "byTransport": "Par mode de transport",
+            "byStatus": "Par statut",
+            "noData": "Aucune donnée",
+            "summary": "Récapitulatif",
+            "summaryTotalInsured": "Valeur totale assurée",
+            "summaryOfWhichIssued": "dont Approuvé",
+            "summaryTotalPrime": "Prime totale",
+            "valueLabel": "Valeur : {{value}}"
+        },
+        "table": {
+            "number": "N° Certificat",
+            "insured": "Assuré",
+            "brokerContract": "Courtier / Contrat",
+            "voyage": "Voyage",
+            "mode": "Mode",
+            "insuredValue": "Valeur assurée",
+            "prime": "Prime",
+            "tenant": "Filiale",
+            "status": "Statut",
+            "issuedDate": "Date émission"
+        },
+        "pagination": "{{total}} résultat(s) · Page {{current}}/{{last}}"
+    },
+    "contracts": {
+        "title": "État des contrats — NSIA Transport",
+        "heading": "État des contrats",
+        "allContracts": "Tous les contrats",
+        "filterSummary": "{{field}} · {{from}} → {{to}}",
+        "manageLink": "Gestion contrats →",
+        "types": {
+            "OPEN_POLICY": "Police ouverte",
+            "VOYAGE": "Voyage",
+            "ANNUAL_VOYAGE": "Voyage annuel",
+            "TIERS_CHARGEUR": "Police tiers chargeur"
+        },
+        "statuses": {
+            "ALL": "Tous les statuts",
+            "ACTIVE": "Actif",
+            "DRAFT": "Brouillon",
+            "SUSPENDED": "Suspendu",
+            "EXPIRED": "Expiré",
+            "CANCELLED": "Annulé"
+        },
+        "dateFields": {
+            "effective_date": "Date d'effet",
+            "expiry_date": "Date d'expiration",
+            "created_at": "Date de création"
+        },
+        "allTypes": "Tous les types",
+        "searchPlaceholder": "Rechercher N°, assuré…",
+        "filtersToggle": "Filtres",
+        "apply": "Appliquer",
+        "resetTitle": "Réinitialiser",
+        "allBrokers": "Tous les courtiers",
+        "allTenants": "Toutes les filiales",
+        "limitLabel": "Plafond NN300",
+        "limitMinPlaceholder": "Seuil minimum",
+        "limitMaxPlaceholder": "Seuil maximum",
+        "foreign": "Étranger",
+        "stats": {
+            "total": "Total",
+            "active": "Actifs",
+            "expiring30": "Expiration 30j",
+            "expiringWithin7": "dont {{count}} dans 7j",
+            "suspendedCancelled": "Suspendus / Annulés",
+            "totalLimit": "Plafond total (actifs)",
+            "used": "Engagé (actifs)",
+            "availablePct": "{{pct}}% disponible",
+            "avgUsage": "Utilisation moy. plafonds"
+        },
+        "panels": {
+            "contractsTitle": "Contrats ({{count}})",
+            "empty": "Aucun contrat pour ces critères",
+            "byStatus": "Par statut",
+            "byType": "Par type",
+            "alerts": "Alertes",
+            "expiringIn7": "Expirent dans 7j",
+            "expiringIn30": "Expirent dans 30j",
+            "requiresApproval": "Nécessitent approbation"
+        },
+        "table": {
+            "number": "N° Contrat",
+            "insured": "Assuré",
+            "broker": "Courtier",
+            "type": "Type",
+            "limitUsage": "Utilisation plafond",
+            "certificates": "Certificats",
+            "ofWhichIssued": "dont {{count}} émis",
+            "effectiveExpiry": "Effet / Expiration",
+            "tenant": "Filiale",
+            "status": "Statut"
+        },
+        "pagination": "{{total}} résultat(s) · Page {{current}}/{{last}}"
+    },
+    "intermediaries": {
+        "title": "État des intermédiaires — NSIA Transport",
+        "heading": "État des intermédiaires",
+        "activitySummary": "Activité {{month}} · Exercice {{year}}",
+        "tabs": {
+            "brokers": "Courtiers",
+            "coinsurers": "Coassureurs",
+            "experts": "Experts"
+        },
+        "allTenants": "Toutes les filiales",
+        "brokerTypes": {
+            "all": "Tous types de courtier",
+            "local": "Courtier local",
+            "foreign": "Partenaire étranger"
+        },
+        "contractTypes": {
+            "all": "Tous types de contrat",
+            "OPEN_POLICY": "Police ouverte",
+            "VOYAGE": "Voyage",
+            "ANNUAL_VOYAGE": "Voyage annuel",
+            "TIERS_CHARGEUR": "Police tiers chargeur"
+        },
+        "apply": "Appliquer",
+        "resetTitle": "Réinitialiser",
+        "status": {
+            "active": "Actif",
+            "inactive": "Inactif"
+        },
+        "brokers": {
+            "stats": {
+                "total": "Total",
+                "active": "Actifs",
+                "inactive": "Inactifs",
+                "local": "Locaux",
+                "foreign": "Étrangers",
+                "activeThisMonth": "Actifs ce mois"
+            },
+            "panelTitle": "Courtiers — détail activité ({{month}})",
+            "empty": "Aucun courtier enregistré",
+            "table": {
+                "nameCode": "Nom / Code",
+                "type": "Type",
+                "country": "Pays",
+                "activeContracts": "Contrats actifs",
+                "certsMonth": "Cert. ce mois",
+                "certsYear": "Cert. {{year}}",
+                "commPaidYear": "Comm. payées {{year}}",
+                "commPending": "Comm. en attente",
+                "tenant": "Filiale",
+                "status": "Statut"
+            },
+            "typeLocal": "Local",
+            "typeForeign": "Étranger",
+            "totalOf": "/ {{count}} total",
+            "pendingFiles_one": "{{count}} dossier",
+            "pendingFiles_other": "{{count}} dossier(s)",
+            "viewLink": "Voir →"
+        },
+        "coinsurers": {
+            "stats": {
+                "total": "Total",
+                "active": "Actifs",
+                "inactive": "Inactifs"
+            },
+            "panelTitle": "Coassureurs",
+            "empty": "Aucun coassureur enregistré",
+            "table": {
+                "name": "Nom",
+                "country": "Pays",
+                "contact": "Contact",
+                "activeContracts": "Contrats actifs",
+                "totalContracts": "Total contrats",
+                "tenant": "Filiale",
+                "status": "Statut"
+            },
+            "viewLink": "Voir →"
+        },
+        "experts": {
+            "stats": {
+                "total": "Total",
+                "active": "Actifs",
+                "inactive": "Inactifs"
+            },
+            "panelTitle": "Experts d'assurance",
+            "empty": "Aucun expert enregistré",
+            "table": {
+                "name": "Nom",
+                "email": "Email",
+                "phone": "Téléphone",
+                "country": "Pays",
+                "tenant": "Filiale",
+                "status": "Statut"
+            },
+            "viewLink": "Voir →"
+        }
+    }
+}

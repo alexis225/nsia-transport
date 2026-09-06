@@ -1,0 +1,15 @@
+{
+    "breadcrumb": "General settings",
+    "title": "General settings — NSIA Transport",
+    "heading": "General settings",
+    "subtitle": "Application-wide settings — not per subsidiary, not per contract",
+    "ceilings": {
+        "title": "NN300 / Treaty ceilings",
+        "description": "A contract whose \"Sum Insured\" exceeds the NN300 ceiling is automatically submitted as a draft for validation by the Group (DTAG). Once validated, its certificates are covered up to the Treaty Ceiling with no further escalation.",
+        "nn300Label": "NN300 ceiling (FCFA) *",
+        "treatyLabel": "Treaty ceiling or limit (FCFA) *",
+        "treatyHint": "Beyond this, an alert is raised for facultative reinsurance placement."
+    },
+    "saving": "Saving…",
+    "saved": "Saved"
+}

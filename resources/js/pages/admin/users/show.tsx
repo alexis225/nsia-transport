@@ -1,13 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
 import { Edit2, ArrowLeft, Shield, UserX, UserCheck, Mail, Phone, Calendar, Clock, MapPin } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Utilisateurs', href: '/admin/users' },
-    { title: 'Détail' },
-];
 
 interface User {
     id: string; first_name: string; last_name: string;
@@ -35,6 +31,13 @@ const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
 };
 
 export default function UserShow({ user, auditLogs }: Props) {
+    const { t } = useTranslation('users');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('show.breadcrumb'), href: '/admin/users' },
+        { title: t('show.breadcrumbDetail') },
+    ];
+
     const initials = `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
     const role     = user.roles?.[0]?.name ?? '';
     const rc       = ROLE_COLORS[role] ?? { bg:'#f1f5f9', color:'#64748b' };
@@ -87,7 +90,7 @@ export default function UserShow({ user, auditLogs }: Props) {
                             <div className="us-hero-badges">
                                 {role && <span className="us-badge" style={{ background:'rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.9)', border:'1px solid rgba(255,255,255,0.2)' }}><Shield size={10}/>{role.replace(/_/g,' ')}</span>}
                                 <span className="us-badge" style={{ background: user.is_active ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)', color: user.is_active ? '#86efac' : '#fca5a5', border:`1px solid ${user.is_active ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
-                                    {user.is_active ? '● Actif' : '● Bloqué'}
+                                    {user.is_active ? `● ${t('show.status.active')}` : `● ${t('show.status.blocked')}`}
                                 </span>
                                 {user.tenant && <span className="us-badge" style={{ background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.7)', border:'1px solid rgba(255,255,255,0.15)' }}><MapPin size={10}/>{user.tenant.name}</span>}
                             </div>
@@ -95,7 +98,7 @@ export default function UserShow({ user, auditLogs }: Props) {
                         <div style={{ display:'flex', gap:8, position:'relative', zIndex:1 }}>
                             <Link href={route('admin.users.edit', { user: user.id })}>
                                 <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                    <Edit2 size={13}/> Modifier
+                                    <Edit2 size={13}/> {t('show.edit')}
                                 </Button>
                             </Link>
                         </div>
@@ -104,9 +107,9 @@ export default function UserShow({ user, auditLogs }: Props) {
                     {/* Blocage info */}
                     {!user.is_active && user.blocked_reason && (
                         <div className="blocked-box">
-                            <div className="blocked-title">⚠ Compte bloqué</div>
-                            <div className="blocked-reason">Motif : {user.blocked_reason}</div>
-                            {user.blocked_at && <div style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Bloqué le {fmt(user.blocked_at)}</div>}
+                            <div className="blocked-title">{t('show.blockedBox.title')}</div>
+                            <div className="blocked-reason">{t('show.blockedBox.reason', { reason: user.blocked_reason })}</div>
+                            {user.blocked_at && <div style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>{t('show.blockedBox.blockedOn', { date: fmt(user.blocked_at) })}</div>}
                         </div>
                     )}
 
@@ -114,29 +117,29 @@ export default function UserShow({ user, auditLogs }: Props) {
                     <div className="us-card">
                         <div className="us-card-hdr">
                             <div className="us-card-ico" style={{ background:'#eff6ff' }}><Mail size={15} color="#3b82f6"/></div>
-                            <span className="us-card-ttl">Informations du compte</span>
+                            <span className="us-card-ttl">{t('show.accountInfo.title')}</span>
                         </div>
                         <div className="us-card-body">
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label"><Mail size={10}/>Email</span>
+                                    <span className="info-label"><Mail size={10}/>{t('show.accountInfo.email')}</span>
                                     <span className="info-value">{user.email}</span>
                                     {user.email_verified_at
-                                        ? <span style={{ fontSize:10, color:'#15803d', background:'#f0fdf4', padding:'1px 6px', borderRadius:8, display:'inline-flex', alignItems:'center', gap:3, width:'fit-content', border:'1px solid #bbf7d0' }}>✓ Vérifiée</span>
-                                        : <span style={{ fontSize:10, color:'#854d0e', background:'#fefce8', padding:'1px 6px', borderRadius:8, display:'inline-flex', alignItems:'center', gap:3, width:'fit-content', border:'1px solid #fde68a' }}>Non vérifiée</span>
+                                        ? <span style={{ fontSize:10, color:'#15803d', background:'#f0fdf4', padding:'1px 6px', borderRadius:8, display:'inline-flex', alignItems:'center', gap:3, width:'fit-content', border:'1px solid #bbf7d0' }}>✓ {t('show.accountInfo.verified')}</span>
+                                        : <span style={{ fontSize:10, color:'#854d0e', background:'#fefce8', padding:'1px 6px', borderRadius:8, display:'inline-flex', alignItems:'center', gap:3, width:'fit-content', border:'1px solid #fde68a' }}>{t('show.accountInfo.unverified')}</span>
                                     }
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Phone size={10}/>Téléphone</span>
+                                    <span className="info-label"><Phone size={10}/>{t('show.accountInfo.phone')}</span>
                                     <span className="info-value">{user.phone ?? '—'}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Clock size={10}/>Dernière connexion</span>
+                                    <span className="info-label"><Clock size={10}/>{t('show.accountInfo.lastLogin')}</span>
                                     <span className="info-value">{fmt(user.last_login_at)}</span>
                                     {user.last_login_ip && <span style={{ fontSize:11, color:'#94a3b8' }}>{user.last_login_ip}</span>}
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Calendar size={10}/>Créé le</span>
+                                    <span className="info-label"><Calendar size={10}/>{t('show.accountInfo.createdAt')}</span>
                                     <span className="info-value">{fmt(user.created_at)}</span>
                                 </div>
                             </div>
@@ -148,7 +151,7 @@ export default function UserShow({ user, auditLogs }: Props) {
                         <div className="us-card">
                             <div className="us-card-hdr">
                                 <div className="us-card-ico" style={{ background:'#f0fdf4' }}><Clock size={15} color="#16a34a"/></div>
-                                <span className="us-card-ttl">Historique des actions ({auditLogs.length})</span>
+                                <span className="us-card-ttl">{t('show.history.title', { count: auditLogs.length })}</span>
                             </div>
                             <div className="us-card-body" style={{ padding:'14px 20px' }}>
                                 {auditLogs.map(log => (
@@ -166,7 +169,7 @@ export default function UserShow({ user, auditLogs }: Props) {
 
                     {/* Retour */}
                     <Link href="/admin/users" style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13, color:'#64748b', textDecoration:'none' }}>
-                        <ArrowLeft size={14}/> Retour à la liste
+                        <ArrowLeft size={14}/> {t('show.backToList')}
                     </Link>
                 </div>
             </div>

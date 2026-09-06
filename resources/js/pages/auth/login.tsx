@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/language-switcher';
 import { useRecaptchaToken } from '@/hooks/use-recaptcha-token';
 
 interface LoginProps {
@@ -9,6 +11,7 @@ interface LoginProps {
 }
 
 export default function Login({ status, canResetPassword = true }: LoginProps) {
+    const { t } = useTranslation('auth');
     const [showPassword, setShowPassword] = useState(false);
     const [mounted, setMounted]           = useState(false);
     const recaptchaToken = useRecaptchaToken('login');
@@ -37,7 +40,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
 
     return (
         <>
-            <Head title="Connexion — NSIA Transport" />
+            <Head title={`${t('login.title')} — NSIA Transport`} />
 
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -153,6 +156,12 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     transition: opacity 0.5s ease, transform 0.5s ease;
                 }
                 .form-box.visible { opacity: 1; transform: translateY(0); }
+
+                .switcher-row {
+                    display: flex;
+                    justify-content: flex-end;
+                    margin-bottom: 8px;
+                }
 
                 .form-title {
                     font-size: 28px;
@@ -373,11 +382,10 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                     {/* Texte bas */}
                     <div className="left-text">
                         <h2 className='text-white text-3xl font-bold mb-4'>
-                            Quelques clics pour accéder<br/> à votre espace.
+                            {t('login.asideTitle')}
                         </h2>
                         <p className="left-sub">
-                            Gérez l'émission et la validation des certificats de
-                            transport pour les 12 filiales du Pôle Assurances.
+                            {t('login.asideText')}
                         </p>
                     </div>
                 </div>
@@ -386,7 +394,11 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                 <div className="right">
                     <div className={`form-box ${mounted ? 'visible' : ''}`}>
 
-                        <h1 className="form-title">Sign In</h1>
+                        <div className="switcher-row">
+                            <LanguageSwitcher />
+                        </div>
+
+                        <h1 className="form-title">{t('login.heading')}</h1>
 
                         {status && <div className="status-ok">{status}</div>}
 
@@ -400,7 +412,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                                     onChange={e => setData('email', e.target.value)}
                                     autoComplete="email"
                                     autoFocus
-                                    placeholder="Adresse email"
+                                    placeholder={t('login.email')}
                                     disabled={processing}
                                     className={`field-input${errors.email ? ' has-error' : ''}`}
                                 />
@@ -419,7 +431,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                                         value={data.password}
                                         onChange={e => setData('password', e.target.value)}
                                         autoComplete="current-password"
-                                        placeholder="Mot de passe"
+                                        placeholder={t('login.password')}
                                         disabled={processing}
                                         className={`field-input${errors.password ? ' has-error' : ''}`}
                                     />
@@ -447,11 +459,11 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                                             </svg>
                                         )}
                                     </div>
-                                    Se souvenir de moi
+                                    {t('login.remember')}
                                 </label>
                                 {canResetPassword && (
                                     <Link href={route('password.request')} className="forgot-link">
-                                        Mot de passe oublié?
+                                        {t('login.forgot')}
                                     </Link>
                                 )}
                             </div>
@@ -465,8 +477,8 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                             {/* Bouton login */}
                             <button type="submit" disabled={processing} className="btn-login">
                                 {processing
-                                    ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Connexion…</>
-                                    : 'Login'
+                                    ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> {t('login.submitting')}</>
+                                    : t('login.submit')
                                 }
                             </button>
                         </form>
@@ -474,7 +486,7 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                         {/* OAuth */}
                         <div className="divider">
                             <div className="divider-line" />
-                            <span className="divider-text">ou</span>
+                            <span className="divider-text">{t('login.or')}</span>
                             <div className="divider-line" />
                         </div>
 
@@ -486,11 +498,11 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                                 <rect x="0"    y="12.5" width="10.5" height="10.5" fill="#00A4EF"/>
                                 <rect x="12.5" y="12.5" width="10.5" height="10.5" fill="#FFB900"/>
                             </svg>
-                            Continuer avec Microsoft
+                            {t('login.microsoft')}
                         </button>
 
                         <div className="form-footer">
-                            © {new Date().getFullYear()} NSIA Holding Assurances — Confidentiel
+                            {t('brand.copyright', { year: new Date().getFullYear() })}
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,83 @@
+{
+    "index": {
+        "breadcrumb": "Rôles & Permissions",
+        "title": "Rôles & Permissions — NSIA Transport",
+        "heading": "Rôles & Permissions",
+        "count_one": "{{count}} rôle configuré",
+        "count_other": "{{count}} rôles configurés",
+        "newRole": "Nouveau rôle",
+        "search": {
+            "placeholder": "Rechercher un rôle…"
+        },
+        "clear": "Effacer",
+        "table": {
+            "role": "Rôle",
+            "users": "Utilisateurs",
+            "permissions": "Permissions",
+            "preview": "Aperçu",
+            "actions": "Actions"
+        },
+        "system": "système",
+        "permissionsCount_one": "{{count}} permission",
+        "permissionsCount_other": "{{count}} permissions",
+        "actions": {
+            "view": "Voir",
+            "edit": "Éditer",
+            "delete": "Supprimer"
+        },
+        "empty": "Aucun rôle trouvé.",
+        "pagination": {
+            "info": "Page {{current}} / {{last}} · {{total}} rôles"
+        },
+        "confirmDelete": "Supprimer le rôle « {{name}} » ?",
+        "createModal": {
+            "title": "Nouveau rôle",
+            "subtitle": "Définissez le nom et les permissions",
+            "nameLabel": "Nom du rôle *",
+            "namePlaceholder": "ex: responsable_regional",
+            "permissionsLabel_one": "Permissions ({{count}} sélectionnée)",
+            "permissionsLabel_other": "Permissions ({{count}} sélectionnées)",
+            "create": "Créer le rôle"
+        },
+        "editModal": {
+            "titlePrefix": "Modifier — {{name}}",
+            "nameLabel": "Nom du rôle",
+            "systemNote": "Rôle système — renommage non autorisé.",
+            "permissionsLabel_one": "Permissions ({{count}} sélectionnée)",
+            "permissionsLabel_other": "Permissions ({{count}} sélectionnées)",
+            "save": "Enregistrer"
+        }
+    },
+    "show": {
+        "breadcrumb": "Rôles & Permissions",
+        "title": "Rôle {{name}} — NSIA Transport",
+        "permissionsCount_one": "{{count}} permission",
+        "permissionsCount_other": "{{count}} permissions",
+        "usersCount_one": "{{count}} utilisateur",
+        "usersCount_other": "{{count}} utilisateurs",
+        "assignButton": "Assigner à un utilisateur",
+        "assignModal": {
+            "title": "Assigner le rôle",
+            "userIdLabel": "UUID Utilisateur *",
+            "note": "Remplacera le rôle actuel de l'utilisateur.",
+            "assign": "Assigner"
+        },
+        "usersSection": {
+            "title": "Utilisateurs avec ce rôle",
+            "searchPlaceholder": "Rechercher…",
+            "empty": "Aucun utilisateur avec ce rôle."
+        },
+        "table": {
+            "user": "Utilisateur",
+            "tenant": "Filiale",
+            "status": "Statut"
+        },
+        "status": {
+            "active": "Actif",
+            "blocked": "Bloqué"
+        },
+        "pagination": {
+            "info": "Page {{current}} / {{last}} · {{total}} utilisateurs"
+        }
+    }
+}

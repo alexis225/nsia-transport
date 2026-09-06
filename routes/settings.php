@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
@@ -25,3 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
 });
+
+// Hors groupe 'auth' : le selecteur de langue doit rester utilisable sur les
+// pages publiques (connexion, mot de passe oublie).
+Route::patch('locale', [LocaleController::class, 'update'])->name('locale.update');

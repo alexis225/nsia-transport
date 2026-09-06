@@ -1,0 +1,165 @@
+{
+    "configs": {
+        "breadcrumb": "NN300 escalations",
+        "breadcrumbCurrent": "Thresholds & validations",
+        "title": "NN300 thresholds & validations — NSIA Transport",
+        "heading": "NN300 thresholds & validations",
+        "subtitle": "Reinforcement — escalation triggers and hierarchical validation chain, per subsidiary",
+        "newRule": "New rule",
+        "searchPlaceholder": "Rule name...",
+        "allTriggers": "All triggers",
+        "allStatuses": "All statuses",
+        "active": "Active",
+        "inactive": "Inactive",
+        "allTenants": "All subsidiaries",
+        "triggers": {
+            "insured_value_pct_of_contract": "Sum insured overrun (%)",
+            "subscription_limit_exceeded": "Cumulative NN300 ceiling exceeded",
+            "certificates_limit_reached": "Max. number of certificates reached"
+        },
+        "roles": {
+            "admin_filiale": "Subsidiary Admin",
+            "super_admin": "Super Admin (DTAG)"
+        },
+        "deleteConfirm": "Delete this escalation rule?",
+        "form": {
+            "editTitle": "Edit rule",
+            "createTitle": "New escalation rule",
+            "tenantLabel": "Subsidiary *",
+            "tenantPlaceholder": "— Choose —",
+            "nameLabel": "Rule name *",
+            "namePlaceholder": "e.g. NN300 Ceiling Escalation — Senegal",
+            "triggerLabel": "Trigger *",
+            "thresholdLabel": "Threshold (% of sum insured) *",
+            "thresholdPlaceholder": "e.g. 15",
+            "triggerHelp": {
+                "insured_value_pct_of_contract": "Triggers when a certificate's insured value exceeds this percentage of the contract's \"sum insured\" (can be overridden per contract).",
+                "subscription_limit_exceeded": "Triggers when submitting the certificate would exceed the contract's cumulative NN300 ceiling — replaces the old strict block.",
+                "certificates_limit_reached": "Triggers when the contract has already reached its maximum number of issued certificates — replaces the old strict block."
+            },
+            "chainLabel": "Hierarchical validation chain *",
+            "stepLabel": "Step {{n}} — Approver",
+            "delayLabel": "Deadline (business hours)",
+            "addStep": "Add a step",
+            "create": "Create rule"
+        },
+        "table": {
+            "rule": "Rule",
+            "tenant": "Subsidiary",
+            "trigger": "Trigger",
+            "validation": "Validation",
+            "status": "Status",
+            "actions": "Actions"
+        },
+        "emptyFiltered": "No rule matches the filters.",
+        "emptyNone": "No escalation rule configured."
+    },
+    "index": {
+        "breadcrumb": "NN300 escalations",
+        "title": "NN300 escalations — NSIA Transport",
+        "heading": "NN300 escalations",
+        "subtitle": "Certificates exceeding the subscription threshold — awaiting decision",
+        "configsLink": "Thresholds & validations",
+        "searchPlaceholder": "Certificate no., contract no., insured...",
+        "allLevels": "All levels",
+        "level1": "Level 1 (Admin)",
+        "level2": "Level 2 (Super Admin)",
+        "allTenants": "All subsidiaries",
+        "overdueOnly": "Overdue only",
+        "kpi": {
+            "pending": "Pending",
+            "overdue": "Overdue",
+            "level1": "Level 1 (Admin)",
+            "level2": "Level 2 (Super Admin)"
+        },
+        "emptyFilteredTitle": "No escalation matches the filters",
+        "emptyFilteredSubtitle": "Try widening your search.",
+        "emptyNoneTitle": "No pending escalation",
+        "emptyNoneSubtitle": "All escalations have been processed.",
+        "table": {
+            "certificate": "Certificate",
+            "insured": "Insured",
+            "declaredValue": "Declared or imported maximum value",
+            "thresholdExceeded": "Threshold exceeded",
+            "treatyThreshold": "Treaty ceiling threshold",
+            "tenant": "Subsidiary",
+            "level": "Level",
+            "timeLeft": "Time left",
+            "action": "Action"
+        },
+        "submittedBy": "Submitted by {{name}}",
+        "contractCeiling": "Contract sum insured: {{value}}",
+        "threshold": "Threshold: {{value}}",
+        "exceeded": "— exceeded",
+        "levelN": "Level {{level}}",
+        "expired": "Expired",
+        "decide": "Decide"
+    },
+    "show": {
+        "breadcrumbCurrent": "Decision",
+        "title": "NN300 escalation — Decision",
+        "hero": {
+            "eyebrow": "NN300 escalation",
+            "title": "{{certNumber}} — Threshold overrun {{pct}}%",
+            "subtitle": "{{insuredName}} · {{tenantName}}",
+            "level": "Level {{level}} — {{levelLabel}}",
+            "overdue": "Overdue"
+        },
+        "levels": {
+            "admin_filiale": "Subsidiary Admin",
+            "super_admin": "Super Admin (DTAG)",
+            "autoIssue": "Auto issuance"
+        },
+        "progress": {
+            "title": "Workflow progress"
+        },
+        "timer": {
+            "overdueTitle": "Deadline exceeded — automatic escalation in progress",
+            "remaining": "{{hours}}h business hours left to decide",
+            "expiresAt": "Expires on {{date}}"
+        },
+        "analysis": {
+            "title": "Overrun analysis",
+            "certificateValue": "Certificate value",
+            "thresholdLabel": "Escalation threshold ({{pct}}% of contract)",
+            "excess": "Overrun",
+            "excessValue": "+ {{value}}",
+            "declaredValue": "Declared or imported maximum value",
+            "treatyThreshold": "Treaty ceiling threshold",
+            "exceeded": "— exceeded",
+            "ratio": "Certificate / contract ratio"
+        },
+        "certificate": {
+            "title": "Certificate concerned",
+            "view": "View certificate →",
+            "number": "Certificate no.",
+            "insured": "Insured",
+            "submittedByLabel": "Submitted by",
+            "submittedBy": "{{name}} · {{date}}"
+        },
+        "history": {
+            "title": "Decision history",
+            "level": "Level {{level}} — {{label}}",
+            "by": "by {{name}}"
+        },
+        "decisions": {
+            "APPROVED": "Approved",
+            "REJECTED": "Rejected",
+            "ESCALATED": "Escalated",
+            "EXPIRED": "Expired"
+        },
+        "actions": {
+            "approve": "Approve",
+            "reject": "Reject"
+        },
+        "actionModal": {
+            "approveTitle": "Approve the escalation",
+            "rejectTitle": "Reject the escalation",
+            "approveNotice": "By approving, {{next}} will receive the decision. If it's level 2, the certificate will be issued automatically.",
+            "notesLabel": "Notes (optional)",
+            "reasonLabel": "Rejection reason *",
+            "notesPlaceholder": "Any comments…",
+            "reasonPlaceholder": "Specify the reason for rejection…"
+        }
+    }
+}

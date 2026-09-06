@@ -1,14 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Download, Clock, CheckCircle, XCircle, Loader, Trash2, FileText } from 'lucide-react';
 import axios from 'axios';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'Mes exports' },
-];
 
 interface Execution {
     id: string; format: string; status: string;
@@ -19,20 +15,23 @@ interface Execution {
     is_expired: boolean; can_download: boolean;
 }
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-    QUEUED:     { label: 'En attente', color: '#d97706', bg: '#fef3c7', icon: Clock },
-    PROCESSING: { label: 'En cours',   color: '#1d4ed8', bg: '#eff6ff', icon: Loader },
-    COMPLETED:  { label: 'Terminé',    color: '#15803d', bg: '#f0fdf4', icon: CheckCircle },
-    FAILED:     { label: 'Échoué',     color: '#dc2626', bg: '#fef2f2', icon: XCircle },
-};
-
-const fmtSize = (bytes: number | null) => {
-    if (!bytes) return '—';
-    if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' Mo';
-    return (bytes / 1024).toFixed(0) + ' Ko';
-};
-
 export default function ExportsIndex({ executions: initial }: { executions: Execution[] }) {
+    const { t } = useTranslation('exports');
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumbDashboard'), href: route('admin.dashboard') },
+        { title: t('breadcrumb') },
+    ];
+    const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
+        QUEUED:     { label: t('status.queued'),     color: '#d97706', bg: '#fef3c7', icon: Clock },
+        PROCESSING: { label: t('status.processing'), color: '#1d4ed8', bg: '#eff6ff', icon: Loader },
+        COMPLETED:  { label: t('status.completed'),  color: '#15803d', bg: '#f0fdf4', icon: CheckCircle },
+        FAILED:     { label: t('status.failed'),     color: '#dc2626', bg: '#fef2f2', icon: XCircle },
+    };
+    const fmtSize = (bytes: number | null) => {
+        if (!bytes) return '—';
+        if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' ' + t('sizeUnitMo');
+        return (bytes / 1024).toFixed(0) + ' ' + t('sizeUnitKo');
+    };
     const [items, setItems] = useState(initial);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -62,7 +61,7 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Mes exports — NSIA Transport"/>
+            <Head title={t('title')}/>
             <style>{`
                 .exp-page { padding:4px; display:flex; flex-direction:column; gap:14px; }
                 .exp-panel { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
@@ -87,9 +86,9 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b' }}>Mes exports</h1>
+                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b' }}>{t('heading')}</h1>
                             <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
-                                Exports asynchrones — disponibles 24h après génération
+                                {t('subtitle')}
                             </p>
                         </div>
                         <Link href={route('admin.certificates.index')}
@@ -97,7 +96,7 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
                                        display: 'flex', alignItems: 'center', gap: 5,
                                        background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
                                        border: '1px solid #bfdbfe' }}>
-                            <FileText size={13}/> Lancer un export →
+                            <FileText size={13}/> {t('launchExport')}
                         </Link>
                     </div>
 
@@ -106,32 +105,32 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
                                       padding: '10px 14px', fontSize: 12, color: '#1d4ed8',
                                       display: 'flex', alignItems: 'center', gap: 8 }}>
                             <Loader size={13} className="spin"/>
-                            Export(s) en cours — la page se met à jour automatiquement…
+                            {t('pendingBanner')}
                         </div>
                     )}
 
                     <div className="exp-panel">
                         <div className="exp-panel-hdr">
-                            <span>Historique des exports ({items.length})</span>
+                            <span>{t('history', { count: items.length })}</span>
                         </div>
                         {items.length === 0 ? (
                             <div className="empty">
                                 <FileText size={28} style={{ marginBottom: 8, opacity: .4 }}/>
-                                <div>Aucun export. Lancez un export depuis la liste des certificats.</div>
+                                <div>{t('empty')}</div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Type / Format</th>
-                                        <th>Filtres</th>
-                                        <th>Lignes</th>
-                                        <th>Taille</th>
-                                        <th>Demandé le</th>
-                                        <th>Terminé le</th>
-                                        <th>Expiration</th>
-                                        <th>Statut</th>
-                                        <th>Actions</th>
+                                        <th>{t('columns.typeFormat')}</th>
+                                        <th>{t('columns.filters')}</th>
+                                        <th>{t('columns.rows')}</th>
+                                        <th>{t('columns.size')}</th>
+                                        <th>{t('columns.requestedAt')}</th>
+                                        <th>{t('columns.completedAt')}</th>
+                                        <th>{t('columns.expiration')}</th>
+                                        <th>{t('columns.status')}</th>
+                                        <th>{t('columns.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -141,7 +140,7 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
                                         return (
                                             <tr key={e.id}>
                                                 <td>
-                                                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Certificats</div>
+                                                    <div style={{ fontWeight: 600, color: '#1e293b' }}>{t('certificates')}</div>
                                                     <div style={{ fontSize: 10, color: '#94a3b8' }}>{e.format}</div>
                                                 </td>
                                                 <td>
@@ -150,7 +149,7 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
                                                             {Object.entries(e.parameters)
                                                                 .filter(([k, v]) => v && !['is_super_admin', 'tenant_id'].includes(k))
                                                                 .map(([k, v]) => `${k}:${v}`)
-                                                                .join(', ') || 'Tous'}
+                                                                .join(', ') || t('allFilters')}
                                                         </div>
                                                     ) : '—'}
                                                 </td>
@@ -160,7 +159,7 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
                                                 <td style={{ color: '#64748b', fontSize: 11 }}>{e.completed_at ?? '—'}</td>
                                                 <td style={{ color: e.is_expired ? '#dc2626' : '#64748b', fontSize: 11 }}>
                                                     {e.expires_at ?? '—'}
-                                                    {e.is_expired && ' (expiré)'}
+                                                    {e.is_expired && t('expiredSuffix')}
                                                 </td>
                                                 <td>
                                                     <span className="badge" style={{ color: m.color, background: m.bg }}>

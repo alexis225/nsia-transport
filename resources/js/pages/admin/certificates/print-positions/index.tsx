@@ -3,12 +3,7 @@ import { FileJson, Edit2, CheckCircle2, Circle } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { PRINT_TEMPLATES } from '../print-templates/registry';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Certificats', href: '/admin/certificates' },
-    { title: 'Modèles d\'impression', href: '/admin/certificates/print-models' },
-    { title: 'Positions des champs (JSON)', href: '/admin/certificate-print-templates' },
-];
+import { useTranslation } from 'react-i18next';
 
 interface Override {
     template_id: string;
@@ -22,9 +17,17 @@ interface Props {
 }
 
 export default function PrintPositionsIndex({ overrides }: Props) {
+    const { t } = useTranslation('certificateTemplates');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('printPositions.breadcrumbs.certificates'), href: '/admin/certificates' },
+        { title: t('printPositions.breadcrumbs.printModels'), href: '/admin/certificates/print-models' },
+        { title: t('printPositions.breadcrumbs.fieldPositions'), href: '/admin/certificate-print-templates' },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Positions des champs — Modèles d'impression — NSIA Transport" />
+            <Head title={t('printPositions.index.headTitle')} />
 
             <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
 
@@ -34,16 +37,13 @@ export default function PrintPositionsIndex({ overrides }: Props) {
                             <FileJson size={18} color="#3b82f6" />
                         </div>
                         <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                            Positions des champs (JSON)
+                            {t('printPositions.index.title')}
                         </h1>
                     </div>
                     <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>
-                        Modifiez directement les coordonnées (mm) de chaque carnet sans passer par un déploiement de code —
-                        collez ou importez le JSON, et joignez éventuellement le PDF de la souche scannée comme repère visuel.
-                        Une fois enregistrée, la surcharge s'applique immédiatement aux deux modes d'impression
-                        (« Aperçu HTML » et « Imprimer sur souche »/FPDF). Pour recalibrer visuellement un champ, utilisez le
-                        calibreur (<code style={{ fontSize: 11 }}>/tools/calibreur_nsia_togo.html</code>) : glissez-déposez les
-                        champs sur une image de la souche, copiez le JSON généré, puis collez-le ou importez-le ci-dessous.
+                        {t('printPositions.index.descriptionIntro')}
+                        <code style={{ fontSize: 11 }}>/tools/calibreur_nsia_togo.html</code>
+                        {t('printPositions.index.descriptionEnd')}
                     </p>
                 </div>
 

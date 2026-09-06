@@ -1,0 +1,136 @@
+{
+    "index": {
+        "breadcrumb": "Courtiers",
+        "title": "Courtiers — NSIA Transport",
+        "heading": "Courtiers",
+        "count_one": "{{count}} courtier",
+        "count_other": "{{count}} courtiers",
+        "newBroker": "Nouveau courtier",
+        "searchPlaceholder": "Rechercher par nom, code ou email…",
+        "typeAll": "Tous les types",
+        "typeLocal": "Courtier local",
+        "typeForeign": "Partenaire étranger",
+        "statusAll": "Tous les statuts",
+        "statusActive": "Actifs",
+        "statusInactive": "Inactifs",
+        "clear": "Effacer",
+        "empty": "Aucun courtier trouvé.",
+        "table": {
+            "broker": "Courtier",
+            "type": "Type",
+            "contact": "Contact",
+            "location": "Localisation",
+            "tenant": "Filiale",
+            "agreement": "Agrément",
+            "status": "Statut",
+            "actions": "Actions"
+        },
+        "view": "Voir",
+        "edit": "Éditer",
+        "deactivate": "Désactiver",
+        "activate": "Activer",
+        "delete": "Supprimer",
+        "confirmDelete": "Supprimer le courtier « {{name}} » ?",
+        "confirmDeactivate": "Désactiver {{name}} ?",
+        "confirmActivate": "Activer {{name}} ?",
+        "pageInfo": "Page {{current}} / {{last}} · {{total}} courtiers"
+    },
+    "show": {
+        "typeLocal": "Courtier local",
+        "typeForeign": "Partenaire étranger",
+        "edit": "Modifier",
+        "deactivate": "Désactiver",
+        "activate": "Activer",
+        "identification": {
+            "title": "Identification",
+            "code": "Code",
+            "agreementNumber": "N° Agrément",
+            "mainTenant": "Filiale principale",
+            "commission": "Commission standard",
+            "createdAt": "Créé le",
+            "additionalTenants": "Filiales supplémentaires"
+        },
+        "contact": {
+            "title": "Contact & Localisation",
+            "email": "Email",
+            "phone": "Téléphone",
+            "phone2": "Téléphone 2",
+            "cityCountry": "Ville / Pays",
+            "address": "Adresse"
+        },
+        "partnerAccess": {
+            "title": "Accès à l'espace partenaire",
+            "linkedAccount": "Compte lié",
+            "none": "Aucun compte de connexion n'est encore rattaché à ce courtier.",
+            "createAccount": "Créer un compte d'accès"
+        },
+        "backToList": "Retour aux courtiers",
+        "confirmDeactivate": "Désactiver {{name}} ?",
+        "confirmActivate": "Activer {{name}} ?"
+    },
+    "create": {
+        "breadcrumb": "Nouveau courtier",
+        "title": "Nouveau courtier — NSIA Transport",
+        "submitLabel": "Créer le courtier",
+        "heroTitle": "Nouveau courtier",
+        "heroSub": "Enregistrez un nouveau courtier ou partenaire étranger"
+    },
+    "edit": {
+        "breadcrumb": "Modifier",
+        "title": "Modifier {{name}} — NSIA Transport",
+        "submitLabel": "Enregistrer les modifications",
+        "heroTitle": "Modifier {{name}}",
+        "heroSub": "Code : {{code}} · {{type}}"
+    },
+    "form": {
+        "identification": {
+            "title": "Identification",
+            "subtitle": "Informations d'identification du courtier",
+            "name": "Nom / Raison sociale *",
+            "namePlaceholder": "Cabinet Dupont & Associés",
+            "code": "Code *",
+            "codePlaceholder": "ex: CRTCI001",
+            "type": "Type *",
+            "typeLocal": "Courtier local",
+            "typeForeign": "Partenaire étranger",
+            "registrationNumber": "Numéro d'agrément",
+            "registrationNumberPlaceholder": "ex: AGR-CI-2024-001",
+            "mainTenant": "Filiale principale",
+            "selectTenant": "Sélectionnez une filiale",
+            "additionalTenants": "Filiales supplémentaires",
+            "additionalTenantsHint": "Ce courtier pourra également opérer dans les filiales cochées ci-dessous"
+        },
+        "commission": {
+            "title": "Commission",
+            "subtitle": "Taux standard appliqué par défaut sur les contrats de ce courtier",
+            "rate": "Commission standard — %",
+            "ratePlaceholder": "ex: 5",
+            "hint": "Utilisé automatiquement à l'émission des certificats, sauf si un taux spécifique est défini sur le contrat."
+        },
+        "contact": {
+            "title": "Contact",
+            "subtitle": "Coordonnées du courtier",
+            "email": "Email",
+            "emailPlaceholder": "contact@courtier.com",
+            "phone": "Téléphone principal",
+            "phonePlaceholder": "+225 07 00 00 00 00",
+            "phoneSecondary": "Téléphone secondaire"
+        },
+        "address": {
+            "title": "Adresse",
+            "subtitle": "Localisation du courtier",
+            "address": "Adresse",
+            "addressPlaceholder": "Rue, avenue, quartier…",
+            "city": "Ville",
+            "cityPlaceholder": "Abidjan",
+            "country": "Pays"
+        },
+        "status": {
+            "title": "Statut",
+            "active": "Courtier actif",
+            "inactive": "Courtier inactif",
+            "activeHint": "Peut être assigné à des contrats",
+            "inactiveHint": "Ne peut pas être utilisé"
+        }
+    }
+}

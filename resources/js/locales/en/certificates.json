@@ -1,0 +1,805 @@
+{
+    "shared": {
+        "breadcrumb": "Certificates",
+        "transport": {
+            "SEA": "Sea",
+            "AIR": "Air",
+            "ROAD": "Road",
+            "RAIL": "Rail",
+            "MULTIMODAL": "Multimodal",
+            "RIVER": "River / Lagoon"
+        },
+        "requestStatus": {
+            "DRAFT": "Draft",
+            "PENDING": "Submitted",
+            "IN_REVIEW": "Under review",
+            "INFO_REQUESTED": "Additional info requested",
+            "COMPLETED": "Completed",
+            "APPROVED": "Approved",
+            "FULFILLED": "Certificate issued",
+            "CLOSED": "Closed",
+            "REJECTED": "Rejected"
+        },
+        "documentType": {
+            "BL": "BL (Bill of Lading)",
+            "FACTURE": "Invoice",
+            "FDI": "Import Declaration Form",
+            "DOCUMENTS_TRANSPORT": "Transport document",
+            "AUTRE": "Other supporting document"
+        },
+        "conditioning": {
+            "CONTAINER": "Container",
+            "GROUPAGE": "Consolidated cargo",
+            "CONVENTIONNEL": "Conventional",
+            "BOUT_EN_BOUT": "End to end",
+            "VRAC": "Bulk"
+        },
+        "contractType": {
+            "OPEN_POLICY": "Open policy",
+            "VOYAGE": "Single voyage",
+            "ANNUAL_VOYAGE": "Annual voyages",
+            "TIERS_CHARGEUR": "Third-party shipper policy"
+        },
+        "coverage": {
+            "TOUS_RISQUES": "All risks",
+            "FAP_SAUF": "FAP except",
+            "FAP_ABSOLUE": "FAP absolute"
+        }
+    },
+    "create": {
+        "breadcrumb": "New certificate",
+        "title": "New certificate — NSIA Transport",
+        "heroTitle": "New insurance certificate",
+        "heroSub": "Enter the shipment details",
+        "submitLabel": "Create certificate",
+        "editSubmitLabel": "Save changes",
+        "editHeroSub": "Editing the insurance certificate",
+        "editHeroTitle": "Edit — {{number}}",
+        "editBreadcrumb": "Edit",
+        "editTitle": "Edit {{number}} — NSIA Transport",
+        "rejectedBanner": {
+            "title": "Certificate rejected — reason:",
+            "hint": "Fix the issue then save to move this certificate back to Draft and resubmit it."
+        },
+        "contract": {
+            "title": "Insurance contract",
+            "subtitle": "Select the active contract",
+            "label": "Contract *",
+            "placeholder": "Select an active contract",
+            "subsidiary": "Subsidiary: {{name}} · Currency: {{currency}}",
+            "insured": "Insured: {{name}}",
+            "manager": "Case manager: {{name}}",
+            "address": "Address: {{address}}",
+            "contact": "Phone: {{phone}} · Email: {{email}}",
+            "commission": "Broker commission: {{value}}",
+            "limit": "NN300 limit: {{limit}} {{currency}} · Used: {{used}}",
+            "certificatesCount": "Certificates: {{count}}",
+            "plein": "Contract limit: {{value}}",
+            "pleinUndefined": "Not defined",
+            "voyageLocked": "This \"Single voyage\" contract already has an associated certificate — it covers only one trip. Select another contract or cancel the existing certificate.",
+            "overPlein": "The insured value ({{value}}) exceeds the contract limit ({{plein}}) — an NN300 validation will be required on submission."
+        },
+        "insuredSection": {
+            "title": "Insured",
+            "name": "Insured name *",
+            "ref": "Insured reference",
+            "refPlaceholder": "Internal reference"
+        },
+        "voyage": {
+            "title": "Voyage",
+            "subtitle": "Shipment information",
+            "startDate": "Voyage start date *",
+            "transportMode": "Transport mode",
+            "from": "From *",
+            "fromPlaceholder": "Place of departure",
+            "to": "To *",
+            "toPlaceholder": "Place of destination",
+            "via": "Via",
+            "viaPlaceholder": "Transit / transshipment location",
+            "originCountry": "Country of origin",
+            "destinationCountry": "Country of destination",
+            "destinationCountryHint": "Determines the tax rate applied automatically.",
+            "vessel": "Vessel name",
+            "vesselPlaceholder": "Name of the vessel",
+            "flightNumber": "Flight number",
+            "flightNumberPlaceholder": "e.g. AF 123",
+            "mode": "Mode",
+            "modeHint": "Options limited to the packaging types defined on the contract."
+        },
+        "expedition": {
+            "title": "Shipment details",
+            "subtitle": "Marks, packages, nature of goods and value",
+            "marks": "Marks",
+            "marksPlaceholder": "NSIA-001",
+            "count": "Qty",
+            "countPlaceholder": "10",
+            "weight": "Weight",
+            "weightPlaceholder": "500 kg",
+            "nature": "Description of goods",
+            "naturePlaceholder": "Detailed description of the goods (up to one paragraph)",
+            "packaging": "Package type",
+            "packagingPlaceholder": "Cartons, pallets, drums…",
+            "value": "Insured value",
+            "addLine": "Add a line",
+            "totalPackages": "Total number of packages",
+            "totalValue": "Total insured value",
+            "valueLetters": "Total value in words",
+            "valueLettersPlaceholder": "Automatically calculated from the insured value"
+        },
+        "financial": {
+            "title": "Financial terms",
+            "guaranteeMode": "Coverage type",
+            "guaranteeModeUndefined": "Not defined on the contract",
+            "guaranteeModeHint": "Automatically taken from the coverage options set when the contract was created.",
+            "quoteCurrency": "Quotation currency",
+            "quoteCurrencyNone": "None (amounts in contract currency)",
+            "rateToday": "Today's rate ({{from}} → {{to}})",
+            "rateFetching": "Fetching today's rate…",
+            "rateUnavailable": "Rate unavailable — please enter it manually.",
+            "rateUnavailableGeneric": "Automatic conversion unavailable — please enter the rate manually.",
+            "rateDivers": "Miscellaneous rate (%)",
+            "rateSurprime": "Surcharge rate (%)",
+            "rateSurprimeHint": "Miscellaneous and surcharge are specified case by case on this certificate.",
+            "primePreview": {
+                "label": "Net premium preview",
+                "primeNette": "Net premium",
+                "accessories": "Ancillary costs (fixed amount)",
+                "subtotal": "Subtotal (excl. tax)",
+                "note": "The tax (subsidiary reference table × transport mode × country) is calculated on save — Total premium = Net premium + Ancillary costs + Tax."
+            }
+        },
+        "actions": {
+            "saving": "Saving…",
+            "saveDraft": "Save as draft",
+            "saveDraftHint": "\"Save as draft\" saves an incomplete certificate (Draft status) — you can find it again and finish filling it in later."
+        }
+    },
+    "index": {
+        "title": "Certificates — NSIA Transport",
+        "heading": "Insurance certificates",
+        "count": "{{count}} certificate",
+        "count_plural": "{{count}} certificates",
+        "exportCsv": "Export CSV",
+        "newCertificate": "New certificate",
+        "stats": {
+            "total": "Total",
+            "issued": "Approved",
+            "submitted": "Submitted",
+            "draft": "Draft",
+            "rejected": "Rejected",
+            "cancelled": "Cancelled"
+        },
+        "search": {
+            "placeholder": "Certificate no., insured, departure, destination…"
+        },
+        "filters": {
+            "allStatuses": "All statuses",
+            "allModes": "All modes",
+            "voyageStartDate": "Voyage start date",
+            "voyageEndDate": "Voyage end date",
+            "advanced": "Advanced",
+            "clearAll": "Clear all",
+            "subsidiary": "Subsidiary",
+            "allSubsidiaries": "All subsidiaries",
+            "broker": "Broker",
+            "allBrokers": "All brokers",
+            "contract": "Contract",
+            "allContracts": "All contracts",
+            "issuedDate": "Issue date",
+            "insuredValue": "Insured value",
+            "min": "Min",
+            "max": "Max",
+            "from": "From",
+            "to": "To"
+        },
+        "table": {
+            "number": "Certificate No.",
+            "insured": "Insured",
+            "voyage": "Voyage",
+            "date": "Date",
+            "transport": "Transport",
+            "insuredValue": "Insured value",
+            "subsidiary": "Subsidiary",
+            "issuedOn": "Issued {{date}}",
+            "delete": "Delete"
+        },
+        "empty": {
+            "title": "No certificate found.",
+            "clearFilters": "Clear filters"
+        },
+        "pagination": {
+            "summary": "{{from}}–{{to}} of {{total}} certificates"
+        },
+        "confirmDelete": "Delete certificate \"{{number}}\"?"
+    },
+    "show": {
+        "title": "{{number}} — NSIA Transport",
+        "policy": "Policy: {{number}} · {{tenant}}",
+        "duplicataBadge": "DUPLICATE",
+        "actions": {
+            "print": "Print",
+            "pdf": "PDF",
+            "verify": "Verify",
+            "duplicate": "Duplicate",
+            "replace": "Replace",
+            "edit": "Edit"
+        },
+        "workflow": {
+            "issuedOn": "issued on {{date}}",
+            "submit": "Submit for issuance",
+            "fixAndResubmit": "Fix and resubmit",
+            "approve": "Approve certificate",
+            "reject": "Reject",
+            "cancel": "Cancel",
+            "genericError": "An error occurred."
+        },
+        "notes": {
+            "rejectionReason": "Rejection reason",
+            "cancellationReason": "Cancellation reason",
+            "notes": "Notes",
+            "replacedBy": "This certificate has been replaced by certificate",
+            "replaces": "This certificate replaces certificate"
+        },
+        "voyageCard": {
+            "title": "Voyage",
+            "insured": "Insured",
+            "shipDate": "Shipment date",
+            "from": "From",
+            "to": "To",
+            "via": "Via",
+            "destinationCountry": "Country of destination",
+            "vessel": "Vessel name",
+            "flightNumber": "Flight No.",
+            "mode": "Mode"
+        },
+        "expedition": {
+            "title": "Shipment details",
+            "marks": "Marks",
+            "packageNumber": "Package No.",
+            "count": "Qty",
+            "weight": "Weight",
+            "natureAndPackaging": "Nature & packaging",
+            "value": "Insured value",
+            "totalValue": "TOTAL INSURED VALUE"
+        },
+        "prime": {
+            "title": "Premium breakdown",
+            "netPrime": "Net premium (excl. tax)",
+            "totalPrime": "TOTAL PREMIUM",
+            "guaranteeMode": "Coverage type: {{mode}}",
+            "rate": "Rate: 1 {{from}} = {{rate}} {{to}}"
+        },
+        "qr": {
+            "title": "Verification QR code",
+            "instructions": "Scan this QR code to verify the certificate's authenticity.",
+            "openVerification": "Open verification page"
+        },
+        "duplicateInfo": {
+            "title": "Duplicate information",
+            "originalCertificate": "Original certificate",
+            "reissueDate": "Reissue date",
+            "reason": "Reason"
+        },
+        "duplicatesList": {
+            "title": "Duplicates issued ({{count}})"
+        },
+        "meta": {
+            "createdBy": "Created by {{name}}",
+            "submittedBy": "· Submitted by {{name}}",
+            "submittedByOn": "· Submitted by {{name}} on {{date}}",
+            "issuedBy": "· Issued by {{name}}",
+            "issuedByOn": "· Issued by {{name}} on {{date}}"
+        },
+        "printModal": {
+            "title": "Choose a print template",
+            "subtitle": "Select the country's official form",
+            "empty": "No template available.",
+            "recommended": "Recommended",
+            "previewCalibration": "Calibration preview (background + data)",
+            "calibrationGrid": "Calibration grid (mm)",
+            "printerOffset": "Printer offset (mm)",
+            "reset": "Reset",
+            "htmlPreview": "HTML preview"
+        },
+        "modals": {
+            "issue": { "title": "Approve certificate", "action": "Approve" },
+            "reject": { "title": "Reject certificate", "action": "Reject" },
+            "cancel": { "title": "Cancel certificate", "action": "Cancel" },
+            "replace": {
+                "title": "Replace certificate",
+                "text": "A new certificate (Draft) will be created from the data of {{number}} with a new number, ready to be edited. This certificate will move to \"Replaced\" status with a reference to the new one.",
+                "action": "Create replacement"
+            },
+            "duplicate": {
+                "title": "Issue a duplicate",
+                "text": "A duplicate will be created with number {{number}} and the DUPLICATE mention on the PDF.",
+                "reasonLabel": "Reason *",
+                "reasonPlaceholder": "Specify the reason (loss, damage…)",
+                "generating": "Generating…",
+                "action": "Issue duplicate"
+            },
+            "reasonLabel": "Reason *"
+        }
+    },
+    "search": {
+        "breadcrumb": "Advanced search",
+        "title": "Advanced search — Certificates NSIA Transport",
+        "heading": "Advanced search",
+        "subtitle": "Multi-criteria search on certificates",
+        "manageCertificates": "Manage certificates",
+        "criteria": "Search criteria",
+        "fields": {
+            "freeText": "Free text search",
+            "freeTextPlaceholder": "Certificate no., policy no., insured, reference, port of departure/arrival, vessel, flight…",
+            "status": "Status",
+            "all": "All",
+            "transportMode": "Transport mode",
+            "documentType": "Document type",
+            "original": "Original",
+            "duplicata": "Duplicate",
+            "currency": "Currency",
+            "allCurrencies": "All",
+            "guaranteeMode": "Coverage type",
+            "broker": "Broker",
+            "template": "Certificate template",
+            "subsidiary": "Subsidiary",
+            "issuedDate": "Issue date",
+            "voyageDate": "Voyage date",
+            "insuredValue": "Insured value (min / max)"
+        },
+        "clear": "Clear",
+        "searchBtn": "Search",
+        "beforeSearch": {
+            "title": "Enter your search criteria",
+            "hint": "Text search covers: certificate no., insured, reference, ports, vessel, flight"
+        },
+        "results": {
+            "found": "{{count}} result(s) found",
+            "none": "No certificate matches your criteria",
+            "summary": "{{total}} result(s) · Page {{current}}/{{last}}"
+        },
+        "table": {
+            "number": "Certificate No.",
+            "insured": "Insured",
+            "broker": "Broker",
+            "mode": "Mode",
+            "voyage": "Voyage",
+            "value": "Value",
+            "prime": "Premium",
+            "subsidiary": "Subsidiary",
+            "status": "Status",
+            "issuedDate": "Issue date",
+            "duplicateTag": "Dup.",
+            "view": "View →"
+        }
+    },
+    "printModels": {
+        "breadcrumb": "Print templates",
+        "title": "Print templates — NSIA Transport",
+        "heading": "Print templates",
+        "description": "Official forms recognized by the authorities of each country, printed over the pre-printed NSIA physical stub. The template matching the certificate's subsidiary is automatically preselected, but remains editable at print time.",
+        "calibrationWarning": {
+            "title": "Field positioning to be finalized.",
+            "text": "The current coordinates are a generic starting point, not yet calibrated on the actual physical stubs. Add {{param}} to the print URL to display a reference grid (every 10 mm) and the name of each field — print on the actual stub, measure the offsets, then adjust the coordinates in the corresponding country file ({{path}})."
+        },
+        "info": {
+            "title": "How to use a template?",
+            "text": "Open a certificate → click Print → choose the corresponding country's form → launch printing. The header information (registered office, capital, RCCM...) is configured in the subsidiary settings."
+        }
+    },
+    "requests": {
+        "index": {
+            "breadcrumb": "Insurance certificate requests",
+            "title": "Insurance certificate requests — NSIA Transport",
+            "heading": "Insurance certificate requests",
+            "subtitle": "Certificate requests submitted by foreign brokers and partners",
+            "queueCount": "— {{count}} in queue",
+            "tabs": {
+                "all": "All",
+                "pending": "Submitted",
+                "inReview": "Under review",
+                "infoRequested": "Additional info requested",
+                "completed": "Completed",
+                "approved": "Approved",
+                "fulfilled": "Certificate issued",
+                "closed": "Closed",
+                "rejected": "Rejected"
+            },
+            "searchPlaceholder": "Insured, broker...",
+            "table": {
+                "reference": "Reference",
+                "date": "Date",
+                "broker": "Broker",
+                "insured": "Insured",
+                "status": "Status"
+            },
+            "empty": "No partner request",
+            "view": "View"
+        },
+        "show": {
+            "breadcrumb": "Insurance certificate requests",
+            "defaultTitle": "Request",
+            "title": "Request — {{name}} — NSIA Transport",
+            "defaultInsuredName": "Certificate request",
+            "reference": "Ref. {{reference}} —",
+            "submittedOn": "Submitted on {{date}} by {{name}}",
+            "timeline": {
+                "title": "Request tracking",
+                "submitted": "Request submitted",
+                "assigned": "Assigned",
+                "infoRequested": "Additional info requested",
+                "completedOn": "File completed on {{date}}",
+                "waitingPartner": "Awaiting partner",
+                "rejected": "Request rejected",
+                "approved": "Request approved",
+                "issued": "Certificate issued",
+                "issuedNumber": "No. {{number}}",
+                "issuedNumberGuce": "No. {{number}} (GUCE)",
+                "closed": "Closed"
+            },
+            "broker": {
+                "title": "Broker / Partner",
+                "name": "Name",
+                "code": "Code",
+                "contactEmail": "Contact email"
+            },
+            "shipment": {
+                "title": "Shipment",
+                "country": "Country concerned",
+                "transportMode": "Transport mode",
+                "route": "Route",
+                "voyageDate": "Voyage date",
+                "cargo": "Cargo",
+                "estimatedValue": "Estimated value",
+                "partnerNotes": "Partner notes"
+            },
+            "documents": {
+                "title": "Supporting documents",
+                "empty": "No document attached.",
+                "sizeKo": "{{size}} KB"
+            },
+            "infoRequested": {
+                "title": "Additional information requested — awaiting partner",
+                "hint": "The partner has been notified and must complete their file from their portal to resubmit it."
+            },
+            "completed": {
+                "title": "File completed by partner — awaiting re-review"
+            },
+            "processing": {
+                "title": "Processing",
+                "assign": "Take charge",
+                "notesPlaceholder": "Processing notes (required if rejecting)...",
+                "approve": "Approve",
+                "reject": "Reject",
+                "requestInfoHint": "Incomplete file? Request additional information from the partner — they will be notified and can resubmit.",
+                "requestInfoPlaceholder": "E.g.: Please attach the commercial invoice and the final bill of lading.",
+                "requestInfo": "Request additional info",
+                "rejectReasonRequired": "Please specify a rejection reason.",
+                "infoNotesRequired": "Please specify the expected additional information."
+            },
+            "generation": {
+                "title": "Certificate generation or import",
+                "hint": "Create the certificate from an active contract, or import it from the GUCE platform, then link it here to make the certificate available to the partner.",
+                "createCertificate": "Create a certificate",
+                "importGuce": "Import a GUCE certificate",
+                "linkCertificatePlaceholder": "Link an issued certificate...",
+                "linkGuceCertificatePlaceholder": "Link an imported GUCE certificate...",
+                "link": "Link"
+            },
+            "available": {
+                "title": "Certificate available",
+                "titleGuce": "Certificate available (imported from GUCE)",
+                "number": "No. {{number}}",
+                "viewCertificate": "View certificate →",
+                "viewGuceCertificate": "View GUCE certificate →",
+                "notified": "The partner has been notified and can download it from their portal.",
+                "close": "Close the request"
+            },
+            "partnerCompletion": {
+                "title": "Partner's response to the requested information",
+                "resubmittedOn": "Resubmitted on {{date}}"
+            },
+            "processingNotes": {
+                "title": "Processing notes",
+                "by": "By {{name}}"
+            },
+            "backToList": "Back to requests"
+        }
+    },
+    "guce": {
+        "create": {
+            "breadcrumb": "Import",
+            "title": "Import a GUCE certificate",
+            "heading": "Import a GUCE certificate",
+            "subtitle": "Upload the file and fill in the certificate references",
+            "fileSection": {
+                "title": "Certificate file",
+                "sizeKo": "{{size}} KB",
+                "dropText": "Drag and drop or click to select",
+                "dropHint": "PDF, DOC or DOCX — 10 MB maximum",
+                "extracting": "Automatic data extraction in progress…",
+                "extractionSuccess": "{{count}} field(s) automatically pre-filled — check the values before validating.",
+                "extractionNoData": "No data recognized in this document — please complete manually.",
+                "extractionErrorGeneric": "Automatic extraction unavailable.",
+                "extractionErrorFallback": "Automatic extraction unavailable — please complete the form manually."
+            },
+            "references": {
+                "title": "GUCE references",
+                "guceReference": "GUCE request reference",
+                "guceReferencePlaceholder": "e.g. INS2024101765",
+                "certificateNumber": "Certificate No.",
+                "certificateNumberPlaceholder": "e.g. 41612024005384",
+                "policyNumber": "Application to policy No.",
+                "policyNumberPlaceholder": "e.g. 4300616200005F",
+                "fdiReference": "FDI reference",
+                "fdiReferencePlaceholder": "e.g. 240118075 OF 2024-08-22"
+            },
+            "insured": {
+                "title": "Insured",
+                "name": "Insured name",
+                "namePlaceholder": "e.g. SOS BOULONNERIE",
+                "address": "Address",
+                "addressPlaceholder": "01 BP 1262 ABIDJAN..."
+            },
+            "transport": {
+                "title": "Transport & Goods",
+                "vessel": "Vessel / Means of transport",
+                "vesselPlaceholder": "e.g. CMA CGM EIFFEL 0BAJFS1MA",
+                "transitDate": "Voyage date",
+                "origin": "Departure (Origin)",
+                "originPlaceholder": "e.g. France (LE HAVRE)",
+                "destination": "Destination",
+                "destinationPlaceholder": "e.g. Côte d'Ivoire (ABIDJAN)",
+                "cargoDescription": "Description of goods",
+                "cargoDescriptionPlaceholder": "1 pallet of BLACK WRAPPED HARDWARE...",
+                "weight": "Weight",
+                "weightPlaceholder": "e.g. 228 kg",
+                "marks": "Marks",
+                "marksPlaceholder": "e.g. TGBU938632/7"
+            },
+            "financial": {
+                "title": "Financial values",
+                "insuredValue": "Insured value",
+                "insuredValuePlaceholder": "e.g. 1181398.24",
+                "netPremium": "Net premium",
+                "netPremiumPlaceholder": "e.g. 1251283",
+                "totalPremium": "Total premium",
+                "totalPremiumPlaceholder": "e.g. 7500",
+                "currency": "Currency",
+                "currencyOptions": {
+                    "XOF": "XOF (CFA Franc)",
+                    "EUR": "EUR (Euro)",
+                    "USD": "USD (Dollar)",
+                    "XAF": "XAF (CFA Franc CEMAC)"
+                }
+            },
+            "notes": {
+                "title": "Notes",
+                "placeholder": "Additional information..."
+            },
+            "importing": "Importing...",
+            "import": "Import certificate"
+        },
+        "index": {
+            "title": "GUCE certificates",
+            "heading": "GUCE certificates",
+            "subtitle": "Certificates imported from the Single Window for Foreign Trade (GUCE)",
+            "importButton": "Import a certificate",
+            "searchPlaceholder": "GUCE reference, certificate no., policy, insured...",
+            "searchBtn": "Search",
+            "count": "{{count}} imported certificate",
+            "count_plural": "{{count}} imported certificates",
+            "countRange": " — showing {{from}}–{{to}}",
+            "table": {
+                "guceReference": "GUCE reference",
+                "certificateNumber": "Certificate No.",
+                "policy": "Policy",
+                "insured": "Insured",
+                "voyage": "Voyage",
+                "insuredValue": "Insured value",
+                "file": "File",
+                "importedBy": "Imported by",
+                "actions": "Actions"
+            },
+            "empty": "No GUCE certificate imported",
+            "confirmDelete": "Delete GUCE certificate \"{{reference}}\"? This action is irreversible."
+        },
+        "show": {
+            "breadcrumb": "Detail",
+            "title": "GUCE certificate — {{reference}}",
+            "heading": "GUCE certificate",
+            "importedOn": "Imported on {{date}}",
+            "importedOnBy": "Imported on {{date}} by {{name}}",
+            "download": "Download",
+            "delete": "Delete",
+            "confirmDelete": "Delete this GUCE certificate ({{reference}})? This action is irreversible.",
+            "sections": {
+                "references": "GUCE references",
+                "insured": "Insured",
+                "transport": "Transport & Goods",
+                "financial": "Financial values",
+                "notes": "Notes"
+            },
+            "fields": {
+                "guceReference": "GUCE request reference",
+                "certificateNumber": "Certificate No.",
+                "policyNumber": "Policy No.",
+                "fdiReference": "FDI reference",
+                "name": "Name",
+                "address": "Address",
+                "vessel": "Vessel / Means of transport",
+                "voyageDate": "Voyage date",
+                "origin": "Origin",
+                "destination": "Destination",
+                "cargoDescription": "Description of goods",
+                "weight": "Weight",
+                "marks": "Marks",
+                "insuredValue": "Insured value",
+                "netPremium": "Net premium",
+                "totalPremium": "Total premium",
+                "currency": "Currency"
+            }
+        }
+    },
+    "partner": {
+        "requests": {
+            "create": {
+                "breadcrumb": "New request",
+                "title": "New certificate request — NSIA Transport",
+                "heading": "New certificate request",
+                "subtitle": "Describe the shipment and attach your supporting documents",
+                "documentTypes": {
+                    "BL": { "label": "BL (Bill of Lading)", "hint": "Maritime bill of lading" },
+                    "FACTURE": { "label": "Invoice", "hint": "Commercial invoice" },
+                    "FDI": { "label": "FDI", "hint": "Import declaration form" },
+                    "DOCUMENTS_TRANSPORT": { "label": "Transport documents", "hint": "Air waybill, CMR, delivery note..." },
+                    "AUTRE": { "label": "Other supporting documents", "hint": "Any other useful document" }
+                },
+                "tenant": {
+                    "title": "Subsidiary",
+                    "multipleHint": "You operate in several subsidiaries — select the one concerned by this request",
+                    "attachedHint": "— your affiliated subsidiary"
+                },
+                "shipment": {
+                    "title": "Shipment",
+                    "insuredName": "Insured name",
+                    "insuredNamePlaceholder": "Legal name of the insured",
+                    "country": "Country concerned",
+                    "countryPlaceholder": "Select a country",
+                    "from": "Place of departure",
+                    "fromPlaceholder": "e.g. Abidjan",
+                    "to": "Place of destination",
+                    "toPlaceholder": "e.g. Lomé",
+                    "date": "Voyage date",
+                    "transportMode": "Transport mode",
+                    "transportModeUnspecified": "Unspecified",
+                    "cargoDescription": "Description of goods",
+                    "cargoDescriptionPlaceholder": "Nature, quantity, packaging..."
+                },
+                "value": {
+                    "title": "Estimated value",
+                    "estimatedValue": "Estimated value",
+                    "estimatedValuePlaceholder": "e.g. 5000000",
+                    "currency": "Currency"
+                },
+                "documents": {
+                    "title": "Supporting documents",
+                    "hint": "Required to submit the request (at least one document, split across the categories below) — optional for a draft. PDF, JPG, PNG, DOC or DOCX — 10 MB max per file.",
+                    "add": "Add",
+                    "sizeKo": "{{size}} KB"
+                },
+                "notes": {
+                    "title": "Additional notes",
+                    "placeholder": "Useful information for processing the request..."
+                },
+                "sending": "Sending…",
+                "saveDraft": "Save as draft",
+                "submit": "Submit request"
+            },
+            "index": {
+                "breadcrumb": "My requests",
+                "title": "My certificate requests — NSIA Transport",
+                "heading": "My certificate requests",
+                "subtitle": "Track the status of your requests submitted to NSIA",
+                "newRequest": "New request",
+                "searchPlaceholder": "Insured, route...",
+                "allStatuses": "All statuses",
+                "table": {
+                    "reference": "Reference",
+                    "date": "Date",
+                    "insured": "Insured",
+                    "route": "Route",
+                    "status": "Status"
+                },
+                "empty": "No request submitted yet",
+                "view": "View"
+            },
+            "show": {
+                "defaultInsuredName": "Certificate request",
+                "title": "Request — {{name}} — NSIA Transport",
+                "reference": "Ref. {{reference}} —",
+                "draftSaved": "Draft saved",
+                "submittedOn": "Submitted on {{date}}",
+                "timeline": {
+                    "title": "Request tracking",
+                    "submitted": "Request submitted",
+                    "assigned": "Taken in charge by NSIA",
+                    "infoRequested": "Additional info requested",
+                    "completedOn": "Completed on {{date}}",
+                    "toComplete": "To be completed",
+                    "rejected": "Request rejected",
+                    "approved": "Request approved",
+                    "issued": "Certificate issued",
+                    "issuedNumber": "No. {{number}}"
+                },
+                "draft": {
+                    "title": "Draft not submitted",
+                    "hint": "Complete the supporting documents then submit the request to NSIA.",
+                    "addDocuments": "Add documents",
+                    "saveDocuments": "Save documents",
+                    "submit": "Submit request",
+                    "confirmSubmit": "Submit this request to NSIA?",
+                    "needDocuments": "Add at least one supporting document before submitting the request."
+                },
+                "available": {
+                    "title": "Certificate available",
+                    "number": "No. {{number}}",
+                    "download": "Download certificate",
+                    "verify": "Verify certificate →"
+                },
+                "infoRequested": {
+                    "title": "Additional information requested by NSIA",
+                    "notesPlaceholder": "Details on the documents/information added (optional)...",
+                    "addDocuments": "Add documents",
+                    "submit": "Complete and resubmit"
+                },
+                "rejected": {
+                    "title": "Rejection reason"
+                },
+                "shipment": {
+                    "title": "Shipment",
+                    "country": "Country concerned",
+                    "transportMode": "Transport mode",
+                    "route": "Route",
+                    "date": "Voyage date",
+                    "cargo": "Cargo",
+                    "estimatedValue": "Estimated value",
+                    "notes": "Notes"
+                },
+                "documents": {
+                    "title": "Supporting documents",
+                    "empty": "No document attached.",
+                    "sizeKo": "{{size}} KB"
+                },
+                "backToList": "Back to my requests",
+                "cancel": {
+                    "confirm": "Cancel this certificate request?",
+                    "deleteDraft": "Delete draft",
+                    "cancelRequest": "Cancel request"
+                }
+            }
+        },
+        "certificates": {
+            "index": {
+                "breadcrumb": "My certificates",
+                "title": "My certificates — NSIA Transport",
+                "heading": "My certificates",
+                "subtitle": "Certificates linked to your approved requests",
+                "searchPlaceholder": "Insured, certificate no...",
+                "table": {
+                    "requestDate": "Request date",
+                    "insured": "Insured",
+                    "certificateNumber": "Certificate No.",
+                    "origin": "Origin"
+                },
+                "empty": "No certificate available yet",
+                "origins": {
+                    "guce": "Imported (GUCE)",
+                    "issued": "Issued"
+                },
+                "viewRequest": "View request",
+                "download": "Download"
+            }
+        }
+    }
+}

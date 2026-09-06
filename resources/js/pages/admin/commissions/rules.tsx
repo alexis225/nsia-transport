@@ -1,16 +1,12 @@
 import { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { BreadcrumbItem } from '@/types';
 import { Plus, X, ToggleLeft, ToggleRight, Percent } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Commissions', href: '/admin/commissions/rules' },
-    { title: 'Règles de commission' },
-];
 
 interface Rule {
     id: string; rate_pct: number; effective_date: string;
@@ -34,7 +30,14 @@ interface Props {
 const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
 
 export default function CommissionRules({ rules, brokers, contracts, baseTypes, filters, isSA }: Props) {
+    const { t } = useTranslation('commissions');
+    const { t: tc } = useTranslation('common');
     const [showForm, setShowForm] = useState(false);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb.section'), href: '/admin/commissions/rules' },
+        { title: t('breadcrumb.rules') },
+    ];
 
     const { data, setData, post, processing, errors, reset } = useForm({
         broker_id:           '',
@@ -64,7 +67,7 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Règles de commission — NSIA Transport"/>
+            <Head title={t('rules.title')}/>
             <style>{`
                 .cr-page{padding:4px;display:flex;flex-direction:column;gap:14px;}
                 .cr-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -94,13 +97,13 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                     {/* Header */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                         <div>
-                            <h1 className="cr-title">Règles de commission</h1>
-                            <p className="cr-sub">Paramétrez les taux par courtier et par contrat</p>
+                            <h1 className="cr-title">{t('rules.heading')}</h1>
+                            <p className="cr-sub">{t('rules.subtitle')}</p>
                         </div>
                         {!showForm && (
                             <Button onClick={() => setShowForm(true)}
                                     className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                <Plus size={14}/> Nouvelle règle
+                                <Plus size={14}/> {t('rules.newRule')}
                             </Button>
                         )}
                     </div>
@@ -109,7 +112,7 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                     {showForm && (
                         <div className="form-card">
                             <div className="form-card-hdr">
-                                <span className="form-card-ttl">Nouvelle règle de commission</span>
+                                <span className="form-card-ttl">{t('rules.form.title')}</span>
                                 <button onClick={() => { setShowForm(false); reset(); }}
                                         style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.7)' }}>
                                     <X size={16}/>
@@ -119,11 +122,11 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Courtier *
+                                            {t('rules.form.broker')}
                                         </Label>
                                         <select value={data.broker_id} onChange={e => { setData('broker_id', e.target.value); setData('contract_id', ''); }}
                                                 className="hs-select">
-                                            <option value="">— Choisir —</option>
+                                            <option value="">{t('rules.form.chooseBroker')}</option>
                                             {brokers.map(b => (
                                                 <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
                                             ))}
@@ -133,11 +136,11 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
 
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Contrat (optionnel)
+                                            {t('rules.form.contract')}
                                         </Label>
                                         <select value={data.contract_id} onChange={e => setData('contract_id', e.target.value)}
                                                 className="hs-select">
-                                            <option value="">— Taux général —</option>
+                                            <option value="">{t('rules.form.generalRate')}</option>
                                             {filteredContracts.map(c => (
                                                 <option key={c.id} value={c.id}>{c.contract_number} — {c.insured_name}</option>
                                             ))}
@@ -146,11 +149,11 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
 
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Taux (%) *
+                                            {t('rules.form.rate')}
                                         </Label>
                                         <Input type="number" min="0" max="100" step="0.01" className="h-11"
                                                value={data.rate_pct} onChange={e => setData('rate_pct', e.target.value)}
-                                               placeholder="ex: 10.00"/>
+                                               placeholder={t('rules.form.ratePlaceholder')}/>
                                         {errors.rate_pct && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.rate_pct}</p>}
                                     </div>
                                 </div>
@@ -158,7 +161,7 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                 <div className="form-grid-2">
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Base de calcul *
+                                            {t('rules.form.baseType')}
                                         </Label>
                                         <select value={data.base_type} onChange={e => setData('base_type', e.target.value)}
                                                 className="hs-select">
@@ -170,12 +173,12 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                     {data.base_type === 'custom_amount' && (
                                         <div className="grid gap-2">
                                             <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                                Montant fixe *
+                                                {t('rules.form.fixedAmount')}
                                             </Label>
                                             <Input type="number" min="0" step="0.01" className="h-11"
                                                    value={data.custom_base_amount}
                                                    onChange={e => setData('custom_base_amount', e.target.value)}
-                                                   placeholder="ex: 500000"/>
+                                                   placeholder={t('rules.form.fixedAmountPlaceholder')}/>
                                             {errors.custom_base_amount && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.custom_base_amount}</p>}
                                         </div>
                                     )}
@@ -184,7 +187,7 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                 <div className="form-grid-2">
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Date d'effet *
+                                            {t('rules.form.effectiveDate')}
                                         </Label>
                                         <Input type="date" className="h-11" value={data.effective_date}
                                                onChange={e => setData('effective_date', e.target.value)}/>
@@ -192,7 +195,7 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                     </div>
                                     <div className="grid gap-2">
                                         <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                            Date de fin (optionnel)
+                                            {t('rules.form.endDate')}
                                         </Label>
                                         <Input type="date" className="h-11" value={data.end_date}
                                                onChange={e => setData('end_date', e.target.value)}/>
@@ -201,24 +204,24 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
 
                                 <div className="grid gap-2">
                                     <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                        Notes (optionnel)
+                                        {t('rules.form.notes')}
                                     </Label>
                                     <Input className="h-11" value={data.notes} onChange={e => setData('notes', e.target.value)}
-                                           placeholder="ex: Taux négocié pour 2026"/>
+                                           placeholder={t('rules.form.notesPlaceholder')}/>
                                 </div>
 
                                 <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#92400e' }}>
-                                    Si un taux contrat existe, il prime sur le taux courtier général.
+                                    {t('rules.form.hint')}
                                 </div>
 
                                 <div style={{ display:'flex', gap:8 }}>
                                     <Button disabled={processing || !data.broker_id || !data.rate_pct || !data.effective_date}
                                             onClick={handleSubmit}
                                             className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                        {processing ? 'Enregistrement…' : <><Percent size={13}/> Créer la règle</>}
+                                        {processing ? tc('states.saving') : <><Percent size={13}/> {t('rules.form.submit')}</>}
                                     </Button>
                                     <Button variant="outline" onClick={() => { setShowForm(false); reset(); }}>
-                                        Annuler
+                                        {tc('actions.cancel')}
                                     </Button>
                                 </div>
                             </div>
@@ -230,20 +233,20 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                         {rules.data.length === 0 ? (
                             <div className="empty">
                                 <Percent size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
-                                <div>Aucune règle de commission définie.</div>
+                                <div>{t('rules.empty')}</div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Courtier</th>
-                                        <th>Contrat</th>
-                                        <th>Taux</th>
-                                        <th>Date d'effet</th>
-                                        <th>Date de fin</th>
-                                        <th>Statut</th>
-                                        <th>Notes</th>
-                                        <th>Action</th>
+                                        <th>{t('rules.table.broker')}</th>
+                                        <th>{t('rules.table.contract')}</th>
+                                        <th>{t('rules.table.rate')}</th>
+                                        <th>{t('rules.table.effectiveDate')}</th>
+                                        <th>{t('rules.table.endDate')}</th>
+                                        <th>{t('rules.table.status')}</th>
+                                        <th>{t('rules.table.notes')}</th>
+                                        <th>{t('rules.table.action')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -259,7 +262,7 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                                         {rule.contract.contract_number}
                                                     </span>
                                                 ) : (
-                                                    <span style={{ fontSize:11, color:'#94a3b8' }}>Général</span>
+                                                    <span style={{ fontSize:11, color:'#94a3b8' }}>{t('rules.table.general')}</span>
                                                 )}
                                             </td>
                                             <td>
@@ -277,7 +280,7 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                                     color:      rule.is_active ? '#15803d' : '#94a3b8',
                                                 }}>
                                                     <span style={{ width:5, height:5, borderRadius:'50%', background: rule.is_active ? '#22c55e' : '#cbd5e1' }}/>
-                                                    {rule.is_active ? 'Active' : 'Inactive'}
+                                                    {rule.is_active ? t('rules.status.active') : t('rules.status.inactive')}
                                                 </span>
                                             </td>
                                             <td style={{ fontSize:11, color:'#94a3b8', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
@@ -287,8 +290,8 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                                 <button onClick={() => toggle(rule.id)}
                                                         style={{ background:'none', border:'none', cursor:'pointer', color:'#64748b', display:'flex', alignItems:'center', gap:4, fontSize:11 }}>
                                                     {rule.is_active
-                                                        ? <><ToggleRight size={16} color="#15803d"/> Désactiver</>
-                                                        : <><ToggleLeft size={16} color="#94a3b8"/> Activer</>
+                                                        ? <><ToggleRight size={16} color="#15803d"/> {t('rules.toggle.deactivate')}</>
+                                                        : <><ToggleLeft size={16} color="#94a3b8"/> {t('rules.toggle.activate')}</>
                                                     }
                                                 </button>
                                             </td>

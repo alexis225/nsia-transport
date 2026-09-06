@@ -1,0 +1,61 @@
+{
+    "breadcrumb": "Dados de referência",
+    "title": "Dados de referência — NSIA Transport",
+    "heading": "Dados de referência",
+    "subtitle": "Tabelas de referência utilizadas nos contratos e certificados",
+    "newEntry": "Nova entrada",
+    "tabs": {
+        "countries": "Países",
+        "currencies": "Moedas",
+        "incoterms": "Incoterms",
+        "transportModes": "Transportes",
+        "merchandiseCategories": "Mercadorias"
+    },
+    "columns": {
+        "countries": ["Código", "Nome FR", "Nome EN", "Região"],
+        "currencies": ["Código", "Nome", "Símbolo"],
+        "incoterms": ["Código", "Nome", "Descrição", "Modos compatíveis"],
+        "transport_modes": ["Código", "Nome FR", "Nome EN", "Ícone"],
+        "merchandise_categories": ["Código", "Nome", "Nível de risco", "Parente"]
+    },
+    "fields": {
+        "countryCode": "Código ISO (2 letras)",
+        "nameFr": "Nome em francês",
+        "nameEn": "Nome em inglês",
+        "region": "Região",
+        "currencyCode": "Código ISO (3 letras)",
+        "name": "Nome",
+        "symbol": "Símbolo",
+        "active": "Ativo",
+        "code": "Código",
+        "description": "Descrição",
+        "nameFrShort": "Nome FR",
+        "nameEnShort": "Nome EN",
+        "icon": "Ícone",
+        "riskLevel": "Nível de risco (1-3)"
+    },
+    "riskLabels": {
+        "low": "Baixo",
+        "medium": "Médio",
+        "high": "Elevado"
+    },
+    "modal": {
+        "edit": "Editar",
+        "new": "Novo",
+        "yes": "Sim",
+        "no": "Não"
+    },
+    "statusColumn": "Estado",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "actionsColumn": "Ações",
+    "actions": {
+        "edit": "Editar",
+        "activate": "Ativar",
+        "deactivate": "Desativar"
+    },
+    "searchPlaceholder": "Pesquisar em {{tab}}…",
+    "clear": "Limpar",
+    "noEntries": "Nenhuma entrada encontrada em {{tab}}.",
+    "pageInfo": "Página {{current}}/{{last}} · {{total}} entradas"
+}

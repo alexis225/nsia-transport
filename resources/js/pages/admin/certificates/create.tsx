@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Award, Plus, Trash2, Check, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AmountInput } from '@/components/amount-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -56,11 +57,6 @@ interface Props {
     currencies:       Currency[];
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Certificats', href: '/admin/certificates' },
-    { title: 'Nouveau certificat' },
-];
-
 export type ExpeditionItem = {
     marks: string; package_count: string;
     weight: string; nature: string; packaging: string; insured_value: string;
@@ -74,6 +70,13 @@ export const emptyItem = (): ExpeditionItem => ({
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export default function CertificateCreate({ contracts, selectedContract, defaultTenantId, countries, currencies }: Props) {
+    const { t } = useTranslation('certificates');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('shared.breadcrumb'), href: '/admin/certificates' },
+        { title: t('create.breadcrumb') },
+    ];
+
     const { data, setData, post, processing, errors } = useForm({
         contract_id:           selectedContract?.id ?? '',
         insured_name:          selectedContract?.insured_name ?? '',
@@ -110,13 +113,13 @@ export default function CertificateCreate({ contracts, selectedContract, default
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouveau certificat — NSIA Transport"/>
+            <Head title={t('create.title')}/>
             <CertificateForm
                 data={data} setData={setData} errors={errors} processing={processing}
                 onSubmit={submit} onSaveDraft={saveDraft}
                 contracts={contracts} countries={countries} currencies={currencies}
-                heroTitle="Nouveau certificat d'assurance" heroSub="Saisissez les détails de l'expédition"
-                submitLabel="Créer le certificat"
+                heroTitle={t('create.heroTitle')} heroSub={t('create.heroSub')}
+                submitLabel={t('create.submitLabel')}
             />
         </AppLayout>
     );
@@ -125,6 +128,8 @@ export default function CertificateCreate({ contracts, selectedContract, default
 // ── Formulaire partagé (création + édition) ───────────────────
 export function CertificateForm({ data, setData, errors, processing, onSubmit, onSaveDraft,
     contracts, countries, currencies, heroTitle, heroSub, submitLabel, isEditing, banner }: any) {
+    const { t } = useTranslation('certificates');
+    const { t: tc } = useTranslation('common');
 
     const [rateStatus, setRateStatus] = useState<'idle' | 'loading' | 'error'>('idle');
     const [rateMessage, setRateMessage] = useState<string | null>(null);
@@ -181,7 +186,7 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
 
             if (!res.ok || !json.success) {
                 setRateStatus('error');
-                setRateMessage(json.message ?? "Taux indisponible — merci de le saisir manuellement.");
+                setRateMessage(json.message ?? t('create.financial.rateUnavailable'));
 
                 return;
             }
@@ -190,7 +195,7 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
             setRateStatus('idle');
         } catch {
             setRateStatus('error');
-            setRateMessage("Conversion automatique indisponible — merci de saisir le taux manuellement.");
+            setRateMessage(t('create.financial.rateUnavailableGeneric'));
         }
     }
 
@@ -265,12 +270,12 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                         {/* ── Contrat ── */}
                         <div className="cc-card">
                             <div className="cc-card-hdr">
-                                <div className="cc-card-ttl">Contrat d'assurance</div>
-                                <div className="cc-card-sub">Sélectionnez le contrat actif</div>
+                                <div className="cc-card-ttl">{t('create.contract.title')}</div>
+                                <div className="cc-card-sub">{t('create.contract.subtitle')}</div>
                             </div>
                             <div className="cc-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="cc-label">Contrat *</Label>
+                                    <Label className="cc-label">{t('create.contract.label')}</Label>
                                     <select className="cc-select" value={data.contract_id}
                                             onChange={e => {
                                                 const c = contracts.find((c: Contract) => c.id === e.target.value);
@@ -284,7 +289,7 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                                     setData('voyage_mode', c.conditioning_types?.[0] ?? '');
                                                 }
                                             }}>
-                                        <option value="">Sélectionnez un contrat actif</option>
+                                        <option value="">{t('create.contract.placeholder')}</option>
                                         {contracts.map((c: Contract) => (
                                             <option key={c.id} value={c.id}>
                                                 {c.contract_number} — {c.insured_name} ({c.tenant?.code})
@@ -301,42 +306,42 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                                 {CONTRACT_TYPE_LABELS[selectedC.type] ?? selectedC.type}
                                             </span>
                                         </div>
-                                        <div>Filiale : {selectedC.tenant?.name} · Devise : {selectedC.currency_code}</div>
-                                        <div style={{ marginTop:3 }}>Assuré : {selectedC.insured_name}</div>
+                                        <div>{t('create.contract.subsidiary', { name: selectedC.tenant?.name, currency: selectedC.currency_code })}</div>
+                                        <div style={{ marginTop:3 }}>{t('create.contract.insured', { name: selectedC.insured_name })}</div>
                                         <div style={{ marginTop:3 }}>
-                                            Gestionnaire du dossier : {selectedC.subscriber ? `${selectedC.subscriber.first_name} ${selectedC.subscriber.last_name}` : '—'}
+                                            {t('create.contract.manager', { name: selectedC.subscriber ? `${selectedC.subscriber.first_name} ${selectedC.subscriber.last_name}` : '—' })}
                                         </div>
-                                        {selectedC.insured_address && <div style={{ marginTop:3 }}>Adresse : {selectedC.insured_address}</div>}
+                                        {selectedC.insured_address && <div style={{ marginTop:3 }}>{t('create.contract.address', { address: selectedC.insured_address })}</div>}
                                         <div style={{ marginTop:3 }}>
-                                            Téléphone : {selectedC.insured_phone ?? '—'} · Email : {selectedC.insured_email ?? '—'}
+                                            {t('create.contract.contact', { phone: selectedC.insured_phone ?? '—', email: selectedC.insured_email ?? '—' })}
                                         </div>
                                         <div style={{ marginTop:3 }}>
-                                            Commission courtier : {selectedC.broker ? `${selectedC.broker.name} (${selectedC.broker.commission_rate ?? 0} %)` : '—'}
+                                            {t('create.contract.commission', { value: selectedC.broker ? `${selectedC.broker.name} (${selectedC.broker.commission_rate ?? 0} %)` : '—' })}
                                         </div>
                                         {selectedC.subscription_limit && (
                                             <div style={{ marginTop:3 }}>
-                                                Plafond NN300 : {parseFloat(selectedC.subscription_limit).toLocaleString('fr-FR')} {selectedC.currency_code}
-                                                {' · '}Utilisé : {parseFloat(selectedC.used_limit).toLocaleString('fr-FR')}
+                                                {t('create.contract.limit', { limit: parseFloat(selectedC.subscription_limit).toLocaleString('fr-FR'), currency: selectedC.currency_code, used: parseFloat(selectedC.used_limit).toLocaleString('fr-FR') })}
                                             </div>
                                         )}
                                         <div style={{ marginTop:3 }}>
-                                            Certificats : {selectedC.certificates_count}{selectedC.certificates_limit ? ` / ${selectedC.certificates_limit}` : ''}
+                                            {t('create.contract.certificatesCount', { count: selectedC.certificates_count })}{selectedC.certificates_limit ? ` / ${selectedC.certificates_limit}` : ''}
                                         </div>
                                         <div style={{ marginTop:3 }}>
-                                            Plein du contrat : {selectedC.plein ? `${parseFloat(selectedC.plein).toLocaleString('fr-FR')} ${selectedC.currency_code}` : 'Non défini'}
+                                            {t('create.contract.plein', { value: selectedC.plein ? `${parseFloat(selectedC.plein).toLocaleString('fr-FR')} ${selectedC.currency_code}` : t('create.contract.pleinUndefined') })}
                                         </div>
                                     </div>
                                 )}
                                 {isVoyageLocked && (
                                     <div style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#dc2626', display:'flex', alignItems:'center', gap:6 }}>
-                                        ⚠ Ce contrat « Au voyage » a déjà un certificat associé — il ne couvre qu'un seul déplacement.
-                                        Sélectionnez un autre contrat ou annulez le certificat existant.
+                                        ⚠ {t('create.contract.voyageLocked')}
                                     </div>
                                 )}
                                 {selectedC?.plein && totalValue > parseFloat(selectedC.plein) && (
                                     <div style={{ background:'#fff7ed', border:'1px solid #fed7aa', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#c2410c', display:'flex', alignItems:'center', gap:6 }}>
-                                        ⚠ La valeur assurée ({totalValue.toLocaleString('fr-FR')} {selectedC.currency_code}) dépasse le plein du contrat
-                                        ({parseFloat(selectedC.plein).toLocaleString('fr-FR')} {selectedC.currency_code}) — une validation NN300 sera requise à la soumission.
+                                        ⚠ {t('create.contract.overPlein', {
+                                            value: `${totalValue.toLocaleString('fr-FR')} ${selectedC.currency_code}`,
+                                            plein: `${parseFloat(selectedC.plein).toLocaleString('fr-FR')} ${selectedC.currency_code}`,
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -345,21 +350,21 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                         {/* ── Assuré ── */}
                         <div className="cc-card">
                             <div className="cc-card-hdr">
-                                <div className="cc-card-ttl">Assuré</div>
+                                <div className="cc-card-ttl">{t('create.insuredSection.title')}</div>
                             </div>
                             <div className="cc-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Nom assuré *</Label>
+                                        <Label className="cc-label">{t('create.insuredSection.name')}</Label>
                                         <Input className="h-11" value={data.insured_name}
                                                onChange={e => setData('insured_name', e.target.value)}/>
                                         <InputError message={errors.insured_name}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Références assuré</Label>
+                                        <Label className="cc-label">{t('create.insuredSection.ref')}</Label>
                                         <Input className="h-11" value={data.insured_ref ?? ''}
                                                onChange={e => setData('insured_ref', e.target.value)}
-                                               placeholder="Référence interne"/>
+                                               placeholder={t('create.insuredSection.refPlaceholder')}/>
                                     </div>
                                 </div>
                             </div>
@@ -368,58 +373,58 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                         {/* ── Voyage ── */}
                         <div className="cc-card">
                             <div className="cc-card-hdr">
-                                <div className="cc-card-ttl">Voyage</div>
-                                <div className="cc-card-sub">Informations de l'expédition</div>
+                                <div className="cc-card-ttl">{t('create.voyage.title')}</div>
+                                <div className="cc-card-sub">{t('create.voyage.subtitle')}</div>
                             </div>
                             <div className="cc-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Date de début du voyage *</Label>
+                                        <Label className="cc-label">{t('create.voyage.startDate')}</Label>
                                         <Input className="h-11" type="date" value={data.voyage_date}
                                                onChange={e => setData('voyage_date', e.target.value)}/>
                                         <InputError message={errors.voyage_date}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Mode de transport</Label>
+                                        <Label className="cc-label">{t('create.voyage.transportMode')}</Label>
                                         <select className="cc-select" value={data.transport_type ?? ''}
                                                 onChange={e => setData('transport_type', e.target.value)}>
                                             <option value="">—</option>
-                                            <option value="SEA">Maritime</option>
-                                            <option value="AIR">Aérien</option>
-                                            <option value="ROAD">Routier</option>
-                                            <option value="RAIL">Ferroviaire</option>
-                                            <option value="MULTIMODAL">Multimodal</option>
-                                            <option value="RIVER">Fluvial / Lagunaire</option>
+                                            <option value="SEA">{t('shared.transport.SEA')}</option>
+                                            <option value="AIR">{t('shared.transport.AIR')}</option>
+                                            <option value="ROAD">{t('shared.transport.ROAD')}</option>
+                                            <option value="RAIL">{t('shared.transport.RAIL')}</option>
+                                            <option value="MULTIMODAL">{t('shared.transport.MULTIMODAL')}</option>
+                                            <option value="RIVER">{t('shared.transport.RIVER')}</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">De *</Label>
+                                        <Label className="cc-label">{t('create.voyage.from')}</Label>
                                         <Input className="h-11" value={data.voyage_from}
                                                onChange={e => setData('voyage_from', e.target.value)}
-                                               placeholder="Lieu de départ"/>
+                                               placeholder={t('create.voyage.fromPlaceholder')}/>
                                         <InputError message={errors.voyage_from}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">À *</Label>
+                                        <Label className="cc-label">{t('create.voyage.to')}</Label>
                                         <Input className="h-11" value={data.voyage_to}
                                                onChange={e => setData('voyage_to', e.target.value)}
-                                               placeholder="Lieu de destination"/>
+                                               placeholder={t('create.voyage.toPlaceholder')}/>
                                         <InputError message={errors.voyage_to}/>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Via</Label>
+                                        <Label className="cc-label">{t('create.voyage.via')}</Label>
                                         <Input className="h-11" value={data.voyage_via ?? ''}
                                                onChange={e => setData('voyage_via', e.target.value)}
-                                               placeholder="Lieu de transit / transbordement"/>
+                                               placeholder={t('create.voyage.viaPlaceholder')}/>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Pays de provenance</Label>
+                                        <Label className="cc-label">{t('create.voyage.originCountry')}</Label>
                                         <select className="cc-select" value={data.origin_country_code ?? ''}
                                                 onChange={e => setData('origin_country_code', e.target.value)}>
                                             <option value="">—</option>
@@ -428,35 +433,35 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                         <InputError message={errors.origin_country_code}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Pays de destination</Label>
+                                        <Label className="cc-label">{t('create.voyage.destinationCountry')}</Label>
                                         <select className="cc-select" value={data.destination_country_code ?? ''}
                                                 onChange={e => setData('destination_country_code', e.target.value)}>
                                             <option value="">—</option>
                                             {countries?.map((c: Country) => <option key={c.code} value={c.code}>{c.name_fr}</option>)}
                                         </select>
                                         <InputError message={errors.destination_country_code}/>
-                                        <p style={{ fontSize:11, color:'#94a3b8' }}>Détermine le taux de taxe appliqué automatiquement.</p>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>{t('create.voyage.destinationCountryHint')}</p>
                                     </div>
                                 </div>
                                 <div className="form-grid">
                                     {(data.transport_type === 'SEA' || data.transport_type === 'RIVER' || !data.transport_type) && (
                                         <div className="grid gap-2">
-                                            <Label className="cc-label">Navire S/S</Label>
+                                            <Label className="cc-label">{t('create.voyage.vessel')}</Label>
                                             <Input className="h-11" value={data.vessel_name ?? ''}
                                                    onChange={e => setData('vessel_name', e.target.value)}
-                                                   placeholder="Nom du navire"/>
+                                                   placeholder={t('create.voyage.vesselPlaceholder')}/>
                                         </div>
                                     )}
                                     {data.transport_type === 'AIR' && (
                                         <div className="grid gap-2">
-                                            <Label className="cc-label">N° de vol</Label>
+                                            <Label className="cc-label">{t('create.voyage.flightNumber')}</Label>
                                             <Input className="h-11" value={data.flight_number ?? ''}
                                                    onChange={e => setData('flight_number', e.target.value)}
-                                                   placeholder="ex: AF 123"/>
+                                                   placeholder={t('create.voyage.flightNumberPlaceholder')}/>
                                         </div>
                                     )}
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Mode</Label>
+                                        <Label className="cc-label">{t('create.voyage.mode')}</Label>
                                         <select className="cc-select" value={data.voyage_mode ?? ''}
                                                 onChange={e => setData('voyage_mode', e.target.value)}>
                                             <option value="">—</option>
@@ -466,7 +471,7 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                         </select>
                                         {!!selectedC?.conditioning_types?.length && (
                                             <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                                Options limitées aux types de conditionnement définis sur le contrat.
+                                                {t('create.voyage.modeHint')}
                                             </p>
                                         )}
                                     </div>
@@ -477,31 +482,31 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                         {/* ── Détail expédition ── */}
                         <div className="cc-card">
                             <div className="cc-card-hdr">
-                                <div className="cc-card-ttl">Détail de l'expédition</div>
-                                <div className="cc-card-sub">Marques, colis, nature des marchandises et valeur</div>
+                                <div className="cc-card-ttl">{t('create.expedition.title')}</div>
+                                <div className="cc-card-sub">{t('create.expedition.subtitle')}</div>
                             </div>
                             <div className="cc-card-body">
                                 <div style={{ overflowX:'auto' }}>
                                     <table className="exp-table">
                                         <thead>
                                             <tr>
-                                                <th>Marques</th>
-                                                <th>Nbre</th>
-                                                <th>Poids</th>
-                                                <th style={{ minWidth:220 }}>Description des marchandises</th>
-                                                <th>Type de colis</th>
-                                                <th>Valeur assurance</th>
+                                                <th>{t('create.expedition.marks')}</th>
+                                                <th>{t('create.expedition.count')}</th>
+                                                <th>{t('create.expedition.weight')}</th>
+                                                <th style={{ minWidth:220 }}>{t('create.expedition.nature')}</th>
+                                                <th>{t('create.expedition.packaging')}</th>
+                                                <th>{t('create.expedition.value')}</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {data.expedition_items.map((item: ExpeditionItem, i: number) => (
                                                 <tr key={i}>
-                                                    <td><input className="exp-input" value={item.marks} onChange={e => updateItem(i, 'marks', e.target.value)} placeholder="NSIA-001"/></td>
-                                                    <td style={{ width:60 }}><input className="exp-input" type="number" min={0} value={item.package_count} onChange={e => updateItem(i, 'package_count', e.target.value)} placeholder="10"/></td>
-                                                    <td style={{ width:80 }}><input className="exp-input" value={item.weight} onChange={e => updateItem(i, 'weight', e.target.value)} placeholder="500 kg"/></td>
-                                                    <td><textarea className="exp-input" rows={3} style={{ resize:'vertical', minHeight:64 }} value={item.nature} onChange={e => updateItem(i, 'nature', e.target.value)} placeholder="Description détaillée des marchandises (jusqu'à un paragraphe)"/></td>
-                                                    <td><input className="exp-input" value={item.packaging} onChange={e => updateItem(i, 'packaging', e.target.value)} placeholder="Cartons, palettes, fûts…"/></td>
+                                                    <td><input className="exp-input" value={item.marks} onChange={e => updateItem(i, 'marks', e.target.value)} placeholder={t('create.expedition.marksPlaceholder')}/></td>
+                                                    <td style={{ width:60 }}><input className="exp-input" type="number" min={0} value={item.package_count} onChange={e => updateItem(i, 'package_count', e.target.value)} placeholder={t('create.expedition.countPlaceholder')}/></td>
+                                                    <td style={{ width:80 }}><input className="exp-input" value={item.weight} onChange={e => updateItem(i, 'weight', e.target.value)} placeholder={t('create.expedition.weightPlaceholder')}/></td>
+                                                    <td><textarea className="exp-input" rows={3} style={{ resize:'vertical', minHeight:64 }} value={item.nature} onChange={e => updateItem(i, 'nature', e.target.value)} placeholder={t('create.expedition.naturePlaceholder')}/></td>
+                                                    <td><input className="exp-input" value={item.packaging} onChange={e => updateItem(i, 'packaging', e.target.value)} placeholder={t('create.expedition.packagingPlaceholder')}/></td>
                                                     <td style={{ width:120 }}><AmountInput variant="plain" className="exp-input" value={item.insured_value} onChange={v => updateItem(i, 'insured_value', v)} placeholder="0"/></td>
                                                     <td style={{ width:36 }}>
                                                         {data.expedition_items.length > 1 && (
@@ -518,27 +523,27 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                 </div>
                                 <button type="button" onClick={addItem}
                                         style={{ padding:'7px 14px', background:'#f8fafc', border:'1.5px dashed #cbd5e1', borderRadius:8, cursor:'pointer', fontSize:12, color:'#475569', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
-                                    <Plus size={12}/> Ajouter une ligne
+                                    <Plus size={12}/> {t('create.expedition.addLine')}
                                 </button>
                                 {errors['expedition_items'] && <p style={{ fontSize:11, color:'#ef4444' }}>⚠ {errors['expedition_items']}</p>}
 
                                 {/* Total */}
                                 <div className="total-bar">
-                                    <span className="total-label">Nombre total de colis</span>
+                                    <span className="total-label">{t('create.expedition.totalPackages')}</span>
                                     <span className="total-value">{totalPackages.toLocaleString('fr-FR')}</span>
                                 </div>
                                 <div className="total-bar">
-                                    <span className="total-label">Valeur totale d'assurance</span>
+                                    <span className="total-label">{t('create.expedition.totalValue')}</span>
                                     <span className="total-value">
                                         {totalValue.toLocaleString('fr-FR')} {selectedC?.currency_code ?? ''}
                                     </span>
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label className="cc-label">Valeur totale en lettres</Label>
+                                    <Label className="cc-label">{t('create.expedition.valueLetters')}</Label>
                                     <Input className="h-11" readOnly value={data.insured_value_letters ?? ''}
                                            style={{ background:'#f8fafc', color:'#475569', cursor:'default' }}
-                                           placeholder="Calculé automatiquement depuis la valeur assurée"/>
+                                           placeholder={t('create.expedition.valueLettersPlaceholder')}/>
                                 </div>
                             </div>
                         </div>
@@ -546,20 +551,20 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                         {/* ── Conditions financières ── */}
                         <div className="cc-card">
                             <div className="cc-card-hdr">
-                                <div className="cc-card-ttl">Conditions financières</div>
+                                <div className="cc-card-ttl">{t('create.financial.title')}</div>
                             </div>
                             <div className="cc-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Mode de garantie</Label>
-                                        <Input className="h-11" readOnly disabled value={data.guarantee_mode || 'Non défini sur le contrat'}
+                                        <Label className="cc-label">{t('create.financial.guaranteeMode')}</Label>
+                                        <Input className="h-11" readOnly disabled value={data.guarantee_mode || t('create.financial.guaranteeModeUndefined')}
                                                style={{ background:'#f8fafc', color:'#475569', cursor:'default' }}/>
                                         <p style={{ fontSize:11, color:'#94a3b8' }}>
-                                            Repris automatiquement des options de garantie définies à la création du contrat.
+                                            {t('create.financial.guaranteeModeHint')}
                                         </p>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Devise cotation</Label>
+                                        <Label className="cc-label">{t('create.financial.quoteCurrency')}</Label>
                                         <select className="cc-select" value={data.exchange_currency ?? ''}
                                                 onChange={e => {
                                                     const currency = e.target.value;
@@ -567,7 +572,7 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                                     setData('exchange_rate', '');
                                                     if (currency) void fetchExchangeRate(currency);
                                                 }}>
-                                            <option value="">Aucune (montants en devise du contrat)</option>
+                                            <option value="">{t('create.financial.quoteCurrencyNone')}</option>
                                             {currencies?.map((c: Currency) => (
                                                 <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
                                             ))}
@@ -577,14 +582,14 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                 {data.exchange_currency && (
                                     <div className="grid gap-2">
                                         <Label className="cc-label">
-                                            Cours du jour ({data.exchange_currency} → {selectedC?.currency_code ?? '—'})
+                                            {t('create.financial.rateToday', { from: data.exchange_currency, to: selectedC?.currency_code ?? '—' })}
                                         </Label>
                                         <Input className="h-11" type="number" step="0.000001" min={0}
                                                value={data.exchange_rate ?? ''}
                                                onChange={e => setData('exchange_rate', e.target.value)}
                                                placeholder="ex: 600"/>
                                         {rateStatus === 'loading' && (
-                                            <p style={{ fontSize:11, color:'#1d4ed8' }}>Récupération du taux du jour…</p>
+                                            <p style={{ fontSize:11, color:'#1d4ed8' }}>{t('create.financial.rateFetching')}</p>
                                         )}
                                         {rateStatus === 'error' && (
                                             <p style={{ fontSize:11, color:'#c2410c' }}>{rateMessage}</p>
@@ -594,7 +599,7 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Taux Divers (%)</Label>
+                                        <Label className="cc-label">{t('create.financial.rateDivers')}</Label>
                                         <Input className="h-11" type="number" step="0.0001" min={0} max={100}
                                                value={data.rate_divers}
                                                onChange={e => setData('rate_divers', e.target.value)}
@@ -602,19 +607,19 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                         <InputError message={errors.rate_divers}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cc-label">Taux Surprime (%)</Label>
+                                        <Label className="cc-label">{t('create.financial.rateSurprime')}</Label>
                                         <Input className="h-11" type="number" step="0.0001" min={0} max={100}
                                                value={data.rate_surprime}
                                                onChange={e => setData('rate_surprime', e.target.value)}
                                                placeholder="0"/>
                                         <InputError message={errors.rate_surprime}/>
-                                        <p style={{ fontSize:11, color:'#94a3b8' }}>Divers et Surprime se précisent au cas par cas sur ce certificat.</p>
+                                        <p style={{ fontSize:11, color:'#94a3b8' }}>{t('create.financial.rateSurprimeHint')}</p>
                                     </div>
                                 </div>
 
                                 {selectedC && (
                                     <div className="grid gap-2" style={{ marginTop:4 }}>
-                                        <Label className="cc-label">Aperçu de la Prime Nette</Label>
+                                        <Label className="cc-label">{t('create.financial.primePreview.label')}</Label>
                                         <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:9, padding:'10px 14px', display:'flex', flexDirection:'column', gap:4 }}>
                                             {primeRatePreview.map(l => (
                                                 <div key={l.label} style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#475569' }}>
@@ -623,19 +628,19 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                                                 </div>
                                             ))}
                                             <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, fontWeight:700, color:'#1e293b', paddingTop:6, marginTop:2, borderTop:'1px solid #e2e8f0' }}>
-                                                <span>Prime Nette</span>
+                                                <span>{t('create.financial.primePreview.primeNette')}</span>
                                                 <span style={{ fontFamily:'monospace' }}>{primeNettePreview.toLocaleString('fr-FR')} {selectedC.currency_code}</span>
                                             </div>
                                             <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#475569' }}>
-                                                <span>Accessoires (montant fixe)</span>
+                                                <span>{t('create.financial.primePreview.accessories')}</span>
                                                 <span style={{ fontFamily:'monospace' }}>{accessoiresPreview.toLocaleString('fr-FR')} {selectedC.currency_code}</span>
                                             </div>
                                             <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, fontWeight:700, color:'#1e293b', paddingTop:6, marginTop:2, borderTop:'1px solid #e2e8f0' }}>
-                                                <span>Sous-total (hors taxe)</span>
+                                                <span>{t('create.financial.primePreview.subtotal')}</span>
                                                 <span style={{ fontFamily:'monospace' }}>{(primeNettePreview + accessoiresPreview).toLocaleString('fr-FR')} {selectedC.currency_code}</span>
                                             </div>
                                             <p style={{ fontSize:10.5, color:'#94a3b8', margin:0 }}>
-                                                La taxe (référentiel filiale × mode de transport × pays) est calculée à l'enregistrement — Prime TTC = Prime Nette + Accessoires + Taxe.
+                                                {t('create.financial.primePreview.note')}
                                             </p>
                                         </div>
                                     </div>
@@ -647,19 +652,19 @@ export function CertificateForm({ data, setData, errors, processing, onSubmit, o
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing || isVoyageLocked}
                                     className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><Check size={14}/> {submitLabel}</>}
+                                {processing ? t('create.actions.saving') : <><Check size={14}/> {submitLabel}</>}
                             </Button>
                             {onSaveDraft && (
                                 <Button type="button" variant="outline" disabled={processing || isVoyageLocked} onClick={onSaveDraft}
                                         className="h-10 px-5">
-                                    <Save size={14}/> Stocker le Certificat
+                                    <Save size={14}/> {t('create.actions.saveDraft')}
                                 </Button>
                             )}
-                            <Button type="button" variant="outline" onClick={() => window.history.back()}>Annuler</Button>
+                            <Button type="button" variant="outline" onClick={() => window.history.back()}>{tc('actions.cancel')}</Button>
                         </div>
                         {onSaveDraft && (
                             <p style={{ fontSize:11, color:'#94a3b8', marginTop:-8 }}>
-                                « Stocker le Certificat » enregistre un brouillon même incomplet (statut Stocké) — vous pourrez le retrouver et terminer sa saisie plus tard.
+                                {t('create.actions.saveDraftHint')}
                             </p>
                         )}
                     </form>

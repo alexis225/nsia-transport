@@ -1,0 +1,81 @@
+{
+    "language": {
+        "label": "Langue",
+        "change": "Changer de langue"
+    },
+    "actions": {
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "confirm": "Confirmer",
+        "close": "Fermer",
+        "create": "Créer",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "search": "Rechercher",
+        "filter": "Filtrer",
+        "reset": "Réinitialiser",
+        "export": "Exporter",
+        "print": "Imprimer",
+        "download": "Télécharger",
+        "back": "Retour",
+        "next": "Suivant",
+        "previous": "Précédent",
+        "view": "Consulter",
+        "duplicate": "Dupliquer",
+        "validate": "Valider",
+        "reject": "Rejeter",
+        "submit": "Soumettre",
+        "send": "Envoyer",
+        "add": "Ajouter",
+        "remove": "Retirer"
+    },
+    "states": {
+        "loading": "Chargement…",
+        "saving": "Enregistrement…",
+        "processing": "Traitement…",
+        "empty": "Aucun résultat",
+        "none": "Aucun",
+        "yes": "Oui",
+        "no": "Non",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "required": "Obligatoire",
+        "optional": "Facultatif"
+    },
+    "fields": {
+        "name": "Nom",
+        "email": "Adresse email",
+        "phone": "Téléphone",
+        "password": "Mot de passe",
+        "status": "Statut",
+        "date": "Date",
+        "amount": "Montant",
+        "currency": "Devise",
+        "createdAt": "Créé le",
+        "updatedAt": "Modifié le",
+        "actions": "Actions",
+        "comment": "Commentaire"
+    },
+    "pagination": {
+        "showing": "{{from}}–{{to}} sur {{total}}",
+        "perPage": "Par page",
+        "page": "Page {{current}} sur {{last}}"
+    },
+    "confirm": {
+        "title": "Confirmer l'action",
+        "irreversible": "Cette action est irréversible."
+    },
+    "errors": {
+        "generic": "Une erreur est survenue. Merci de réessayer.",
+        "unauthorized": "Vous n'avez pas les droits nécessaires.",
+        "notFound": "Élément introuvable."
+    },
+    "certificateStatus": {
+        "CANCELLED": "Annulé",
+        "DRAFT": "Stocké",
+        "ISSUED": "Approuvé",
+        "REJECTED": "Rejeté",
+        "REPLACED": "Remplacé",
+        "SUBMITTED": "Soumis"
+    }
+}

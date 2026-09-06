@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -17,14 +18,15 @@ interface Expert {
 interface Props { expert: Expert; }
 
 export default function ExpertsShow({ expert }: Props) {
+    const { t } = useTranslation('experts');
+    const { t: tc } = useTranslation('common');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Experts', href: '/admin/experts' },
+        { title: t('index.breadcrumb'), href: '/admin/experts' },
         { title: expert.name },
     ];
 
     const handleToggle = () => {
-        const action = expert.is_active ? 'désactiver' : 'activer';
-        if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${expert.name} ?`))
+        if (confirm(expert.is_active ? t('show.confirmDeactivate', { name: expert.name }) : t('show.confirmActivate', { name: expert.name })))
             router.patch(route('admin.experts.toggle', { expert: expert.id }));
     };
 
@@ -65,35 +67,35 @@ export default function ExpertsShow({ expert }: Props) {
                             <div className="es-hero-name">{expert.name}</div>
                             <div className="es-hero-sub">
                                 {expert.is_active
-                                    ? <span style={{ color:'#86efac' }}>● Actif</span>
-                                    : <span style={{ color:'rgba(255,255,255,0.4)' }}>● Inactif</span>}
+                                    ? <span style={{ color:'#86efac' }}>{'● '}{tc('states.active')}</span>
+                                    : <span style={{ color:'rgba(255,255,255,0.4)' }}>{'● '}{tc('states.inactive')}</span>}
                             </div>
                         </div>
                         <div className="es-hero-actions">
                             <Link href={route('admin.experts.edit', { expert: expert.id })}>
                                 <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border-white/20 border h-8 px-3">
-                                    <Edit2 size={13}/> Modifier
+                                    <Edit2 size={13}/> {t('show.edit')}
                                 </Button>
                             </Link>
                             <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-8 px-3" onClick={handleToggle}>
-                                {expert.is_active ? <><ToggleLeft size={13}/> Désactiver</> : <><ToggleRight size={13}/> Activer</>}
+                                {expert.is_active ? <><ToggleLeft size={13}/> {t('show.deactivate')}</> : <><ToggleRight size={13}/> {t('show.activate')}</>}
                             </Button>
                         </div>
                     </div>
 
                     <div className="es-card">
-                        <div className="es-card-hdr"><div className="es-card-ttl">Informations</div></div>
+                        <div className="es-card-hdr"><div className="es-card-ttl">{t('show.title')}</div></div>
                         <div className="es-grid">
                             <div className="es-field">
-                                <div className="es-field-label">Nom</div>
+                                <div className="es-field-label">{t('show.fields.name')}</div>
                                 <div className="es-field-value">{expert.name}</div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">Pays</div>
+                                <div className="es-field-label">{t('show.fields.country')}</div>
                                 <div className="es-field-value">{expert.country_code ?? '—'}</div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">Email</div>
+                                <div className="es-field-label">{t('show.fields.email')}</div>
                                 <div className="es-field-value">
                                     {expert.email
                                         ? <div className="contact-row"><Mail size={13} color="#64748b"/>{expert.email}</div>
@@ -101,7 +103,7 @@ export default function ExpertsShow({ expert }: Props) {
                                 </div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">Téléphone</div>
+                                <div className="es-field-label">{t('show.fields.phone')}</div>
                                 <div className="es-field-value">
                                     {expert.phone
                                         ? <div className="contact-row"><Phone size={13} color="#64748b"/>{expert.phone}</div>
@@ -109,19 +111,19 @@ export default function ExpertsShow({ expert }: Props) {
                                 </div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">Filiale</div>
+                                <div className="es-field-label">{t('show.fields.tenant')}</div>
                                 <div className="es-field-value">{expert.tenant?.name ?? '—'}</div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">Statut</div>
+                                <div className="es-field-label">{t('show.fields.status')}</div>
                                 <div className="es-field-value">
                                     {expert.is_active
-                                        ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>Actif</span>
-                                        : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>Inactif</span>}
+                                        ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{tc('states.active')}</span>
+                                        : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{tc('states.inactive')}</span>}
                                 </div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">Créé le</div>
+                                <div className="es-field-label">{t('show.fields.createdAt')}</div>
                                 <div className="es-field-value" style={{ fontSize:12, color:'#64748b' }}>
                                     {new Date(expert.created_at).toLocaleDateString('fr-FR')}
                                 </div>
@@ -132,7 +134,7 @@ export default function ExpertsShow({ expert }: Props) {
                     <div>
                         <Link href={route('admin.experts.index')}>
                             <Button variant="outline" size="sm" className="h-9">
-                                <ArrowLeft size={13}/> Retour à la liste
+                                <ArrowLeft size={13}/> {t('show.backToList')}
                             </Button>
                         </Link>
                     </div>

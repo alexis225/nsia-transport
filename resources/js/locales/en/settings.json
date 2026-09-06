@@ -1,0 +1,127 @@
+{
+    "breadcrumb": {
+        "profile": "Profile settings",
+        "password": "Password",
+        "appearance": "Appearance",
+        "twoFactor": "Two-factor authentication"
+    },
+    "roles": {
+        "super_admin": "Super Administrator",
+        "admin_filiale": "Subsidiary Administrator",
+        "souscripteur": "Underwriter",
+        "courtier_local": "Local Broker",
+        "partenaire_etranger": "Foreign Partner",
+        "client": "Client"
+    },
+    "profile": {
+        "title": "Profile settings",
+        "avatar": {
+            "title": "Profile picture",
+            "subtitle": "JPG, PNG or WebP · Max 2 MB",
+            "choose": "Choose a picture",
+            "changePhoto": "Change picture",
+            "remove": "Remove",
+            "confirmRemove": "Remove your profile picture?",
+            "hint": "JPG, PNG or WebP format · Max size 2 MB",
+            "uploading": "Uploading…",
+            "updated": "Picture updated."
+        },
+        "defaultUserName": "User",
+        "personal": {
+            "title": "Personal details",
+            "subtitle": "First name, last name, email and phone",
+            "firstName": "First name",
+            "firstNamePlaceholder": "First name",
+            "lastName": "Last name",
+            "lastNamePlaceholder": "Last name",
+            "email": "Email address",
+            "emailPlaceholder": "first.last@nsia.com",
+            "emailVerified": "Verified",
+            "emailUnverified": "Not verified",
+            "phone": "Phone",
+            "phonePlaceholder": "+225 07 00 00 00 00"
+        },
+        "language": {
+            "title": "Interface language",
+            "subtitle": "Also applies to emails and generated documents"
+        },
+        "verify": {
+            "notice": "Your email address is not verified.",
+            "resend": "Resend the verification email.",
+            "sent": "Link sent."
+        },
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Saved"
+    },
+    "password": {
+        "title": "Password",
+        "heroSubtitle": "Account security · Password change",
+        "updated": "Password updated successfully.",
+        "cardTitle": "Change password",
+        "cardSubtitle": "Use a strong, unique password",
+        "current": "Current password",
+        "new": "New password",
+        "confirm": "Confirm new password",
+        "submit": "Update",
+        "submitting": "Updating…",
+        "rules": {
+            "length": "At least 8 characters",
+            "uppercase": "One uppercase letter",
+            "digit": "One digit",
+            "special": "One special character (!@#$...)"
+        },
+        "tips": {
+            "title": "Best practices",
+            "unique": "Use a different password for every service.",
+            "mfa": "Turn on two-factor authentication (MFA) for extra security.",
+            "share": "Never share your password with anyone.",
+            "rotate": "Change your password regularly, at least every 6 months."
+        }
+    },
+    "appearance": {
+        "title": "Appearance",
+        "heroSubtitle": "Personalisation · Theme and visual preferences",
+        "theme": {
+            "title": "Theme",
+            "subtitle": "Choose how the interface looks",
+            "light": "Light",
+            "lightDesc": "Bright interface",
+            "dark": "Dark",
+            "darkDesc": "Dark interface",
+            "system": "System",
+            "systemDesc": "Follows your OS preference"
+        },
+        "fontSize": {
+            "title": "Text size",
+            "subtitle": "Adjust the readability of the interface",
+            "sm": "Small",
+            "md": "Medium",
+            "lg": "Large"
+        },
+        "accent": {
+            "title": "Accent colour",
+            "subtitle": "Colour of buttons and active elements",
+            "blue": "Blue",
+            "indigo": "Indigo",
+            "violet": "Violet",
+            "teal": "Teal",
+            "green": "Green"
+        },
+        "sidebar": {
+            "title": "Sidebar",
+            "subtitle": "Default state on load",
+            "expanded": "Expanded",
+            "expandedDesc": "Menu visible by default",
+            "collapsed": "Collapsed",
+            "collapsedDesc": "Icons only"
+        },
+        "autosave": "Preferences are saved automatically."
+    },
+    "twoFactor": {
+        "title": "Two-factor authentication",
+        "description": "Manage your two-factor authentication settings",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+    }
+}

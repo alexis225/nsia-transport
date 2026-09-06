@@ -1,0 +1,57 @@
+{
+    "index": {
+        "breadcrumb": "Role delegations",
+        "title": "Role delegations — NSIA Transport",
+        "heading": "Role delegations",
+        "subtitle": "Temporary delegation of validation roles (leave, absences)",
+        "newDelegation": "New delegation",
+        "status": {
+            "active": "Active",
+            "expired": "Expired",
+            "revoked": "Revoked"
+        },
+        "card": {
+            "from": "From: {{name}}",
+            "grantedOn": "Granted on {{date}}",
+            "expiresOn": "Expires on {{date}}",
+            "revokedBy": "Revoked by {{name}}",
+            "revokedOn": " on {{date}}",
+            "revoke": "Revoke"
+        },
+        "revokeModal": {
+            "title": "Revoke delegation",
+            "descriptionPrefix": "Delegation of role",
+            "descriptionTo": "to",
+            "descriptionExpiry": " — expires on {{date}}",
+            "reasonLabel": "Reason for revocation (optional)",
+            "reasonPlaceholder": "e.g. Early return from leave…",
+            "confirm": "Revoke"
+        },
+        "receivedBanner": {
+            "title_one": "You have {{count}} active role delegation",
+            "title_other": "You have {{count}} active role delegations",
+            "role": "Role {{role}}",
+            "from": "From {{name}}",
+            "until": "until {{date}}"
+        },
+        "form": {
+            "title": "New role delegation",
+            "granteeLabel": "Delegate *",
+            "granteePlaceholder": "— Choose a colleague —",
+            "roleLabel": "Role to delegate *",
+            "rolePlaceholder": "— Choose a role —",
+            "expiresLabel": "Expiry date *",
+            "reasonLabel": "Reason (optional)",
+            "reasonPlaceholder": "e.g. Leave, travel…",
+            "warning": "The delegate will inherit all the permissions of the delegated role until the expiry date.",
+            "creating": "Saving…",
+            "create": "Create delegation"
+        },
+        "sections": {
+            "active": "Active delegations ({{count}})",
+            "activeEmpty": "No active delegations.",
+            "history": "History ({{count}})",
+            "historyEmpty": "No history."
+        }
+    }
+}

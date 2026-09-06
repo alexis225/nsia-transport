@@ -11,15 +11,18 @@ import { edit } from '@/routes/profile';
 import type { BreadcrumbItem } from '@/types';
 import { Lock, Check, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Paramètres du profil', href: edit() },
-    { title: 'Mot de passe' },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function Password() {
+    const { t }    = useTranslation('settings');
+    const { t: ta } = useTranslation('auth');
     const { auth } = usePage().props as any;
     const user     = auth?.user;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb.profile'), href: edit() },
+        { title: t('breadcrumb.password') },
+    ];
 
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew,     setShowNew]     = useState(false);
@@ -41,12 +44,12 @@ export default function Password() {
         return s;
     })();
 
-    const strengthLabel = ['', 'Très faible', 'Faible', 'Moyen', 'Fort', 'Très fort'][strength];
+    const strengthLabel = strength ? ta(`password.strength.${strength}`) : '';
     const strengthColor = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'][strength];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Mot de passe — NSIA Transport"/>
+            <Head title={`${t('password.title')} — NSIA Transport`}/>
 
             <style>{`
                 .pw-wrap {
@@ -166,8 +169,8 @@ export default function Password() {
                     <div className="pw-hero">
                         <div className="pw-avatar">{initials}</div>
                         <div className="pw-hero-info">
-                            <div className="pw-hero-name">{fullName || 'Utilisateur'}</div>
-                            <div className="pw-hero-sub">Sécurité du compte · Modification du mot de passe</div>
+                            <div className="pw-hero-name">{fullName || ta('user.fallbackName')}</div>
+                            <div className="pw-hero-sub">{t('password.heroSubtitle')}</div>
                         </div>
                         <div className="pw-hero-ico">
                             <Lock size={22} color="rgba(255,255,255,0.7)"/>
@@ -181,8 +184,8 @@ export default function Password() {
                                 <Lock size={17} color="#f97316"/>
                             </div>
                             <div>
-                                <div className="pw-card-ttl">Changer le mot de passe</div>
-                                <div className="pw-card-sub">Utilisez un mot de passe fort et unique</div>
+                                <div className="pw-card-ttl">{t('password.cardTitle')}</div>
+                                <div className="pw-card-sub">{t('password.cardSubtitle')}</div>
                             </div>
                         </div>
 
@@ -197,13 +200,13 @@ export default function Password() {
 
                                         {recentlySuccessful && (
                                             <div className="status-ok">
-                                                <Check size={13}/> Mot de passe mis à jour avec succès.
+                                                <Check size={13}/> {t('password.updated')}
                                             </div>
                                         )}
 
                                         {/* Mot de passe actuel */}
                                         <div className="pw-field">
-                                            <Label className="pw-label">Mot de passe actuel</Label>
+                                            <Label className="pw-label">{t('password.current')}</Label>
                                             <div className="pw-input-wrap">
                                                 <Input
                                                     name="current_password"
@@ -221,7 +224,7 @@ export default function Password() {
 
                                         {/* Nouveau mot de passe */}
                                         <div className="pw-field">
-                                            <Label className="pw-label">Nouveau mot de passe</Label>
+                                            <Label className="pw-label">{t('password.new')}</Label>
                                             <div className="pw-input-wrap">
                                                 <Input
                                                     name="password"
@@ -256,10 +259,10 @@ export default function Password() {
                                         {/* Règles */}
                                         <div className="pw-rules">
                                             {[
-                                                { ok: newPw.length >= 8,           label: 'Au moins 8 caractères' },
-                                                { ok: /[A-Z]/.test(newPw),         label: 'Une lettre majuscule' },
-                                                { ok: /[0-9]/.test(newPw),         label: 'Un chiffre' },
-                                                { ok: /[^A-Za-z0-9]/.test(newPw), label: 'Un caractère spécial (!@#$...)' },
+                                                { ok: newPw.length >= 8,          label: t('password.rules.length') },
+                                                { ok: /[A-Z]/.test(newPw),        label: t('password.rules.uppercase') },
+                                                { ok: /[0-9]/.test(newPw),        label: t('password.rules.digit') },
+                                                { ok: /[^A-Za-z0-9]/.test(newPw), label: t('password.rules.special') },
                                             ].map(({ ok, label }) => (
                                                 <div key={label} className={`pw-rule ${ok ? 'ok' : ''}`}>
                                                     <span className="rule-dot"/>
@@ -271,7 +274,7 @@ export default function Password() {
 
                                         {/* Confirmation */}
                                         <div className="pw-field">
-                                            <Label className="pw-label">Confirmer le nouveau mot de passe</Label>
+                                            <Label className="pw-label">{t('password.confirm')}</Label>
                                             <div className="pw-input-wrap">
                                                 <Input
                                                     name="password_confirmation"
@@ -293,7 +296,7 @@ export default function Password() {
                                                 disabled={processing}
                                                 className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5"
                                             >
-                                                {processing ? 'Mise à jour…' : 'Mettre à jour'}
+                                                {processing ? t('password.submitting') : t('password.submit')}
                                             </Button>
                                             <Transition
                                                 show={recentlySuccessful}
@@ -303,7 +306,7 @@ export default function Password() {
                                                 leaveTo="opacity-0"
                                             >
                                                 <p className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
-                                                    <Check size={13}/> Enregistré
+                                                    <Check size={13}/> {t('profile.saved')}
                                                 </p>
                                             </Transition>
                                         </div>
@@ -316,14 +319,14 @@ export default function Password() {
                     {/* ── Conseils sécurité ── */}
                     <div className="tips-card">
                         <div className="tips-ttl">
-                            <ShieldCheck size={15}/> Conseils de sécurité
+                            <ShieldCheck size={15}/> {t('password.tips.title')}
                         </div>
                         <div className="tips-list">
                             {[
-                                'Utilisez un mot de passe différent pour chaque service.',
-                                'Activez la double authentification (MFA) pour plus de sécurité.',
-                                'Ne partagez jamais votre mot de passe avec quelqu\'un.',
-                                'Changez votre mot de passe régulièrement, au moins tous les 6 mois.',
+                                t('password.tips.unique'),
+                                t('password.tips.mfa'),
+                                t('password.tips.share'),
+                                t('password.tips.rotate'),
                             ].map((tip, i) => (
                                 <div key={i} className="tip">
                                     <span className="tip-dot"/>

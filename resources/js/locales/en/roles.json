@@ -1,0 +1,83 @@
+{
+    "index": {
+        "breadcrumb": "Roles & Permissions",
+        "title": "Roles & Permissions — NSIA Transport",
+        "heading": "Roles & Permissions",
+        "count_one": "{{count}} role configured",
+        "count_other": "{{count}} roles configured",
+        "newRole": "New role",
+        "search": {
+            "placeholder": "Search a role…"
+        },
+        "clear": "Clear",
+        "table": {
+            "role": "Role",
+            "users": "Users",
+            "permissions": "Permissions",
+            "preview": "Preview",
+            "actions": "Actions"
+        },
+        "system": "system",
+        "permissionsCount_one": "{{count}} permission",
+        "permissionsCount_other": "{{count}} permissions",
+        "actions": {
+            "view": "View",
+            "edit": "Edit",
+            "delete": "Delete"
+        },
+        "empty": "No roles found.",
+        "pagination": {
+            "info": "Page {{current}} / {{last}} · {{total}} roles"
+        },
+        "confirmDelete": "Delete role « {{name}} »?",
+        "createModal": {
+            "title": "New role",
+            "subtitle": "Define the name and permissions",
+            "nameLabel": "Role name *",
+            "namePlaceholder": "e.g. regional_manager",
+            "permissionsLabel_one": "Permissions ({{count}} selected)",
+            "permissionsLabel_other": "Permissions ({{count}} selected)",
+            "create": "Create role"
+        },
+        "editModal": {
+            "titlePrefix": "Edit — {{name}}",
+            "nameLabel": "Role name",
+            "systemNote": "System role — renaming not allowed.",
+            "permissionsLabel_one": "Permissions ({{count}} selected)",
+            "permissionsLabel_other": "Permissions ({{count}} selected)",
+            "save": "Save"
+        }
+    },
+    "show": {
+        "breadcrumb": "Roles & Permissions",
+        "title": "Role {{name}} — NSIA Transport",
+        "permissionsCount_one": "{{count}} permission",
+        "permissionsCount_other": "{{count}} permissions",
+        "usersCount_one": "{{count}} user",
+        "usersCount_other": "{{count}} users",
+        "assignButton": "Assign to a user",
+        "assignModal": {
+            "title": "Assign role",
+            "userIdLabel": "User UUID *",
+            "note": "This will replace the user's current role.",
+            "assign": "Assign"
+        },
+        "usersSection": {
+            "title": "Users with this role",
+            "searchPlaceholder": "Search…",
+            "empty": "No users with this role."
+        },
+        "table": {
+            "user": "User",
+            "tenant": "Subsidiary",
+            "status": "Status"
+        },
+        "status": {
+            "active": "Active",
+            "blocked": "Blocked"
+        },
+        "pagination": {
+            "info": "Page {{current}} / {{last}} · {{total}} users"
+        }
+    }
+}

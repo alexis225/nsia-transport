@@ -1,5 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { CertificateForm, COVERAGE_LABELS, emptyItem, type ExpeditionItem } from './create';
@@ -29,10 +30,12 @@ interface Props {
 }
 
 export default function CertificateEdit({ certificate, contracts, countries, currencies }: Props) {
+    const { t } = useTranslation('certificates');
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Certificats', href: '/admin/certificates' },
+        { title: t('shared.breadcrumb'), href: '/admin/certificates' },
         { title: certificate.certificate_number, href: `/admin/certificates/${certificate.id}` },
-        { title: 'Modifier' },
+        { title: t('create.editBreadcrumb') },
     ];
 
     const { data, setData, put, processing, errors } = useForm({
@@ -75,22 +78,22 @@ export default function CertificateEdit({ certificate, contracts, countries, cur
         <div style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:9, padding:'12px 16px', fontSize:12, color:'#dc2626', display:'flex', gap:8 }}>
             <AlertCircle size={15} style={{ flexShrink:0, marginTop:1 }}/>
             <div>
-                <strong>Certificat rejeté — motif :</strong> {certificate.rejection_reason}
-                <div style={{ marginTop:2, color:'#991b1b' }}>Corrigez puis enregistrez pour repasser ce certificat en Stocké et le resoumettre.</div>
+                <strong>{t('create.rejectedBanner.title')}</strong> {certificate.rejection_reason}
+                <div style={{ marginTop:2, color:'#991b1b' }}>{t('create.rejectedBanner.hint')}</div>
             </div>
         </div>
     );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Modifier ${certificate.certificate_number} — NSIA Transport`}/>
+            <Head title={t('create.editTitle', { number: certificate.certificate_number })}/>
             <CertificateForm
                 data={data} setData={setData} errors={errors} processing={processing}
                 onSubmit={submit} isEditing
                 contracts={contracts} countries={countries} currencies={currencies}
-                heroTitle={`Modifier — ${certificate.certificate_number}`}
-                heroSub="Modification du certificat d'assurance"
-                submitLabel="Enregistrer les modifications"
+                heroTitle={t('create.editHeroTitle', { number: certificate.certificate_number })}
+                heroSub={t('create.editHeroSub')}
+                submitLabel={t('create.editSubmitLabel')}
                 banner={rejectionBanner}
             />
         </AppLayout>

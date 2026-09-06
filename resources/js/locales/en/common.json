@@ -1,0 +1,81 @@
+{
+    "language": {
+        "label": "Language",
+        "change": "Change language"
+    },
+    "actions": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "close": "Close",
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete",
+        "search": "Search",
+        "filter": "Filter",
+        "reset": "Reset",
+        "export": "Export",
+        "print": "Print",
+        "download": "Download",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "view": "View",
+        "duplicate": "Duplicate",
+        "validate": "Approve",
+        "reject": "Reject",
+        "submit": "Submit",
+        "send": "Send",
+        "add": "Add",
+        "remove": "Remove"
+    },
+    "states": {
+        "loading": "Loading…",
+        "saving": "Saving…",
+        "processing": "Processing…",
+        "empty": "No results",
+        "none": "None",
+        "yes": "Yes",
+        "no": "No",
+        "active": "Active",
+        "inactive": "Inactive",
+        "required": "Required",
+        "optional": "Optional"
+    },
+    "fields": {
+        "name": "Name",
+        "email": "Email address",
+        "phone": "Phone",
+        "password": "Password",
+        "status": "Status",
+        "date": "Date",
+        "amount": "Amount",
+        "currency": "Currency",
+        "createdAt": "Created on",
+        "updatedAt": "Updated on",
+        "actions": "Actions",
+        "comment": "Comment"
+    },
+    "pagination": {
+        "showing": "{{from}}–{{to}} of {{total}}",
+        "perPage": "Per page",
+        "page": "Page {{current}} of {{last}}"
+    },
+    "confirm": {
+        "title": "Confirm action",
+        "irreversible": "This action cannot be undone."
+    },
+    "errors": {
+        "generic": "Something went wrong. Please try again.",
+        "unauthorized": "You do not have the required permissions.",
+        "notFound": "Item not found."
+    },
+    "certificateStatus": {
+        "CANCELLED": "Cancelled",
+        "DRAFT": "Stored",
+        "ISSUED": "Approved",
+        "REJECTED": "Rejected",
+        "REPLACED": "Replaced",
+        "SUBMITTED": "Submitted"
+    }
+}

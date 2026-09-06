@@ -1,0 +1,33 @@
+{
+    "breadcrumbDashboard": "Painel",
+    "breadcrumb": "As minhas exportações",
+    "title": "As minhas exportações — NSIA Transport",
+    "heading": "As minhas exportações",
+    "subtitle": "Exportações assíncronas — disponíveis 24h após a geração",
+    "launchExport": "Iniciar uma exportação →",
+    "pendingBanner": "Exportação(ões) em curso — a página é atualizada automaticamente…",
+    "history": "Histórico de exportações ({{count}})",
+    "empty": "Nenhuma exportação. Inicie uma exportação a partir da lista de certificados.",
+    "columns": {
+        "typeFormat": "Tipo / Formato",
+        "filters": "Filtros",
+        "rows": "Linhas",
+        "size": "Tamanho",
+        "requestedAt": "Pedido em",
+        "completedAt": "Concluído em",
+        "expiration": "Expiração",
+        "status": "Estado",
+        "actions": "Ações"
+    },
+    "certificates": "Certificados",
+    "allFilters": "Todos",
+    "expiredSuffix": " (expirado)",
+    "status": {
+        "queued": "Em espera",
+        "processing": "Em curso",
+        "completed": "Concluído",
+        "failed": "Falhou"
+    },
+    "sizeUnitMo": "MB",
+    "sizeUnitKo": "KB"
+}

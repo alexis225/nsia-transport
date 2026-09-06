@@ -1,0 +1,165 @@
+{
+    "configs": {
+        "breadcrumb": "Escaladas NN300",
+        "breadcrumbCurrent": "Limiares & validações",
+        "title": "Limiares & validações NN300 — NSIA Transport",
+        "heading": "Limiares & validações NN300",
+        "subtitle": "Reforço — gatilhos de escalada e cadeia de validação hierárquica, por filial",
+        "newRule": "Nova regra",
+        "searchPlaceholder": "Nome da regra...",
+        "allTriggers": "Todos os gatilhos",
+        "allStatuses": "Todos os estados",
+        "active": "Ativa",
+        "inactive": "Inativa",
+        "allTenants": "Todas as filiais",
+        "triggers": {
+            "insured_value_pct_of_contract": "Excesso do capital seguro (%)",
+            "subscription_limit_exceeded": "Teto NN300 cumulativo ultrapassado",
+            "certificates_limit_reached": "Número máximo de certificados atingido"
+        },
+        "roles": {
+            "admin_filiale": "Admin Filial",
+            "super_admin": "Super Admin (DTAG)"
+        },
+        "deleteConfirm": "Eliminar esta regra de escalada?",
+        "form": {
+            "editTitle": "Editar regra",
+            "createTitle": "Nova regra de escalada",
+            "tenantLabel": "Filial *",
+            "tenantPlaceholder": "— Escolher —",
+            "nameLabel": "Nome da regra *",
+            "namePlaceholder": "ex: Escalada Teto NN300 — Senegal",
+            "triggerLabel": "Gatilho *",
+            "thresholdLabel": "Limiar (% do capital seguro) *",
+            "thresholdPlaceholder": "ex: 15",
+            "triggerHelp": {
+                "insured_value_pct_of_contract": "É acionado quando o valor seguro de um certificado ultrapassa esta percentagem do \"capital seguro\" do contrato (pode ser substituído por contrato).",
+                "subscription_limit_exceeded": "É acionado quando a submissão do certificado ultrapassaria o teto NN300 cumulativo do contrato — substitui o antigo bloqueio estrito.",
+                "certificates_limit_reached": "É acionado quando o contrato já atingiu o seu número máximo de certificados emitidos — substitui o antigo bloqueio estrito."
+            },
+            "chainLabel": "Cadeia de validação hierárquica *",
+            "stepLabel": "Etapa {{n}} — Aprovador",
+            "delayLabel": "Prazo (horas úteis)",
+            "addStep": "Adicionar uma etapa",
+            "create": "Criar regra"
+        },
+        "table": {
+            "rule": "Regra",
+            "tenant": "Filial",
+            "trigger": "Gatilho",
+            "validation": "Validação",
+            "status": "Estado",
+            "actions": "Ações"
+        },
+        "emptyFiltered": "Nenhuma regra corresponde aos filtros.",
+        "emptyNone": "Nenhuma regra de escalada configurada."
+    },
+    "index": {
+        "breadcrumb": "Escaladas NN300",
+        "title": "Escaladas NN300 — NSIA Transport",
+        "heading": "Escaladas NN300",
+        "subtitle": "Certificados que ultrapassam o limiar de subscrição — aguardando decisão",
+        "configsLink": "Limiares & validações",
+        "searchPlaceholder": "N.º certificado, n.º contrato, segurado...",
+        "allLevels": "Todos os níveis",
+        "level1": "Nível 1 (Admin)",
+        "level2": "Nível 2 (Super Admin)",
+        "allTenants": "Todas as filiais",
+        "overdueOnly": "Apenas com prazo excedido",
+        "kpi": {
+            "pending": "Pendentes",
+            "overdue": "Prazo excedido",
+            "level1": "Nível 1 (Admin)",
+            "level2": "Nível 2 (Super Admin)"
+        },
+        "emptyFilteredTitle": "Nenhuma escalada corresponde aos filtros",
+        "emptyFilteredSubtitle": "Tente ampliar a sua pesquisa.",
+        "emptyNoneTitle": "Nenhuma escalada pendente",
+        "emptyNoneSubtitle": "Todas as escaladas foram tratadas.",
+        "table": {
+            "certificate": "Certificado",
+            "insured": "Segurado",
+            "declaredValue": "Valor máximo declarado ou importado",
+            "thresholdExceeded": "Limiar ultrapassado",
+            "treatyThreshold": "Limiar do Teto do Tratado",
+            "tenant": "Filial",
+            "level": "Nível",
+            "timeLeft": "Prazo restante",
+            "action": "Ação"
+        },
+        "submittedBy": "Submetido por {{name}}",
+        "contractCeiling": "Capital seguro do contrato: {{value}}",
+        "threshold": "Limiar: {{value}}",
+        "exceeded": "— ultrapassado",
+        "levelN": "Nível {{level}}",
+        "expired": "Expirado",
+        "decide": "Decidir"
+    },
+    "show": {
+        "breadcrumbCurrent": "Decisão",
+        "title": "Escalada NN300 — Decisão",
+        "hero": {
+            "eyebrow": "Escalada NN300",
+            "title": "{{certNumber}} — Excesso de limiar {{pct}}%",
+            "subtitle": "{{insuredName}} · {{tenantName}}",
+            "level": "Nível {{level}} — {{levelLabel}}",
+            "overdue": "Prazo excedido"
+        },
+        "levels": {
+            "admin_filiale": "Admin Filial",
+            "super_admin": "Super Admin (DTAG)",
+            "autoIssue": "Emissão automática"
+        },
+        "progress": {
+            "title": "Progresso do workflow"
+        },
+        "timer": {
+            "overdueTitle": "Prazo excedido — escalada automática em curso",
+            "remaining": "Restam {{hours}}h úteis para decidir",
+            "expiresAt": "Expira em {{date}}"
+        },
+        "analysis": {
+            "title": "Análise do excesso",
+            "certificateValue": "Valor do certificado",
+            "thresholdLabel": "Limiar de escalada ({{pct}}% do contrato)",
+            "excess": "Excesso",
+            "excessValue": "+ {{value}}",
+            "declaredValue": "Valor máximo declarado ou importado",
+            "treatyThreshold": "Limiar do Teto do Tratado",
+            "exceeded": "— ultrapassado",
+            "ratio": "Rácio certificado / contrato"
+        },
+        "certificate": {
+            "title": "Certificado em causa",
+            "view": "Ver certificado →",
+            "number": "N.º Certificado",
+            "insured": "Segurado",
+            "submittedByLabel": "Submetido por",
+            "submittedBy": "{{name}} · {{date}}"
+        },
+        "history": {
+            "title": "Histórico de decisões",
+            "level": "Nível {{level}} — {{label}}",
+            "by": "por {{name}}"
+        },
+        "decisions": {
+            "APPROVED": "Aprovado",
+            "REJECTED": "Rejeitado",
+            "ESCALATED": "Escalado",
+            "EXPIRED": "Expirado"
+        },
+        "actions": {
+            "approve": "Aprovar",
+            "reject": "Rejeitar"
+        },
+        "actionModal": {
+            "approveTitle": "Aprovar a escalada",
+            "rejectTitle": "Rejeitar a escalada",
+            "approveNotice": "Ao aprovar, {{next}} receberá a decisão. Se for o nível 2, o certificado será emitido automaticamente.",
+            "notesLabel": "Notas (facultativo)",
+            "reasonLabel": "Motivo da rejeição *",
+            "notesPlaceholder": "Comentários eventuais…",
+            "reasonPlaceholder": "Especifique o motivo da rejeição…"
+        }
+    }
+}

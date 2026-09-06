@@ -1,0 +1,99 @@
+{
+    "breadcrumb": {
+        "section": "Commissions",
+        "bordereau": "Bordereau",
+        "rules": "Règles de commission"
+    },
+    "bordereau": {
+        "title": "Bordereau de commissions — NSIA Transport",
+        "heading": "Bordereau de commissions",
+        "subtitle": "Primes brutes, commissions et primes nettes par courtier",
+        "export": {
+            "csv": "CSV",
+            "excel": "Excel",
+            "pdf": "PDF"
+        },
+        "kpis": {
+            "certificates": "Certificats",
+            "primeBrute": "Prime brute totale",
+            "commission": "Commission totale",
+            "primeNette": "Prime nette totale"
+        },
+        "filters": {
+            "periodFromTitle": "Période du",
+            "periodToTitle": "Période au",
+            "to": "au",
+            "allBrokers": "Tous les courtiers",
+            "allStatuses": "Tous les statuts",
+            "statusPending": "En attente",
+            "statusPaid": "Payées",
+            "statusCancelled": "Annulées",
+            "clear": "Effacer"
+        },
+        "table": {
+            "certificate": "Certificat",
+            "insured": "Assuré",
+            "contract": "Contrat",
+            "broker": "Courtier",
+            "period": "Période",
+            "primeBrute": "Prime brute",
+            "rate": "Taux",
+            "commission": "Commission",
+            "primeNette": "Prime nette",
+            "status": "Statut"
+        },
+        "statuses": {
+            "PENDING": "En attente",
+            "PAID": "Payée",
+            "CANCELLED": "Annulée"
+        },
+        "empty": "Aucune transaction trouvée pour la période.",
+        "total_one": "TOTAL — {{count}} transaction",
+        "total_other": "TOTAL — {{count}} transactions",
+        "pagination": "{{from}}–{{to}} sur {{total}}"
+    },
+    "rules": {
+        "title": "Règles de commission — NSIA Transport",
+        "heading": "Règles de commission",
+        "subtitle": "Paramétrez les taux par courtier et par contrat",
+        "newRule": "Nouvelle règle",
+        "form": {
+            "title": "Nouvelle règle de commission",
+            "broker": "Courtier *",
+            "chooseBroker": "— Choisir —",
+            "contract": "Contrat (optionnel)",
+            "generalRate": "— Taux général —",
+            "rate": "Taux (%) *",
+            "ratePlaceholder": "ex: 10.00",
+            "baseType": "Base de calcul *",
+            "fixedAmount": "Montant fixe *",
+            "fixedAmountPlaceholder": "ex: 500000",
+            "effectiveDate": "Date d'effet *",
+            "endDate": "Date de fin (optionnel)",
+            "notes": "Notes (optionnel)",
+            "notesPlaceholder": "ex: Taux négocié pour 2026",
+            "hint": "Si un taux contrat existe, il prime sur le taux courtier général.",
+            "submit": "Créer la règle"
+        },
+        "table": {
+            "broker": "Courtier",
+            "contract": "Contrat",
+            "general": "Général",
+            "rate": "Taux",
+            "effectiveDate": "Date d'effet",
+            "endDate": "Date de fin",
+            "status": "Statut",
+            "notes": "Notes",
+            "action": "Action"
+        },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        },
+        "toggle": {
+            "deactivate": "Désactiver",
+            "activate": "Activer"
+        },
+        "empty": "Aucune règle de commission définie."
+    }
+}

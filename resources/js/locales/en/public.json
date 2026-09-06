@@ -1,0 +1,60 @@
+{
+    "verify": {
+        "headTitle": "Certificate verification — NSIA Transport",
+        "brandSub": "Authenticity verification",
+        "logoAlt": "Logo",
+        "status": {
+            "valid": "Certificate authentic and valid",
+            "cancelled": "Certificate cancelled",
+            "replaced": "Certificate replaced",
+            "notFound": "Certificate not found",
+            "invalid": "Certificate not valid"
+        },
+        "statusSub": {
+            "valid": "Issued by {{tenant}} · Verified on {{date}}",
+            "cancelled": "This certificate has been cancelled — not valid",
+            "replacedWithNumber": "Replaced by certificate no. {{number}} — not valid",
+            "replaced": "This certificate has been replaced — not valid",
+            "notFound": "No certificate matches this QR code",
+            "invalid": "This certificate is not in a valid state"
+        },
+        "shipment": {
+            "title": "Shipment details",
+            "insured": "Insured",
+            "policyNumber": "Policy no.",
+            "voyageDate": "Shipment date",
+            "from": "From",
+            "to": "To",
+            "transport": "Transport",
+            "transportTypes": {
+                "SEA": "Sea",
+                "AIR": "Air",
+                "ROAD": "Road",
+                "RAIL": "Rail"
+            }
+        },
+        "company": {
+            "title": "Insurance company",
+            "name": "Company",
+            "subsidiary": "Subsidiary",
+            "issuedAt": "Issue date"
+        },
+        "issuedBy": "Issued and signed by <1>{{issuer}}</1> — {{tenant}}",
+        "verifiedCount": "This certificate has been verified {{count}} times",
+        "footer": "NSIA Transport Insurance — Secure verification platform",
+        "verifiedOn": "Verified on {{date}}"
+    },
+    "welcome": {
+        "headTitle": "Welcome",
+        "dashboard": "Dashboard",
+        "login": "Log in",
+        "register": "Register",
+        "gettingStarted": "Let's get started",
+        "ecosystemIntro": "Laravel has an incredibly rich ecosystem.",
+        "ecosystemSuggestion": "We suggest starting with the following.",
+        "readThe": "Read the",
+        "documentation": "Documentation",
+        "watchTutorials": "Watch video tutorials at",
+        "deployNow": "Deploy now"
+    }
+}

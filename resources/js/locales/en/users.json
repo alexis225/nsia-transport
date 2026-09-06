@@ -1,0 +1,143 @@
+{
+    "create": {
+        "breadcrumb": "Users",
+        "breadcrumbNew": "New user",
+        "title": "New user",
+        "hero": {
+            "title": "Create a user",
+            "subtitle": "A welcome email will be sent automatically"
+        },
+        "form": {
+            "title": "Personal information",
+            "subtitle": "All fields marked * are required"
+        },
+        "fields": {
+            "firstName": "First name *",
+            "firstNamePlaceholder": "First name",
+            "lastName": "Last name *",
+            "lastNamePlaceholder": "Last name",
+            "email": "Email address *",
+            "emailPlaceholder": "firstname.lastname@nsia.com",
+            "phone": "Phone",
+            "phonePlaceholder": "+225 07 00 00 00 00",
+            "role": "Role *",
+            "roleSelect": "Select a role",
+            "broker": "Broker to link",
+            "brokerNone": "None (link later)",
+            "tenant": "Subsidiary",
+            "tenantDefault": "Logged-in admin's subsidiary",
+            "password": "Password *",
+            "passwordConfirm": "Confirm *"
+        },
+        "actions": {
+            "creating": "Creating…",
+            "create": "Create user"
+        }
+    },
+    "edit": {
+        "breadcrumb": "Users",
+        "breadcrumbEdit": "Edit",
+        "title": "Edit {{name}}",
+        "hero": {
+            "name": "Edit {{name}}",
+            "noTenant": "No subsidiary"
+        },
+        "form": {
+            "title": "Personal information",
+            "subtitle": "Edit the user's information",
+            "saved": "Changes saved."
+        },
+        "fields": {
+            "firstName": "First name *",
+            "firstNamePlaceholder": "First name",
+            "lastName": "Last name *",
+            "lastNamePlaceholder": "Last name",
+            "email": "Email address *",
+            "phone": "Phone",
+            "role": "Role",
+            "roleNone": "No role",
+            "tenant": "Subsidiary",
+            "tenantNone": "No subsidiary"
+        },
+        "actions": {
+            "saving": "Saving…",
+            "save": "Save"
+        }
+    },
+    "index": {
+        "breadcrumb": "Users",
+        "title": "Users — NSIA Transport",
+        "heading": "Users",
+        "count_one": "{{count}} user",
+        "count_other": "{{count}} users",
+        "newUser": "New user",
+        "search": {
+            "placeholder": "Search by name or email…"
+        },
+        "filters": {
+            "allRoles": "All roles",
+            "allStatuses": "All statuses",
+            "active": "Active",
+            "blocked": "Blocked",
+            "clear": "Clear"
+        },
+        "table": {
+            "user": "User",
+            "role": "Role",
+            "tenant": "Subsidiary",
+            "status": "Status",
+            "lastLogin": "Last login",
+            "actions": "Actions"
+        },
+        "status": {
+            "active": "Active",
+            "blocked": "Blocked"
+        },
+        "actions": {
+            "view": "View",
+            "edit": "Edit",
+            "block": "Block",
+            "unblock": "Unblock",
+            "delete": "Delete"
+        },
+        "empty": "No users found.",
+        "pagination": {
+            "info": "Page {{current}} / {{last}} · {{total}} results"
+        },
+        "confirmUnblock": "Unblock {{name}}?",
+        "confirmDelete": "Permanently delete {{name}}?",
+        "blockModal": {
+            "title": "Block user",
+            "reasonLabel": "Reason for blocking *",
+            "reasonPlaceholder": "Describe the reason for blocking…",
+            "confirm": "Block"
+        }
+    },
+    "show": {
+        "breadcrumb": "Users",
+        "breadcrumbDetail": "Detail",
+        "edit": "Edit",
+        "blockedBox": {
+            "title": "⚠ Account blocked",
+            "reason": "Reason: {{reason}}",
+            "blockedOn": "Blocked on {{date}}"
+        },
+        "accountInfo": {
+            "title": "Account information",
+            "email": "Email",
+            "verified": "Verified",
+            "unverified": "Unverified",
+            "phone": "Phone",
+            "lastLogin": "Last login",
+            "createdAt": "Created on"
+        },
+        "history": {
+            "title": "Action history ({{count}})"
+        },
+        "backToList": "Back to list",
+        "status": {
+            "active": "Active",
+            "blocked": "Blocked"
+        }
+    }
+}

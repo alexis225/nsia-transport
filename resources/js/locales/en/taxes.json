@@ -1,0 +1,47 @@
+{
+    "breadcrumb": {
+        "section": "Taxes",
+        "rules": "Tax schedule"
+    },
+    "rules": {
+        "title": "Tax schedule — NSIA Transport",
+        "heading": "Tax schedule",
+        "subtitle": "Rates by subsidiary, transport mode and country — applied automatically when certificates are issued",
+        "newRate": "New rate",
+        "form": {
+            "title": "New tax rate",
+            "tenant": "Subsidiary *",
+            "chooseTenant": "— Select —",
+            "transportMode": "Transport mode",
+            "allModesDefault": "All modes (default)",
+            "country": "Destination country",
+            "allDestinationsDefault": "All destinations (default)",
+            "rate": "Rate (%) *",
+            "ratePlaceholder": "e.g. 18.00",
+            "effectiveDate": "Effective date *",
+            "endDate": "End date (optional)",
+            "notes": "Notes (optional)",
+            "notesPlaceholder": "e.g. VAT + customs duties 2026",
+            "hint": "This rate replaces the manual tax rate entry on the contract — it is resolved automatically at issuance based on the certificate's transport mode and destination country. Leaving \"Transport mode\" and/or \"Destination country\" empty creates a default rule (a single subsidiary-wide tax, or a mode-based rate regardless of destination) used when no more specific rule matches.",
+            "submit": "Create rate"
+        },
+        "table": {
+            "tenant": "Subsidiary",
+            "transportMode": "Transport mode",
+            "country": "Country",
+            "allModes": "All modes",
+            "allDestinations": "All destinations",
+            "rate": "Rate",
+            "effectiveDate": "Effective date",
+            "endDate": "End date",
+            "status": "Status",
+            "notes": "Notes",
+            "action": "Action"
+        },
+        "toggle": {
+            "deactivate": "Deactivate",
+            "activate": "Activate"
+        },
+        "empty": "No tax rate defined."
+    }
+}

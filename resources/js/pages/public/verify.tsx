@@ -4,6 +4,7 @@ import {
     Ship, Plane, Truck, Calendar,
     MapPin, Shield, Building2, User,
 } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 
 interface CertificatePublic {
     certificate_number: string;
@@ -35,6 +36,7 @@ const TRANSPORT_ICONS: Record<string, any> = {
 };
 
 export default function CertificateVerify({ status, certificate, verifiedAt }: Props) {
+    const { t } = useTranslation('public');
     const isValid     = status === 'valid';
     const isCancelled = status === 'cancelled';
     const isReplaced  = status === 'replaced';
@@ -46,7 +48,7 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
 
     return (
         <>
-            <Head title="Vérification certificat — NSIA Transport"/>
+            <Head title={t('verify.headTitle')}/>
             <style>{`
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f1f5f9; min-height: 100vh; color: #1a1a2e; }
@@ -107,7 +109,7 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
                     </div>
                     <div>
                         <div className="nsia-name">NSIA TRANSPORT</div>
-                        <div className="nsia-sub">Vérification d'authenticité</div>
+                        <div className="nsia-sub">{t('verify.brandSub')}</div>
                     </div>
                 </div>
 
@@ -127,20 +129,20 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
                         </div>
                         <div>
                             <div className="status-title">
-                                {isValid     && 'Certificat authentique et valide'}
-                                {isCancelled && 'Certificat annulé'}
-                                {isReplaced  && 'Certificat remplacé'}
-                                {notFound    && 'Certificat introuvable'}
-                                {!isValid && !isCancelled && !isReplaced && !notFound && 'Certificat non valide'}
+                                {isValid     && t('verify.status.valid')}
+                                {isCancelled && t('verify.status.cancelled')}
+                                {isReplaced  && t('verify.status.replaced')}
+                                {notFound    && t('verify.status.notFound')}
+                                {!isValid && !isCancelled && !isReplaced && !notFound && t('verify.status.invalid')}
                             </div>
                             <div className="status-sub">
-                                {isValid     && `Émis par ${certificate?.tenant?.name ?? 'NSIA'} · Vérifié le ${verifiedAt}`}
-                                {isCancelled && 'Ce certificat a été annulé — non valide'}
+                                {isValid     && t('verify.statusSub.valid', { tenant: certificate?.tenant?.name ?? 'NSIA', date: verifiedAt })}
+                                {isCancelled && t('verify.statusSub.cancelled')}
                                 {isReplaced  && (certificate?.replaced_by
-                                    ? `Remplacé par le certificat N° ${certificate.replaced_by} — non valide`
-                                    : 'Ce certificat a été remplacé — non valide')}
-                                {notFound    && 'Aucun certificat ne correspond à ce QR code'}
-                                {!isValid && !isCancelled && !isReplaced && !notFound && 'Ce certificat n\'est pas dans un état valide'}
+                                    ? t('verify.statusSub.replacedWithNumber', { number: certificate.replaced_by })
+                                    : t('verify.statusSub.replaced'))}
+                                {notFound    && t('verify.statusSub.notFound')}
+                                {!isValid && !isCancelled && !isReplaced && !notFound && t('verify.statusSub.invalid')}
                             </div>
                         </div>
                     </div>
@@ -160,36 +162,35 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
                                 <div className="info-card-ico" style={{ background:'#eff6ff' }}>
                                     <TransIcon size={15} color="#3b82f6"/>
                                 </div>
-                                <span className="info-card-ttl">Détails de l'expédition</span>
+                                <span className="info-card-ttl">{t('verify.shipment.title')}</span>
                             </div>
                             <div className="info-card-body">
                                 <div className="info-row">
-                                    <span className="info-label">Assuré</span>
+                                    <span className="info-label">{t('verify.shipment.insured')}</span>
                                     <span className="info-value" style={{ fontWeight:600 }}>{certificate.insured_name}</span>
                                 </div>
                                 <div className="info-row">
-                                    <span className="info-label">Police N°</span>
+                                    <span className="info-label">{t('verify.shipment.policyNumber')}</span>
                                     <span className="info-value" style={{ fontFamily:'monospace' }}>{certificate.policy_number}</span>
                                 </div>
                                 <div className="info-row">
-                                    <span className="info-label">Date d'expédition</span>
+                                    <span className="info-label">{t('verify.shipment.voyageDate')}</span>
                                     <span className="info-value">{certificate.voyage_date}</span>
                                 </div>
                                 <div className="info-row">
-                                    <span className="info-label">De</span>
+                                    <span className="info-label">{t('verify.shipment.from')}</span>
                                     <span className="info-value">{certificate.voyage_from}</span>
                                 </div>
                                 <div className="info-row">
-                                    <span className="info-label">À</span>
+                                    <span className="info-label">{t('verify.shipment.to')}</span>
                                     <span className="info-value">{certificate.voyage_to}</span>
                                 </div>
                                 {certificate.transport_type && (
                                     <div className="info-row">
-                                        <span className="info-label">Transport</span>
-                                        <span className="info-value">{{
-                                            SEA: 'Maritime', AIR: 'Aérien',
-                                            ROAD: 'Routier', RAIL: 'Ferroviaire',
-                                        }[certificate.transport_type] ?? certificate.transport_type}</span>
+                                        <span className="info-label">{t('verify.shipment.transport')}</span>
+                                        <span className="info-value">
+                                            {t(`verify.shipment.transportTypes.${certificate.transport_type}`, { defaultValue: certificate.transport_type })}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -201,25 +202,25 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
                                 <div className="info-card-ico" style={{ background:'#fdf4ff' }}>
                                     <Building2 size={15} color="#7c3aed"/>
                                 </div>
-                                <span className="info-card-ttl">Compagnie d'assurance</span>
+                                <span className="info-card-ttl">{t('verify.company.title')}</span>
                             </div>
                             <div className="info-card-body">
                                 {certificate.template_logo && (
                                     <div style={{ textAlign:'center', marginBottom:12 }}>
-                                        <img src={certificate.template_logo} alt="Logo" style={{ maxHeight:48, maxWidth:160, objectFit:'contain' }}/>
+                                        <img src={certificate.template_logo} alt={t('verify.logoAlt')} style={{ maxHeight:48, maxWidth:160, objectFit:'contain' }}/>
                                     </div>
                                 )}
                                 <div className="info-row">
-                                    <span className="info-label">Société</span>
+                                    <span className="info-label">{t('verify.company.name')}</span>
                                     <span className="info-value">{certificate.template_company ?? certificate.tenant?.name}</span>
                                 </div>
                                 <div className="info-row">
-                                    <span className="info-label">Filiale</span>
+                                    <span className="info-label">{t('verify.company.subsidiary')}</span>
                                     <span className="info-value">{certificate.tenant?.name}</span>
                                 </div>
                                 {certificate.issued_at && (
                                     <div className="info-row">
-                                        <span className="info-label">Date d'émission</span>
+                                        <span className="info-label">{t('verify.company.issuedAt')}</span>
                                         <span className="info-value">{certificate.issued_at}</span>
                                     </div>
                                 )}
@@ -232,7 +233,7 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
                                 <div className="issuer-row">
                                     <CheckCircle size={14} color="#15803d"/>
                                     <span className="issuer-text">
-                                        Émis et signé par <strong>{certificate.issuer}</strong> — {certificate.tenant?.name}
+                                        <Trans t={t} i18nKey="verify.issuedBy" values={{ issuer: certificate.issuer, tenant: certificate.tenant?.name }} components={{ 1: <strong /> }} />
                                     </span>
                                 </div>
                             </div>
@@ -241,7 +242,7 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
                         {/* Compteur vérifications */}
                         {certificate.verification_count > 1 && (
                             <div className="verify-count">
-                                Ce certificat a été vérifié {certificate.verification_count} fois
+                                {t('verify.verifiedCount', { count: certificate.verification_count })}
                             </div>
                         )}
                     </>
@@ -249,8 +250,8 @@ export default function CertificateVerify({ status, certificate, verifiedAt }: P
 
                 {/* Footer */}
                 <div className="verify-footer">
-                    NSIA Assurances Transport — Plateforme de vérification sécurisée<br/>
-                    Vérifié le {verifiedAt}
+                    {t('verify.footer')}<br/>
+                    {t('verify.verifiedOn', { date: verifiedAt })}
                 </div>
             </div>
         </>

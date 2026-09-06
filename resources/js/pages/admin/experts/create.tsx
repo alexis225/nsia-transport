@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,9 +27,10 @@ const COUNTRIES = [
 ];
 
 export default function ExpertsCreate({ tenants, defaultTenantId }: Props) {
+    const { t } = useTranslation('experts');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Experts', href: '/admin/experts' },
-        { title: 'Nouvel expert' },
+        { title: t('index.breadcrumb'), href: '/admin/experts' },
+        { title: t('create.breadcrumb') },
     ];
 
     const { data, setData, post, processing, errors } = useForm({
@@ -47,20 +49,22 @@ export default function ExpertsCreate({ tenants, defaultTenantId }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouvel expert — NSIA Transport"/>
+            <Head title={t('create.title')}/>
             <ExpertForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants}
-                submitLabel="Créer l'expert"
-                heroTitle="Nouvel expert"
-                heroSub="Enregistrez un nouvel expert d'assurance"
+                submitLabel={t('create.submitLabel')}
+                heroTitle={t('create.heroTitle')}
+                heroSub={t('create.heroSub')}
             />
         </AppLayout>
     );
 }
 
 export function ExpertForm({ data, setData, errors, processing, onSubmit, tenants, submitLabel, heroTitle, heroSub }: any) {
+    const { t } = useTranslation('experts');
+    const { t: tc } = useTranslation('common');
     return (
         <>
             <style>{`
@@ -101,37 +105,37 @@ export function ExpertForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* Identification */}
                         <div className="ef-card">
                             <div className="ef-card-hdr">
-                                <div className="ef-card-ttl">Identification</div>
-                                <div className="ef-card-sub">Informations de l'expert</div>
+                                <div className="ef-card-ttl">{t('form.identification.title')}</div>
+                                <div className="ef-card-sub">{t('form.identification.subtitle')}</div>
                             </div>
                             <div className="ef-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="ef-label">Nom complet *</Label>
-                                    <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder="Jean-Paul Martin"/>
+                                    <Label className="ef-label">{t('form.identification.name')}</Label>
+                                    <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder={t('form.identification.namePlaceholder')}/>
                                     <InputError message={errors.name}/>
                                 </div>
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="ef-label">Email</Label>
+                                        <Label className="ef-label">{t('form.identification.email')}</Label>
                                         <Input className="h-11" type="email" value={data.email}
                                                onChange={e => setData('email', e.target.value)}
-                                               placeholder="expert@assurance.com"/>
+                                               placeholder={t('form.identification.emailPlaceholder')}/>
                                         <InputError message={errors.email}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="ef-label">Téléphone</Label>
+                                        <Label className="ef-label">{t('form.identification.phone')}</Label>
                                         <Input className="h-11" type="tel" value={data.phone}
                                                onChange={e => setData('phone', e.target.value)}
-                                               placeholder="+225 07 00 00 00 00"/>
+                                               placeholder={t('form.identification.phonePlaceholder')}/>
                                         <InputError message={errors.phone}/>
                                     </div>
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label className="ef-label">Pays</Label>
+                                    <Label className="ef-label">{t('form.identification.country')}</Label>
                                     <select className="ef-select" value={data.country_code ?? ''} onChange={e => setData('country_code', e.target.value)}>
-                                        <option value="">— Aucun —</option>
+                                        <option value="">{t('form.identification.noneOption')}</option>
                                         {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                                     </select>
                                     <InputError message={errors.country_code}/>
@@ -139,10 +143,10 @@ export function ExpertForm({ data, setData, errors, processing, onSubmit, tenant
 
                                 {tenants?.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="ef-label">Filiale</Label>
+                                        <Label className="ef-label">{t('form.identification.tenant')}</Label>
                                         <select className="ef-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
-                                            <option value="">Sélectionnez une filiale</option>
-                                            {tenants.map((t: any) => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                            <option value="">{t('form.identification.selectTenant')}</option>
+                                            {tenants.map((tn: any) => <option key={tn.id} value={tn.id}>{tn.name} ({tn.code})</option>)}
                                         </select>
                                         <InputError message={errors.tenant_id}/>
                                     </div>
@@ -153,7 +157,7 @@ export function ExpertForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* Statut */}
                         <div className="ef-card">
                             <div className="ef-card-hdr">
-                                <div className="ef-card-ttl">Statut</div>
+                                <div className="ef-card-ttl">{t('form.status.title')}</div>
                             </div>
                             <div className="ef-card-body">
                                 <div className="ef-toggle" onClick={() => setData('is_active', !data.is_active)}>
@@ -162,10 +166,10 @@ export function ExpertForm({ data, setData, errors, processing, onSubmit, tenant
                                     </div>
                                     <div>
                                         <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>
-                                            {data.is_active ? 'Expert actif' : 'Expert inactif'}
+                                            {data.is_active ? t('form.status.active') : t('form.status.inactive')}
                                         </div>
                                         <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>
-                                            {data.is_active ? 'Peut être assigné aux dossiers' : 'Ne peut pas être utilisé'}
+                                            {data.is_active ? t('form.status.activeHint') : t('form.status.inactiveHint')}
                                         </div>
                                     </div>
                                 </div>
@@ -174,10 +178,10 @@ export function ExpertForm({ data, setData, errors, processing, onSubmit, tenant
 
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><Check size={14}/> {submitLabel}</>}
+                                {processing ? tc('states.saving') : <><Check size={14}/> {submitLabel}</>}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                                Annuler
+                                {tc('actions.cancel')}
                             </Button>
                         </div>
                     </form>

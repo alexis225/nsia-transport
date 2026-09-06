@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Loader2, AlertCircle, ArrowLeft, Mail } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/language-switcher';
 import { useRecaptchaToken } from '@/hooks/use-recaptcha-token';
 
 interface ForgotPasswordProps {
@@ -8,6 +10,7 @@ interface ForgotPasswordProps {
 }
 
 export default function ForgotPassword({ status }: ForgotPasswordProps) {
+    const { t } = useTranslation('auth');
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
     const recaptchaToken = useRecaptchaToken('forgot_password');
@@ -28,7 +31,7 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
 
     return (
         <>
-            <Head title="Mot de passe oublié — NSIA Transport" />
+            <Head title={`${t('forgot.title')} — NSIA Transport`} />
 
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -112,6 +115,12 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                     transition: opacity 0.5s ease, transform 0.5s ease;
                 }
                 .form-box.visible { opacity: 1; transform: translateY(0); }
+
+                .switcher-row {
+                    display: flex;
+                    justify-content: flex-end;
+                    margin-bottom: 8px;
+                }
 
                 .form-title {
                     font-size: 28px; font-weight: 600;
@@ -254,11 +263,10 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
 
                     <div className="left-text">
                         <h2 className="left-title">
-                            Mot de passe oublié ?<br />Pas de panique.
+                            {t('forgot.asideTitle')}
                         </h2>
                         <p className="left-sub">
-                            Entrez votre email et nous vous enverrons
-                            un lien pour réinitialiser votre mot de passe.
+                            {t('forgot.asideText')}
                         </p>
                     </div>
                 </div>
@@ -267,10 +275,14 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                 <div className="right">
                     <div className={`form-box ${mounted ? 'visible' : ''}`}>
 
-                        <h1 className="form-title">Réinitialisation</h1>
+                        <div className="switcher-row">
+                            <LanguageSwitcher />
+                        </div>
+
+                        <h1 className="form-title">{t('forgot.heading')}</h1>
                         <p className="form-desc">
-                            Saisissez l'adresse email associée à votre compte.<br />
-                            Vous recevrez un lien valable <strong>60 minutes</strong>.
+                            {t('forgot.description')}<br />
+                            <Trans t={t} i18nKey="forgot.validity" components={{ 1: <strong /> }} />
                         </p>
 
                         {/* Succès */}
@@ -280,7 +292,7 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                                     <Mail size={16} color="#15803d" />
                                 </div>
                                 <div>
-                                    <p style={{ fontWeight: 500, marginBottom: 2 }}>Email envoyé !</p>
+                                    <p style={{ fontWeight: 500, marginBottom: 2 }}>{t('forgot.sent')}</p>
                                     <p style={{ opacity: 0.85 }}>{status}</p>
                                 </div>
                             </div>
@@ -294,7 +306,7 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                                     onChange={e => setData('email', e.target.value)}
                                     autoComplete="email"
                                     autoFocus
-                                    placeholder="Adresse email"
+                                    placeholder={t('login.email')}
                                     disabled={processing}
                                     className={`field-input${errors.email ? ' has-error' : ''}`}
                                 />
@@ -315,21 +327,21 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                                 {processing ? (
                                     <>
                                         <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                                        Envoi en cours…
+                                        {t('forgot.submitting')}
                                     </>
                                 ) : (
-                                    'Envoyer le lien'
+                                    t('forgot.submit')
                                 )}
                             </button>
                         </form>
 
                         <Link href={route('login')} className="back-link">
                             <ArrowLeft size={15} />
-                            Retour à la connexion
+                            {t('forgot.backToLogin')}
                         </Link>
 
                         <div className="form-footer">
-                            © {new Date().getFullYear()} NSIA Holding Assurances — Confidentiel
+                            {t('brand.copyright', { year: new Date().getFullYear() })}
                         </div>
                     </div>
                 </div>

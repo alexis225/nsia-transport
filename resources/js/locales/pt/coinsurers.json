@@ -1,0 +1,92 @@
+{
+    "index": {
+        "breadcrumb": "Cosseguradoras",
+        "title": "Cosseguradoras — NSIA Transport",
+        "heading": "Cosseguradoras",
+        "count_one": "{{count}} cosseguradora",
+        "count_other": "{{count}} cosseguradoras",
+        "newCoinsurer": "Nova cosseguradora",
+        "searchPlaceholder": "Pesquisar por nome…",
+        "statusAll": "Todos os estados",
+        "statusActive": "Ativas",
+        "statusInactive": "Inativas",
+        "clear": "Limpar",
+        "empty": "Nenhuma cosseguradora encontrada.",
+        "table": {
+            "coinsurer": "Cosseguradora",
+            "country": "País",
+            "contact": "Contacto",
+            "tenant": "Filial",
+            "status": "Estado",
+            "actions": "Ações"
+        },
+        "view": "Ver",
+        "edit": "Editar",
+        "deactivate": "Desativar",
+        "activate": "Ativar",
+        "delete": "Eliminar",
+        "confirmDelete": "Eliminar a cosseguradora « {{name}} »?",
+        "confirmDeactivate": "Desativar {{name}}?",
+        "confirmActivate": "Ativar {{name}}?",
+        "pageInfo": "Página {{current}} / {{last}} · {{total}} cosseguradoras"
+    },
+    "show": {
+        "title": "Informações",
+        "fields": {
+            "name": "Nome",
+            "country": "País",
+            "email": "Email",
+            "phone": "Telefone",
+            "address": "Endereço",
+            "tenant": "Filial",
+            "status": "Estado",
+            "createdAt": "Criado em"
+        },
+        "edit": "Editar",
+        "deactivate": "Desativar",
+        "activate": "Ativar",
+        "backToList": "Voltar à lista",
+        "confirmDeactivate": "Desativar {{name}}?",
+        "confirmActivate": "Ativar {{name}}?"
+    },
+    "create": {
+        "breadcrumb": "Nova cosseguradora",
+        "title": "Nova cosseguradora — NSIA Transport",
+        "submitLabel": "Criar cosseguradora",
+        "heroTitle": "Nova cosseguradora",
+        "heroSub": "Registe uma nova cosseguradora participante nos contratos"
+    },
+    "edit": {
+        "breadcrumb": "Editar",
+        "title": "Editar {{name}} — NSIA Transport",
+        "submitLabel": "Guardar alterações",
+        "heroTitle": "Editar: {{name}}",
+        "heroSub": "Atualize as informações da cosseguradora"
+    },
+    "form": {
+        "identification": {
+            "title": "Identificação",
+            "subtitle": "Informações da cosseguradora",
+            "name": "Nome / Razão social *",
+            "namePlaceholder": "Seguros Dupont SA",
+            "country": "País",
+            "noneOption": "— Nenhum —",
+            "phone": "Telefone",
+            "phonePlaceholder": "+225 XX XX XX XX XX",
+            "email": "Email",
+            "emailPlaceholder": "contacto@cosseguradora.com",
+            "address": "Endereço",
+            "addressPlaceholder": "Endereço da sede",
+            "rateHint": "A taxa de cosseguro não é indicada aqui — é definida caso a caso na associação da cosseguradora a um contrato.",
+            "tenant": "Filial",
+            "selectTenant": "Selecione uma filial"
+        },
+        "status": {
+            "title": "Estado",
+            "active": "Cosseguradora ativa",
+            "inactive": "Cosseguradora inativa",
+            "activeHint": "Pode participar nos contratos",
+            "inactiveHint": "Não pode ser utilizada"
+        }
+    }
+}

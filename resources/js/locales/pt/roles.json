@@ -1,0 +1,83 @@
+{
+    "index": {
+        "breadcrumb": "Funções & Permissões",
+        "title": "Funções & Permissões — NSIA Transport",
+        "heading": "Funções & Permissões",
+        "count_one": "{{count}} função configurada",
+        "count_other": "{{count}} funções configuradas",
+        "newRole": "Nova função",
+        "search": {
+            "placeholder": "Pesquisar uma função…"
+        },
+        "clear": "Limpar",
+        "table": {
+            "role": "Função",
+            "users": "Utilizadores",
+            "permissions": "Permissões",
+            "preview": "Pré-visualização",
+            "actions": "Ações"
+        },
+        "system": "sistema",
+        "permissionsCount_one": "{{count}} permissão",
+        "permissionsCount_other": "{{count}} permissões",
+        "actions": {
+            "view": "Ver",
+            "edit": "Editar",
+            "delete": "Eliminar"
+        },
+        "empty": "Nenhuma função encontrada.",
+        "pagination": {
+            "info": "Página {{current}} / {{last}} · {{total}} funções"
+        },
+        "confirmDelete": "Eliminar a função « {{name}} »?",
+        "createModal": {
+            "title": "Nova função",
+            "subtitle": "Defina o nome e as permissões",
+            "nameLabel": "Nome da função *",
+            "namePlaceholder": "ex: responsavel_regional",
+            "permissionsLabel_one": "Permissões ({{count}} selecionada)",
+            "permissionsLabel_other": "Permissões ({{count}} selecionadas)",
+            "create": "Criar função"
+        },
+        "editModal": {
+            "titlePrefix": "Editar — {{name}}",
+            "nameLabel": "Nome da função",
+            "systemNote": "Função de sistema — mudança de nome não permitida.",
+            "permissionsLabel_one": "Permissões ({{count}} selecionada)",
+            "permissionsLabel_other": "Permissões ({{count}} selecionadas)",
+            "save": "Guardar"
+        }
+    },
+    "show": {
+        "breadcrumb": "Funções & Permissões",
+        "title": "Função {{name}} — NSIA Transport",
+        "permissionsCount_one": "{{count}} permissão",
+        "permissionsCount_other": "{{count}} permissões",
+        "usersCount_one": "{{count}} utilizador",
+        "usersCount_other": "{{count}} utilizadores",
+        "assignButton": "Atribuir a um utilizador",
+        "assignModal": {
+            "title": "Atribuir função",
+            "userIdLabel": "UUID do utilizador *",
+            "note": "Isto substituirá a função atual do utilizador.",
+            "assign": "Atribuir"
+        },
+        "usersSection": {
+            "title": "Utilizadores com esta função",
+            "searchPlaceholder": "Pesquisar…",
+            "empty": "Nenhum utilizador com esta função."
+        },
+        "table": {
+            "user": "Utilizador",
+            "tenant": "Filial",
+            "status": "Estado"
+        },
+        "status": {
+            "active": "Ativo",
+            "blocked": "Bloqueado"
+        },
+        "pagination": {
+            "info": "Página {{current}} / {{last}} · {{total}} utilizadores"
+        }
+    }
+}

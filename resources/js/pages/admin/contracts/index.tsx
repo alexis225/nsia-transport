@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -8,10 +9,6 @@ import {
     ChevronLeft, ChevronRight, FileText, Calendar,
     TrendingUp,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Contrats', href: '/admin/contracts' },
-];
 
 interface Tenant   { id: string; name: string; code: string; }
 interface Broker   { id: string; name: string; code: string; }
@@ -38,38 +35,43 @@ interface Props {
     can:       { create: boolean; edit: boolean; delete: boolean; validate: boolean };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
-    DRAFT:            { bg:'#f8fafc', color:'#64748b', label:'Brouillon',          dot:'#94a3b8' },
-    PENDING_APPROVAL: { bg:'#fffbeb', color:'#92400e', label:'En attente appro.',  dot:'#f59e0b' },
-    ACTIVE:           { bg:'#f0fdf4', color:'#15803d', label:'Actif',              dot:'#22c55e' },
-    SUSPENDED:        { bg:'#fff7ed', color:'#c2410c', label:'Suspendu',           dot:'#f97316' },
-    EXPIRED:          { bg:'#f8fafc', color:'#475569', label:'Expiré',             dot:'#64748b' },
-    CANCELLED:        { bg:'#fef2f2', color:'#dc2626', label:'Annulé',             dot:'#ef4444' },
+const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string }> = {
+    DRAFT:            { bg:'#f8fafc', color:'#64748b', dot:'#94a3b8' },
+    PENDING_APPROVAL: { bg:'#fffbeb', color:'#92400e', dot:'#f59e0b' },
+    ACTIVE:           { bg:'#f0fdf4', color:'#15803d', dot:'#22c55e' },
+    SUSPENDED:        { bg:'#fff7ed', color:'#c2410c', dot:'#f97316' },
+    EXPIRED:          { bg:'#f8fafc', color:'#475569', dot:'#64748b' },
+    CANCELLED:        { bg:'#fef2f2', color:'#dc2626', dot:'#ef4444' },
 };
 
-const TYPE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-    OPEN_POLICY:    { bg:'#eff6ff', color:'#1d4ed8', label:'Police ouverte'       },
-    VOYAGE:         { bg:'#fdf4ff', color:'#7c3aed', label:'Au voyage'            },
-    ANNUAL_VOYAGE:  { bg:'#f0fdf4', color:'#15803d', label:'Annuel voyages'       },
-    TIERS_CHARGEUR: { bg:'#fff7ed', color:'#c2410c', label:'Police tiers chargeur' },
+const TYPE_STYLES: Record<string, { bg: string; color: string }> = {
+    OPEN_POLICY:    { bg:'#eff6ff', color:'#1d4ed8' },
+    VOYAGE:         { bg:'#fdf4ff', color:'#7c3aed' },
+    ANNUAL_VOYAGE:  { bg:'#f0fdf4', color:'#15803d' },
+    TIERS_CHARGEUR: { bg:'#fff7ed', color:'#c2410c' },
 };
 
 const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
 
 export default function ContractsIndex({ contracts, filters, isSA, tenants, can }: Props) {
+    const { t } = useTranslation('contracts');
     const [search, setSearch] = useState(filters?.search ?? '');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb.contracts'), href: '/admin/contracts' },
+    ];
 
     const applyFilter = (params: Record<string, string>) =>
         router.get('/admin/contracts', { ...filters, ...params }, { preserveState:true, replace:true });
 
     const handleDelete = (c: Contract) => {
-        if (confirm(`Supprimer le contrat « ${c.contract_number} » ?`))
+        if (confirm(t('index.confirmDelete', { number: c.contract_number })))
             router.delete(route('admin.contracts.destroy', { contract: c.id }));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Contrats — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .cn-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .cn-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -114,13 +116,13 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
 
                     <div className="cn-hdr">
                         <div>
-                            <h1 className="cn-title">Contrats d'assurance</h1>
-                            <p className="cn-sub">{contracts.total} contrat{contracts.total > 1 ? 's' : ''}</p>
+                            <h1 className="cn-title">{t('index.heading')}</h1>
+                            <p className="cn-sub">{t('index.count', { count: contracts.total })}</p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.contracts.create')}>
                                 <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> Nouveau contrat
+                                    <Plus size={15}/> {t('index.newContract')}
                                 </Button>
                             </Link>
                         )}
@@ -128,46 +130,46 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
 
                     <div className="cn-toolbar">
                         <form className="cn-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="N° contrat, assuré, courtier…"/>
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.searchPlaceholder')}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         <select className="cn-select" value={filters?.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page:'1' })}>
-                            <option value="">Tous les statuts</option>
-                            {Object.entries(STATUS_STYLES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                            <option value="">{t('index.allStatuses')}</option>
+                            {Object.keys(STATUS_STYLES).map(k => <option key={k} value={k}>{t(`statusLabels.${k}`)}</option>)}
                         </select>
                         <select className="cn-select" value={filters?.type ?? ''} onChange={e => applyFilter({ type: e.target.value, page:'1' })}>
-                            <option value="">Tous les types</option>
-                            {Object.entries(TYPE_STYLES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                            <option value="">{t('index.allTypes')}</option>
+                            {Object.keys(TYPE_STYLES).map(k => <option key={k} value={k}>{t(`typeLabels.${k}`)}</option>)}
                         </select>
                         {isSA && (
                             <select className="cn-select" value={filters?.tenant_id ?? ''} onChange={e => applyFilter({ tenant_id: e.target.value, page:'1' })}>
-                                <option value="">Toutes les filiales</option>
-                                {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                <option value="">{t('index.allTenants')}</option>
+                                {tenants.map(tn => <option key={tn.id} value={tn.id}>{tn.name}</option>)}
                             </select>
                         )}
                         {Object.values(filters ?? {}).some(v => v) && (
                             <button onClick={() => router.get('/admin/contracts')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('index.clear')}
                             </button>
                         )}
                     </div>
 
                     <div className="cn-card">
                         {contracts.data.length === 0 ? (
-                            <div className="cn-empty">Aucun contrat trouvé.</div>
+                            <div className="cn-empty">{t('index.empty')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>N° Contrat</th>
-                                            <th>Assuré / Courtier</th>
-                                            {isSA && <th>Filiale</th>}
-                                            <th>Type</th>
-                                            <th>Période</th>
-                                            <th>Utilisation</th>
-                                            <th>Statut</th>
-                                            <th>Actions</th>
+                                            <th>{t('index.table.number')}</th>
+                                            <th>{t('index.table.insuredBroker')}</th>
+                                            {isSA && <th>{t('index.table.tenant')}</th>}
+                                            <th>{t('index.table.type')}</th>
+                                            <th>{t('index.table.period')}</th>
+                                            <th>{t('index.table.usage')}</th>
+                                            <th>{t('index.table.status')}</th>
+                                            <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -191,7 +193,7 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
                                                     </td>
                                                     {isSA && <td style={{ fontSize:11, color:'#64748b' }}>{contract.tenant?.name ?? '—'}</td>}
                                                     <td>
-                                                        <span className="type-badge" style={{ background: ts.bg, color: ts.color }}>{ts.label}</span>
+                                                        <span className="type-badge" style={{ background: ts.bg, color: ts.color }}>{t(`typeLabels.${contract.type}`)}</span>
                                                     </td>
                                                     <td>
                                                         <div style={{ fontSize:11, color:'#475569', display:'flex', alignItems:'center', gap:3 }}>
@@ -211,27 +213,27 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <span style={{ fontSize:11, color:'#94a3b8' }}>Illimité</span>
+                                                            <span style={{ fontSize:11, color:'#94a3b8' }}>{t('index.unlimited')}</span>
                                                         )}
                                                     </td>
                                                     <td>
                                                         <span className="status-badge" style={{ background: ss.bg, color: ss.color }}>
-                                                            <span className="s-dot" style={{ background: ss.dot }}/>{ss.label}
+                                                            <span className="s-dot" style={{ background: ss.dot }}/>{t(`statusLabels.${contract.status}`)}
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <div className="actions">
                                                             <Link href={route('admin.contracts.show', { contract: contract.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> Voir
+                                                                <Eye size={12}/> {t('index.view')}
                                                             </Link>
                                                             {can.edit && contract.status === 'DRAFT' && (
                                                                 <Link href={route('admin.contracts.edit', { contract: contract.id })} className="btn-act btn-edit">
-                                                                    <Edit2 size={12}/> Éditer
+                                                                    <Edit2 size={12}/> {t('index.edit')}
                                                                 </Link>
                                                             )}
                                                             {can.delete && contract.status === 'DRAFT' && (
                                                                 <button className="btn-act btn-del" onClick={() => handleDelete(contract)}>
-                                                                    <Trash2 size={12}/> Supprimer
+                                                                    <Trash2 size={12}/> {t('index.delete')}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -244,7 +246,7 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
 
                                 {contracts.last_page > 1 && (
                                     <div className="cn-pagination">
-                                        <span className="cn-pg-info">Page {contracts.current_page}/{contracts.last_page} · {contracts.total} contrats</span>
+                                        <span className="cn-pg-info">{t('index.pageInfo', { current: contracts.current_page, last: contracts.last_page, total: contracts.total })}</span>
                                         <div className="cn-pg-links">
                                             <button className="pg-btn" disabled={contracts.current_page === 1} onClick={() => applyFilter({ page: String(contracts.current_page - 1) })}><ChevronLeft size={13}/></button>
                                             {contracts.links.map((link, i) => {

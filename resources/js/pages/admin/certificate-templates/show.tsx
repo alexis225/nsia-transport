@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
 import { Camera, Trash2, Check } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Template {
     id: string; name: string; code: string; type: string;
@@ -24,10 +25,12 @@ interface Tenant { id: string; name: string; code: string; }
 interface Props   { template: Template; tenants: Tenant[]; }
 
 export default function CertificateTemplateEdit({ template, tenants }: Props) {
+    const { t } = useTranslation('certificateTemplates');
+    const { t: tc } = useTranslation('common');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Modèles de certificats', href: '/admin/certificate-templates' },
+        { title: t('index.title'), href: '/admin/certificate-templates' },
         { title: template.name },
-        { title: 'Modifier' },
+        { title: t('show.breadcrumb') },
     ];
 
     const fileRef                       = useRef<HTMLInputElement>(null);
@@ -90,7 +93,7 @@ export default function CertificateTemplateEdit({ template, tenants }: Props) {
     };
 
     const handleLogoRemove = () => {
-        if (!confirm('Supprimer le logo de ce modèle ?')) return;
+        if (!confirm(t('show.confirmRemoveLogo'))) return;
         router.delete(
             route('admin.certificate-templates.logo.remove', { certificateTemplate: template.id }),
             { onSuccess: () => { setLogoPreview(null); setLogoFile(null); } }
@@ -106,8 +109,8 @@ export default function CertificateTemplateEdit({ template, tenants }: Props) {
     const LogoCard = () => (
         <div style={{ background:'#fff', border:'1.5px solid #e2e8f0', borderRadius:14, overflow:'hidden' }}>
             <div style={{ padding:'15px 22px', borderBottom:'1px solid #f1f5f9' }}>
-                <div style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Logo de la filiale</div>
-                <div style={{ fontSize:12, color:'#94a3b8', marginTop:1 }}>JPG, PNG, WebP ou SVG · Max 2 Mo</div>
+                <div style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('form.logo.title')}</div>
+                <div style={{ fontSize:12, color:'#94a3b8', marginTop:1 }}>{t('show.logoCard.subtitle')}</div>
             </div>
             <div style={{ padding:22 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:16 }}>
@@ -130,13 +133,13 @@ export default function CertificateTemplateEdit({ template, tenants }: Props) {
                             <button type="button"
                                     onClick={() => fileRef.current?.click()}
                                     style={{ padding:'8px 14px', background:'#f8fafc', border:'1.5px dashed #cbd5e1', borderRadius:9, fontSize:12, color:'#475569', cursor:'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap:6, transition:'all .15s' }}>
-                                <Camera size={13}/> Choisir un logo
+                                <Camera size={13}/> {t('form.logo.choose')}
                             </button>
 
                             {logoPreview && (
                                 <button type="button" onClick={handleLogoRemove}
                                         style={{ padding:'8px 12px', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:9, fontSize:12, color:'#dc2626', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
-                                    <Trash2 size={12}/> Supprimer
+                                    <Trash2 size={12}/> {tc('actions.delete')}
                                 </button>
                             )}
                         </div>
@@ -148,11 +151,11 @@ export default function CertificateTemplateEdit({ template, tenants }: Props) {
                                 </span>
                                 <Button onClick={handleLogoUpload} disabled={uploading} size="sm"
                                         className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-8 px-3 text-xs">
-                                    {uploading ? 'Upload…' : <><Check size={12}/> Enregistrer</>}
+                                    {uploading ? t('show.logoCard.uploading') : <><Check size={12}/> {tc('actions.save')}</>}
                                 </Button>
                             </div>
                         ) : (
-                            <span style={{ fontSize:11, color:'#94a3b8' }}>Format JPG, PNG, WebP ou SVG · Max 2 Mo</span>
+                            <span style={{ fontSize:11, color:'#94a3b8' }}>{t('form.logo.hint')}</span>
                         )}
                     </div>
                 </div>
@@ -162,14 +165,14 @@ export default function CertificateTemplateEdit({ template, tenants }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Modifier ${template.name} — NSIA Transport`}/>
+            <Head title={t('show.headTitle', { name: template.name })}/>
             <TemplateForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants}
-                heroTitle={`Modifier — ${template.name}`}
+                heroTitle={t('show.heroTitle', { name: template.name })}
                 heroSub={`${template.tenant?.name ?? ''} · ${template.currency_code}`}
-                submitLabel="Enregistrer les modifications"
+                submitLabel={t('show.submit')}
                 logoCard={<LogoCard/>}
             />
         </AppLayout>

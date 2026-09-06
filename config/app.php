@@ -78,11 +78,31 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'fr'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'fr'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'fr_FR'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Langues disponibles
+    |--------------------------------------------------------------------------
+    |
+    | Langues proposées dans le sélecteur et acceptées par SetLocale.
+    | Toute langue ajoutée ici doit avoir son répertoire lang/<code>/ côté
+    | Laravel ET son répertoire resources/js/locales/<code>/ côté React.
+    | Le premier élément sert de repli.
+    |
+    */
+
+    'supported_locales' => ['fr', 'en', 'pt'],
+
+    'locale_names' => [
+        'fr' => 'Français',
+        'en' => 'English',
+        'pt' => 'Português',
+    ],
 
     /*
     |--------------------------------------------------------------------------

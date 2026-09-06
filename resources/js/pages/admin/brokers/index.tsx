@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -9,10 +10,6 @@ import {
     ChevronLeft, ChevronRight,
     Briefcase, Mail, Phone, MapPin,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Courtiers', href: '/admin/brokers' },
-];
 
 interface Tenant { id: string; name: string; code: string; }
 interface Broker {
@@ -36,8 +33,8 @@ interface Props {
 }
 
 const TYPE_STYLES = {
-    courtier_local:      { bg:'#EFF6FF', color:'#1D4ED8', label:'Courtier local' },
-    partenaire_etranger: { bg:'#FDF4FF', color:'#7E22CE', label:'Partenaire étranger' },
+    courtier_local:      { bg:'#EFF6FF', color:'#1D4ED8' },
+    partenaire_etranger: { bg:'#FDF4FF', color:'#7E22CE' },
 };
 
 const BROKER_COLORS = [
@@ -50,25 +47,33 @@ const BROKER_COLORS = [
 ];
 
 export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
+    const { t } = useTranslation('brokers');
+    const { t: tc } = useTranslation('common');
     const [search, setSearch] = useState(filters?.search ?? '');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/brokers' },
+    ];
 
     const applyFilter = (params: Record<string, string>) =>
         router.get('/admin/brokers', { ...filters, ...params }, { preserveState:true, replace:true });
 
     const handleDelete = (broker: Broker) => {
-        if (confirm(`Supprimer le courtier « ${broker.name} » ?`))
+        if (confirm(t('index.confirmDelete', { name: broker.name })))
             router.delete(route('admin.brokers.destroy', { broker: broker.id }));
     };
 
     const handleToggle = (broker: Broker) => {
-        const action = broker.is_active ? 'désactiver' : 'activer';
-        if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${broker.name} ?`))
+        const msg = broker.is_active
+            ? t('index.confirmDeactivate', { name: broker.name })
+            : t('index.confirmActivate', { name: broker.name });
+        if (confirm(msg))
             router.patch(route('admin.brokers.toggle', { broker: broker.id }));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Courtiers — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .br-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .br-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -119,13 +124,13 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
                     {/* Header */}
                     <div className="br-hdr">
                         <div>
-                            <h1 className="br-title">Courtiers</h1>
-                            <p className="br-sub">{brokers.total} courtier{brokers.total > 1 ? 's' : ''}</p>
+                            <h1 className="br-title">{t('index.heading')}</h1>
+                            <p className="br-sub">{t('index.count', { count: brokers.total })}</p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.brokers.create')}>
                                 <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> Nouveau courtier
+                                    <Plus size={15}/> {t('index.newBroker')}
                                 </Button>
                             </Link>
                         )}
@@ -134,22 +139,22 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
                     {/* Toolbar */}
                     <div className="br-toolbar">
                         <form className="br-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom, code ou email…"/>
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.searchPlaceholder')}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         <select className="br-select" value={filters?.type ?? ''} onChange={e => applyFilter({ type: e.target.value, page:'1' })}>
-                            <option value="">Tous les types</option>
-                            <option value="courtier_local">Courtier local</option>
-                            <option value="partenaire_etranger">Partenaire étranger</option>
+                            <option value="">{t('index.typeAll')}</option>
+                            <option value="courtier_local">{t('index.typeLocal')}</option>
+                            <option value="partenaire_etranger">{t('index.typeForeign')}</option>
                         </select>
                         <select className="br-select" value={filters?.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page:'1' })}>
-                            <option value="">Tous les statuts</option>
-                            <option value="active">Actifs</option>
-                            <option value="inactive">Inactifs</option>
+                            <option value="">{t('index.statusAll')}</option>
+                            <option value="active">{t('index.statusActive')}</option>
+                            <option value="inactive">{t('index.statusInactive')}</option>
                         </select>
                         {(filters?.search || filters?.type || filters?.status) && (
                             <button onClick={() => router.get('/admin/brokers')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('index.clear')}
                             </button>
                         )}
                     </div>
@@ -157,20 +162,20 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
                     {/* Tableau */}
                     <div className="br-card">
                         {brokers.data.length === 0 ? (
-                            <div className="br-empty">Aucun courtier trouvé.</div>
+                            <div className="br-empty">{t('index.empty')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Courtier</th>
-                                            <th>Type</th>
-                                            <th>Contact</th>
-                                            <th>Localisation</th>
-                                            {isSA && <th>Filiale</th>}
-                                            <th>Agrément</th>
-                                            <th>Statut</th>
-                                            <th>Actions</th>
+                                            <th>{t('index.table.broker')}</th>
+                                            <th>{t('index.table.type')}</th>
+                                            <th>{t('index.table.contact')}</th>
+                                            <th>{t('index.table.location')}</th>
+                                            {isSA && <th>{t('index.table.tenant')}</th>}
+                                            <th>{t('index.table.agreement')}</th>
+                                            <th>{t('index.table.status')}</th>
+                                            <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -194,7 +199,7 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
                                                     </td>
                                                     <td>
                                                         <span className="type-badge" style={{ background: ts.bg, color: ts.color }}>
-                                                            {ts.label}
+                                                            {broker.type === 'courtier_local' ? t('index.typeLocal') : t('index.typeForeign')}
                                                         </span>
                                                     </td>
                                                     <td>
@@ -225,28 +230,28 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
                                                     </td>
                                                     <td>
                                                         {broker.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>Actif</span>
-                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>Inactif</span>
+                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{tc('states.active')}</span>
+                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{tc('states.inactive')}</span>
                                                         }
                                                     </td>
                                                     <td>
                                                         <div className="actions">
                                                             <Link href={route('admin.brokers.show', { broker: broker.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> Voir
+                                                                <Eye size={12}/> {t('index.view')}
                                                             </Link>
                                                             {can.edit && (
                                                                 <Link href={route('admin.brokers.edit', { broker: broker.id })} className="btn-act btn-edit">
-                                                                    <Edit2 size={12}/> Éditer
+                                                                    <Edit2 size={12}/> {t('index.edit')}
                                                                 </Link>
                                                             )}
                                                             {can.edit && (
                                                                 <button className={`btn-act ${broker.is_active ? 'btn-on' : 'btn-off'}`} onClick={() => handleToggle(broker)}>
-                                                                    {broker.is_active ? <><ToggleLeft size={12}/> Désactiver</> : <><ToggleRight size={12}/> Activer</>}
+                                                                    {broker.is_active ? <><ToggleLeft size={12}/> {t('index.deactivate')}</> : <><ToggleRight size={12}/> {t('index.activate')}</>}
                                                                 </button>
                                                             )}
                                                             {can.delete && (
                                                                 <button className="btn-act btn-del" onClick={() => handleDelete(broker)}>
-                                                                    <Trash2 size={12}/> Supprimer
+                                                                    <Trash2 size={12}/> {t('index.delete')}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -259,7 +264,7 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
 
                                 {brokers.last_page > 1 && (
                                     <div className="br-pagination">
-                                        <span className="br-pg-info">Page {brokers.current_page} / {brokers.last_page} · {brokers.total} courtiers</span>
+                                        <span className="br-pg-info">{t('index.pageInfo', { current: brokers.current_page, last: brokers.last_page, total: brokers.total })}</span>
                                         <div className="br-pg-links">
                                             <button className="pg-btn" disabled={brokers.current_page === 1} onClick={() => applyFilter({ page: String(brokers.current_page - 1) })}><ChevronLeft size={13}/></button>
                                             {brokers.links.map((link, i) => {

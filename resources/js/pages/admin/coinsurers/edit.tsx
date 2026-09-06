@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { CoinsurersForm } from './create';
 import type { BreadcrumbItem } from '@/types';
@@ -20,10 +21,11 @@ interface Props {
 }
 
 export default function CoinsurersEdit({ coinsurer, tenants }: Props) {
+    const { t } = useTranslation('coinsurers');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Coassureurs', href: '/admin/coinsurers' },
+        { title: t('index.breadcrumb'), href: '/admin/coinsurers' },
         { title: coinsurer.name, href: route('admin.coinsurers.show', { coinsurer: coinsurer.id }) },
-        { title: 'Modifier' },
+        { title: t('edit.breadcrumb') },
     ];
 
     const { data, setData, put, processing, errors } = useForm({
@@ -42,14 +44,14 @@ export default function CoinsurersEdit({ coinsurer, tenants }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Modifier ${coinsurer.name} — NSIA Transport`}/>
+            <Head title={t('edit.title', { name: coinsurer.name })}/>
             <CoinsurersForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants}
-                submitLabel="Enregistrer les modifications"
-                heroTitle={`Modifier : ${coinsurer.name}`}
-                heroSub="Mettez à jour les informations du coassureur"
+                submitLabel={t('edit.submitLabel')}
+                heroTitle={t('edit.heroTitle', { name: coinsurer.name })}
+                heroSub={t('edit.heroSub')}
             />
         </AppLayout>
     );

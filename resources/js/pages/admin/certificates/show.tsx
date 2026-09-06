@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -57,20 +58,9 @@ interface Props {
     printOnFormTemplates: string[];
 }
 
-export const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
-    DRAFT:     { bg:'#f8fafc', color:'#64748b', label:'Stocké',   dot:'#94a3b8' },
-    SUBMITTED: { bg:'#fffbeb', color:'#92400e', label:'Soumis',   dot:'#f59e0b' },
-    REJECTED:  { bg:'#fef2f2', color:'#dc2626', label:'Rejeté',   dot:'#ef4444' },
-    ISSUED:    { bg:'#f0fdf4', color:'#15803d', label:'Approuvé', dot:'#22c55e' },
-    REPLACED:  { bg:'#f1f5f9', color:'#475569', label:'Remplacé', dot:'#94a3b8' },
-    CANCELLED: { bg:'#fef2f2', color:'#991b1b', label:'Annulé',   dot:'#dc2626' },
-};
-
-const TRANSPORT_LABELS: Record<string, string> = {
-    SEA: 'Maritime', AIR: 'Aérien', ROAD: 'Routier', RAIL: 'Ferroviaire', MULTIMODAL: 'Multimodal',
-};
-
 function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose, requireReason = true }: any) {
+    const { t: tc } = useTranslation('common');
+    const { t } = useTranslation('certificates');
     const [reason, setReason] = useState('');
     return (
         <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
@@ -85,13 +75,13 @@ function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose
                 <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
                     {requireReason && (
                         <div>
-                            <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>Motif *</label>
+                            <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>{t('show.modals.reasonLabel')}</label>
                             <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3}
                                       style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', resize:'vertical', boxSizing:'border-box' }}/>
                         </div>
                     )}
                     <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button variant="outline" onClick={onClose}>Annuler</Button>
+                        <Button variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
                         <Button onClick={() => onConfirm(reason)} disabled={requireReason && !reason.trim()} style={{ background: color, color:'#fff', border:'none' }}>{actionLabel}</Button>
                     </div>
                 </div>
@@ -101,6 +91,23 @@ function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose
 }
 
 export default function CertificateShow({ certificate, can, printOnFormTemplates }: Props) {
+    const { t } = useTranslation('certificates');
+    const { t: tc } = useTranslation('common');
+
+    const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
+        DRAFT:     { bg:'#f8fafc', color:'#64748b', label: tc('certificateStatus.DRAFT'),   dot:'#94a3b8' },
+        SUBMITTED: { bg:'#fffbeb', color:'#92400e', label: tc('certificateStatus.SUBMITTED'),   dot:'#f59e0b' },
+        REJECTED:  { bg:'#fef2f2', color:'#dc2626', label: tc('certificateStatus.REJECTED'),   dot:'#ef4444' },
+        ISSUED:    { bg:'#f0fdf4', color:'#15803d', label: tc('certificateStatus.ISSUED'), dot:'#22c55e' },
+        REPLACED:  { bg:'#f1f5f9', color:'#475569', label: tc('certificateStatus.REPLACED'), dot:'#94a3b8' },
+        CANCELLED: { bg:'#fef2f2', color:'#991b1b', label: tc('certificateStatus.CANCELLED'),   dot:'#dc2626' },
+    };
+
+    const TRANSPORT_LABELS: Record<string, string> = {
+        SEA: t('shared.transport.SEA'), AIR: t('shared.transport.AIR'), ROAD: t('shared.transport.ROAD'),
+        RAIL: t('shared.transport.RAIL'), MULTIMODAL: t('shared.transport.MULTIMODAL'),
+    };
+
     const [modal, setModal]               = useState<string | null>(null);
     const [printModal, setPrintModal]     = useState(false);
     const autoTemplate = getTemplateForTenantCode(certificate.tenant?.code)?.id ?? PRINT_TEMPLATES[0]?.id ?? '';
@@ -125,7 +132,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Certificats', href: '/admin/certificates' },
+        { title: t('shared.breadcrumb'), href: '/admin/certificates' },
         { title: certificate.certificate_number },
     ];
 
@@ -139,7 +146,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
             // Ne pas fermer la modale sur erreur (ex. escalade NN300 en
             // cours) — l'utilisateur doit voir le message, pas juste
             // constater que rien ne s'est passé.
-            onError: (errors) => alert(Object.values(errors).join('\n') || 'Une erreur est survenue.'),
+            onError: (errors) => alert(Object.values(errors).join('\n') || t('show.workflow.genericError')),
         });
     };
 
@@ -147,7 +154,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${certificate.certificate_number} — NSIA Transport`}/>
+            <Head title={t('show.title', { number: certificate.certificate_number })}/>
 
             {/* ── Modal sélection modèle d'impression ── */}
             {printModal && (
@@ -160,8 +167,8 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                     <Printer size={16} color="#3b82f6"/>
                                 </div>
                                 <div>
-                                    <p style={{ fontSize:14, fontWeight:700, color:'#1e293b', margin:0 }}>Choisir un modèle d'impression</p>
-                                    <p style={{ fontSize:11, color:'#94a3b8', margin:0 }}>Sélectionnez le carnet officiel du pays</p>
+                                    <p style={{ fontSize:14, fontWeight:700, color:'#1e293b', margin:0 }}>{t('show.printModal.title')}</p>
+                                    <p style={{ fontSize:11, color:'#94a3b8', margin:0 }}>{t('show.printModal.subtitle')}</p>
                                 </div>
                             </div>
                             <button onClick={() => setPrintModal(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:4 }}>
@@ -173,7 +180,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10, maxHeight:360, overflowY:'auto' }}>
                             {PRINT_TEMPLATES.length === 0 && (
                                 <p style={{ textAlign:'center', color:'#94a3b8', fontSize:13, padding:'20px 0' }}>
-                                    Aucun modèle disponible.
+                                    {t('show.printModal.empty')}
                                 </p>
                             )}
                             {PRINT_TEMPLATES.map(tpl => (
@@ -196,7 +203,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                             {tpl.name}
                                             {tpl.id === autoTemplate && (
                                                 <span style={{ fontSize:9, fontWeight:600, color:'#15803d', background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:20, padding:'1px 7px', textTransform:'uppercase', letterSpacing:'.04em' }}>
-                                                    Recommandé
+                                                    {t('show.printModal.recommended')}
                                                 </span>
                                             )}
                                         </p>
@@ -225,14 +232,14 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             style={{ fontSize:11.5, color:'#1d4ed8' }}>
-                                            Aperçu calibrage (fond + données)
+                                            {t('show.printModal.previewCalibration')}
                                         </a>
                                         <a
                                             href={route('admin.certificates.print-on-form', { certificate: certificate.id }) + `?template=${selectedTemplate}&calibrate=1&offset_x=${printOffset.x}&offset_y=${printOffset.y}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             style={{ fontSize:11.5, color:'#94a3b8' }}>
-                                            Grille de calibration (mm)
+                                            {t('show.printModal.calibrationGrid')}
                                         </a>
                                     </div>
 
@@ -241,7 +248,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                         registre/bac papier différent d'une imprimante à l'autre
                                         sans toucher au calibrage partagé par tous. */}
                                     <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:10, padding:'8px 10px', background:'#f8fafc', borderRadius:8 }}>
-                                        <span style={{ fontSize:11, color:'#64748b', fontWeight:600 }}>Décalage imprimante (mm)</span>
+                                        <span style={{ fontSize:11, color:'#64748b', fontWeight:600 }}>{t('show.printModal.printerOffset')}</span>
                                         <label style={{ display:'flex', alignItems:'center', gap:4, fontSize:11.5, color:'#334155' }}>
                                             X
                                             <input type="number" step="0.5" value={printOffset.x}
@@ -257,14 +264,14 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                         {(printOffset.x !== 0 || printOffset.y !== 0) && (
                                             <button type="button" onClick={() => updateOffset({ x: 0, y: 0 })}
                                                     style={{ fontSize:11, color:'#dc2626', background:'none', border:'none', cursor:'pointer', padding:0 }}>
-                                                Réinitialiser
+                                                {t('show.printModal.reset')}
                                             </button>
                                         )}
                                     </div>
                                 </>
                             )}
                             <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'flex-end' }}>
-                                <Button variant="outline" onClick={() => setPrintModal(false)}>Annuler</Button>
+                                <Button variant="outline" onClick={() => setPrintModal(false)}>{tc('actions.cancel')}</Button>
                                 <a
                                     href={route('admin.certificates.print', { certificate: certificate.id }) + `?template=${selectedTemplate}`}
                                     target="_blank"
@@ -274,7 +281,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                         disabled={!selectedTemplate}
                                         onClick={() => setPrintModal(false)}
                                         style={{ display:'flex', alignItems:'center', gap:6 }}>
-                                        <Printer size={14}/> Aperçu HTML
+                                        <Printer size={14}/> {t('show.printModal.htmlPreview')}
                                     </Button>
                                 </a>
                                 <div onClick={() => setPrintModal(false)}>
@@ -340,7 +347,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                             </div>
                             <div className="cs-hero-num">{certificate.certificate_number}</div>
                             <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)', marginBottom:8 }}>
-                                Police : {certificate.policy_number} · {certificate.tenant?.name}
+                                {t('show.policy', { number: certificate.policy_number, tenant: certificate.tenant?.name })}
                             </div>
                             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                                 <span className="cs-badge" style={{ background:'rgba(255,255,255,0.1)', color:'#fff', border:'1px solid rgba(255,255,255,0.2)' }}>
@@ -360,19 +367,19 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div style={{ position:'relative', zIndex:1, display:'flex', gap:8 }}>
                             <div style={{ display:'flex', gap:8 }}>
                                 <Button variant="outline" onClick={() => setPrintModal(true)} className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
-                                    <Printer size={13}/> Imprimer
+                                    <Printer size={13}/> {t('show.actions.print')}
                                 </Button>
                                 {certificate.status === 'ISSUED' && (
                                     <>
                                         <a href={route('admin.certificates.pdf.download', { certificate: certificate.id })} target="_blank">
                                             <Button variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
-                                                <Download size={13}/> PDF
+                                                <Download size={13}/> {t('show.actions.pdf')}
                                             </Button>
                                         </a>
                                         {certificate.qr_token && (
                                             <a href={`/verify/${certificate.qr_token}`} target="_blank">
                                                 <Button variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
-                                                    <QrCode size={13}/> Vérifier
+                                                    <QrCode size={13}/> {t('show.actions.verify')}
                                                 </Button>
                                             </a>
                                         )}
@@ -381,14 +388,14 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                             <Button variant="outline"
                                                     onClick={() => setModal('duplicate')}
                                                     className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
-                                                <Copy size={13}/> Duplicata
+                                                <Copy size={13}/> {t('show.actions.duplicate')}
                                             </Button>
                                         )}
                                         {can.edit && (
                                             <Button variant="outline"
                                                     onClick={() => setModal('replace')}
                                                     className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm">
-                                                <Repeat size={13}/> Remplacer
+                                                <Repeat size={13}/> {t('show.actions.replace')}
                                             </Button>
                                         )}
                                     </>
@@ -397,7 +404,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                             {can.edit && ['DRAFT', 'REJECTED'].includes(certificate.status) && (
                                 <Link href={route('admin.certificates.edit', { certificate: certificate.id })}>
                                     <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                        <Edit2 size={13}/> Modifier
+                                        <Edit2 size={13}/> {t('show.actions.edit')}
                                     </Button>
                                 </Link>
                             )}
@@ -409,37 +416,37 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, fontWeight:500 }}>
                             <span style={{ width:8, height:8, borderRadius:'50%', background: ss.dot }}/>
                             {ss.label}
-                            {certificate.issued_at && <span style={{ fontSize:11, color:'#94a3b8' }}>émis le {fmtDt(certificate.issued_at)}</span>}
+                            {certificate.issued_at && <span style={{ fontSize:11, color:'#94a3b8' }}>{t('show.workflow.issuedOn', { date: fmtDt(certificate.issued_at) })}</span>}
                             {certificate.document_type === 'duplicata' && (
                                 <span style={{ background:'rgba(255,255,255,0.15)', color:'#fff', borderRadius:6, fontSize:10, padding:'2px 8px', fontWeight:700, letterSpacing:'.08em', border:'1px solid rgba(255,255,255,0.3)' }}>
-                                    DUPLICATA
+                                    {t('show.duplicataBadge')}
                                 </span>
                             )}
                         </div>
                         <div style={{ display:'flex', gap:8 }}>
                             {certificate.status === 'DRAFT' && can.edit && (
                                 <button className="btn-wf btn-submit" onClick={() => action('admin.certificates.submit')}>
-                                    <Send size={12}/> Soumettre pour émission
+                                    <Send size={12}/> {t('show.workflow.submit')}
                                 </button>
                             )}
                             {certificate.status === 'REJECTED' && can.edit && (
                                 <Link href={route('admin.certificates.edit', { certificate: certificate.id })} className="btn-wf btn-submit" style={{ textDecoration:'none' }}>
-                                    <Edit2 size={12}/> Corriger et resoumettre
+                                    <Edit2 size={12}/> {t('show.workflow.fixAndResubmit')}
                                 </Link>
                             )}
                             {certificate.status === 'SUBMITTED' && can.validate && (
                                 <>
                                     <button className="btn-wf btn-issue" onClick={() => setModal('issue')}>
-                                        <CheckCircle size={12}/> Approuver le certificat
+                                        <CheckCircle size={12}/> {t('show.workflow.approve')}
                                     </button>
                                     <button className="btn-wf btn-reject" onClick={() => setModal('reject')}>
-                                        <XCircle size={12}/> Rejeter
+                                        <XCircle size={12}/> {t('show.workflow.reject')}
                                     </button>
                                 </>
                             )}
                             {['SUBMITTED', 'ISSUED'].includes(certificate.status) && can.cancel && (
                                 <button className="btn-wf btn-cancel" onClick={() => setModal('cancel')}>
-                                    <StopCircle size={12}/> Annuler
+                                    <StopCircle size={12}/> {t('show.workflow.cancel')}
                                 </button>
                             )}
                         </div>
@@ -450,7 +457,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div className="notes-ko">
                             <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
                                 <AlertCircle size={13}/>
-                                <span style={{ fontWeight:600, fontSize:11 }}>Motif de rejet</span>
+                                <span style={{ fontWeight:600, fontSize:11 }}>{t('show.notes.rejectionReason')}</span>
                                 {certificate.rejected_at && <span style={{ fontSize:10, color:'#94a3b8' }}>· {fmtDt(certificate.rejected_at)}</span>}
                             </div>
                             {certificate.rejection_reason}
@@ -459,7 +466,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                     {certificate.status === 'REPLACED' && certificate.replacement && (
                         <div style={{ background:'#f1f5f9', border:'1px solid #e2e8f0', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#475569', display:'flex', alignItems:'center', gap:6 }}>
                             <Repeat size={13}/>
-                            Ce certificat a été remplacé par le certificat{' '}
+                            {t('show.notes.replacedBy')}{' '}
                             <a href={route('admin.certificates.show', { certificate: certificate.replacement.id })} style={{ fontWeight:600, color:'#1d4ed8', textDecoration:'none' }}>
                                 N° {certificate.replacement.certificate_number}
                             </a>
@@ -469,7 +476,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                     {certificate.replaces && (
                         <div style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:9, padding:'10px 14px', fontSize:12, color:'#1d4ed8', display:'flex', alignItems:'center', gap:6 }}>
                             <Repeat size={13}/>
-                            Ce certificat remplace le certificat{' '}
+                            {t('show.notes.replaces')}{' '}
                             <a href={route('admin.certificates.show', { certificate: certificate.replaces.id })} style={{ fontWeight:600, textDecoration:'none' }}>
                                 N° {certificate.replaces.certificate_number}
                             </a>
@@ -479,7 +486,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div className="notes-ok">
                             <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
                                 <AlertCircle size={13}/>
-                                <span style={{ fontWeight:600, fontSize:11 }}>Notes</span>
+                                <span style={{ fontWeight:600, fontSize:11 }}>{t('show.notes.notes')}</span>
                             </div>
                             {certificate.validation_notes}
                         </div>
@@ -488,7 +495,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div className="notes-ko">
                             <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
                                 <AlertCircle size={13}/>
-                                <span style={{ fontWeight:600, fontSize:11 }}>Motif d'annulation</span>
+                                <span style={{ fontWeight:600, fontSize:11 }}>{t('show.notes.cancellationReason')}</span>
                             </div>
                             {certificate.cancellation_reason}
                         </div>
@@ -502,54 +509,54 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                  certificate.transport_type === 'ROAD' ? <Truck size={15} color="#3b82f6"/> :
                                  <Ship size={15} color="#3b82f6"/>}
                             </div>
-                            <span className="cs-card-ttl">Voyage</span>
+                            <span className="cs-card-ttl">{t('show.voyageCard.title')}</span>
                         </div>
                         <div className="cs-card-body">
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label">Assuré</span>
+                                    <span className="info-label">{t('show.voyageCard.insured')}</span>
                                     <span className="info-value" style={{ fontWeight:500 }}>{certificate.insured_name}</span>
                                     {certificate.insured_ref && <span style={{ fontSize:11, color:'#64748b' }}>{certificate.insured_ref}</span>}
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">Date d'expédition</span>
+                                    <span className="info-label">{t('show.voyageCard.shipDate')}</span>
                                     <span className="info-value">{fmt(certificate.voyage_date)}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">De</span>
+                                    <span className="info-label">{t('show.voyageCard.from')}</span>
                                     <span className="info-value">{certificate.voyage_from}</span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">À</span>
+                                    <span className="info-label">{t('show.voyageCard.to')}</span>
                                     <span className="info-value">{certificate.voyage_to}</span>
                                 </div>
                                 {certificate.voyage_via && (
                                     <div className="info-item">
-                                        <span className="info-label">Via</span>
+                                        <span className="info-label">{t('show.voyageCard.via')}</span>
                                         <span className="info-value">{certificate.voyage_via}</span>
                                     </div>
                                 )}
                                 {certificate.destination_country && (
                                     <div className="info-item">
-                                        <span className="info-label">Pays de destination</span>
+                                        <span className="info-label">{t('show.voyageCard.destinationCountry')}</span>
                                         <span className="info-value">{certificate.destination_country.name_fr}</span>
                                     </div>
                                 )}
                                 {certificate.vessel_name && (
                                     <div className="info-item">
-                                        <span className="info-label">Navire S/S</span>
+                                        <span className="info-label">{t('show.voyageCard.vessel')}</span>
                                         <span className="info-value">{certificate.vessel_name}</span>
                                     </div>
                                 )}
                                 {certificate.flight_number && (
                                     <div className="info-item">
-                                        <span className="info-label">N° Vol</span>
+                                        <span className="info-label">{t('show.voyageCard.flightNumber')}</span>
                                         <span className="info-value">{certificate.flight_number}</span>
                                     </div>
                                 )}
                                 {certificate.voyage_mode && (
                                     <div className="info-item">
-                                        <span className="info-label">Mode</span>
+                                        <span className="info-label">{t('show.voyageCard.mode')}</span>
                                         <span className="info-value">{certificate.voyage_mode}</span>
                                     </div>
                                 )}
@@ -561,19 +568,19 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                     <div className="cs-card">
                         <div className="cs-card-hdr">
                             <div className="cs-card-ico" style={{ background:'#fff7ed' }}><FileText size={15} color="#f97316"/></div>
-                            <span className="cs-card-ttl">Détail de l'expédition</span>
+                            <span className="cs-card-ttl">{t('show.expedition.title')}</span>
                         </div>
                         <div className="cs-card-body">
                             <div style={{ overflowX:'auto' }}>
                                 <table className="exp-table">
                                     <thead>
                                         <tr>
-                                            <th>Marques</th>
-                                            <th>N° Colis</th>
-                                            <th>Nbre</th>
-                                            <th>Poids</th>
-                                            <th>Nature & Emballage</th>
-                                            <th>Valeur assurance</th>
+                                            <th>{t('show.expedition.marks')}</th>
+                                            <th>{t('show.expedition.packageNumber')}</th>
+                                            <th>{t('show.expedition.count')}</th>
+                                            <th>{t('show.expedition.weight')}</th>
+                                            <th>{t('show.expedition.natureAndPackaging')}</th>
+                                            <th>{t('show.expedition.value')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -594,7 +601,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                         ))}
                                         <tr>
                                             <td colSpan={5} style={{ textAlign:'right', fontSize:12, fontWeight:700 }}>
-                                                VALEUR TOTALE D'ASSURANCE
+                                                {t('show.expedition.totalValue')}
                                             </td>
                                             <td style={{ textAlign:'right', fontFamily:'monospace', fontSize:14 }}>
                                                 {parseFloat(certificate.insured_value).toLocaleString('fr-FR')} {certificate.currency_code}
@@ -616,7 +623,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div className="cs-card">
                             <div className="cs-card-hdr">
                                 <div className="cs-card-ico" style={{ background:'#fffbeb' }}><DollarSign size={15} color="#f59e0b"/></div>
-                                <span className="cs-card-ttl">Décompte de prime</span>
+                                <span className="cs-card-ttl">{t('show.prime.title')}</span>
                             </div>
                             <div className="cs-card-body">
                                 {certificate.prime_breakdown.map(line => (
@@ -631,25 +638,25 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                     </div>
                                 ))}
                                 <div className="prime-row" style={{ borderTop:'1px solid #f1f5f9', paddingTop:10, marginTop:4 }}>
-                                    <span style={{ fontSize:12, fontWeight:600, color:'#64748b' }}>Prime nette (hors taxe)</span>
+                                    <span style={{ fontSize:12, fontWeight:600, color:'#64748b' }}>{t('show.prime.netPrime')}</span>
                                     <span style={{ fontSize:13, fontFamily:'monospace', color:'#1e293b' }}>
                                         {parseFloat(certificate.prime_nette ?? '0').toLocaleString('fr-FR')} {certificate.currency_code}
                                     </span>
                                 </div>
                                 <div className="prime-row" style={{ borderTop:'2px solid #e2e8f0', paddingTop:10, marginTop:4 }}>
-                                    <span style={{ fontSize:13, fontWeight:700, color:'#1e293b' }}>PRIME TTC</span>
+                                    <span style={{ fontSize:13, fontWeight:700, color:'#1e293b' }}>{t('show.prime.totalPrime')}</span>
                                     <span style={{ fontSize:15, fontWeight:700, fontFamily:'monospace', color:'#1e3a8a' }}>
                                         {parseFloat(certificate.prime_total ?? '0').toLocaleString('fr-FR')} {certificate.currency_code}
                                     </span>
                                 </div>
                                 {certificate.guarantee_mode && (
                                     <div style={{ marginTop:10, fontSize:12, color:'#64748b' }}>
-                                        Mode de garantie : <strong>{certificate.guarantee_mode}</strong>
+                                        {t('show.prime.guaranteeMode', { mode: certificate.guarantee_mode })}
                                     </div>
                                 )}
                                 {certificate.exchange_currency && certificate.exchange_rate && (
                                     <div style={{ fontSize:12, color:'#64748b', marginTop:4 }}>
-                                        Cours : 1 {certificate.exchange_currency} = {certificate.exchange_rate} {certificate.currency_code}
+                                        {t('show.prime.rate', { from: certificate.exchange_currency, rate: certificate.exchange_rate, to: certificate.currency_code })}
                                     </div>
                                 )}
                             </div>
@@ -661,7 +668,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div className="cs-card">
                             <div className="cs-card-hdr">
                                 <div className="cs-card-ico" style={{ background:'#f0fdf4' }}><QrCode size={15} color="#16a34a"/></div>
-                                <span className="cs-card-ttl">QR code de vérification</span>
+                                <span className="cs-card-ttl">{t('show.qr.title')}</span>
                             </div>
                             <div className="cs-card-body">
                                 <div style={{ display:'flex', alignItems:'center', gap:20 }}>
@@ -672,11 +679,11 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                     />
                                     <div>
                                         <div style={{ fontSize:12, color:'#64748b', marginBottom:6 }}>
-                                            Scannez ce QR code pour vérifier l'authenticité du certificat.
+                                            {t('show.qr.instructions')}
                                         </div>
                                         <a href={`/verify/${certificate.qr_token}`} target="_blank"
                                            style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'#1d4ed8', textDecoration:'none' }}>
-                                            <ExternalLink size={12}/> Ouvrir la page de vérification
+                                            <ExternalLink size={12}/> {t('show.qr.openVerification')}
                                         </a>
                                         <div style={{ marginTop:8, fontFamily:'monospace', fontSize:10, color:'#94a3b8', wordBreak:'break-all' }}>
                                             {window.location.origin}/verify/{certificate.qr_token}
@@ -692,25 +699,25 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div className="cs-card" style={{ borderColor:'#bfdbfe' }}>
                             <div className="cs-card-hdr">
                                 <div className="cs-card-ico" style={{ background:'#eff6ff' }}><Copy size={15} color="#3b82f6"/></div>
-                                <span className="cs-card-ttl">Informations duplicata</span>
+                                <span className="cs-card-ttl">{t('show.duplicateInfo.title')}</span>
                             </div>
                             <div className="cs-card-body">
                                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                                     <div>
-                                        <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>Certificat original</div>
+                                        <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>{t('show.duplicateInfo.originalCertificate')}</div>
                                         <div style={{ fontSize:13, fontWeight:600, fontFamily:'monospace', color:'#1e293b' }}>
                                             {certificate.parent?.certificate_number ?? '—'}
                                         </div>
                                     </div>
                                     <div>
-                                        <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>Date de réédition</div>
+                                        <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>{t('show.duplicateInfo.reissueDate')}</div>
                                         <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>
                                             {certificate.reissued_at ? fmtDt(certificate.reissued_at) : '—'}
                                         </div>
                                     </div>
                                     {certificate.reissue_reason && (
                                         <div style={{ gridColumn:'1/-1' }}>
-                                            <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>Motif</div>
+                                            <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:3 }}>{t('show.duplicateInfo.reason')}</div>
                                             <div style={{ fontSize:12, color:'#475569' }}>{certificate.reissue_reason}</div>
                                         </div>
                                     )}
@@ -724,7 +731,7 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                         <div className="cs-card">
                             <div className="cs-card-hdr">
                                 <div className="cs-card-ico" style={{ background:'#eff6ff' }}><Copy size={15} color="#3b82f6"/></div>
-                                <span className="cs-card-ttl">Duplicatas émis ({certificate.duplicate_count})</span>
+                                <span className="cs-card-ttl">{t('show.duplicatesList.title', { count: certificate.duplicate_count })}</span>
                             </div>
                             <div className="cs-card-body">
                                 {certificate.duplicates.map(d => (
@@ -744,18 +751,30 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
 
                     {/* Méta */}
                     <div style={{ fontSize:11, color:'#94a3b8', display:'flex', gap:16, flexWrap:'wrap', padding:'4px 0' }}>
-                        {certificate.created_by && <span>Créé par {certificate.created_by.first_name} {certificate.created_by.last_name}</span>}
-                        {certificate.submitted_by && <span>· Soumis par {certificate.submitted_by.first_name} {certificate.submitted_by.last_name}{certificate.submitted_at ? ` le ${fmtDt(certificate.submitted_at)}` : ''}</span>}
-                        {certificate.issued_by && <span>· Émis par {certificate.issued_by.first_name} {certificate.issued_by.last_name}{certificate.issued_at ? ` le ${fmtDt(certificate.issued_at)}` : ''}</span>}
+                        {certificate.created_by && <span>{t('show.meta.createdBy', { name: `${certificate.created_by.first_name} ${certificate.created_by.last_name}` })}</span>}
+                        {certificate.submitted_by && (
+                            <span>
+                                {certificate.submitted_at
+                                    ? t('show.meta.submittedByOn', { name: `${certificate.submitted_by.first_name} ${certificate.submitted_by.last_name}`, date: fmtDt(certificate.submitted_at) })
+                                    : t('show.meta.submittedBy', { name: `${certificate.submitted_by.first_name} ${certificate.submitted_by.last_name}` })}
+                            </span>
+                        )}
+                        {certificate.issued_by && (
+                            <span>
+                                {certificate.issued_at
+                                    ? t('show.meta.issuedByOn', { name: `${certificate.issued_by.first_name} ${certificate.issued_by.last_name}`, date: fmtDt(certificate.issued_at) })
+                                    : t('show.meta.issuedBy', { name: `${certificate.issued_by.first_name} ${certificate.issued_by.last_name}` })}
+                            </span>
+                        )}
                     </div>
 
                 </div>
             </div>
 
             {/* Modals workflow */}
-            {modal === 'issue'  && <ActionModal title="Approuver le certificat" icon={CheckCircle} color="#15803d" actionLabel="Approuver" requireReason={false} onConfirm={(n: string) => action('admin.certificates.issue', { notes: n })} onClose={() => setModal(null)}/>}
-            {modal === 'reject' && <ActionModal title="Rejeter le certificat"  icon={XCircle}    color="#dc2626" actionLabel="Rejeter"   onConfirm={(r: string) => action('admin.certificates.reject',  { reason: r })} onClose={() => setModal(null)}/>}
-            {modal === 'cancel' && <ActionModal title="Annuler le certificat"  icon={StopCircle}  color="#dc2626" actionLabel="Annuler"   onConfirm={(r: string) => action('admin.certificates.cancel',  { reason: r })} onClose={() => setModal(null)}/>}
+            {modal === 'issue'  && <ActionModal title={t('show.modals.issue.title')} icon={CheckCircle} color="#15803d" actionLabel={t('show.modals.issue.action')} requireReason={false} onConfirm={(n: string) => action('admin.certificates.issue', { notes: n })} onClose={() => setModal(null)}/>}
+            {modal === 'reject' && <ActionModal title={t('show.modals.reject.title')}  icon={XCircle}    color="#dc2626" actionLabel={t('show.modals.reject.action')}   onConfirm={(r: string) => action('admin.certificates.reject',  { reason: r })} onClose={() => setModal(null)}/>}
+            {modal === 'cancel' && <ActionModal title={t('show.modals.cancel.title')}  icon={StopCircle}  color="#dc2626" actionLabel={t('show.modals.cancel.action')}   onConfirm={(r: string) => action('admin.certificates.cancel',  { reason: r })} onClose={() => setModal(null)}/>}
             {modal === 'replace' && (
                 <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
                     <div style={{ background:'#fff', borderRadius:14, width:'100%', maxWidth:440, border:'1.5px solid #e2e8f0', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
@@ -764,20 +783,19 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                 <div style={{ width:34, height:34, borderRadius:8, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
                                     <Repeat size={16} color="#3b82f6"/>
                                 </div>
-                                <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Remplacer le certificat</p>
+                                <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('show.modals.replace.title')}</p>
                             </div>
                             <button onClick={() => setModal(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
                         </div>
                         <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
                             <div style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#1d4ed8' }}>
-                                Un nouveau certificat (Stocké) sera créé à partir des données de <strong>{certificate.certificate_number}</strong> avec un nouveau numéro, prêt à être modifié.
-                                Ce certificat passera au statut <strong>Remplacé</strong> avec une référence vers le nouveau.
+                                {t('show.modals.replace.text', { number: certificate.certificate_number })}
                             </div>
                             <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                                <Button variant="outline" onClick={() => setModal(null)}>Annuler</Button>
+                                <Button variant="outline" onClick={() => setModal(null)}>{tc('actions.cancel')}</Button>
                                 <Button onClick={() => router.post(route('admin.certificates.replace', { certificate: certificate.id }))}
                                         style={{ background:'#1e3a8a', color:'#fff', border:'none' }}>
-                                    Créer le remplaçant
+                                    {t('show.modals.replace.action')}
                                 </Button>
                             </div>
                         </div>
@@ -793,16 +811,16 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
                                 <div style={{ width:34, height:34, borderRadius:8, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
                                     <Copy size={16} color="#3b82f6"/>
                                 </div>
-                                <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Émettre un duplicata</p>
+                                <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('show.modals.duplicate.title')}</p>
                             </div>
                             <button onClick={() => setModal(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
                         </div>
                         <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
                             <div style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#1d4ed8' }}>
-                                Un duplicata sera créé avec le numéro <strong>{certificate.certificate_number}-D{(certificate.duplicate_count ?? 0) + 1}</strong> et la mention DUPLICATA sur le PDF.
+                                {t('show.modals.duplicate.text', { number: `${certificate.certificate_number}-D${(certificate.duplicate_count ?? 0) + 1}` })}
                             </div>
                             <div>
-                                <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>Motif *</label>
+                                <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>{t('show.modals.duplicate.reasonLabel')}</label>
                                 <DuplicateForm certificateId={certificate.id} onCancel={() => setModal(null)}/>
                             </div>
                         </div>
@@ -815,19 +833,21 @@ export default function CertificateShow({ certificate, can, printOnFormTemplates
 
 // Formulaire interne pour le duplicata
 function DuplicateForm({ certificateId, onCancel }: { certificateId: string; onCancel: () => void }) {
+    const { t } = useTranslation('certificates');
+    const { t: tc } = useTranslation('common');
     const { data, setData, post, processing, errors } = useForm({ reason: '' });
     return (
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             <textarea value={data.reason} onChange={e => setData('reason', e.target.value)} rows={3}
                       style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', resize:'vertical', boxSizing:'border-box' }}
-                      placeholder="Précisez le motif (perte, détérioration…)"/>
+                      placeholder={t('show.modals.duplicate.reasonPlaceholder')}/>
             {errors.reason && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.reason}</p>}
             <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                <button onClick={onCancel} style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e2e8f0', background:'none', cursor:'pointer', fontSize:12 }}>Annuler</button>
+                <button onClick={onCancel} style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e2e8f0', background:'none', cursor:'pointer', fontSize:12 }}>{tc('actions.cancel')}</button>
                 <button disabled={processing || !data.reason.trim()}
                         onClick={() => post(route('admin.certificates.duplicate', { certificate: certificateId }))}
                         style={{ padding:'7px 14px', borderRadius:8, border:'none', background:'#1e3a8a', color:'#fff', cursor:'pointer', fontSize:12, opacity: processing || !data.reason.trim() ? .5 : 1 }}>
-                    {processing ? 'Génération…' : 'Émettre le duplicata'}
+                    {processing ? t('show.modals.duplicate.generating') : t('show.modals.duplicate.action')}
                 </button>
             </div>
         </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
 import {
@@ -43,6 +44,7 @@ function getCsrf(): string {
 }
 
 export default function NotificationBell() {
+    const { t } = useTranslation('navigation');
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount,   setUnreadCount]   = useState(0);
     const [open,          setOpen]          = useState(false);
@@ -207,11 +209,11 @@ export default function NotificationBell() {
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>
-                                Notifications
+                                {t('notifications.title')}
                             </span>
                             {unreadCount > 0 && (
                                 <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 10, fontSize: 11, padding: '1px 6px', fontWeight: 600 }}>
-                                    {unreadCount} non lues
+                                    {t('notifications.unread', { count: unreadCount })}
                                 </span>
                             )}
                         </div>
@@ -219,7 +221,7 @@ export default function NotificationBell() {
                             {unreadCount > 0 && (
                                 <button onClick={markAllRead} disabled={loading}
                                         style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
-                                    <Check size={11}/> Tout lire
+                                    <Check size={11}/> {t('notifications.markAll')}
                                 </button>
                             )}
                             <button onClick={() => setOpen(false)}
@@ -234,7 +236,7 @@ export default function NotificationBell() {
                         {notifications.length === 0 ? (
                             <div style={{ padding: '32px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
                                 <Bell size={28} style={{ opacity: .3, marginBottom: 8 }}/>
-                                <div>Aucune notification</div>
+                                <div>{t('notifications.empty')}</div>
                             </div>
                         ) : notifications.map(notif => {
                             const cs = COLOR_STYLES[notif.color] ?? COLOR_STYLES.info;
@@ -292,7 +294,7 @@ export default function NotificationBell() {
                         <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.15)', textAlign: 'center', background: 'rgba(255,255,255,0.05)' }}>
                             <a href="/admin/notifications"
                                style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}>
-                                Voir toutes les notifications
+                                {t('notifications.seeAll')}
                             </a>
                         </div>
                     )}

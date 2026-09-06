@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -10,10 +11,6 @@ import {
     FileText, SlidersHorizontal, Download,
     ChevronDown, ChevronUp,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Certificats', href: '/admin/certificates' },
-];
 
 interface Tenant   { id: string; name: string; code: string; }
 interface Broker   { id: string; name: string; code: string; }
@@ -53,26 +50,28 @@ interface Props {
     can:       { create: boolean; validate: boolean; cancel: boolean; export: boolean; };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string; dot: string }> = {
-    DRAFT:     { bg:'#f8fafc', color:'#64748b', label:'Stocké',   dot:'#94a3b8' },
-    SUBMITTED: { bg:'#fffbeb', color:'#92400e', label:'Soumis',   dot:'#f59e0b' },
-    REJECTED:  { bg:'#fef2f2', color:'#dc2626', label:'Rejeté',   dot:'#ef4444' },
-    ISSUED:    { bg:'#f0fdf4', color:'#15803d', label:'Approuvé', dot:'#22c55e' },
-    REPLACED:  { bg:'#f1f5f9', color:'#475569', label:'Remplacé', dot:'#94a3b8' },
-    CANCELLED: { bg:'#fef2f2', color:'#991b1b', label:'Annulé',   dot:'#dc2626' },
+const STATUS_DOTS: Record<string, string> = {
+    DRAFT: '#94a3b8', SUBMITTED: '#f59e0b', REJECTED: '#ef4444', ISSUED: '#22c55e', REPLACED: '#94a3b8', CANCELLED: '#dc2626',
 };
-
-const TRANSPORT_LABELS: Record<string, string> = {
-    SEA: 'Maritime', AIR: 'Aérien', ROAD: 'Routier', RAIL: 'Ferroviaire', MULTIMODAL: 'Multimodal',
-};
-
-const TRANSPORT_ICONS: Record<string, any> = {
-    SEA: Ship, AIR: Plane, ROAD: Truck, RAIL: Truck, MULTIMODAL: FileText,
+const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+    DRAFT:     { bg:'#f8fafc', color:'#64748b' },
+    SUBMITTED: { bg:'#fffbeb', color:'#92400e' },
+    REJECTED:  { bg:'#fef2f2', color:'#dc2626' },
+    ISSUED:    { bg:'#f0fdf4', color:'#15803d' },
+    REPLACED:  { bg:'#f1f5f9', color:'#475569' },
+    CANCELLED: { bg:'#fef2f2', color:'#991b1b' },
 };
 
 const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
 
 export default function CertificatesIndex({ certificates, filters, isSA, tenants, brokers, contracts, stats, can }: Props) {
+    const { t } = useTranslation('certificates');
+    const { t: tc } = useTranslation('common');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('shared.breadcrumb'), href: '/admin/certificates' },
+    ];
+
     const [search,       setSearch]       = useState(filters?.search ?? '');
     const [showAdvanced, setShowAdvanced] = useState(
         !!(filters?.transport_type || filters?.tenant_id || filters?.broker_id ||
@@ -87,7 +86,7 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
     const clearFilters = () => router.get('/admin/certificates', {}, { preserveState:false });
 
     const handleDelete = (c: Certificate) => {
-        if (confirm(`Supprimer le certificat « ${c.certificate_number} » ?`))
+        if (confirm(t('index.confirmDelete', { number: c.certificate_number })))
             router.delete(route('admin.certificates.destroy', { certificate: c.id }));
     };
 
@@ -98,7 +97,7 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Certificats — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .cv-page{padding:4px;display:flex;flex-direction:column;gap:14px;}
                 .cv-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
@@ -168,19 +167,19 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                     {/* Header */}
                     <div className="cv-hdr">
                         <div>
-                            <h1 className="cv-title">Certificats d'assurance</h1>
-                            <p className="cv-sub">{certificates.total} certificat{certificates.total > 1 ? 's' : ''}</p>
+                            <h1 className="cv-title">{t('index.heading')}</h1>
+                            <p className="cv-sub">{t(certificates.total > 1 ? 'index.count_plural' : 'index.count', { count: certificates.total })}</p>
                         </div>
                         <div style={{ display:'flex', gap:8 }}>
                             {can.export && (
                                 <Button variant="outline" onClick={handleExport} className="h-10 px-4 gap-1.5">
-                                    <Download size={14}/> Exporter CSV
+                                    <Download size={14}/> {t('index.exportCsv')}
                                 </Button>
                             )}
                             {can.create && (
                                 <Link href={route('admin.certificates.create')}>
                                     <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                        <Plus size={15}/> Nouveau certificat
+                                        <Plus size={15}/> {t('index.newCertificate')}
                                     </Button>
                                 </Link>
                             )}
@@ -191,27 +190,27 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                     <div className="stats-bar">
                         <div className="stat-card">
                             <div className="stat-value">{stats.total}</div>
-                            <div className="stat-label">Total</div>
+                            <div className="stat-label">{t('index.stats.total')}</div>
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'ISSUED' })}>
                             <div className="stat-value" style={{ color:'#15803d' }}>{stats.issued}</div>
-                            <div className="stat-label">Approuvés</div>
+                            <div className="stat-label">{t('index.stats.issued')}</div>
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'SUBMITTED' })}>
                             <div className="stat-value" style={{ color:'#92400e' }}>{stats.submitted}</div>
-                            <div className="stat-label">Soumis</div>
+                            <div className="stat-label">{t('index.stats.submitted')}</div>
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'DRAFT' })}>
                             <div className="stat-value" style={{ color:'#64748b' }}>{stats.draft}</div>
-                            <div className="stat-label">Stockés</div>
+                            <div className="stat-label">{t('index.stats.draft')}</div>
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'REJECTED' })}>
                             <div className="stat-value" style={{ color:'#dc2626' }}>{stats.rejected}</div>
-                            <div className="stat-label">Rejetés</div>
+                            <div className="stat-label">{t('index.stats.rejected')}</div>
                         </div>
                         <div className="stat-card clickable" onClick={() => applyFilter({ status:'CANCELLED' })}>
                             <div className="stat-value" style={{ color:'#991b1b' }}>{stats.cancelled}</div>
-                            <div className="stat-label">Annulés</div>
+                            <div className="stat-label">{t('index.stats.cancelled')}</div>
                         </div>
                     </div>
 
@@ -221,41 +220,41 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                             {/* Recherche texte */}
                             <form className="cv-search" onSubmit={e => { e.preventDefault(); applyFilter({ search }); }}>
                                 <input value={search} onChange={e => setSearch(e.target.value)}
-                                       placeholder="N° certificat, assuré, départ, destination…"/>
+                                       placeholder={t('index.search.placeholder')}/>
                                 <button type="submit"><Search size={14}/></button>
                             </form>
 
                             {/* Statut */}
                             <select className="cv-select" value={filters?.status ?? ''}
                                     onChange={e => applyFilter({ status: e.target.value })}>
-                                <option value="">Tous les statuts</option>
-                                {Object.entries(STATUS_STYLES).map(([k, v]) => (
-                                    <option key={k} value={k}>{v.label}</option>
+                                <option value="">{t('index.filters.allStatuses')}</option>
+                                {Object.keys(STATUS_COLORS).map(k => (
+                                    <option key={k} value={k}>{tc(`certificateStatus.${k}`)}</option>
                                 ))}
                             </select>
 
                             {/* Transport */}
                             <select className="cv-select" value={filters?.transport_type ?? ''}
                                     onChange={e => applyFilter({ transport_type: e.target.value })}>
-                                <option value="">Tous les modes</option>
-                                {Object.entries(TRANSPORT_LABELS).map(([k, v]) => (
-                                    <option key={k} value={k}>{v}</option>
+                                <option value="">{t('index.filters.allModes')}</option>
+                                {['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'].map(k => (
+                                    <option key={k} value={k}>{t(`shared.transport.${k}`)}</option>
                                 ))}
                             </select>
 
                             {/* Date voyage */}
                             <input type="date" className="cv-date" value={filters?.date_from ?? ''}
                                    onChange={e => applyFilter({ date_from: e.target.value })}
-                                   title="Date début voyage"/>
+                                   title={t('index.filters.voyageStartDate')}/>
                             <input type="date" className="cv-date" value={filters?.date_to ?? ''}
                                    onChange={e => applyFilter({ date_to: e.target.value })}
-                                   title="Date fin voyage"/>
+                                   title={t('index.filters.voyageEndDate')}/>
 
                             {/* Bouton filtres avancés */}
                             <button className={`btn-advanced ${showAdvanced ? 'active' : ''}`}
                                     onClick={() => setShowAdvanced(v => !v)}>
                                 <SlidersHorizontal size={13}/>
-                                Avancé
+                                {t('index.filters.advanced')}
                                 {activeFiltersCount > 2 && (
                                     <span className="filter-badge">{activeFiltersCount - 2}</span>
                                 )}
@@ -266,7 +265,7 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                             {activeFiltersCount > 0 && (
                                 <button onClick={clearFilters}
                                         style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12, height:40 }}>
-                                    <X size={12}/> Effacer tout
+                                    <X size={12}/> {t('index.filters.clearAll')}
                                 </button>
                             )}
                         </div>
@@ -278,11 +277,11 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                     {/* Filiale */}
                                     {isSA && (
                                         <div>
-                                            <div className="adv-label">Filiale</div>
+                                            <div className="adv-label">{t('index.filters.subsidiary')}</div>
                                             <select className="cv-select" style={{ width:'100%' }}
                                                     value={filters?.tenant_id ?? ''}
                                                     onChange={e => applyFilter({ tenant_id: e.target.value })}>
-                                                <option value="">Toutes les filiales</option>
+                                                <option value="">{t('index.filters.allSubsidiaries')}</option>
                                                 {tenants.map(t => (
                                                     <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
                                                 ))}
@@ -292,11 +291,11 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
 
                                     {/* Courtier */}
                                     <div>
-                                        <div className="adv-label">Courtier</div>
+                                        <div className="adv-label">{t('index.filters.broker')}</div>
                                         <select className="cv-select" style={{ width:'100%' }}
                                                 value={filters?.broker_id ?? ''}
                                                 onChange={e => applyFilter({ broker_id: e.target.value })}>
-                                            <option value="">Tous les courtiers</option>
+                                            <option value="">{t('index.filters.allBrokers')}</option>
                                             {brokers.map(b => (
                                                 <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
                                             ))}
@@ -305,11 +304,11 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
 
                                     {/* Contrat */}
                                     <div>
-                                        <div className="adv-label">Contrat</div>
+                                        <div className="adv-label">{t('index.filters.contract')}</div>
                                         <select className="cv-select" style={{ width:'100%' }}
                                                 value={filters?.contract_id ?? ''}
                                                 onChange={e => applyFilter({ contract_id: e.target.value })}>
-                                            <option value="">Tous les contrats</option>
+                                            <option value="">{t('index.filters.allContracts')}</option>
                                             {contracts.map(c => (
                                                 <option key={c.id} value={c.id}>
                                                     {c.contract_number} — {c.insured_name}
@@ -322,33 +321,33 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                 <div className="adv-row-2">
                                     {/* Date émission */}
                                     <div>
-                                        <div className="adv-label">Date d'émission</div>
+                                        <div className="adv-label">{t('index.filters.issuedDate')}</div>
                                         <div className="adv-date-range">
                                             <input type="date" className="cv-date" style={{ flex:1 }}
                                                    value={filters?.issued_from ?? ''}
                                                    onChange={e => applyFilter({ issued_from: e.target.value })}
-                                                   placeholder="Du"/>
+                                                   placeholder={t('index.filters.from')}/>
                                             <span>→</span>
                                             <input type="date" className="cv-date" style={{ flex:1 }}
                                                    value={filters?.issued_to ?? ''}
                                                    onChange={e => applyFilter({ issued_to: e.target.value })}
-                                                   placeholder="Au"/>
+                                                   placeholder={t('index.filters.to')}/>
                                         </div>
                                     </div>
 
                                     {/* Valeur assurée */}
                                     <div>
-                                        <div className="adv-label">Valeur assurée</div>
+                                        <div className="adv-label">{t('index.filters.insuredValue')}</div>
                                         <div className="adv-date-range">
                                             <input type="number" min={0} className="cv-date" style={{ flex:1 }}
                                                    value={filters?.value_min ?? ''}
                                                    onChange={e => applyFilter({ value_min: e.target.value })}
-                                                   placeholder="Min"/>
+                                                   placeholder={t('index.filters.min')}/>
                                             <span>→</span>
                                             <input type="number" min={0} className="cv-date" style={{ flex:1 }}
                                                    value={filters?.value_max ?? ''}
                                                    onChange={e => applyFilter({ value_max: e.target.value })}
-                                                   placeholder="Max"/>
+                                                   placeholder={t('index.filters.max')}/>
                                         </div>
                                     </div>
                                 </div>
@@ -361,10 +360,10 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                         {certificates.data.length === 0 ? (
                             <div className="cv-empty">
                                 <Award size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
-                                <div>Aucun certificat trouvé.</div>
+                                <div>{t('index.empty.title')}</div>
                                 {activeFiltersCount > 0 && (
                                     <button onClick={clearFilters} style={{ marginTop:10, padding:'6px 14px', background:'none', border:'1px solid #e2e8f0', borderRadius:7, cursor:'pointer', fontSize:12, color:'#64748b' }}>
-                                        Effacer les filtres
+                                        {t('index.empty.clearFilters')}
                                     </button>
                                 )}
                             </div>
@@ -373,21 +372,22 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>N° Certificat</th>
-                                            <th>Assuré</th>
-                                            <th>Voyage</th>
-                                            <th>Date</th>
-                                            <th>Transport</th>
-                                            <th>Valeur assurée</th>
-                                            {isSA && <th>Filiale</th>}
-                                            <th>Statut</th>
-                                            <th>Actions</th>
+                                            <th>{t('index.table.number')}</th>
+                                            <th>{t('index.table.insured')}</th>
+                                            <th>{t('index.table.voyage')}</th>
+                                            <th>{t('index.table.date')}</th>
+                                            <th>{t('index.table.transport')}</th>
+                                            <th>{t('index.table.insuredValue')}</th>
+                                            {isSA && <th>{t('index.table.subsidiary')}</th>}
+                                            <th>{tc('fields.status')}</th>
+                                            <th>{tc('fields.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {certificates.data.map(cert => {
-                                            const ss = STATUS_STYLES[cert.status] ?? STATUS_STYLES.DRAFT;
-                                            const TransIcon = TRANSPORT_ICONS[cert.transport_type ?? ''] ?? Award;
+                                            const ss = STATUS_COLORS[cert.status] ?? STATUS_COLORS.DRAFT;
+                                            const dot = STATUS_DOTS[cert.status] ?? STATUS_DOTS.DRAFT;
+                                            const TransIcon = cert.transport_type === 'AIR' ? Plane : cert.transport_type === 'ROAD' ? Truck : cert.transport_type === 'RAIL' ? Truck : cert.transport_type === 'MULTIMODAL' ? FileText : Ship;
                                             return (
                                                 <tr key={cert.id}>
                                                     <td>
@@ -414,14 +414,14 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                                         </div>
                                                         {cert.issued_at && (
                                                             <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                                Émis {fmt(cert.issued_at)}
+                                                                {t('index.table.issuedOn', { date: fmt(cert.issued_at) })}
                                                             </div>
                                                         )}
                                                     </td>
                                                     <td>
                                                         {cert.transport_type && (
                                                             <span style={{ fontSize:11, color:'#64748b' }}>
-                                                                {TRANSPORT_LABELS[cert.transport_type] ?? cert.transport_type}
+                                                                {t(`shared.transport.${cert.transport_type}`, { defaultValue: cert.transport_type })}
                                                             </span>
                                                         )}
                                                     </td>
@@ -438,19 +438,19 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                                     )}
                                                     <td>
                                                         <span className="status-badge" style={{ background: ss.bg, color: ss.color }}>
-                                                            <span className="s-dot" style={{ background: ss.dot }}/>{ss.label}
+                                                            <span className="s-dot" style={{ background: dot }}/>{tc(`certificateStatus.${cert.status}`)}
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <div className="actions">
                                                             <Link href={route('admin.certificates.show', { certificate: cert.id })}
                                                                   className="btn-act btn-view">
-                                                                <Eye size={12}/> Voir
+                                                                <Eye size={12}/> {tc('actions.view')}
                                                             </Link>
                                                             {can.create && ['DRAFT', 'REJECTED'].includes(cert.status) && (
                                                                 <button className="btn-act btn-del"
                                                                         onClick={() => handleDelete(cert)}>
-                                                                    <Trash2 size={12}/> Suppr.
+                                                                    <Trash2 size={12}/> {t('index.table.delete')}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -465,7 +465,7 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                 {certificates.last_page > 1 && (
                                     <div className="cv-pagination">
                                         <span className="cv-pg-info">
-                                            {certificates.from}–{certificates.to} sur {certificates.total} certificats
+                                            {t('index.pagination.summary', { from: certificates.from, to: certificates.to, total: certificates.total })}
                                         </span>
                                         <div className="cv-pg-links">
                                             <button className="pg-btn" disabled={certificates.current_page === 1}

@@ -1,0 +1,127 @@
+{
+    "breadcrumb": {
+        "profile": "Definições do perfil",
+        "password": "Palavra-passe",
+        "appearance": "Aspeto",
+        "twoFactor": "Autenticação de dois fatores"
+    },
+    "roles": {
+        "super_admin": "Super Administrador",
+        "admin_filiale": "Administrador de Filial",
+        "souscripteur": "Subscritor",
+        "courtier_local": "Corretor Local",
+        "partenaire_etranger": "Parceiro Estrangeiro",
+        "client": "Cliente"
+    },
+    "profile": {
+        "title": "Definições do perfil",
+        "avatar": {
+            "title": "Fotografia de perfil",
+            "subtitle": "JPG, PNG ou WebP · Máx. 2 MB",
+            "choose": "Escolher uma fotografia",
+            "changePhoto": "Alterar fotografia",
+            "remove": "Eliminar",
+            "confirmRemove": "Eliminar a sua fotografia de perfil?",
+            "hint": "Formato JPG, PNG ou WebP · Tamanho máx. 2 MB",
+            "uploading": "A carregar…",
+            "updated": "Fotografia atualizada."
+        },
+        "defaultUserName": "Utilizador",
+        "personal": {
+            "title": "Dados pessoais",
+            "subtitle": "Nome próprio, apelido, email e telefone",
+            "firstName": "Nome próprio",
+            "firstNamePlaceholder": "Nome próprio",
+            "lastName": "Apelido",
+            "lastNamePlaceholder": "Apelido",
+            "email": "Endereço de email",
+            "emailPlaceholder": "nome.apelido@nsia.com",
+            "emailVerified": "Verificado",
+            "emailUnverified": "Não verificado",
+            "phone": "Telefone",
+            "phonePlaceholder": "+225 07 00 00 00 00"
+        },
+        "language": {
+            "title": "Idioma da interface",
+            "subtitle": "Aplica-se também aos emails e aos documentos gerados"
+        },
+        "verify": {
+            "notice": "O seu endereço de email não está verificado.",
+            "resend": "Reenviar o email de verificação.",
+            "sent": "Ligação enviada."
+        },
+        "save": "Guardar",
+        "saving": "A guardar…",
+        "saved": "Guardado"
+    },
+    "password": {
+        "title": "Palavra-passe",
+        "heroSubtitle": "Segurança da conta · Alteração da palavra-passe",
+        "updated": "Palavra-passe atualizada com sucesso.",
+        "cardTitle": "Alterar a palavra-passe",
+        "cardSubtitle": "Use uma palavra-passe forte e única",
+        "current": "Palavra-passe atual",
+        "new": "Nova palavra-passe",
+        "confirm": "Confirmar a nova palavra-passe",
+        "submit": "Atualizar",
+        "submitting": "A atualizar…",
+        "rules": {
+            "length": "Pelo menos 8 caracteres",
+            "uppercase": "Uma letra maiúscula",
+            "digit": "Um algarismo",
+            "special": "Um carácter especial (!@#$...)"
+        },
+        "tips": {
+            "title": "Boas práticas",
+            "unique": "Use uma palavra-passe diferente para cada serviço.",
+            "mfa": "Ative a autenticação de dois fatores (MFA) para maior segurança.",
+            "share": "Nunca partilhe a sua palavra-passe com ninguém.",
+            "rotate": "Mude a palavra-passe com regularidade, pelo menos de 6 em 6 meses."
+        }
+    },
+    "appearance": {
+        "title": "Aspeto",
+        "heroSubtitle": "Personalização · Tema e preferências visuais",
+        "theme": {
+            "title": "Tema",
+            "subtitle": "Escolha o aspeto da interface",
+            "light": "Claro",
+            "lightDesc": "Interface luminosa",
+            "dark": "Escuro",
+            "darkDesc": "Interface escura",
+            "system": "Sistema",
+            "systemDesc": "Segue as preferências do SO"
+        },
+        "fontSize": {
+            "title": "Tamanho do texto",
+            "subtitle": "Ajuste a legibilidade da interface",
+            "sm": "Pequeno",
+            "md": "Médio",
+            "lg": "Grande"
+        },
+        "accent": {
+            "title": "Cor principal",
+            "subtitle": "Cor dos botões e dos elementos ativos",
+            "blue": "Azul",
+            "indigo": "Índigo",
+            "violet": "Violeta",
+            "teal": "Turquesa",
+            "green": "Verde"
+        },
+        "sidebar": {
+            "title": "Menu lateral",
+            "subtitle": "Estado predefinido ao carregar",
+            "expanded": "Expandido",
+            "expandedDesc": "Menu visível por predefinição",
+            "collapsed": "Reduzido",
+            "collapsedDesc": "Apenas ícones"
+        },
+        "autosave": "As preferências são guardadas automaticamente."
+    },
+    "twoFactor": {
+        "title": "Autenticação de dois fatores",
+        "description": "Faça a gestão das definições de autenticação de dois fatores",
+        "enabled": "Ativada",
+        "disabled": "Desativada"
+    }
+}

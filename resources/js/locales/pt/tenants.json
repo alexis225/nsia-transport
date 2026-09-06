@@ -1,0 +1,259 @@
+{
+    "config": {
+        "breadcrumb": { "tenants": "Filiais", "config": "Configuração" },
+        "title": "Configuração {{name}} — NSIA Transport",
+        "hero": {
+            "title": "Configuração — {{name}}",
+            "subtitle": "Definições avançadas · Limites · Notificações · Capacidades"
+        },
+        "modules": {
+            "title": "Módulos ativados",
+            "subtitle": "Um módulo desativado desaparece do menu e torna-se inacessível para esta filial",
+            "saved": "Módulos atualizados.",
+            "saving": "A guardar…",
+            "save": "Guardar módulos"
+        },
+        "nn300": {
+            "title": "Limite NN300",
+            "subtitle": "Limite de subscrição e alertas automáticos",
+            "saved": "Configuração guardada.",
+            "limitLabel": "Limite NN300",
+            "thresholdLabel": "Limiar de alerta",
+            "thresholdHint": "Alerta enviado a esta percentagem de consumo",
+            "blockLabel": "Bloquear a 100% do limite",
+            "blockDesc": "Novas submissões recusadas automaticamente quando o limite é atingido"
+        },
+        "notifications": {
+            "title": "Notificações",
+            "subtitle": "Canais de notificação ativos para esta filial",
+            "enabledLabel": "Notificações ativadas",
+            "enabledDesc": "Ativar ou desativar todas as notificações para esta filial",
+            "emailLabel": "Notificações por email",
+            "emailDesc": "Envio de emails para eventos críticos",
+            "smsLabel": "Notificações por SMS",
+            "smsDesc": "Envio de SMS para alertas urgentes"
+        },
+        "limits": {
+            "title": "Limites de capacidade",
+            "subtitle": "0 = ilimitado",
+            "maxUsers": "Utilizadores máx.",
+            "maxContracts": "Contratos máx.",
+            "maxCertificates": "Certificados máx.",
+            "retentionDays": "Retenção de dados (dias)",
+            "retentionHint": "Duração de conservação dos registos de auditoria",
+            "unlimitedPlaceholder": "0 = ilimitado",
+            "daysSuffix": "dias"
+        },
+        "actions": {
+            "saving": "A guardar…",
+            "save": "Guardar configuração"
+        }
+    },
+    "create": {
+        "breadcrumb": { "tenants": "Filiais", "new": "Nova filial" },
+        "title": "Nova filial — NSIA Transport",
+        "hero": {
+            "title": "Nova filial",
+            "subtitle": "Configure os parâmetros da nova filial NSIA",
+            "logoTooltip": "Clique para adicionar um logótipo"
+        },
+        "logo": {
+            "title": "Logótipo da filial",
+            "subtitle": "Opcional · JPG, PNG, WebP ou SVG · Máx. 2 MB",
+            "choose": "Escolher um logótipo",
+            "hint": "Formato JPG, PNG, WebP ou SVG · Máx. 2 MB"
+        },
+        "info": {
+            "title": "Informações da filial",
+            "subtitle": "Todos os campos marcados com * são obrigatórios"
+        },
+        "fields": {
+            "name": "Nome da filial *",
+            "namePlaceholder": "ex: NSIA Costa do Marfim",
+            "code": "Código *",
+            "codePlaceholder": "ex: CI",
+            "countryCode": "Código do país (ISO 2) *",
+            "currency": "Moeda *",
+            "locale": "Idioma *",
+            "localeFr": "Français",
+            "localeEn": "English",
+            "timezone": "Fuso horário *",
+            "nn300Limit": "Limite NN300 (XOF)",
+            "status": "Estado"
+        },
+        "status": {
+            "active": "Filial ativa",
+            "inactive": "Filial inativa",
+            "activeDesc": "Os utilizadores podem iniciar sessão",
+            "inactiveDesc": "Acesso bloqueado"
+        },
+        "actions": {
+            "creating": "A criar…",
+            "create": "Criar filial"
+        }
+    },
+    "edit": {
+        "breadcrumb": { "tenants": "Filiais", "edit": "Editar" },
+        "title": "Editar {{name}} — NSIA Transport",
+        "hero": {
+            "title": "Editar {{name}}",
+            "sub": "Código: {{code}} · {{currency}}"
+        },
+        "logo": {
+            "title": "Logótipo da filial",
+            "subtitle": "JPG, PNG, WebP ou SVG · Máx. 2 MB",
+            "updated": "Logótipo atualizado.",
+            "choose": "Escolher um logótipo",
+            "remove": "Eliminar",
+            "hint": "Formato JPG, PNG, WebP ou SVG · Máx. 2 MB",
+            "uploading": "A enviar…",
+            "save": "Guardar logótipo",
+            "confirmRemove": "Eliminar o logótipo desta filial?"
+        },
+        "form": {
+            "title": "Informações da filial",
+            "subtitle": "Edite os parâmetros de configuração",
+            "saved": "Alterações guardadas."
+        },
+        "fields": {
+            "name": "Nome da filial *",
+            "namePlaceholder": "ex: NSIA Costa do Marfim",
+            "code": "Código *",
+            "codePlaceholder": "ex: CI",
+            "countryCode": "Código do país (ISO 2) *",
+            "currency": "Moeda *",
+            "locale": "Idioma *",
+            "localeFr": "Français",
+            "localeEn": "English",
+            "timezone": "Fuso horário *",
+            "nn300Limit": "Limite NN300 (XOF)",
+            "status": "Estado"
+        },
+        "status": {
+            "active": "Filial ativa",
+            "inactive": "Filial inativa",
+            "activeDesc": "Os utilizadores podem iniciar sessão",
+            "inactiveDesc": "Acesso bloqueado"
+        },
+        "print": {
+            "title": "Informações para impressão dos certificados",
+            "subtitle": "Estes dados aparecem no cabeçalho e no rodapé do certificado impresso",
+            "headOffice": "Sede social",
+            "headOfficePlaceholder": "Edifício NSIA\nBP 5884 Conacri Guiné",
+            "phone": "Telefone",
+            "phonePlaceholder": "(+224) 666 18 12 82",
+            "city": "Cidade (local de emissão)",
+            "cityPlaceholder": "Conacri",
+            "website": "Sítio Web",
+            "websitePlaceholder": "www.groupensia.com",
+            "email": "E-mail",
+            "emailPlaceholder": "nsiaguinee@groupensia.com",
+            "capital": "Capital social",
+            "capitalPlaceholder": "13 000 000 000 GNF integralmente realizado",
+            "rccm": "N.º RCCM",
+            "rccmPlaceholder": "RCCM/GC-KAL/024,618A/2009",
+            "regulator": "Organismo regulador",
+            "regulatorPlaceholder": "Autoridade de Seguros da Guiné",
+            "paymentAddress": "Endereço de pagamento de sinistros",
+            "paymentAddressPlaceholder": "NSIA Guiné — BP 5884 Conacri",
+            "surveyorName": "Nome do perito (em caso de avarias)",
+            "surveyorNamePlaceholder": "Gabinete METEA",
+            "surveyorAddress": "Endereço do perito",
+            "surveyorAddressPlaceholder": "Endereço do gabinete"
+        },
+        "actions": {
+            "saving": "A guardar…",
+            "save": "Guardar"
+        }
+    },
+    "index": {
+        "breadcrumb": "Filiais",
+        "title": "Filiais — NSIA Transport",
+        "heading": "Filiais NSIA",
+        "count_one": "{{count}} filial configurada",
+        "count_other": "{{count}} filiais configuradas",
+        "newTenant": "Nova filial",
+        "search": {
+            "placeholder": "Pesquisar por nome ou código…"
+        },
+        "filters": {
+            "allStatuses": "Todos os estados",
+            "active": "Ativas",
+            "inactive": "Inativas",
+            "clear": "Limpar"
+        },
+        "table": {
+            "tenant": "Filial",
+            "country": "País",
+            "currency": "Moeda",
+            "users": "Utilizadores",
+            "status": "Estado",
+            "createdAt": "Criada em",
+            "actions": "Ações"
+        },
+        "status": {
+            "active": "Ativa",
+            "inactive": "Inativa"
+        },
+        "actions": {
+            "view": "Ver",
+            "edit": "Editar",
+            "config": "Config",
+            "deactivate": "Desativar",
+            "activate": "Ativar"
+        },
+        "empty": "Nenhuma filial encontrada.",
+        "pagination": {
+            "info": "Página {{current}} / {{last}} · {{total}} filiais"
+        },
+        "confirmToggle": "{{action}} a filial {{name}}?",
+        "deactivateVerb": "Desativar",
+        "activateVerb": "Ativar"
+    },
+    "show": {
+        "breadcrumb": "Filiais",
+        "title": "{{name}} — NSIA Transport",
+        "status": {
+            "active": "Ativa",
+            "inactive": "Inativa"
+        },
+        "usersCount_one": "{{count}} utilizador",
+        "usersCount_other": "{{count}} utilizadores",
+        "edit": "Editar",
+        "deactivate": "Desativar",
+        "activate": "Ativar",
+        "confirmToggle": "{{action}} a filial {{name}}?",
+        "deactivateVerb": "Desativar",
+        "activateVerb": "Ativar",
+        "config": {
+            "title": "Configuração",
+            "countryCode": "Código do país",
+            "currency": "Moeda",
+            "locale": "Idioma",
+            "localeFr": "Français",
+            "localeEn": "English",
+            "timezone": "Fuso horário",
+            "nn300Limit": "Limite NN300",
+            "createdAt": "Criada em"
+        },
+        "template": {
+            "title": "Modelo de certificado",
+            "types": {
+                "certificat_assurance": "Certificado de Seguro",
+                "certificat_etatique": "Certificado Estatal (GUCE, GUOT, etc.)",
+                "carnet_ordre": "Certificado de Livro de Ordem",
+                "ordre_assurance": "Certificado de Livro de Ordem"
+            },
+            "activated": "Ativado",
+            "deactivated": "Desativado",
+            "configure": "Configurar",
+            "none": "Nenhum modelo configurado — os certificados desta filial saem sem cabeçalho nem numeração oficial.",
+            "activate": "Ativar um modelo"
+        },
+        "usersSection": {
+            "title": "Utilizadores ({{count}})",
+            "seeAll": "Ver todos →"
+        },
+        "backToList": "Voltar às filiais"
+    }
+}

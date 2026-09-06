@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { Settings, Check, Shield, Bell, Database, ToggleLeft } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -42,10 +43,12 @@ function Toggle({ value, onChange, label, desc }: { value: boolean; onChange: ()
 }
 
 export default function TenantConfig({ tenant, moduleRegistry }: Props) {
+    const { t } = useTranslation('tenants');
+    const { t: tc } = useTranslation('common');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Filiales',     href: '/admin/tenants' },
+        { title: t('config.breadcrumb.tenants'),     href: '/admin/tenants' },
         { title: tenant.name,    href: route('admin.tenants.show', { tenant: tenant.id }) },
-        { title: 'Configuration', href: route('admin.tenants.config', { tenant: tenant.id }) },
+        { title: t('config.breadcrumb.config'), href: route('admin.tenants.config', { tenant: tenant.id }) },
     ];
 
     const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
@@ -86,7 +89,7 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Configuration ${tenant.name} — NSIA Transport`}/>
+            <Head title={t('config.title', { name: tenant.name })}/>
             <style>{`
                 .tc-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .tc-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -117,8 +120,8 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                     <div className="tc-hero">
                         <div className="tc-hero-ico"><Settings size={22} color="rgba(255,255,255,0.8)"/></div>
                         <div className="tc-hero-info">
-                            <div className="tc-hero-name">Configuration — {tenant.name}</div>
-                            <div className="tc-hero-sub">Paramètres avancés · Plafonds · Notifications · Limites</div>
+                            <div className="tc-hero-name">{t('config.hero.title', { name: tenant.name })}</div>
+                            <div className="tc-hero-sub">{t('config.hero.subtitle')}</div>
                         </div>
                     </div>
 
@@ -128,12 +131,12 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                             <div className="tc-card-hdr">
                                 <div className="tc-card-ico" style={{ background:'#fdf4ff' }}><ToggleLeft size={17} color="#a21caf"/></div>
                                 <div>
-                                    <div className="tc-card-ttl">Modules activés</div>
-                                    <div className="tc-card-sub">Un module désactivé disparaît du menu et devient inaccessible pour cette filiale</div>
+                                    <div className="tc-card-ttl">{t('config.modules.title')}</div>
+                                    <div className="tc-card-sub">{t('config.modules.subtitle')}</div>
                                 </div>
                             </div>
                             <div className="tc-card-body">
-                                {modulesForm.recentlySuccessful && <div className="status-ok"><Check size={13}/>Modules mis à jour.</div>}
+                                {modulesForm.recentlySuccessful && <div className="status-ok"><Check size={13}/>{t('config.modules.saved')}</div>}
 
                                 {moduleKeys.map(key => (
                                     <Toggle
@@ -149,7 +152,7 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
 
                                 <div style={{ display:'flex', gap:8, paddingTop:4 }}>
                                     <Button type="submit" disabled={modulesForm.processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                        {modulesForm.processing ? 'Enregistrement…' : <><Check size={14}/> Enregistrer les modules</>}
+                                        {modulesForm.processing ? t('config.modules.saving') : <><Check size={14}/> {t('config.modules.save')}</>}
                                     </Button>
                                 </div>
                             </div>
@@ -163,17 +166,17 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                             <div className="tc-card-hdr">
                                 <div className="tc-card-ico" style={{ background:'#fff7ed' }}><Shield size={17} color="#f97316"/></div>
                                 <div>
-                                    <div className="tc-card-ttl">Plafond NN300</div>
-                                    <div className="tc-card-sub">Limite de souscription et alertes automatiques</div>
+                                    <div className="tc-card-ttl">{t('config.nn300.title')}</div>
+                                    <div className="tc-card-sub">{t('config.nn300.subtitle')}</div>
                                 </div>
                             </div>
                             <div className="tc-card-body">
-                                {recentlySuccessful && <div className="status-ok"><Check size={13}/>Configuration enregistrée.</div>}
+                                {recentlySuccessful && <div className="status-ok"><Check size={13}/>{t('config.nn300.saved')}</div>}
 
                                 <div className="form-grid">
                                     {/* Plafond NN300 */}
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">Plafond NN300</Label>
+                                        <Label className="tc-label">{t('config.nn300.limitLabel')}</Label>
                                         <div className="input-suffix">
                                             <Input
                                                 className="h-11"
@@ -191,7 +194,7 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
 
                                     {/* Seuil d'alerte */}
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">Seuil d'alerte</Label>
+                                        <Label className="tc-label">{t('config.nn300.thresholdLabel')}</Label>
                                         <div className="input-suffix">
                                             <Input
                                                 className="h-11"
@@ -204,7 +207,7 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                                             />
                                             <span className="suffix-label">%</span>
                                         </div>
-                                        <span style={{ fontSize:11, color:'#94a3b8' }}>Alerte envoyée à ce pourcentage de consommation</span>
+                                        <span style={{ fontSize:11, color:'#94a3b8' }}>{t('config.nn300.thresholdHint')}</span>
                                     </div>
                                 </div>
 
@@ -214,8 +217,8 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                                         ...data.subscription_limit_config,
                                         block_at_100_percent: !data.subscription_limit_config.block_at_100_percent,
                                     })}
-                                    label="Bloquer à 100% du plafond"
-                                    desc="Nouvelles soumissions refusées automatiquement quand le plafond est atteint"
+                                    label={t('config.nn300.blockLabel')}
+                                    desc={t('config.nn300.blockDesc')}
                                 />
                             </div>
                         </div>
@@ -225,28 +228,28 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                             <div className="tc-card-hdr">
                                 <div className="tc-card-ico" style={{ background:'#eff6ff' }}><Bell size={17} color="#3b82f6"/></div>
                                 <div>
-                                    <div className="tc-card-ttl">Notifications</div>
-                                    <div className="tc-card-sub">Canaux de notification actifs pour cette filiale</div>
+                                    <div className="tc-card-ttl">{t('config.notifications.title')}</div>
+                                    <div className="tc-card-sub">{t('config.notifications.subtitle')}</div>
                                 </div>
                             </div>
                             <div className="tc-card-body">
                                 <Toggle
                                     value={data.settings.notifications_enabled}
                                     onChange={() => setData('settings', { ...data.settings, notifications_enabled: !data.settings.notifications_enabled })}
-                                    label="Notifications activées"
-                                    desc="Activer ou désactiver toutes les notifications pour cette filiale"
+                                    label={t('config.notifications.enabledLabel')}
+                                    desc={t('config.notifications.enabledDesc')}
                                 />
                                 <Toggle
                                     value={data.settings.email_notifications}
                                     onChange={() => setData('settings', { ...data.settings, email_notifications: !data.settings.email_notifications })}
-                                    label="Notifications email"
-                                    desc="Envoi d'emails pour les événements critiques"
+                                    label={t('config.notifications.emailLabel')}
+                                    desc={t('config.notifications.emailDesc')}
                                 />
                                 <Toggle
                                     value={data.settings.sms_notifications}
                                     onChange={() => setData('settings', { ...data.settings, sms_notifications: !data.settings.sms_notifications })}
-                                    label="Notifications SMS"
-                                    desc="Envoi de SMS pour les alertes urgentes"
+                                    label={t('config.notifications.smsLabel')}
+                                    desc={t('config.notifications.smsDesc')}
                                 />
                             </div>
                         </div>
@@ -256,42 +259,42 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                             <div className="tc-card-hdr">
                                 <div className="tc-card-ico" style={{ background:'#f0fdf4' }}><Database size={17} color="#16a34a"/></div>
                                 <div>
-                                    <div className="tc-card-ttl">Limites de capacité</div>
-                                    <div className="tc-card-sub">0 = illimité</div>
+                                    <div className="tc-card-ttl">{t('config.limits.title')}</div>
+                                    <div className="tc-card-sub">{t('config.limits.subtitle')}</div>
                                 </div>
                             </div>
                             <div className="tc-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">Utilisateurs max</Label>
+                                        <Label className="tc-label">{t('config.limits.maxUsers')}</Label>
                                         <Input className="h-11" type="number" min={0}
                                                value={data.settings.max_users}
                                                onChange={e => setData('settings', { ...data.settings, max_users: Number(e.target.value) })}
-                                               placeholder="0 = illimité"/>
+                                               placeholder={t('config.limits.unlimitedPlaceholder')}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">Contrats max</Label>
+                                        <Label className="tc-label">{t('config.limits.maxContracts')}</Label>
                                         <Input className="h-11" type="number" min={0}
                                                value={data.settings.max_contracts}
                                                onChange={e => setData('settings', { ...data.settings, max_contracts: Number(e.target.value) })}
-                                               placeholder="0 = illimité"/>
+                                               placeholder={t('config.limits.unlimitedPlaceholder')}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">Certificats max</Label>
+                                        <Label className="tc-label">{t('config.limits.maxCertificates')}</Label>
                                         <Input className="h-11" type="number" min={0}
                                                value={data.settings.max_certificates}
                                                onChange={e => setData('settings', { ...data.settings, max_certificates: Number(e.target.value) })}
-                                               placeholder="0 = illimité"/>
+                                               placeholder={t('config.limits.unlimitedPlaceholder')}/>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">Rétention données (jours)</Label>
+                                        <Label className="tc-label">{t('config.limits.retentionDays')}</Label>
                                         <div className="input-suffix">
                                             <Input className="h-11" type="number" min={30}
                                                    value={data.settings.retention_days}
                                                    onChange={e => setData('settings', { ...data.settings, retention_days: Number(e.target.value) })}/>
-                                            <span className="suffix-label">jours</span>
+                                            <span className="suffix-label">{t('config.limits.daysSuffix')}</span>
                                         </div>
-                                        <span style={{ fontSize:11, color:'#94a3b8' }}>Durée de conservation des audit logs</span>
+                                        <span style={{ fontSize:11, color:'#94a3b8' }}>{t('config.limits.retentionHint')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -300,10 +303,10 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                         {/* Actions */}
                         <div style={{ display:'flex', gap:8 }}>
                             <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? 'Enregistrement…' : <><Check size={14}/> Enregistrer la configuration</>}
+                                {processing ? t('config.actions.saving') : <><Check size={14}/> {t('config.actions.save')}</>}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                                Annuler
+                                {tc('actions.cancel')}
                             </Button>
                         </div>
                     </form>

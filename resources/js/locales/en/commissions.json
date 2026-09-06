@@ -1,0 +1,99 @@
+{
+    "breadcrumb": {
+        "section": "Commissions",
+        "bordereau": "Statement",
+        "rules": "Commission rules"
+    },
+    "bordereau": {
+        "title": "Commission statement — NSIA Transport",
+        "heading": "Commission statement",
+        "subtitle": "Gross premiums, commissions and net premiums by broker",
+        "export": {
+            "csv": "CSV",
+            "excel": "Excel",
+            "pdf": "PDF"
+        },
+        "kpis": {
+            "certificates": "Certificates",
+            "primeBrute": "Total gross premium",
+            "commission": "Total commission",
+            "primeNette": "Total net premium"
+        },
+        "filters": {
+            "periodFromTitle": "Period from",
+            "periodToTitle": "Period to",
+            "to": "to",
+            "allBrokers": "All brokers",
+            "allStatuses": "All statuses",
+            "statusPending": "Pending",
+            "statusPaid": "Paid",
+            "statusCancelled": "Cancelled",
+            "clear": "Clear"
+        },
+        "table": {
+            "certificate": "Certificate",
+            "insured": "Insured",
+            "contract": "Contract",
+            "broker": "Broker",
+            "period": "Period",
+            "primeBrute": "Gross premium",
+            "rate": "Rate",
+            "commission": "Commission",
+            "primeNette": "Net premium",
+            "status": "Status"
+        },
+        "statuses": {
+            "PENDING": "Pending",
+            "PAID": "Paid",
+            "CANCELLED": "Cancelled"
+        },
+        "empty": "No transaction found for this period.",
+        "total_one": "TOTAL — {{count}} transaction",
+        "total_other": "TOTAL — {{count}} transactions",
+        "pagination": "{{from}}–{{to}} of {{total}}"
+    },
+    "rules": {
+        "title": "Commission rules — NSIA Transport",
+        "heading": "Commission rules",
+        "subtitle": "Set rates by broker and by contract",
+        "newRule": "New rule",
+        "form": {
+            "title": "New commission rule",
+            "broker": "Broker *",
+            "chooseBroker": "— Select —",
+            "contract": "Contract (optional)",
+            "generalRate": "— General rate —",
+            "rate": "Rate (%) *",
+            "ratePlaceholder": "e.g. 10.00",
+            "baseType": "Calculation base *",
+            "fixedAmount": "Fixed amount *",
+            "fixedAmountPlaceholder": "e.g. 500000",
+            "effectiveDate": "Effective date *",
+            "endDate": "End date (optional)",
+            "notes": "Notes (optional)",
+            "notesPlaceholder": "e.g. Negotiated rate for 2026",
+            "hint": "If a contract rate exists, it takes precedence over the broker's general rate.",
+            "submit": "Create rule"
+        },
+        "table": {
+            "broker": "Broker",
+            "contract": "Contract",
+            "general": "General",
+            "rate": "Rate",
+            "effectiveDate": "Effective date",
+            "endDate": "End date",
+            "status": "Status",
+            "notes": "Notes",
+            "action": "Action"
+        },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        },
+        "toggle": {
+            "deactivate": "Deactivate",
+            "activate": "Activate"
+        },
+        "empty": "No commission rule defined."
+    }
+}

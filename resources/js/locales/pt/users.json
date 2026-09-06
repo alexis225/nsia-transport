@@ -1,0 +1,143 @@
+{
+    "create": {
+        "breadcrumb": "Utilizadores",
+        "breadcrumbNew": "Novo utilizador",
+        "title": "Novo utilizador",
+        "hero": {
+            "title": "Criar um utilizador",
+            "subtitle": "Um email de boas-vindas será enviado automaticamente"
+        },
+        "form": {
+            "title": "Informações pessoais",
+            "subtitle": "Todos os campos marcados com * são obrigatórios"
+        },
+        "fields": {
+            "firstName": "Nome próprio *",
+            "firstNamePlaceholder": "Nome próprio",
+            "lastName": "Apelido *",
+            "lastNamePlaceholder": "Apelido",
+            "email": "Endereço de email *",
+            "emailPlaceholder": "nome.apelido@nsia.com",
+            "phone": "Telefone",
+            "phonePlaceholder": "+225 07 00 00 00 00",
+            "role": "Função *",
+            "roleSelect": "Selecione uma função",
+            "broker": "Corretor a associar",
+            "brokerNone": "Nenhum (associar mais tarde)",
+            "tenant": "Filial",
+            "tenantDefault": "Filial do administrador ligado",
+            "password": "Palavra-passe *",
+            "passwordConfirm": "Confirmar *"
+        },
+        "actions": {
+            "creating": "A criar…",
+            "create": "Criar utilizador"
+        }
+    },
+    "edit": {
+        "breadcrumb": "Utilizadores",
+        "breadcrumbEdit": "Editar",
+        "title": "Editar {{name}}",
+        "hero": {
+            "name": "Editar {{name}}",
+            "noTenant": "Sem filial"
+        },
+        "form": {
+            "title": "Informações pessoais",
+            "subtitle": "Edite as informações do utilizador",
+            "saved": "Alterações guardadas."
+        },
+        "fields": {
+            "firstName": "Nome próprio *",
+            "firstNamePlaceholder": "Nome próprio",
+            "lastName": "Apelido *",
+            "lastNamePlaceholder": "Apelido",
+            "email": "Endereço de email *",
+            "phone": "Telefone",
+            "role": "Função",
+            "roleNone": "Sem função",
+            "tenant": "Filial",
+            "tenantNone": "Sem filial"
+        },
+        "actions": {
+            "saving": "A guardar…",
+            "save": "Guardar"
+        }
+    },
+    "index": {
+        "breadcrumb": "Utilizadores",
+        "title": "Utilizadores — NSIA Transport",
+        "heading": "Utilizadores",
+        "count_one": "{{count}} utilizador",
+        "count_other": "{{count}} utilizadores",
+        "newUser": "Novo utilizador",
+        "search": {
+            "placeholder": "Pesquisar por nome ou email…"
+        },
+        "filters": {
+            "allRoles": "Todas as funções",
+            "allStatuses": "Todos os estados",
+            "active": "Ativos",
+            "blocked": "Bloqueados",
+            "clear": "Limpar"
+        },
+        "table": {
+            "user": "Utilizador",
+            "role": "Função",
+            "tenant": "Filial",
+            "status": "Estado",
+            "lastLogin": "Última ligação",
+            "actions": "Ações"
+        },
+        "status": {
+            "active": "Ativo",
+            "blocked": "Bloqueado"
+        },
+        "actions": {
+            "view": "Ver",
+            "edit": "Editar",
+            "block": "Bloquear",
+            "unblock": "Desbloquear",
+            "delete": "Eliminar"
+        },
+        "empty": "Nenhum utilizador encontrado.",
+        "pagination": {
+            "info": "Página {{current}} / {{last}} · {{total}} resultados"
+        },
+        "confirmUnblock": "Desbloquear {{name}}?",
+        "confirmDelete": "Eliminar definitivamente {{name}}?",
+        "blockModal": {
+            "title": "Bloquear utilizador",
+            "reasonLabel": "Motivo do bloqueio *",
+            "reasonPlaceholder": "Descreva o motivo do bloqueio…",
+            "confirm": "Bloquear"
+        }
+    },
+    "show": {
+        "breadcrumb": "Utilizadores",
+        "breadcrumbDetail": "Detalhe",
+        "edit": "Editar",
+        "blockedBox": {
+            "title": "⚠ Conta bloqueada",
+            "reason": "Motivo: {{reason}}",
+            "blockedOn": "Bloqueada em {{date}}"
+        },
+        "accountInfo": {
+            "title": "Informações da conta",
+            "email": "Email",
+            "verified": "Verificado",
+            "unverified": "Não verificado",
+            "phone": "Telefone",
+            "lastLogin": "Última ligação",
+            "createdAt": "Criado em"
+        },
+        "history": {
+            "title": "Histórico de ações ({{count}})"
+        },
+        "backToList": "Voltar à lista",
+        "status": {
+            "active": "Ativo",
+            "blocked": "Bloqueado"
+        }
+    }
+}

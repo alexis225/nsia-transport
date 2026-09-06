@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -8,10 +9,6 @@ import {
     ToggleLeft, ToggleRight, X,
     ChevronLeft, ChevronRight, Users, Building2,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Filiales', href: '/admin/tenants' },
-];
 
 interface Tenant {
     id: string; name: string; code: string; country_code: string;
@@ -43,14 +40,19 @@ const TENANT_COLORS = [
 ];
 
 export default function TenantsIndex({ tenants, filters }: Props) {
+    const { t } = useTranslation('tenants');
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/tenants' },
+    ];
     const [search, setSearch] = useState(filters.search ?? '');
 
     const applyFilter = (params: Record<string, string>) =>
         router.get('/admin/tenants', { ...filters, ...params }, { preserveState:true, replace:true });
 
     const handleToggle = (tenant: Tenant) => {
-        const action = tenant.is_active ? 'désactiver' : 'activer';
-        if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} la filiale ${tenant.name} ?`))
+        const actionVerb = tenant.is_active ? t('index.deactivateVerb') : t('index.activateVerb');
+        const action = actionVerb.charAt(0).toUpperCase() + actionVerb.slice(1);
+        if (confirm(t('index.confirmToggle', { action, name: tenant.name })))
             router.patch(route('admin.tenants.toggle', { tenant: tenant.id }));
     };
 
@@ -58,7 +60,7 @@ export default function TenantsIndex({ tenants, filters }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Filiales — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .tn-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .tn-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -113,12 +115,12 @@ export default function TenantsIndex({ tenants, filters }: Props) {
                     {/* Header */}
                     <div className="tn-hdr">
                         <div>
-                            <h1 className="tn-title">Filiales NSIA</h1>
-                            <p className="tn-sub">{tenants.total} filiale{tenants.total > 1 ? 's' : ''} configurée{tenants.total > 1 ? 's' : ''}</p>
+                            <h1 className="tn-title">{t('index.heading')}</h1>
+                            <p className="tn-sub">{t('index.count', { count: tenants.total })}</p>
                         </div>
                         <Link href={route('admin.tenants.create')}>
                             <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                <Plus size={15}/> Nouvelle filiale
+                                <Plus size={15}/> {t('index.newTenant')}
                             </Button>
                         </Link>
                     </div>
@@ -126,17 +128,17 @@ export default function TenantsIndex({ tenants, filters }: Props) {
                     {/* Toolbar */}
                     <div className="tn-toolbar">
                         <form className="tn-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom ou code…"/>
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.search.placeholder')}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         <select className="tn-select" value={filters.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page:'1' })}>
-                            <option value="">Tous les statuts</option>
-                            <option value="active">Actives</option>
-                            <option value="inactive">Inactives</option>
+                            <option value="">{t('index.filters.allStatuses')}</option>
+                            <option value="active">{t('index.filters.active')}</option>
+                            <option value="inactive">{t('index.filters.inactive')}</option>
                         </select>
                         {(filters.search || filters.status) && (
                             <button onClick={() => router.get('/admin/tenants')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('index.filters.clear')}
                             </button>
                         )}
                     </div>
@@ -144,19 +146,19 @@ export default function TenantsIndex({ tenants, filters }: Props) {
                     {/* Tableau */}
                     <div className="tn-card">
                         {tenants.data.length === 0 ? (
-                            <div className="tn-empty">Aucune filiale trouvée.</div>
+                            <div className="tn-empty">{t('index.empty')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Filiale</th>
-                                            <th>Pays</th>
-                                            <th>Devise</th>
-                                            <th>Utilisateurs</th>
-                                            <th>Statut</th>
-                                            <th>Créée le</th>
-                                            <th>Actions</th>
+                                            <th>{t('index.table.tenant')}</th>
+                                            <th>{t('index.table.country')}</th>
+                                            <th>{t('index.table.currency')}</th>
+                                            <th>{t('index.table.users')}</th>
+                                            <th>{t('index.table.status')}</th>
+                                            <th>{t('index.table.createdAt')}</th>
+                                            <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -197,8 +199,8 @@ export default function TenantsIndex({ tenants, filters }: Props) {
                                                     {/* Statut */}
                                                     <td>
                                                         {tenant.is_active
-                                                            ? <span className="badge-active"><span className="s-dot" style={{ background:'#22c55e' }}/>Active</span>
-                                                            : <span className="badge-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>Inactive</span>
+                                                            ? <span className="badge-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{t('index.status.active')}</span>
+                                                            : <span className="badge-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{t('index.status.inactive')}</span>
                                                         }
                                                     </td>
 
@@ -209,21 +211,21 @@ export default function TenantsIndex({ tenants, filters }: Props) {
                                                     <td>
                                                         <div className="actions">
                                                             <Link href={route('admin.tenants.show', { tenant: tenant.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> Voir
+                                                                <Eye size={12}/> {t('index.actions.view')}
                                                             </Link>
                                                             <Link href={route('admin.tenants.edit', { tenant: tenant.id })} className="btn-act btn-edit">
-                                                                <Edit2 size={12}/> Éditer
+                                                                <Edit2 size={12}/> {t('index.actions.edit')}
                                                             </Link>
                                                             <Link href={route('admin.tenants.config', { tenant: tenant.id })} className="btn-act btn-config">
-                                                                <Settings size={12}/> Config
+                                                                <Settings size={12}/> {t('index.actions.config')}
                                                             </Link>
                                                             <button
                                                                 className={`btn-act ${tenant.is_active ? 'btn-on' : 'btn-off'}`}
                                                                 onClick={() => handleToggle(tenant)}
                                                             >
                                                                 {tenant.is_active
-                                                                    ? <><ToggleLeft size={12}/> Désactiver</>
-                                                                    : <><ToggleRight size={12}/> Activer</>
+                                                                    ? <><ToggleLeft size={12}/> {t('index.actions.deactivate')}</>
+                                                                    : <><ToggleRight size={12}/> {t('index.actions.activate')}</>
                                                                 }
                                                             </button>
                                                         </div>
@@ -236,7 +238,7 @@ export default function TenantsIndex({ tenants, filters }: Props) {
 
                                 {tenants.last_page > 1 && (
                                     <div className="tn-pagination">
-                                        <span className="tn-pg-info">Page {tenants.current_page} / {tenants.last_page} · {tenants.total} filiales</span>
+                                        <span className="tn-pg-info">{t('index.pagination.info', { current: tenants.current_page, last: tenants.last_page, total: tenants.total })}</span>
                                         <div className="tn-pg-links">
                                             <button className="pg-btn" disabled={tenants.current_page === 1}
                                                 onClick={() => applyFilter({ page: String(tenants.current_page - 1) })}>

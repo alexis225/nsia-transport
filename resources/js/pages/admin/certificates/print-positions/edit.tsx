@@ -7,6 +7,8 @@ import { getTemplate } from '../print-templates/registry';
 import { DEFAULT_POSITIONS_BY_TEMPLATE } from '../print-templates/default-positions-by-template';
 import type { FieldPosition } from '../print-templates/overlay-types';
 import { convertPdfmeExport, isPdfmeExport, pdfmeBasePdfToFile } from '../print-templates/pdfme-import';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 interface Override {
     positions: FieldPosition[] | null;
@@ -21,32 +23,33 @@ interface Props {
 
 // Valide la forme minimale attendue (cf. overlay-types.ts) — ne bloque pas
 // sur les champs optionnels, seulement sur ce qui ferait planter le rendu.
-function validatePositions(value: unknown): string | null {
+function validatePositions(value: unknown, t: TFunction): string | null {
     if (!Array.isArray(value)) {
-        return 'Le JSON doit être un tableau de champs.';
+        return t('printPositions.edit.validation.mustBeArray');
     }
     if (value.length === 0) {
-        return 'Le tableau ne peut pas être vide.';
+        return t('printPositions.edit.validation.arrayEmpty');
     }
     for (const [i, item] of value.entries()) {
         if (typeof item !== 'object' || item === null) {
-            return `Élément #${i + 1} : doit être un objet.`;
+            return t('printPositions.edit.validation.itemMustBeObject', { index: i + 1 });
         }
         const f = item as Record<string, unknown>;
         if (typeof f.key !== 'string' || !f.key) {
-            return `Élément #${i + 1} : "key" (string) est requis.`;
+            return t('printPositions.edit.validation.keyRequired', { index: i + 1 });
         }
         if (typeof f.top !== 'number') {
-            return `Élément #${i + 1} (${f.key}) : "top" (nombre, mm) est requis.`;
+            return t('printPositions.edit.validation.topRequired', { index: i + 1, key: f.key });
         }
         if (typeof f.left !== 'number') {
-            return `Élément #${i + 1} (${f.key}) : "left" (nombre, mm) est requis.`;
+            return t('printPositions.edit.validation.leftRequired', { index: i + 1, key: f.key });
         }
     }
     return null;
 }
 
 export default function PrintPositionsEdit({ templateId, override }: Props) {
+    const { t } = useTranslation('certificateTemplates');
     const meta = getTemplate(templateId);
     const defaultPositions = DEFAULT_POSITIONS_BY_TEMPLATE[templateId] ?? [];
     const initialJson = useMemo(
@@ -69,15 +72,15 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
         try {
             return { value: JSON.parse(data.positions) as unknown, error: null as string | null };
         } catch {
-            return { value: null, error: 'JSON invalide — vérifiez la syntaxe (virgules, guillemets, accolades).' };
+            return { value: null, error: t('printPositions.edit.invalidJson') };
         }
-    }, [data.positions]);
+    }, [data.positions, t]);
 
     // Export brut du Designer pdfme collé/importé tel quel — proposé à la
     // conversion plutôt que rejeté comme JSON invalide (cf. pdfme-import.ts).
     const pdfmeExport = !parsed.error && isPdfmeExport(parsed.value) ? parsed.value : null;
 
-    const validationError = pdfmeExport ? null : (parsed.error ?? (parsed.value ? validatePositions(parsed.value) : null));
+    const validationError = pdfmeExport ? null : (parsed.error ?? (parsed.value ? validatePositions(parsed.value, t) : null));
     const fieldCount = !validationError && !pdfmeExport && Array.isArray(parsed.value) ? parsed.value.length : null;
 
     function handleConvertPdfme() {
@@ -87,16 +90,19 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
         setData('positions', JSON.stringify(positions, null, 2));
         setData('base_pdf', pdfmeBasePdfToFile(pdfmeExport.basePdf, `${templateId}.pdf`));
 
-        const notes = [`${positions.length} champ${positions.length > 1 ? 's' : ''} converti${positions.length > 1 ? 's' : ''}`, 'PDF de fond extrait automatiquement'];
-        if (skippedFields > 0) notes.push(`${skippedFields} élément${skippedFields > 1 ? 's' : ''} sans variable ignoré${skippedFields > 1 ? 's' : ''}`);
-        if (skippedPages > 0) notes.push(`${skippedPages} page${skippedPages > 1 ? 's' : ''} supplémentaire${skippedPages > 1 ? 's' : ''} ignorée${skippedPages > 1 ? 's' : ''} (recto simple uniquement)`);
+        const notes = [
+            t('printPositions.edit.conversion.fieldsConverted', { count: positions.length }),
+            t('printPositions.edit.conversion.pdfExtracted'),
+        ];
+        if (skippedFields > 0) notes.push(t('printPositions.edit.conversion.skippedFields', { count: skippedFields }));
+        if (skippedPages > 0) notes.push(t('printPositions.edit.conversion.skippedPages', { count: skippedPages }));
         setConversionNote(notes.join(' — '));
     }
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Certificats', href: '/admin/certificates' },
-        { title: 'Modèles d\'impression', href: '/admin/certificates/print-models' },
-        { title: 'Positions des champs (JSON)', href: '/admin/certificate-print-templates' },
+        { title: t('printPositions.breadcrumbs.certificates'), href: '/admin/certificates' },
+        { title: t('printPositions.breadcrumbs.printModels'), href: '/admin/certificates/print-models' },
+        { title: t('printPositions.breadcrumbs.fieldPositions'), href: '/admin/certificate-print-templates' },
         { title: meta?.name ?? templateId, href: `/admin/certificate-print-templates/${templateId}` },
     ];
 
@@ -133,7 +139,7 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
     }
 
     function handleReset() {
-        if (!confirm(`Réinitialiser le modèle « ${meta?.name ?? templateId} » aux coordonnées par défaut du code ? La surcharge JSON et le PDF de référence seront supprimés.`)) {
+        if (!confirm(t('printPositions.edit.confirmReset', { name: meta?.name ?? templateId }))) {
             return;
         }
         router.delete(route('admin.certificate-print-templates.destroy', { templateId }));
@@ -141,7 +147,7 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Positions — ${meta?.name ?? templateId} — NSIA Transport`} />
+            <Head title={t('printPositions.edit.headTitle', { name: meta?.name ?? templateId })} />
 
             <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
 
@@ -160,7 +166,7 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
                         </div>
                     </div>
                     <Link href="/admin/certificate-print-templates" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: '#64748b', textDecoration: 'none' }}>
-                        <ArrowLeft size={14} /> Retour à la liste
+                        <ArrowLeft size={14} /> {t('printPositions.edit.backToList')}
                     </Link>
                 </div>
 
@@ -168,20 +174,20 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
 
                     {/* PDF de référence */}
                     <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '16px 20px' }}>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>PDF de référence (souche scannée)</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>{t('printPositions.edit.referencePdf.title')}</p>
                         <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 10px' }}>
-                            Sert de repère visuel pour calibrer les coordonnées — n'est jamais imprimé par-dessus, uniquement consultable.
+                            {t('printPositions.edit.referencePdf.subtitle')}
                         </p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                             {override?.base_pdf_url && (
                                 <a href={override.base_pdf_url} target="_blank" rel="noreferrer"
                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: '#1d4ed8', textDecoration: 'none' }}>
-                                    <FileText size={14} /> Voir le PDF actuel
+                                    <FileText size={14} /> {t('printPositions.edit.referencePdf.viewCurrent')}
                                 </a>
                             )}
                             <button type="button" onClick={() => pdfFileRef.current?.click()}
                                     style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: 12, border: '1px solid #cbd5e1', borderRadius: 7, background: '#fff', cursor: 'pointer', color: '#334155' }}>
-                                <FileUp size={13} /> {data.base_pdf ? data.base_pdf.name : 'Choisir un PDF…'}
+                                <FileUp size={13} /> {data.base_pdf ? data.base_pdf.name : t('printPositions.edit.referencePdf.choose')}
                             </button>
                             <input ref={pdfFileRef} type="file" accept="application/pdf,.pdf" style={{ display: 'none' }}
                                    onChange={e => setData('base_pdf', e.target.files?.[0] ?? null)} />
@@ -192,16 +198,15 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
                     {/* JSON des positions */}
                     <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '16px 20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 8 }}>
-                            <p style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: 0 }}>JSON des positions (mm)</p>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('printPositions.edit.positionsJson.title')}</p>
                             <button type="button" onClick={() => jsonFileRef.current?.click()}
                                     style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: 12, border: '1px solid #cbd5e1', borderRadius: 7, background: '#fff', cursor: 'pointer', color: '#334155' }}>
-                                <FileUp size={13} /> Importer un fichier .json
+                                <FileUp size={13} /> {t('printPositions.edit.positionsJson.import')}
                             </button>
                             <input ref={jsonFileRef} type="file" accept="application/json,.json" style={{ display: 'none' }} onChange={handleImportJson} />
                         </div>
                         <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 10px' }}>
-                            Tableau d'objets <code>{'{ key, top, left, width?, fontSize?, align?, bold? }'}</code> — coordonnées en millimètres depuis le coin haut-gauche de la page.
-                            Vous pouvez aussi coller/importer directement l'export JSON du <strong>Designer pdfme</strong> (avec <code>schemas</code>/<code>basePdf</code>) : il sera converti automatiquement et le PDF de fond en sera extrait.
+                            {t('printPositions.edit.positionsJson.descIntro')}<code>{'{ key, top, left, width?, fontSize?, align?, bold? }'}</code>{t('printPositions.edit.positionsJson.descAfterCode')}<strong>Designer pdfme</strong>{t('printPositions.edit.positionsJson.descAfterStrong')}<code>schemas</code>/<code>basePdf</code>{t('printPositions.edit.positionsJson.descEnd')}
                         </p>
 
                         <textarea
@@ -223,11 +228,11 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
                                 marginTop: 10, padding: '10px 14px', background: '#fff7ed', border: '1px solid #fdba74', borderRadius: 8,
                             }}>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9a3412' }}>
-                                    <Wand2 size={14} /> Export du Designer pdfme détecté — prêt à convertir vers notre format et à extraire le PDF de fond.
+                                    <Wand2 size={14} /> {t('printPositions.edit.positionsJson.pdfmeDetected')}
                                 </span>
                                 <button type="button" onClick={handleConvertPdfme}
                                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', fontSize: 12.5, fontWeight: 600, background: '#c2410c', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer' }}>
-                                    <Wand2 size={13} /> Convertir maintenant
+                                    <Wand2 size={13} /> {t('printPositions.edit.positionsJson.convertNow')}
                                 </button>
                             </div>
                         ) : validationError ? (
@@ -236,7 +241,7 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
                             </div>
                         ) : (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 12, color: '#15803d' }}>
-                                <CheckCircle2 size={13} /> JSON valide — {fieldCount} champ{fieldCount && fieldCount > 1 ? 's' : ''}.
+                                <CheckCircle2 size={13} /> {t('printPositions.edit.positionsJson.valid', { count: fieldCount ?? 0 })}
                             </div>
                         )}
                         {conversionNote && (
@@ -256,12 +261,12 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
                                     border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13.5,
                                     cursor: processing || validationError || pdfmeExport ? 'not-allowed' : 'pointer',
                                 }}>
-                            <Save size={14} /> {processing ? 'Enregistrement…' : 'Enregistrer'}
+                            <Save size={14} /> {processing ? t('printPositions.edit.saving') : t('printPositions.edit.save')}
                         </button>
 
                         {saved && (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: '#15803d', fontWeight: 600 }}>
-                                <CheckCircle2 size={14} /> Enregistré
+                                <CheckCircle2 size={14} /> {t('printPositions.edit.saved')}
                             </span>
                         )}
 
@@ -270,7 +275,7 @@ export default function PrintPositionsEdit({ templateId, override }: Props) {
                         {override && (
                             <button type="button" onClick={handleReset}
                                     style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 12.5, border: '1px solid #fecaca', color: '#dc2626', background: '#fff', borderRadius: 8, cursor: 'pointer' }}>
-                                <RotateCcw size={13} /> Réinitialiser aux valeurs par défaut
+                                <RotateCcw size={13} /> {t('printPositions.edit.reset')}
                             </button>
                         )}
                     </div>

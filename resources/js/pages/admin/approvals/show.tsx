@@ -4,14 +4,10 @@ import {
     AlertTriangle, ArrowRight, X, Shield,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Escalades NN300', href: '/admin/approvals' },
-    { title: 'Décision' },
-];
 
 interface Decision {
     level: number; decision: string; notes: string | null;
@@ -35,22 +31,12 @@ interface Props {
     can:      { approve: boolean; reject: boolean };
 }
 
-const LEVEL_LABELS: Record<number, string> = {
-    1: 'Admin Filiale',
-    2: 'Super Admin (DTAG)',
-};
-
-const DECISION_STYLES: Record<string, { color: string; bg: string; label: string }> = {
-    APPROVED:  { color:'#15803d', bg:'#f0fdf4', label:'Approuvé' },
-    REJECTED:  { color:'#dc2626', bg:'#fef2f2', label:'Rejeté' },
-    ESCALATED: { color:'#f59e0b', bg:'#fffbeb', label:'Escaladé' },
-    EXPIRED:   { color:'#94a3b8', bg:'#f8fafc', label:'Expiré' },
-};
-
 const fmt    = (n: number, c: string) => n.toLocaleString('fr-FR', { maximumFractionDigits:0 }) + ' ' + c;
 const fmtDt  = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 
 function ActionModal({ type, onConfirm, onClose }: { type: 'approve' | 'reject'; onConfirm: (v: string) => void; onClose: () => void }) {
+    const { t } = useTranslation('approvals');
+    const { t: tc } = useTranslation('common');
     const [value, setValue] = useState('');
     const isApprove = type === 'approve';
 
@@ -63,7 +49,7 @@ function ActionModal({ type, onConfirm, onClose }: { type: 'approve' | 'reject';
                             {isApprove ? <CheckCircle size={16} color="#15803d"/> : <XCircle size={16} color="#dc2626"/>}
                         </div>
                         <span style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>
-                            {isApprove ? 'Approuver l\'escalade' : 'Rejeter l\'escalade'}
+                            {isApprove ? t('show.actionModal.approveTitle') : t('show.actionModal.rejectTitle')}
                         </span>
                     </div>
                     <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
@@ -71,23 +57,23 @@ function ActionModal({ type, onConfirm, onClose }: { type: 'approve' | 'reject';
                 <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
                     {isApprove && (
                         <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#15803d' }}>
-                            En approuvant, {workflow_level_label()} recevra la décision. Si c'est le niveau 2, le certificat sera émis automatiquement.
+                            {t('show.actionModal.approveNotice', { next: workflow_level_label() })}
                         </div>
                     )}
                     <div>
                         <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>
-                            {isApprove ? 'Notes (facultatif)' : 'Motif de rejet *'}
+                            {isApprove ? t('show.actionModal.notesLabel') : t('show.actionModal.reasonLabel')}
                         </label>
                         <textarea value={value} onChange={e => setValue(e.target.value)} rows={3}
                                   style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', resize:'vertical', boxSizing:'border-box' }}
-                                  placeholder={isApprove ? 'Commentaires éventuels…' : 'Précisez le motif du rejet…'}/>
+                                  placeholder={isApprove ? t('show.actionModal.notesPlaceholder') : t('show.actionModal.reasonPlaceholder')}/>
                     </div>
                     <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button variant="outline" onClick={onClose}>Annuler</Button>
+                        <Button variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
                         <Button disabled={!isApprove && !value.trim()}
                                 onClick={() => onConfirm(value)}
                                 style={{ background: isApprove ? '#15803d' : '#dc2626', color:'#fff', border:'none' }}>
-                            {isApprove ? <><CheckCircle size={13}/> Approuver</> : <><XCircle size={13}/> Rejeter</>}
+                            {isApprove ? <><CheckCircle size={13}/> {t('show.actions.approve')}</> : <><XCircle size={13}/> {t('show.actions.reject')}</>}
                         </Button>
                     </div>
                 </div>
@@ -97,10 +83,25 @@ function ActionModal({ type, onConfirm, onClose }: { type: 'approve' | 'reject';
 }
 
 function workflow_level_label() {
- return ''; 
+ return '';
 }
 
 export default function ApprovalShow({ workflow, can }: Props) {
+    const { t } = useTranslation('approvals');
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/approvals' },
+        { title: t('show.breadcrumbCurrent') },
+    ];
+    const LEVEL_LABELS: Record<number, string> = {
+        1: t('show.levels.admin_filiale'),
+        2: t('show.levels.super_admin'),
+    };
+    const DECISION_STYLES: Record<string, { color: string; bg: string; label: string }> = {
+        APPROVED:  { color:'#15803d', bg:'#f0fdf4', label: t('show.decisions.APPROVED') },
+        REJECTED:  { color:'#dc2626', bg:'#fef2f2', label: t('show.decisions.REJECTED') },
+        ESCALATED: { color:'#f59e0b', bg:'#fffbeb', label: t('show.decisions.ESCALATED') },
+        EXPIRED:   { color:'#94a3b8', bg:'#f8fafc', label: t('show.decisions.EXPIRED') },
+    };
     const [modal, setModal] = useState<'approve' | 'reject' | null>(null);
 
     const action = (routeName: string, payload: Record<string, any>) => {
@@ -117,7 +118,7 @@ export default function ApprovalShow({ workflow, can }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Escalade NN300 — Décision"/>
+            <Head title={t('show.title')}/>
             <style>{`
                 .ap-wrap{width:100%;max-width:800px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .ap-hero{background:linear-gradient(135deg,#7c1f1f 0%,#991b1b 100%);border-radius:16px;padding:22px 24px;position:relative;overflow:hidden;}
@@ -160,22 +161,22 @@ export default function ApprovalShow({ workflow, can }: Props) {
                             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
                                 <TrendingUp size={18} color="rgba(255,255,255,0.7)"/>
                                 <span style={{ fontSize:11, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', letterSpacing:'.1em' }}>
-                                    Escalade NN300
+                                    {t('show.hero.eyebrow')}
                                 </span>
                             </div>
                             <div className="ap-hero-title">
-                                {cert?.certificate_number ?? '—'} — Dépassement seuil {workflow.threshold_pct}%
+                                {t('show.hero.title', { certNumber: cert?.certificate_number ?? '—', pct: workflow.threshold_pct })}
                             </div>
                             <div className="ap-hero-sub">
-                                {cert?.insured_name} · {workflow.tenant?.name}
+                                {t('show.hero.subtitle', { insuredName: cert?.insured_name, tenantName: workflow.tenant?.name })}
                             </div>
                             <div style={{ display:'flex', gap:8, marginTop:10 }}>
                                 <span className="ap-badge" style={{ background:'rgba(255,255,255,0.12)', color:'#fff', border:'1px solid rgba(255,255,255,0.2)' }}>
-                                    Niveau {workflow.current_level} — {LEVEL_LABELS[workflow.current_level]}
+                                    {t('show.hero.level', { level: workflow.current_level, levelLabel: LEVEL_LABELS[workflow.current_level] })}
                                 </span>
                                 {workflow.is_overdue && (
                                     <span className="ap-badge" style={{ background:'rgba(239,68,68,0.3)', color:'#fca5a5', border:'1px solid rgba(239,68,68,0.4)' }}>
-                                        <AlertTriangle size={10}/> Délai dépassé
+                                        <AlertTriangle size={10}/> {t('show.hero.overdue')}
                                     </span>
                                 )}
                             </div>
@@ -186,7 +187,7 @@ export default function ApprovalShow({ workflow, can }: Props) {
                     <div className="ap-card">
                         <div className="ap-card-hdr">
                             <div className="ap-card-ico" style={{ background:'#f8fafc' }}><Shield size={14} color="#64748b"/></div>
-                            <span className="ap-card-ttl">Progression du workflow</span>
+                            <span className="ap-card-ttl">{t('show.progress.title')}</span>
                         </div>
                         <div style={{ padding:'16px 20px' }}>
                             <div className="level-steps">
@@ -194,17 +195,17 @@ export default function ApprovalShow({ workflow, can }: Props) {
                                     {workflow.decisions.some(d => d.level === 1 && d.decision !== 'EXPIRED')
                                         ? <CheckCircle size={11}/>
                                         : <Clock size={11}/>}
-                                    Admin Filiale
+                                    {t('show.levels.admin_filiale')}
                                 </div>
                                 <ArrowRight size={14} color="#94a3b8"/>
                                 <div className={`level-step ${workflow.current_level === 2 && workflow.status === 'PENDING' ? 'level-active' : workflow.status === 'APPROVED' ? 'level-done' : 'level-wait'}`}>
                                     {workflow.status === 'APPROVED' ? <CheckCircle size={11}/> : <Clock size={11}/>}
-                                    Super Admin
+                                    {t('show.levels.super_admin')}
                                 </div>
                                 <ArrowRight size={14} color="#94a3b8"/>
                                 <div className={`level-step ${workflow.status === 'APPROVED' ? 'level-done' : 'level-wait'}`}>
                                     {workflow.status === 'APPROVED' ? <CheckCircle size={11}/> : <Shield size={11}/>}
-                                    Émission auto
+                                    {t('show.levels.autoIssue')}
                                 </div>
                             </div>
                         </div>
@@ -216,11 +217,11 @@ export default function ApprovalShow({ workflow, can }: Props) {
                         <div>
                             <div style={{ fontSize:13, fontWeight:600, color: workflow.is_overdue ? '#dc2626' : '#92400e' }}>
                                 {workflow.is_overdue
-                                    ? 'Délai dépassé — escalade automatique en cours'
-                                    : `Il reste ${workflow.hours_left.toFixed(1)}h ouvrables pour décider`}
+                                    ? t('show.timer.overdueTitle')
+                                    : t('show.timer.remaining', { hours: workflow.hours_left.toFixed(1) })}
                             </div>
                             <div style={{ fontSize:11, color:'#94a3b8' }}>
-                                Expire le {fmtDt(workflow.expires_at)}
+                                {t('show.timer.expiresAt', { date: fmtDt(workflow.expires_at) })}
                             </div>
                         </div>
                     </div>
@@ -229,45 +230,45 @@ export default function ApprovalShow({ workflow, can }: Props) {
                     <div className="ap-card">
                         <div className="ap-card-hdr">
                             <div className="ap-card-ico" style={{ background:'#fef2f2' }}><TrendingUp size={14} color="#dc2626"/></div>
-                            <span className="ap-card-ttl">Analyse du dépassement</span>
+                            <span className="ap-card-ttl">{t('show.analysis.title')}</span>
                         </div>
                         <div className="ap-card-body">
                             <div className="ap-row">
-                                <span className="ap-label">Valeur du certificat</span>
+                                <span className="ap-label">{t('show.analysis.certificateValue')}</span>
                                 <span className="ap-value" style={{ color:'#dc2626' }}>
                                     {fmt(cert?.insured_value ?? 0, cert?.currency_code ?? 'XOF')}
                                 </span>
                             </div>
                             <div className="ap-row">
-                                <span className="ap-label">Seuil d'escalade ({workflow.threshold_pct}% du contrat)</span>
+                                <span className="ap-label">{t('show.analysis.thresholdLabel', { pct: workflow.threshold_pct })}</span>
                                 <span className="ap-value">
                                     {workflow.threshold_amount != null ? fmt(workflow.threshold_amount, cert?.currency_code ?? 'XOF') : '—'}
                                 </span>
                             </div>
                             <div className="ap-row">
-                                <span className="ap-label">Dépassement</span>
+                                <span className="ap-label">{t('show.analysis.excess')}</span>
                                 <span className="ap-value" style={{ color:'#dc2626' }}>
-                                    + {fmt(excessAmount, cert?.currency_code ?? 'XOF')}
+                                    {t('show.analysis.excessValue', { value: fmt(excessAmount, cert?.currency_code ?? 'XOF') })}
                                 </span>
                             </div>
                             <div className="ap-row">
-                                <span className="ap-label">Valeur maximum déclarée ou importée</span>
+                                <span className="ap-label">{t('show.analysis.declaredValue')}</span>
                                 <span className="ap-value">
                                     {fmt(contr?.declared_max_value ?? 0, cert?.currency_code ?? 'XOF')}
                                 </span>
                             </div>
                             {contr?.treaty_limit != null && (
                                 <div className="ap-row">
-                                    <span className="ap-label">Seuil Plafond Traité</span>
+                                    <span className="ap-label">{t('show.analysis.treatyThreshold')}</span>
                                     <span className="ap-value" style={{ color: exceedsTreaty ? '#dc2626' : undefined }}>
                                         {fmt(contr.treaty_limit, cert?.currency_code ?? 'XOF')}
-                                        {exceedsTreaty && ' — dépassé'}
+                                        {exceedsTreaty && ` ${t('show.analysis.exceeded')}`}
                                     </span>
                                 </div>
                             )}
                             <div>
                                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                                    <span style={{ fontSize:11, color:'#64748b' }}>Ratio certificat / contrat</span>
+                                    <span style={{ fontSize:11, color:'#64748b' }}>{t('show.analysis.ratio')}</span>
                                     <span style={{ fontSize:12, fontWeight:700, color:'#dc2626' }}>{excessPct}%</span>
                                 </div>
                                 <div className="progress-bar">
@@ -282,25 +283,25 @@ export default function ApprovalShow({ workflow, can }: Props) {
                         <div className="ap-card">
                             <div className="ap-card-hdr">
                                 <div className="ap-card-ico" style={{ background:'#eff6ff' }}><Shield size={14} color="#3b82f6"/></div>
-                                <span className="ap-card-ttl">Certificat concerné</span>
+                                <span className="ap-card-ttl">{t('show.certificate.title')}</span>
                                 <Link href={route('admin.certificates.show', { certificate: cert.id })}
                                       style={{ marginLeft:'auto', fontSize:11, color:'#1d4ed8', textDecoration:'none' }}>
-                                    Voir le certificat →
+                                    {t('show.certificate.view')}
                                 </Link>
                             </div>
                             <div className="ap-card-body">
                                 <div className="ap-row">
-                                    <span className="ap-label">N° Certificat</span>
+                                    <span className="ap-label">{t('show.certificate.number')}</span>
                                     <span className="ap-value">{cert.certificate_number}</span>
                                 </div>
                                 <div className="ap-row">
-                                    <span className="ap-label">Assuré</span>
+                                    <span className="ap-label">{t('show.certificate.insured')}</span>
                                     <span style={{ fontSize:12, fontWeight:500, color:'#1e293b' }}>{cert.insured_name}</span>
                                 </div>
                                 <div className="ap-row">
-                                    <span className="ap-label">Soumis par</span>
+                                    <span className="ap-label">{t('show.certificate.submittedByLabel')}</span>
                                     <span style={{ fontSize:12, color:'#64748b' }}>
-                                        {workflow.triggered_by?.name ?? '—'} · {fmtDt(workflow.triggered_at)}
+                                        {t('show.certificate.submittedBy', { name: workflow.triggered_by?.name ?? '—', date: fmtDt(workflow.triggered_at) })}
                                     </span>
                                 </div>
                             </div>
@@ -312,7 +313,7 @@ export default function ApprovalShow({ workflow, can }: Props) {
                         <div className="ap-card">
                             <div className="ap-card-hdr">
                                 <div className="ap-card-ico" style={{ background:'#f8fafc' }}><Clock size={14} color="#64748b"/></div>
-                                <span className="ap-card-ttl">Historique des décisions</span>
+                                <span className="ap-card-ttl">{t('show.history.title')}</span>
                             </div>
                             <div style={{ padding:'14px 20px' }}>
                                 {workflow.decisions.map((d, i) => {
@@ -324,12 +325,12 @@ export default function ApprovalShow({ workflow, can }: Props) {
                                             <div style={{ flex:1 }}>
                                                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                                                     <span style={{ fontSize:12, fontWeight:500, color:'#1e293b' }}>
-                                                        Niveau {d.level} — {ds.label}
+                                                        {t('show.history.level', { level: d.level, label: ds.label })}
                                                     </span>
                                                     <span style={{ fontSize:10, color:'#94a3b8' }}>{fmtDt(d.decided_at)}</span>
                                                 </div>
                                                 {d.approver && (
-                                                    <div style={{ fontSize:11, color:'#64748b', marginTop:2 }}>par {d.approver.name}</div>
+                                                    <div style={{ fontSize:11, color:'#64748b', marginTop:2 }}>{t('show.history.by', { name: d.approver.name })}</div>
                                                 )}
                                                 {d.notes && (
                                                     <div style={{ fontSize:11, color:'#475569', marginTop:4, fontStyle:'italic' }}>{d.notes}</div>
@@ -346,10 +347,10 @@ export default function ApprovalShow({ workflow, can }: Props) {
                     {can.approve && workflow.status === 'PENDING' && (
                         <div style={{ display:'flex', gap:10, padding:'4px 0' }}>
                             <button className="btn-approve" onClick={() => setModal('approve')}>
-                                <CheckCircle size={15}/> Approuver
+                                <CheckCircle size={15}/> {t('show.actions.approve')}
                             </button>
                             <button className="btn-reject" onClick={() => setModal('reject')}>
-                                <XCircle size={15}/> Rejeter
+                                <XCircle size={15}/> {t('show.actions.reject')}
                             </button>
                         </div>
                     )}

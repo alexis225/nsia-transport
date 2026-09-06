@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -9,10 +10,6 @@ import {
     ChevronLeft, ChevronRight,
     Mail, Phone,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Experts', href: '/admin/experts' },
-];
 
 interface Tenant { id: string; name: string; code: string; }
 interface Expert {
@@ -43,25 +40,30 @@ const COLORS = [
 ];
 
 export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
+    const { t } = useTranslation('experts');
+    const { t: tc } = useTranslation('common');
     const [search, setSearch] = useState(filters?.search ?? '');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/experts' },
+    ];
 
     const applyFilter = (params: Record<string, string>) =>
         router.get('/admin/experts', { ...filters, ...params }, { preserveState: true, replace: true });
 
     const handleDelete = (e: Expert) => {
-        if (confirm(`Supprimer l'expert « ${e.name} » ?`))
+        if (confirm(t('index.confirmDelete', { name: e.name })))
             router.delete(route('admin.experts.destroy', { expert: e.id }));
     };
 
     const handleToggle = (e: Expert) => {
-        const action = e.is_active ? 'désactiver' : 'activer';
-        if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${e.name} ?`))
+        if (confirm(e.is_active ? t('index.confirmDeactivate', { name: e.name }) : t('index.confirmActivate', { name: e.name })))
             router.patch(route('admin.experts.toggle', { expert: e.id }));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Experts — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .ex-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .ex-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -109,13 +111,13 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
 
                     <div className="ex-hdr">
                         <div>
-                            <h1 className="ex-title">Experts d'assurance</h1>
-                            <p className="ex-sub">{experts.total} expert{experts.total > 1 ? 's' : ''}</p>
+                            <h1 className="ex-title">{t('index.heading')}</h1>
+                            <p className="ex-sub">{t('index.count', { count: experts.total })}</p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.experts.create')}>
                                 <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> Nouvel expert
+                                    <Plus size={15}/> {t('index.newExpert')}
                                 </Button>
                             </Link>
                         )}
@@ -123,35 +125,35 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
 
                     <div className="ex-toolbar">
                         <form className="ex-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page: '1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom ou email…"/>
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.searchPlaceholder')}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         <select className="ex-select" value={filters?.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page: '1' })}>
-                            <option value="">Tous les statuts</option>
-                            <option value="active">Actifs</option>
-                            <option value="inactive">Inactifs</option>
+                            <option value="">{t('index.statusAll')}</option>
+                            <option value="active">{t('index.statusActive')}</option>
+                            <option value="inactive">{t('index.statusInactive')}</option>
                         </select>
                         {(filters?.search || filters?.status) && (
                             <button onClick={() => router.get('/admin/experts')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('index.clear')}
                             </button>
                         )}
                     </div>
 
                     <div className="ex-card">
                         {experts.data.length === 0 ? (
-                            <div className="ex-empty">Aucun expert trouvé.</div>
+                            <div className="ex-empty">{t('index.empty')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Expert</th>
-                                            <th>Contact</th>
-                                            <th>Pays</th>
-                                            {isSA && <th>Filiale</th>}
-                                            <th>Statut</th>
-                                            <th>Actions</th>
+                                            <th>{t('index.table.expert')}</th>
+                                            <th>{t('index.table.contact')}</th>
+                                            <th>{t('index.table.country')}</th>
+                                            {isSA && <th>{t('index.table.tenant')}</th>}
+                                            <th>{t('index.table.status')}</th>
+                                            <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -183,27 +185,27 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
                                                     )}
                                                     <td>
                                                         {exp.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>Actif</span>
-                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>Inactif</span>}
+                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{tc('states.active')}</span>
+                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{tc('states.inactive')}</span>}
                                                     </td>
                                                     <td>
                                                         <div className="actions">
                                                             <Link href={route('admin.experts.show', { expert: exp.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> Voir
+                                                                <Eye size={12}/> {t('index.view')}
                                                             </Link>
                                                             {can.edit && (
                                                                 <Link href={route('admin.experts.edit', { expert: exp.id })} className="btn-act btn-edit">
-                                                                    <Edit2 size={12}/> Éditer
+                                                                    <Edit2 size={12}/> {t('index.edit')}
                                                                 </Link>
                                                             )}
                                                             {can.edit && (
                                                                 <button className={`btn-act ${exp.is_active ? 'btn-on' : 'btn-off'}`} onClick={() => handleToggle(exp)}>
-                                                                    {exp.is_active ? <><ToggleLeft size={12}/> Désactiver</> : <><ToggleRight size={12}/> Activer</>}
+                                                                    {exp.is_active ? <><ToggleLeft size={12}/> {t('index.deactivate')}</> : <><ToggleRight size={12}/> {t('index.activate')}</>}
                                                                 </button>
                                                             )}
                                                             {can.delete && (
                                                                 <button className="btn-act btn-del" onClick={() => handleDelete(exp)}>
-                                                                    <Trash2 size={12}/> Supprimer
+                                                                    <Trash2 size={12}/> {t('index.delete')}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -216,7 +218,7 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
 
                                 {experts.last_page > 1 && (
                                     <div className="ex-pagination">
-                                        <span className="ex-pg-info">Page {experts.current_page} / {experts.last_page} · {experts.total} experts</span>
+                                        <span className="ex-pg-info">{t('index.pageInfo', { current: experts.current_page, last: experts.last_page, total: experts.total })}</span>
                                         <div className="ex-pg-links">
                                             <button className="pg-btn" disabled={experts.current_page === 1} onClick={() => applyFilter({ page: String(experts.current_page - 1) })}><ChevronLeft size={13}/></button>
                                             {experts.links.map((link, i) => {

@@ -1,14 +1,9 @@
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Search, Award, ChevronLeft, ChevronRight, X, FileText } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('admin.dashboard') },
-    { title: 'Certificats', href: route('admin.certificates.index') },
-    { title: 'Recherche avancée' },
-];
 
 interface CertRow {
     id: string; certificate_number: string; status: string; document_type: string | null;
@@ -36,20 +31,29 @@ interface Props {
     isSA:       boolean;
 }
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-    ISSUED:    { label: 'Approuvé', color: '#15803d', bg: '#f0fdf4' },
-    SUBMITTED: { label: 'Soumis',   color: '#d97706', bg: '#fef3c7' },
-    DRAFT:     { label: 'Stocké',   color: '#64748b', bg: '#f8fafc' },
-    REJECTED:  { label: 'Rejeté',   color: '#dc2626', bg: '#fef2f2' },
-    REPLACED:  { label: 'Remplacé', color: '#475569', bg: '#f1f5f9' },
-    CANCELLED: { label: 'Annulé',   color: '#991b1b', bg: '#fef2f2' },
-};
-
 const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 
 export default function CertificateSearch({
     results, hasSearch, filters, brokers, templates, tenants, currencies, isSA,
 }: Props) {
+    const { t } = useTranslation('certificates');
+    const { t: tc } = useTranslation('common');
+
+    const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+        ISSUED:    { label: tc('certificateStatus.ISSUED'),    color: '#15803d', bg: '#f0fdf4' },
+        SUBMITTED: { label: tc('certificateStatus.SUBMITTED'), color: '#d97706', bg: '#fef3c7' },
+        DRAFT:     { label: tc('certificateStatus.DRAFT'),     color: '#64748b', bg: '#f8fafc' },
+        REJECTED:  { label: tc('certificateStatus.REJECTED'),  color: '#dc2626', bg: '#fef2f2' },
+        REPLACED:  { label: tc('certificateStatus.REPLACED'),  color: '#475569', bg: '#f1f5f9' },
+        CANCELLED: { label: tc('certificateStatus.CANCELLED'), color: '#991b1b', bg: '#fef2f2' },
+    };
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: route('admin.dashboard') },
+        { title: t('shared.breadcrumb'), href: route('admin.certificates.index') },
+        { title: t('search.breadcrumb') },
+    ];
+
     const [f, setF] = useState<Record<string, string>>(filters);
 
     const set = (k: string, v: string) => setF(p => ({ ...p, [k]: v }));
@@ -76,7 +80,7 @@ export default function CertificateSearch({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Recherche avancée — Certificats NSIA Transport"/>
+            <Head title={t('search.title')}/>
             <style>{`
                 .srch-page { padding:4px; display:flex; flex-direction:column; gap:14px; }
                 .srch-panel { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
@@ -116,29 +120,29 @@ export default function CertificateSearch({
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b' }}>Recherche avancée</h1>
-                            <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>Recherche multi-critères sur les certificats</p>
+                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b' }}>{t('search.heading')}</h1>
+                            <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>{t('search.subtitle')}</p>
                         </div>
                         <Link href={route('admin.certificates.index')}
                               style={{ fontSize: 12, color: '#1d4ed8', textDecoration: 'none',
                                        background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
                                        border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <FileText size={13}/> Gestion certificats
+                            <FileText size={13}/> {t('search.manageCertificates')}
                         </Link>
                     </div>
 
                     {/* Formulaire de recherche */}
                     <div className="srch-panel">
                         <div className="srch-panel-hdr">
-                            <Search size={14} color="#1d4ed8"/> Critères de recherche
+                            <Search size={14} color="#1d4ed8"/> {t('search.criteria')}
                         </div>
                         <div className="srch-body">
 
                             {/* Recherche texte */}
                             <div className="field field-span3">
-                                <label className="field-label">Recherche texte libre</label>
+                                <label className="field-label">{t('search.fields.freeText')}</label>
                                 <input style={inputStyle}
-                                       placeholder="N° certificat, N° police, assuré, référence, port de départ/arrivée, navire, vol…"
+                                       placeholder={t('search.fields.freeTextPlaceholder')}
                                        value={f.q ?? ''}
                                        onChange={e => set('q', e.target.value)}
                                        onKeyDown={e => e.key === 'Enter' && apply()}/>
@@ -146,67 +150,67 @@ export default function CertificateSearch({
 
                             {/* Statut */}
                             <div className="field">
-                                <label className="field-label">Statut</label>
+                                <label className="field-label">{t('search.fields.status')}</label>
                                 <select style={selStyle} value={f.status ?? ''} onChange={e => set('status', e.target.value)}>
-                                    <option value="">Tous</option>
-                                    <option value="ISSUED">Approuvé</option>
-                                    <option value="SUBMITTED">Soumis</option>
-                                    <option value="DRAFT">Stocké</option>
-                                    <option value="REJECTED">Rejeté</option>
-                                    <option value="REPLACED">Remplacé</option>
-                                    <option value="CANCELLED">Annulé</option>
+                                    <option value="">{t('search.fields.all')}</option>
+                                    <option value="ISSUED">{tc('certificateStatus.ISSUED')}</option>
+                                    <option value="SUBMITTED">{tc('certificateStatus.SUBMITTED')}</option>
+                                    <option value="DRAFT">{tc('certificateStatus.DRAFT')}</option>
+                                    <option value="REJECTED">{tc('certificateStatus.REJECTED')}</option>
+                                    <option value="REPLACED">{tc('certificateStatus.REPLACED')}</option>
+                                    <option value="CANCELLED">{tc('certificateStatus.CANCELLED')}</option>
                                 </select>
                             </div>
 
                             {/* Mode transport */}
                             <div className="field">
-                                <label className="field-label">Mode de transport</label>
+                                <label className="field-label">{t('search.fields.transportMode')}</label>
                                 <select style={selStyle} value={f.transport_type ?? ''} onChange={e => set('transport_type', e.target.value)}>
-                                    <option value="">Tous</option>
-                                    <option value="SEA">Maritime</option>
-                                    <option value="AIR">Aérien</option>
-                                    <option value="ROAD">Routier</option>
-                                    <option value="RAIL">Ferroviaire</option>
-                                    <option value="MULTIMODAL">Multimodal</option>
+                                    <option value="">{t('search.fields.all')}</option>
+                                    <option value="SEA">{t('shared.transport.SEA')}</option>
+                                    <option value="AIR">{t('shared.transport.AIR')}</option>
+                                    <option value="ROAD">{t('shared.transport.ROAD')}</option>
+                                    <option value="RAIL">{t('shared.transport.RAIL')}</option>
+                                    <option value="MULTIMODAL">{t('shared.transport.MULTIMODAL')}</option>
                                 </select>
                             </div>
 
                             {/* Type document */}
                             <div className="field">
-                                <label className="field-label">Type document</label>
+                                <label className="field-label">{t('search.fields.documentType')}</label>
                                 <select style={selStyle} value={f.document_type ?? ''} onChange={e => set('document_type', e.target.value)}>
-                                    <option value="">Tous</option>
-                                    <option value="original">Original</option>
-                                    <option value="duplicata">Duplicata</option>
+                                    <option value="">{t('search.fields.all')}</option>
+                                    <option value="original">{t('search.fields.original')}</option>
+                                    <option value="duplicata">{t('search.fields.duplicata')}</option>
                                 </select>
                             </div>
 
                             {/* Devise */}
                             <div className="field">
-                                <label className="field-label">Devise</label>
+                                <label className="field-label">{t('search.fields.currency')}</label>
                                 <select style={selStyle} value={f.currency_code ?? ''} onChange={e => set('currency_code', e.target.value)}>
-                                    <option value="">Toutes</option>
+                                    <option value="">{t('search.fields.allCurrencies')}</option>
                                     {currencies.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
 
                             {/* Mode de garantie */}
                             <div className="field">
-                                <label className="field-label">Mode de garantie</label>
+                                <label className="field-label">{t('search.fields.guaranteeMode')}</label>
                                 <select style={selStyle} value={f.guarantee_mode ?? ''} onChange={e => set('guarantee_mode', e.target.value)}>
-                                    <option value="">Tous</option>
-                                    <option value="TOUS_RISQUES">Tous risques</option>
-                                    <option value="FAP_SAUF">FAP sauf</option>
-                                    <option value="FAP_ABSOLUE">FAP absolue</option>
+                                    <option value="">{t('search.fields.all')}</option>
+                                    <option value="TOUS_RISQUES">{t('shared.coverage.TOUS_RISQUES')}</option>
+                                    <option value="FAP_SAUF">{t('shared.coverage.FAP_SAUF')}</option>
+                                    <option value="FAP_ABSOLUE">{t('shared.coverage.FAP_ABSOLUE')}</option>
                                 </select>
                             </div>
 
                             {/* Courtier */}
                             {brokers.length > 0 && (
                                 <div className="field">
-                                    <label className="field-label">Courtier</label>
+                                    <label className="field-label">{t('search.fields.broker')}</label>
                                     <select style={selStyle} value={f.broker_id ?? ''} onChange={e => set('broker_id', e.target.value)}>
-                                        <option value="">Tous</option>
+                                        <option value="">{t('search.fields.all')}</option>
                                         {brokers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                     </select>
                                 </div>
@@ -215,9 +219,9 @@ export default function CertificateSearch({
                             {/* Modèle certificat */}
                             {templates.length > 0 && (
                                 <div className="field">
-                                    <label className="field-label">Modèle certificat</label>
+                                    <label className="field-label">{t('search.fields.template')}</label>
                                     <select style={selStyle} value={f.template_id ?? ''} onChange={e => set('template_id', e.target.value)}>
-                                        <option value="">Tous</option>
+                                        <option value="">{t('search.fields.all')}</option>
                                         {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                     </select>
                                 </div>
@@ -226,9 +230,9 @@ export default function CertificateSearch({
                             {/* Filiale (SA) */}
                             {isSA && tenants.length > 0 && (
                                 <div className="field">
-                                    <label className="field-label">Filiale</label>
+                                    <label className="field-label">{t('search.fields.subsidiary')}</label>
                                     <select style={selStyle} value={f.tenant_id ?? ''} onChange={e => set('tenant_id', e.target.value)}>
-                                        <option value="">Toutes</option>
+                                        <option value="">{t('search.fields.allCurrencies')}</option>
                                         {tenants.map(t => <option key={t.id} value={t.id}>[{t.code}] {t.name}</option>)}
                                     </select>
                                 </div>
@@ -236,7 +240,7 @@ export default function CertificateSearch({
 
                             {/* Date émission */}
                             <div className="field field-span2">
-                                <label className="field-label">Date d'émission</label>
+                                <label className="field-label">{t('search.fields.issuedDate')}</label>
                                 <div className="date-range">
                                     <input type="date" style={inputStyle} value={f.issued_from ?? ''} onChange={e => set('issued_from', e.target.value)}/>
                                     <span className="sep">→</span>
@@ -246,7 +250,7 @@ export default function CertificateSearch({
 
                             {/* Date voyage */}
                             <div className="field field-span2">
-                                <label className="field-label">Date de voyage</label>
+                                <label className="field-label">{t('search.fields.voyageDate')}</label>
                                 <div className="date-range">
                                     <input type="date" style={inputStyle} value={f.voyage_from_date ?? ''} onChange={e => set('voyage_from_date', e.target.value)}/>
                                     <span className="sep">→</span>
@@ -256,11 +260,11 @@ export default function CertificateSearch({
 
                             {/* Valeur assurée */}
                             <div className="field field-span2">
-                                <label className="field-label">Valeur assurée (min / max)</label>
+                                <label className="field-label">{t('search.fields.insuredValue')}</label>
                                 <div className="date-range">
-                                    <input type="number" style={inputStyle} placeholder="Min" value={f.value_min ?? ''} onChange={e => set('value_min', e.target.value)}/>
+                                    <input type="number" style={inputStyle} placeholder={t('index.filters.min')} value={f.value_min ?? ''} onChange={e => set('value_min', e.target.value)}/>
                                     <span className="sep">—</span>
-                                    <input type="number" style={inputStyle} placeholder="Max" value={f.value_max ?? ''} onChange={e => set('value_max', e.target.value)}/>
+                                    <input type="number" style={inputStyle} placeholder={t('index.filters.max')} value={f.value_max ?? ''} onChange={e => set('value_max', e.target.value)}/>
                                 </div>
                             </div>
 
@@ -268,11 +272,11 @@ export default function CertificateSearch({
                             <div className="field field-span3" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
                                 {hasSearch && (
                                     <button className="btn btn-danger" onClick={reset}>
-                                        <X size={12}/> Effacer
+                                        <X size={12}/> {t('search.clear')}
                                     </button>
                                 )}
                                 <button className="btn btn-primary" onClick={apply}>
-                                    <Search size={13}/> Rechercher
+                                    <Search size={13}/> {t('search.searchBtn')}
                                 </button>
                             </div>
                         </div>
@@ -282,8 +286,8 @@ export default function CertificateSearch({
                     {!hasSearch && (
                         <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', fontSize: 13, background: '#f8fafc', borderRadius: 12, border: '1.5px dashed #e2e8f0' }}>
                             <Search size={32} style={{ marginBottom: 10, opacity: .3 }}/>
-                            <div style={{ fontWeight: 500 }}>Entrez vos critères de recherche</div>
-                            <div style={{ fontSize: 11, marginTop: 4 }}>La recherche texte couvre : N° certificat, assuré, référence, ports, navire, vol</div>
+                            <div style={{ fontWeight: 500 }}>{t('search.beforeSearch.title')}</div>
+                            <div style={{ fontSize: 11, marginTop: 4 }}>{t('search.beforeSearch.hint')}</div>
                         </div>
                     )}
 
@@ -291,12 +295,12 @@ export default function CertificateSearch({
                         <div className="results-panel">
                             <div style={{ padding: '11px 16px', borderBottom: '1px solid #f1f5f9', fontSize: 12, fontWeight: 600, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <Award size={14} color="#1d4ed8"/>
-                                {results.total} résultat(s) trouvé(s)
+                                {t('search.results.found', { count: results.total })}
                             </div>
                             {results.data.length === 0 ? (
                                 <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
                                     <Search size={28} style={{ marginBottom: 8, opacity: .4 }}/>
-                                    <div>Aucun certificat ne correspond à vos critères</div>
+                                    <div>{t('search.results.none')}</div>
                                 </div>
                             ) : (
                                 <>
@@ -304,16 +308,16 @@ export default function CertificateSearch({
                                         <table>
                                             <thead>
                                                 <tr>
-                                                    <th>N° Certificat</th>
-                                                    <th>Assuré</th>
-                                                    <th>Courtier</th>
-                                                    <th>Mode</th>
-                                                    <th>Voyage</th>
-                                                    <th>Valeur</th>
-                                                    <th>Prime</th>
-                                                    {isSA && <th>Filiale</th>}
-                                                    <th>Statut</th>
-                                                    <th>Date émission</th>
+                                                    <th>{t('search.table.number')}</th>
+                                                    <th>{t('search.table.insured')}</th>
+                                                    <th>{t('search.table.broker')}</th>
+                                                    <th>{t('search.table.mode')}</th>
+                                                    <th>{t('search.table.voyage')}</th>
+                                                    <th>{t('search.table.value')}</th>
+                                                    <th>{t('search.table.prime')}</th>
+                                                    {isSA && <th>{t('search.table.subsidiary')}</th>}
+                                                    <th>{t('search.table.status')}</th>
+                                                    <th>{t('search.table.issuedDate')}</th>
                                                     <th></th>
                                                 </tr>
                                             </thead>
@@ -325,7 +329,7 @@ export default function CertificateSearch({
                                                             <td>
                                                                 <div className="cert-num">{c.certificate_number}</div>
                                                                 {c.document_type === 'duplicata' && (
-                                                                    <span style={{ fontSize: 9, color: '#7c3aed', background: '#fdf4ff', padding: '0 4px', borderRadius: 4 }}>Duplic.</span>
+                                                                    <span style={{ fontSize: 9, color: '#7c3aed', background: '#fdf4ff', padding: '0 4px', borderRadius: 4 }}>{t('search.table.duplicateTag')}</span>
                                                                 )}
                                                             </td>
                                                             <td>
@@ -372,7 +376,7 @@ export default function CertificateSearch({
                                                             <td>
                                                                 <Link href={route('admin.certificates.show', { certificate: c.id })}
                                                                       style={{ fontSize: 11, color: '#1d4ed8', textDecoration: 'none' }}>
-                                                                    Voir →
+                                                                    {t('search.table.view')}
                                                                 </Link>
                                                             </td>
                                                         </tr>
@@ -385,7 +389,7 @@ export default function CertificateSearch({
                                     {results.last_page > 1 && (
                                         <div className="pg-row">
                                             <span style={{ fontSize: 11, color: '#94a3b8' }}>
-                                                {results.total} résultat(s) · Page {results.current_page}/{results.last_page}
+                                                {t('search.results.summary', { total: results.total, current: results.current_page, last: results.last_page })}
                                             </span>
                                             <div style={{ display: 'flex', gap: 4 }}>
                                                 <button className="pg-btn" disabled={results.current_page === 1}

@@ -1,0 +1,57 @@
+{
+    "index": {
+        "breadcrumb": "Délégations de rôle",
+        "title": "Délégations de rôle — NSIA Transport",
+        "heading": "Délégations de rôle",
+        "subtitle": "Délégation temporaire de rôles de validation (congés, absences)",
+        "newDelegation": "Nouvelle délégation",
+        "status": {
+            "active": "Active",
+            "expired": "Expirée",
+            "revoked": "Révoquée"
+        },
+        "card": {
+            "from": "De : {{name}}",
+            "grantedOn": "Accordée le {{date}}",
+            "expiresOn": "Expire le {{date}}",
+            "revokedBy": "Révoquée par {{name}}",
+            "revokedOn": " le {{date}}",
+            "revoke": "Révoquer"
+        },
+        "revokeModal": {
+            "title": "Révoquer la délégation",
+            "descriptionPrefix": "Délégation du rôle",
+            "descriptionTo": "à",
+            "descriptionExpiry": " — expire le {{date}}",
+            "reasonLabel": "Motif de révocation (facultatif)",
+            "reasonPlaceholder": "ex : Retour de congé anticipé…",
+            "confirm": "Révoquer"
+        },
+        "receivedBanner": {
+            "title_one": "Vous avez {{count}} délégation de rôle active",
+            "title_other": "Vous avez {{count}} délégations de rôle actives",
+            "role": "Rôle {{role}}",
+            "from": "De {{name}}",
+            "until": "jusqu'au {{date}}"
+        },
+        "form": {
+            "title": "Nouvelle délégation de rôle",
+            "granteeLabel": "Délégataire *",
+            "granteePlaceholder": "— Choisir un collègue —",
+            "roleLabel": "Rôle à déléguer *",
+            "rolePlaceholder": "— Choisir un rôle —",
+            "expiresLabel": "Date d'expiration *",
+            "reasonLabel": "Motif (facultatif)",
+            "reasonPlaceholder": "ex : Congés, déplacement…",
+            "warning": "Le délégataire héritera de toutes les permissions du rôle délégué jusqu'à la date d'expiration.",
+            "creating": "Enregistrement…",
+            "create": "Créer la délégation"
+        },
+        "sections": {
+            "active": "Délégations actives ({{count}})",
+            "activeEmpty": "Aucune délégation active.",
+            "history": "Historique ({{count}})",
+            "historyEmpty": "Aucun historique."
+        }
+    }
+}

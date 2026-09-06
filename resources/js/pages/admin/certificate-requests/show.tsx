@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ChevronLeft, FileText, Download, CheckCircle2, XCircle, Briefcase, UserCheck, Award, Link2, Check, Plus, Upload, FileQuestion, Archive } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -11,14 +12,6 @@ interface Document {
     file_size: number | null;
     document_type: string | null;
 }
-
-const DOCUMENT_TYPE_LABELS: Record<string, string> = {
-    BL: 'BL (Bill of Lading)',
-    FACTURE: 'Facture',
-    FDI: 'FDI',
-    DOCUMENTS_TRANSPORT: 'Document de transport',
-    AUTRE: 'Autre justificatif',
-};
 
 type RequestStatus = 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'COMPLETED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
 
@@ -62,22 +55,33 @@ interface Props {
     availableGuceCertificates: AvailableCertificate[];
 }
 
-const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
-    PENDING:        { bg: '#fffbeb', color: '#b45309', label: 'Transmise' },
-    IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: "En cours d'analyse" },
-    INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: 'Complément demandé' },
-    COMPLETED:      { bg: '#eef2ff', color: '#4338ca', label: 'Complétée' },
-    APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: 'Validée' },
-    FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: 'Certificat émis' },
-    CLOSED:         { bg: '#f1f5f9', color: '#475569', label: 'Clôturée' },
-    REJECTED:       { bg: '#fef2f2', color: '#b91c1c', label: 'Rejetée' },
-};
-
-const TRANSPORT_LABELS: Record<string, string> = {
-    SEA: 'Maritime', AIR: 'Aérien', ROAD: 'Routier', RAIL: 'Ferroviaire', MULTIMODAL: 'Multimodal',
-};
-
 export default function AdminCertificateRequestShow({ certificateRequest: cr, availableCertificates, availableGuceCertificates }: Props) {
+    const { t } = useTranslation('certificates');
+
+    const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
+        PENDING:        { bg: '#fffbeb', color: '#b45309', label: t('shared.requestStatus.PENDING') },
+        IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8', label: t('shared.requestStatus.IN_REVIEW') },
+        INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c', label: t('shared.requestStatus.INFO_REQUESTED') },
+        COMPLETED:      { bg: '#eef2ff', color: '#4338ca', label: t('shared.requestStatus.COMPLETED') },
+        APPROVED:       { bg: '#f0fdf4', color: '#15803d', label: t('shared.requestStatus.APPROVED') },
+        FULFILLED:      { bg: '#f0fdf4', color: '#15803d', label: t('shared.requestStatus.FULFILLED') },
+        CLOSED:         { bg: '#f1f5f9', color: '#475569', label: t('shared.requestStatus.CLOSED') },
+        REJECTED:       { bg: '#fef2f2', color: '#b91c1c', label: t('shared.requestStatus.REJECTED') },
+    };
+
+    const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+        BL: t('shared.documentType.BL'),
+        FACTURE: t('shared.documentType.FACTURE'),
+        FDI: t('shared.documentType.FDI'),
+        DOCUMENTS_TRANSPORT: t('shared.documentType.DOCUMENTS_TRANSPORT'),
+        AUTRE: t('shared.documentType.AUTRE'),
+    };
+
+    const TRANSPORT_LABELS: Record<string, string> = {
+        SEA: t('shared.transport.SEA'), AIR: t('shared.transport.AIR'), ROAD: t('shared.transport.ROAD'),
+        RAIL: t('shared.transport.RAIL'), MULTIMODAL: t('shared.transport.MULTIMODAL'),
+    };
+
     const [reviewNotes, setReviewNotes] = useState('');
     const [infoRequestNotes, setInfoRequestNotes] = useState('');
     const [processing, setProcessing] = useState(false);
@@ -85,8 +89,8 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
     const [selectedGuceCertificateId, setSelectedGuceCertificateId] = useState('');
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Demandes de certificats d\'assurance', href: '/admin/certificate-requests' },
-        { title: cr.insured_name ?? 'Demande', href: `/admin/certificate-requests/${cr.id}` },
+        { title: t('requests.index.breadcrumb'), href: '/admin/certificate-requests' },
+        { title: cr.insured_name ?? t('requests.show.defaultTitle'), href: `/admin/certificate-requests/${cr.id}` },
     ];
 
     const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -107,7 +111,7 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
 
     function reject() {
         if (!reviewNotes.trim()) {
-            alert('Merci de préciser un motif de rejet.');
+            alert(t('requests.show.processing.rejectReasonRequired'));
 
             return;
         }
@@ -118,7 +122,7 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
 
     function requestInfo() {
         if (!infoRequestNotes.trim()) {
-            alert('Merci de préciser les compléments attendus.');
+            alert(t('requests.show.processing.infoNotesRequired'));
 
             return;
         }
@@ -151,32 +155,32 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
     }
 
     const timelineSteps = [
-        { label: 'Demande transmise', done: true, date: cr.created_at, by: cr.created_by ? `${cr.created_by.first_name} ${cr.created_by.last_name}` : null },
-        { label: 'Prise en charge', done: !!cr.assigned_at, date: cr.assigned_at, by: cr.assigned_to ? `${cr.assigned_to.first_name} ${cr.assigned_to.last_name}` : null },
+        { label: t('requests.show.timeline.submitted'), done: true, date: cr.created_at, by: cr.created_by ? `${cr.created_by.first_name} ${cr.created_by.last_name}` : null },
+        { label: t('requests.show.timeline.assigned'), done: !!cr.assigned_at, date: cr.assigned_at, by: cr.assigned_to ? `${cr.assigned_to.first_name} ${cr.assigned_to.last_name}` : null },
         ...(cr.info_requested_at ? [{
-            label: 'Complément demandé',
+            label: t('requests.show.timeline.infoRequested'),
             done: true,
             date: cr.info_requested_at,
-            by: cr.completed_at ? `Dossier complété le ${fmt(cr.completed_at)}` : 'En attente du partenaire',
+            by: cr.completed_at ? t('requests.show.timeline.completedOn', { date: fmt(cr.completed_at) }) : t('requests.show.timeline.waitingPartner'),
         }] : []),
         {
-            label: cr.status === 'REJECTED' ? 'Demande rejetée' : 'Demande validée',
+            label: cr.status === 'REJECTED' ? t('requests.show.timeline.rejected') : t('requests.show.timeline.approved'),
             done: !!cr.reviewed_at,
             date: cr.reviewed_at,
             by: cr.reviewed_by ? `${cr.reviewed_by.first_name} ${cr.reviewed_by.last_name}` : null,
         },
         {
-            label: 'Certificat émis',
+            label: t('requests.show.timeline.issued'),
             done: !!(cr.certificate || cr.guce_certificate),
             date: null,
-            by: cr.certificate ? `N° ${cr.certificate.certificate_number}` : (cr.guce_certificate ? `N° ${cr.guce_certificate.certificate_number} (GUCE)` : null),
+            by: cr.certificate ? t('requests.show.timeline.issuedNumber', { number: cr.certificate.certificate_number }) : (cr.guce_certificate ? t('requests.show.timeline.issuedNumberGuce', { number: cr.guce_certificate.certificate_number }) : null),
         },
-        { label: 'Clôturée', done: !!cr.closed_at, date: cr.closed_at, by: null },
+        { label: t('requests.show.timeline.closed'), done: !!cr.closed_at, date: cr.closed_at, by: null },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Demande — ${cr.insured_name ?? ''} — NSIA Transport`} />
+            <Head title={t('requests.show.title', { name: cr.insured_name ?? '' })} />
 
             <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -187,10 +191,10 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                             </button>
                         </Link>
                         <div>
-                            <h1 style={{ fontSize: '19px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{cr.insured_name ?? 'Demande de certificat'}</h1>
+                            <h1 style={{ fontSize: '19px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{cr.insured_name ?? t('requests.show.defaultInsuredName')}</h1>
                             <p style={{ color: '#64748b', fontSize: '12.5px', margin: '2px 0 0' }}>
-                                {cr.reference ? <>Réf. <span style={{ fontFamily: 'monospace' }}>{cr.reference}</span> — </> : null}
-                                Soumise le {fmt(cr.created_at)} par {cr.created_by ? `${cr.created_by.first_name} ${cr.created_by.last_name}` : '—'}
+                                {cr.reference ? <>{t('requests.show.reference', { reference: cr.reference })} </> : null}
+                                {t('requests.show.submittedOn', { date: fmt(cr.created_at), name: cr.created_by ? `${cr.created_by.first_name} ${cr.created_by.last_name}` : '—' })}
                             </p>
                         </div>
                     </div>
@@ -199,7 +203,7 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
 
                 {/* Timeline de suivi de bout en bout */}
                 <div style={cardStyle}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>Suivi de la demande</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>{t('requests.show.timeline.title')}</h2>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {timelineSteps.map((step, i) => (
                             <div key={i} style={{ display: 'flex', gap: 12 }}>
@@ -229,37 +233,37 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
 
                 <div style={cardStyle}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Briefcase size={16} /> Courtier / Partenaire
+                        <Briefcase size={16} /> {t('requests.show.broker.title')}
                     </h2>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                        <div><span style={labelStyle}>Nom</span><span style={valueStyle}>{cr.broker?.name ?? '—'}</span></div>
-                        <div><span style={labelStyle}>Code</span><span style={valueStyle}>{cr.broker?.code ?? '—'}</span></div>
-                        <div><span style={labelStyle}>Email de contact</span><span style={valueStyle}>{cr.created_by?.email ?? '—'}</span></div>
+                        <div><span style={labelStyle}>{t('requests.show.broker.name')}</span><span style={valueStyle}>{cr.broker?.name ?? '—'}</span></div>
+                        <div><span style={labelStyle}>{t('requests.show.broker.code')}</span><span style={valueStyle}>{cr.broker?.code ?? '—'}</span></div>
+                        <div><span style={labelStyle}>{t('requests.show.broker.contactEmail')}</span><span style={valueStyle}>{cr.created_by?.email ?? '—'}</span></div>
                     </div>
                 </div>
 
                 <div style={cardStyle}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>Expédition</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>{t('requests.show.shipment.title')}</h2>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                        <div><span style={labelStyle}>Pays concerné</span><span style={valueStyle}>{cr.country_code ?? '—'}</span></div>
-                        <div><span style={labelStyle}>Mode de transport</span><span style={valueStyle}>{cr.transport_type ? TRANSPORT_LABELS[cr.transport_type] : '—'}</span></div>
-                        <div><span style={labelStyle}>Trajet</span><span style={valueStyle}>{cr.voyage_from && cr.voyage_to ? `${cr.voyage_from} → ${cr.voyage_to}` : '—'}</span></div>
-                        <div><span style={labelStyle}>Date du voyage</span><span style={valueStyle}>{cr.voyage_date ? fmt(cr.voyage_date) : '—'}</span></div>
-                        <div style={{ gridColumn: '1/-1' }}><span style={labelStyle}>Marchandise</span><span style={valueStyle}>{cr.cargo_description ?? '—'}</span></div>
-                        <div><span style={labelStyle}>Valeur estimée</span><span style={valueStyle}>{cr.estimated_value ? `${Number(cr.estimated_value).toLocaleString('fr-FR')} ${cr.currency_code ?? ''}` : '—'}</span></div>
+                        <div><span style={labelStyle}>{t('requests.show.shipment.country')}</span><span style={valueStyle}>{cr.country_code ?? '—'}</span></div>
+                        <div><span style={labelStyle}>{t('requests.show.shipment.transportMode')}</span><span style={valueStyle}>{cr.transport_type ? TRANSPORT_LABELS[cr.transport_type] : '—'}</span></div>
+                        <div><span style={labelStyle}>{t('requests.show.shipment.route')}</span><span style={valueStyle}>{cr.voyage_from && cr.voyage_to ? `${cr.voyage_from} → ${cr.voyage_to}` : '—'}</span></div>
+                        <div><span style={labelStyle}>{t('requests.show.shipment.voyageDate')}</span><span style={valueStyle}>{cr.voyage_date ? fmt(cr.voyage_date) : '—'}</span></div>
+                        <div style={{ gridColumn: '1/-1' }}><span style={labelStyle}>{t('requests.show.shipment.cargo')}</span><span style={valueStyle}>{cr.cargo_description ?? '—'}</span></div>
+                        <div><span style={labelStyle}>{t('requests.show.shipment.estimatedValue')}</span><span style={valueStyle}>{cr.estimated_value ? `${Number(cr.estimated_value).toLocaleString('fr-FR')} ${cr.currency_code ?? ''}` : '—'}</span></div>
                     </div>
                     {cr.notes && (
                         <div style={{ marginTop: 16 }}>
-                            <span style={labelStyle}>Notes du partenaire</span>
+                            <span style={labelStyle}>{t('requests.show.shipment.partnerNotes')}</span>
                             <span style={valueStyle}>{cr.notes}</span>
                         </div>
                     )}
                 </div>
 
                 <div style={cardStyle}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 14px' }}>Pièces justificatives</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 14px' }}>{t('requests.show.documents.title')}</h2>
                     {cr.documents.length === 0 ? (
-                        <p style={{ fontSize: 12.5, color: '#94a3b8', margin: 0 }}>Aucun document joint.</p>
+                        <p style={{ fontSize: 12.5, color: '#94a3b8', margin: 0 }}>{t('requests.show.documents.empty')}</p>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             {cr.documents.map(doc => (
@@ -274,7 +278,7 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                                                 </span>
                                             )}
                                         </div>
-                                        {doc.file_size && <p style={{ margin: 0, fontSize: 11.5, color: '#94a3b8' }}>{(doc.file_size / 1024).toFixed(0)} Ko</p>}
+                                        {doc.file_size && <p style={{ margin: 0, fontSize: 11.5, color: '#94a3b8' }}>{t('requests.show.documents.sizeKo', { size: (doc.file_size / 1024).toFixed(0) })}</p>}
                                     </div>
                                     <a href={route('admin.certificate-requests.documents.download', { certificateRequest: cr.id, document: doc.id })}>
                                         <button style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', padding: '5px 8px', cursor: 'pointer', color: '#16a34a' }}>
@@ -290,17 +294,17 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                 {cr.status === 'INFO_REQUESTED' && (
                     <div style={{ ...cardStyle, background: '#fff7ed', borderColor: '#fed7aa' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#c2410c', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <FileQuestion size={16} /> Complément demandé — en attente du partenaire
+                            <FileQuestion size={16} /> {t('requests.show.infoRequested.title')}
                         </h2>
                         <p style={{ fontSize: 13, color: '#7c2d12', margin: 0 }}>{cr.info_request_notes}</p>
-                        <p style={{ fontSize: 11.5, color: '#9a3412', marginTop: 10, opacity: .85 }}>Le partenaire a été notifié et doit compléter son dossier depuis son espace pour le retransmettre.</p>
+                        <p style={{ fontSize: 11.5, color: '#9a3412', marginTop: 10, opacity: .85 }}>{t('requests.show.infoRequested.hint')}</p>
                     </div>
                 )}
 
                 {cr.status === 'COMPLETED' && (
                     <div style={{ ...cardStyle, background: '#eef2ff', borderColor: '#c7d2fe' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#4338ca', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <FileQuestion size={16} /> Dossier complété par le partenaire — en attente de ré-analyse
+                            <FileQuestion size={16} /> {t('requests.show.completed.title')}
                         </h2>
                         {cr.completion_notes && <p style={{ fontSize: 13, color: '#3730a3', margin: 0 }}>{cr.completion_notes}</p>}
                     </div>
@@ -308,12 +312,12 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
 
                 {(cr.status === 'PENDING' || cr.status === 'IN_REVIEW' || cr.status === 'COMPLETED') && (
                     <div style={cardStyle}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>Traitement</h2>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>{t('requests.show.processing.title')}</h2>
 
                         {cr.status === 'PENDING' && (
                             <div style={{ marginBottom: 16 }}>
                                 <Button onClick={assign} disabled={processing} variant="outline" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <UserCheck size={15} /> Prendre en charge
+                                    <UserCheck size={15} /> {t('requests.show.processing.assign')}
                                 </Button>
                             </div>
                         )}
@@ -321,30 +325,30 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                         <textarea
                             value={reviewNotes}
                             onChange={e => setReviewNotes(e.target.value)}
-                            placeholder="Notes de traitement (obligatoire en cas de rejet)..."
+                            placeholder={t('requests.show.processing.notesPlaceholder')}
                             rows={3}
                             style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', marginBottom: 14 }}
                         />
                         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
                             <Button onClick={approve} disabled={processing} className="bg-[#16a34a] hover:bg-[#15803d] text-white" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <CheckCircle2 size={15} /> Valider
+                                <CheckCircle2 size={15} /> {t('requests.show.processing.approve')}
                             </Button>
                             <Button onClick={reject} disabled={processing} variant="outline" style={{ color: '#dc2626', borderColor: '#fecaca', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <XCircle size={15} /> Rejeter
+                                <XCircle size={15} /> {t('requests.show.processing.reject')}
                             </Button>
                         </div>
 
                         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16 }}>
-                            <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 8px' }}>Dossier incomplet ? Demandez un complément au partenaire — il sera notifié et pourra retransmettre.</p>
+                            <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 8px' }}>{t('requests.show.processing.requestInfoHint')}</p>
                             <textarea
                                 value={infoRequestNotes}
                                 onChange={e => setInfoRequestNotes(e.target.value)}
-                                placeholder="Ex : Merci de joindre la facture commerciale et le connaissement définitif."
+                                placeholder={t('requests.show.processing.requestInfoPlaceholder')}
                                 rows={2}
                                 style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', marginBottom: 10 }}
                             />
                             <Button onClick={requestInfo} disabled={processing} variant="outline" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <FileQuestion size={15} /> Demander un complément
+                                <FileQuestion size={15} /> {t('requests.show.processing.requestInfo')}
                             </Button>
                         </div>
                     </div>
@@ -353,21 +357,21 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                 {cr.status === 'APPROVED' && !cr.certificate && !cr.guce_certificate && (
                     <div style={cardStyle}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <Link2 size={16} /> Génération ou importation du certificat
+                            <Link2 size={16} /> {t('requests.show.generation.title')}
                         </h2>
                         <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 14px' }}>
-                            Créez le certificat depuis un contrat actif, ou importez-le depuis la plateforme GUCE, puis rattachez-le ici pour mettre le certificat à disposition du partenaire.
+                            {t('requests.show.generation.hint')}
                         </p>
 
                         <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
                             <Link href="/admin/certificates/create">
                                 <Button type="button" variant="outline" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <Plus size={14} /> Créer un certificat
+                                    <Plus size={14} /> {t('requests.show.generation.createCertificate')}
                                 </Button>
                             </Link>
                             <Link href="/admin/guce-certificates/create">
                                 <Button type="button" variant="outline" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <Upload size={14} /> Importer un certificat GUCE
+                                    <Upload size={14} /> {t('requests.show.generation.importGuce')}
                                 </Button>
                             </Link>
                         </div>
@@ -376,25 +380,25 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                             <div style={{ display: 'flex', gap: 10 }}>
                                 <select value={selectedCertificateId} onChange={e => setSelectedCertificateId(e.target.value)}
                                         style={{ flex: 1, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>
-                                    <option value="">Rattacher un certificat émis...</option>
+                                    <option value="">{t('requests.show.generation.linkCertificatePlaceholder')}</option>
                                     {availableCertificates.map(c => (
                                         <option key={c.id} value={c.id}>{c.certificate_number} — {c.insured_name}</option>
                                     ))}
                                 </select>
                                 <Button onClick={linkCertificate} disabled={processing || !selectedCertificateId} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white">
-                                    Rattacher
+                                    {t('requests.show.generation.link')}
                                 </Button>
                             </div>
                             <div style={{ display: 'flex', gap: 10 }}>
                                 <select value={selectedGuceCertificateId} onChange={e => setSelectedGuceCertificateId(e.target.value)}
                                         style={{ flex: 1, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>
-                                    <option value="">Rattacher un certificat GUCE importé...</option>
+                                    <option value="">{t('requests.show.generation.linkGuceCertificatePlaceholder')}</option>
                                     {availableGuceCertificates.map(c => (
                                         <option key={c.id} value={c.id}>{c.certificate_number} — {c.insured_name}</option>
                                     ))}
                                 </select>
                                 <Button onClick={linkGuceCertificate} disabled={processing || !selectedGuceCertificateId} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white">
-                                    Rattacher
+                                    {t('requests.show.generation.link')}
                                 </Button>
                             </div>
                         </div>
@@ -404,27 +408,27 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
                 {(cr.certificate || cr.guce_certificate) && (
                     <div style={{ ...cardStyle, background: '#f0fdf4', borderColor: '#bbf7d0' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#15803d', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <Award size={16} /> Certificat disponible {cr.guce_certificate && !cr.certificate ? '(importé GUCE)' : ''}
+                            <Award size={16} /> {cr.guce_certificate && !cr.certificate ? t('requests.show.available.titleGuce') : t('requests.show.available.title')}
                         </h2>
                         <p style={{ fontSize: 13, color: '#166534', margin: 0 }}>
-                            N° {cr.certificate ? cr.certificate.certificate_number : cr.guce_certificate?.certificate_number}
+                            {t('requests.show.available.number', { number: cr.certificate ? cr.certificate.certificate_number : cr.guce_certificate?.certificate_number })}
                         </p>
                         {cr.certificate && (
                             <Link href={`/admin/certificates/${cr.certificate.id}`}
                                   style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, color: '#15803d', fontWeight: 500, marginTop: 8, textDecoration: 'none' }}>
-                                Voir le certificat →
+                                {t('requests.show.available.viewCertificate')}
                             </Link>
                         )}
                         {cr.guce_certificate && (
                             <Link href={`/admin/guce-certificates/${cr.guce_certificate.id}`}
                                   style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, color: '#15803d', fontWeight: 500, marginTop: 8, textDecoration: 'none' }}>
-                                Voir le certificat GUCE →
+                                {t('requests.show.available.viewGuceCertificate')}
                             </Link>
                         )}
-                        <p style={{ fontSize: 11.5, color: '#166534', marginTop: 10, opacity: .8 }}>Le partenaire a été notifié et peut le télécharger depuis son espace.</p>
+                        <p style={{ fontSize: 11.5, color: '#166534', marginTop: 10, opacity: .8 }}>{t('requests.show.available.notified')}</p>
                         {cr.status === 'FULFILLED' && (
                             <Button onClick={close} disabled={processing} variant="outline" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 14 }}>
-                                <Archive size={15} /> Clôturer la demande
+                                <Archive size={15} /> {t('requests.show.available.close')}
                             </Button>
                         )}
                     </div>
@@ -432,23 +436,23 @@ export default function AdminCertificateRequestShow({ certificateRequest: cr, av
 
                 {cr.completion_notes && (
                     <div style={cardStyle}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>Réponse du partenaire au complément demandé</h2>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>{t('requests.show.partnerCompletion.title')}</h2>
                         <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{cr.completion_notes}</p>
-                        {cr.completed_at && <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '8px 0 0' }}>Retransmis le {fmt(cr.completed_at)}</p>}
+                        {cr.completed_at && <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '8px 0 0' }}>{t('requests.show.partnerCompletion.resubmittedOn', { date: fmt(cr.completed_at) })}</p>}
                     </div>
                 )}
 
                 {cr.status !== 'PENDING' && cr.status !== 'IN_REVIEW' && cr.review_notes && (
                     <div style={cardStyle}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>Notes de traitement</h2>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>{t('requests.show.processingNotes.title')}</h2>
                         <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{cr.review_notes}</p>
-                        {cr.reviewed_by && <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '8px 0 0' }}>Par {cr.reviewed_by.first_name} {cr.reviewed_by.last_name}</p>}
+                        {cr.reviewed_by && <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '8px 0 0' }}>{t('requests.show.processingNotes.by', { name: `${cr.reviewed_by.first_name} ${cr.reviewed_by.last_name}` })}</p>}
                     </div>
                 )}
 
                 <Link href={route('admin.certificate-requests.index')}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748b', textDecoration: 'none' }}>
-                    <ChevronLeft size={14} /> Retour aux demandes
+                    <ChevronLeft size={14} /> {t('requests.show.backToList')}
                 </Link>
             </div>
         </AppLayout>

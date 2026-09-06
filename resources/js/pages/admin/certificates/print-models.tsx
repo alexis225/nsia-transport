@@ -1,18 +1,21 @@
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { Printer, FileText, AlertTriangle } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { PRINT_TEMPLATES } from './print-templates/registry';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Certificats', href: '/admin/certificates' },
-    { title: 'Modèles d\'impression', href: '/admin/certificates/print-models' },
-];
-
 export default function PrintModels() {
+    const { t } = useTranslation('certificates');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('shared.breadcrumb'), href: '/admin/certificates' },
+        { title: t('printModels.breadcrumb'), href: '/admin/certificates/print-models' },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Modèles d'impression — NSIA Transport" />
+            <Head title={t('printModels.title')} />
 
             <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
 
@@ -23,12 +26,11 @@ export default function PrintModels() {
                             <Printer size={18} color="#3b82f6" />
                         </div>
                         <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                            Modèles d'impression
+                            {t('printModels.heading')}
                         </h1>
                     </div>
                     <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>
-                        Carnets officiels reconnus par les autorités de chaque pays, imprimés par-dessus la souche physique pré-imprimée NSIA.
-                        Le modèle correspondant à la filiale du certificat est présélectionné automatiquement, mais reste modifiable à l'impression.
+                        {t('printModels.description')}
                     </p>
                 </div>
 
@@ -41,10 +43,11 @@ export default function PrintModels() {
                 }}>
                     <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }}/>
                     <div>
-                        <strong>Positionnement des champs à finaliser.</strong> Les coordonnées actuelles sont un point de départ générique,
-                        pas encore calibrées sur les souches physiques réelles. Ajoutez <code style={{ background:'#fff7ed', padding:'1px 5px', borderRadius:4 }}>?calibrate=1</code> à
-                        l'URL d'impression pour afficher une grille de repère (tous les 10&nbsp;mm) et le nom de chaque champ — imprimez sur la souche réelle,
-                        mesurez les écarts, puis ajustez les coordonnées dans le fichier du pays correspondant (<code style={{ background:'#fff7ed', padding:'1px 5px', borderRadius:4 }}>print-templates/&lt;pays&gt;.tsx</code>).
+                        <strong>{t('printModels.calibrationWarning.title')}</strong>{' '}
+                        {t('printModels.calibrationWarning.text', {
+                            param: '?calibrate=1',
+                            path: 'print-templates/<pays>.tsx',
+                        })}
                     </div>
                 </div>
 
@@ -102,9 +105,8 @@ export default function PrintModels() {
                     background: '#f8fafc', border: '1px solid #e2e8f0',
                     borderRadius: 10, fontSize: 12, color: '#64748b', lineHeight: 1.6,
                 }}>
-                    <strong style={{ color: '#374151' }}>Comment utiliser un modèle ?</strong><br />
-                    Ouvrez un certificat → cliquez sur <strong>Imprimer</strong> → choisissez le carnet du pays correspondant → lancez l'impression.
-                    Les informations de l'en-tête (siège social, capital, RCCM...) sont configurées dans les <strong>paramètres de la filiale</strong>.
+                    <strong style={{ color: '#374151' }}>{t('printModels.info.title')}</strong><br />
+                    {t('printModels.info.text')}
                 </div>
 
             </div>

@@ -1,0 +1,259 @@
+{
+    "config": {
+        "breadcrumb": { "tenants": "Subsidiaries", "config": "Configuration" },
+        "title": "Configuration {{name}} — NSIA Transport",
+        "hero": {
+            "title": "Configuration — {{name}}",
+            "subtitle": "Advanced settings · Limits · Notifications · Caps"
+        },
+        "modules": {
+            "title": "Enabled modules",
+            "subtitle": "A disabled module disappears from the menu and becomes inaccessible for this subsidiary",
+            "saved": "Modules updated.",
+            "saving": "Saving…",
+            "save": "Save modules"
+        },
+        "nn300": {
+            "title": "NN300 cap",
+            "subtitle": "Subscription limit and automatic alerts",
+            "saved": "Configuration saved.",
+            "limitLabel": "NN300 cap",
+            "thresholdLabel": "Alert threshold",
+            "thresholdHint": "Alert sent at this percentage of consumption",
+            "blockLabel": "Block at 100% of the cap",
+            "blockDesc": "New submissions automatically refused once the cap is reached"
+        },
+        "notifications": {
+            "title": "Notifications",
+            "subtitle": "Notification channels active for this subsidiary",
+            "enabledLabel": "Notifications enabled",
+            "enabledDesc": "Enable or disable all notifications for this subsidiary",
+            "emailLabel": "Email notifications",
+            "emailDesc": "Send emails for critical events",
+            "smsLabel": "SMS notifications",
+            "smsDesc": "Send SMS for urgent alerts"
+        },
+        "limits": {
+            "title": "Capacity limits",
+            "subtitle": "0 = unlimited",
+            "maxUsers": "Max users",
+            "maxContracts": "Max contracts",
+            "maxCertificates": "Max certificates",
+            "retentionDays": "Data retention (days)",
+            "retentionHint": "Audit log retention period",
+            "unlimitedPlaceholder": "0 = unlimited",
+            "daysSuffix": "days"
+        },
+        "actions": {
+            "saving": "Saving…",
+            "save": "Save configuration"
+        }
+    },
+    "create": {
+        "breadcrumb": { "tenants": "Subsidiaries", "new": "New subsidiary" },
+        "title": "New subsidiary — NSIA Transport",
+        "hero": {
+            "title": "New subsidiary",
+            "subtitle": "Configure the settings for the new NSIA subsidiary",
+            "logoTooltip": "Click to add a logo"
+        },
+        "logo": {
+            "title": "Subsidiary logo",
+            "subtitle": "Optional · JPG, PNG, WebP or SVG · Max 2 MB",
+            "choose": "Choose a logo",
+            "hint": "JPG, PNG, WebP or SVG format · Max 2 MB"
+        },
+        "info": {
+            "title": "Subsidiary information",
+            "subtitle": "All fields marked * are required"
+        },
+        "fields": {
+            "name": "Subsidiary name *",
+            "namePlaceholder": "e.g. NSIA Côte d'Ivoire",
+            "code": "Code *",
+            "codePlaceholder": "e.g. CI",
+            "countryCode": "Country code (ISO 2) *",
+            "currency": "Currency *",
+            "locale": "Language *",
+            "localeFr": "Français",
+            "localeEn": "English",
+            "timezone": "Timezone *",
+            "nn300Limit": "NN300 cap (XOF)",
+            "status": "Status"
+        },
+        "status": {
+            "active": "Active subsidiary",
+            "inactive": "Inactive subsidiary",
+            "activeDesc": "Users can log in",
+            "inactiveDesc": "Access blocked"
+        },
+        "actions": {
+            "creating": "Creating…",
+            "create": "Create subsidiary"
+        }
+    },
+    "edit": {
+        "breadcrumb": { "tenants": "Subsidiaries", "edit": "Edit" },
+        "title": "Edit {{name}} — NSIA Transport",
+        "hero": {
+            "title": "Edit {{name}}",
+            "sub": "Code: {{code}} · {{currency}}"
+        },
+        "logo": {
+            "title": "Subsidiary logo",
+            "subtitle": "JPG, PNG, WebP or SVG · Max 2 MB",
+            "updated": "Logo updated.",
+            "choose": "Choose a logo",
+            "remove": "Remove",
+            "hint": "JPG, PNG, WebP or SVG format · Max 2 MB",
+            "uploading": "Uploading…",
+            "save": "Save logo",
+            "confirmRemove": "Remove this subsidiary's logo?"
+        },
+        "form": {
+            "title": "Subsidiary information",
+            "subtitle": "Edit the configuration settings",
+            "saved": "Changes saved."
+        },
+        "fields": {
+            "name": "Subsidiary name *",
+            "namePlaceholder": "e.g. NSIA Côte d'Ivoire",
+            "code": "Code *",
+            "codePlaceholder": "e.g. CI",
+            "countryCode": "Country code (ISO 2) *",
+            "currency": "Currency *",
+            "locale": "Language *",
+            "localeFr": "Français",
+            "localeEn": "English",
+            "timezone": "Timezone *",
+            "nn300Limit": "NN300 cap (XOF)",
+            "status": "Status"
+        },
+        "status": {
+            "active": "Active subsidiary",
+            "inactive": "Inactive subsidiary",
+            "activeDesc": "Users can log in",
+            "inactiveDesc": "Access blocked"
+        },
+        "print": {
+            "title": "Certificate printing information",
+            "subtitle": "This data appears in the header and footer of the printed certificate",
+            "headOffice": "Head office",
+            "headOfficePlaceholder": "NSIA Building\nBP 5884 Conakry Guinea",
+            "phone": "Phone",
+            "phonePlaceholder": "(+224) 666 18 12 82",
+            "city": "City (place of issue)",
+            "cityPlaceholder": "Conakry",
+            "website": "Website",
+            "websitePlaceholder": "www.groupensia.com",
+            "email": "Email",
+            "emailPlaceholder": "nsiaguinee@groupensia.com",
+            "capital": "Share capital",
+            "capitalPlaceholder": "13,000,000,000 GNF fully paid up",
+            "rccm": "Trade register no.",
+            "rccmPlaceholder": "RCCM/GC-KAL/024,618A/2009",
+            "regulator": "Regulatory body",
+            "regulatorPlaceholder": "Guinea Insurance Authority",
+            "paymentAddress": "Claims payment address",
+            "paymentAddressPlaceholder": "NSIA Guinea — BP 5884 Conakry",
+            "surveyorName": "Surveyor's name (in case of damage)",
+            "surveyorNamePlaceholder": "METEA Firm",
+            "surveyorAddress": "Surveyor's address",
+            "surveyorAddressPlaceholder": "Firm's address"
+        },
+        "actions": {
+            "saving": "Saving…",
+            "save": "Save"
+        }
+    },
+    "index": {
+        "breadcrumb": "Subsidiaries",
+        "title": "Subsidiaries — NSIA Transport",
+        "heading": "NSIA Subsidiaries",
+        "count_one": "{{count}} subsidiary configured",
+        "count_other": "{{count}} subsidiaries configured",
+        "newTenant": "New subsidiary",
+        "search": {
+            "placeholder": "Search by name or code…"
+        },
+        "filters": {
+            "allStatuses": "All statuses",
+            "active": "Active",
+            "inactive": "Inactive",
+            "clear": "Clear"
+        },
+        "table": {
+            "tenant": "Subsidiary",
+            "country": "Country",
+            "currency": "Currency",
+            "users": "Users",
+            "status": "Status",
+            "createdAt": "Created on",
+            "actions": "Actions"
+        },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        },
+        "actions": {
+            "view": "View",
+            "edit": "Edit",
+            "config": "Config",
+            "deactivate": "Deactivate",
+            "activate": "Activate"
+        },
+        "empty": "No subsidiaries found.",
+        "pagination": {
+            "info": "Page {{current}} / {{last}} · {{total}} subsidiaries"
+        },
+        "confirmToggle": "{{action}} subsidiary {{name}}?",
+        "deactivateVerb": "Deactivate",
+        "activateVerb": "Activate"
+    },
+    "show": {
+        "breadcrumb": "Subsidiaries",
+        "title": "{{name}} — NSIA Transport",
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        },
+        "usersCount_one": "{{count}} user",
+        "usersCount_other": "{{count}} users",
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "confirmToggle": "{{action}} subsidiary {{name}}?",
+        "deactivateVerb": "Deactivate",
+        "activateVerb": "Activate",
+        "config": {
+            "title": "Configuration",
+            "countryCode": "Country code",
+            "currency": "Currency",
+            "locale": "Language",
+            "localeFr": "Français",
+            "localeEn": "English",
+            "timezone": "Timezone",
+            "nn300Limit": "NN300 cap",
+            "createdAt": "Created on"
+        },
+        "template": {
+            "title": "Certificate template",
+            "types": {
+                "certificat_assurance": "Insurance Certificate",
+                "certificat_etatique": "State Certificate (GUCE, GUOT, etc.)",
+                "carnet_ordre": "Order Book Certificate",
+                "ordre_assurance": "Order Book Certificate"
+            },
+            "activated": "Enabled",
+            "deactivated": "Disabled",
+            "configure": "Configure",
+            "none": "No template configured — certificates for this subsidiary are issued without an official header or numbering.",
+            "activate": "Activate a template"
+        },
+        "usersSection": {
+            "title": "Users ({{count}})",
+            "seeAll": "See all →"
+        },
+        "backToList": "Back to subsidiaries"
+    }
+}

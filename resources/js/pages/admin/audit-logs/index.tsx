@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -8,10 +9,6 @@ import {
     X, ChevronLeft, ChevronRight,
     AlertCircle, Loader2, Clock, Filter,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Audit Logs', href: '/admin/audit-logs' },
-];
 
 interface User   { id: string; first_name: string; last_name: string; email: string; }
 interface Tenant { id: string; name: string; code: string; }
@@ -56,6 +53,8 @@ const getActionStyle = (action: string) =>
 // ── Modal purge ───────────────────────────────────────────────
 function PurgeModal({ onClose }: { onClose: () => void }) {
     const { data, setData, delete: destroy, processing } = useForm({ days: '365' });
+    const { t } = useTranslation('auditLogs');
+    const { t: tc } = useTranslation('common');
 
     return (
         <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
@@ -66,36 +65,36 @@ function PurgeModal({ onClose }: { onClose: () => void }) {
                             <Trash2 size={16} color="#dc2626"/>
                         </div>
                         <div>
-                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>Purge des logs</p>
-                            <p style={{ fontSize:11, color:'#94a3b8' }}>Action irréversible</p>
+                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('index.purgeModal.title')}</p>
+                            <p style={{ fontSize:11, color:'#94a3b8' }}>{t('index.purgeModal.subtitle')}</p>
                         </div>
                     </div>
                     <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
                 </div>
                 <div style={{ padding:'20px 22px' }}>
                     <div style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:9, padding:'10px 13px', marginBottom:16, fontSize:12, color:'#dc2626', lineHeight:1.5 }}>
-                        ⚠ Cette action supprimera définitivement tous les logs plus anciens que le nombre de jours spécifié.
+                        {t('index.purgeModal.warning')}
                     </div>
                     <div style={{ marginBottom:16 }}>
                         <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>
-                            Supprimer les logs antérieurs à (jours)
+                            {t('index.purgeModal.daysLabel')}
                         </label>
                         <input
                             type="number" min={30} max={3650}
                             value={data.days} onChange={e => setData('days', e.target.value)}
                             style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', boxSizing:'border-box' }}
                         />
-                        <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Minimum 30 jours · Recommandé : 365 jours</p>
+                        <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>{t('index.purgeModal.daysHint')}</p>
                     </div>
                     <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button variant="outline" onClick={onClose}>Annuler</Button>
+                        <Button variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
                         <Button
                             onClick={() => destroy(route('admin.audit-logs.purge'), { data: { days: data.days }, onSuccess: onClose })}
                             disabled={processing}
                             className="bg-red-600 hover:bg-red-700 text-white"
                         >
                             {processing ? <Loader2 size={13} className="animate-spin"/> : <Trash2 size={13}/>}
-                            Purger
+                            {t('index.purge')}
                         </Button>
                     </div>
                 </div>
@@ -106,6 +105,11 @@ function PurgeModal({ onClose }: { onClose: () => void }) {
 
 // ── Page principale ───────────────────────────────────────────
 export default function AuditLogsIndex({ logs, filters, actions, entityTypes, isSA }: Props) {
+    const { t } = useTranslation('auditLogs');
+    const { t: tc } = useTranslation('common');
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('index.breadcrumb'), href: '/admin/audit-logs' },
+    ];
     const [showPurge,   setShowPurge]   = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [search,      setSearch]      = useState(filters.search ?? '');
@@ -129,7 +133,7 @@ export default function AuditLogsIndex({ logs, filters, actions, entityTypes, is
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Audit Logs — NSIA Transport"/>
+            <Head title={t('index.title')}/>
             <style>{`
                 .al-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .al-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
@@ -187,19 +191,19 @@ export default function AuditLogsIndex({ logs, filters, actions, entityTypes, is
                     {/* Header */}
                     <div className="al-hdr">
                         <div>
-                            <h1 className="al-title">Audit Logs</h1>
-                            <p className="al-sub">{logs.total.toLocaleString()} événement{logs.total > 1 ? 's' : ''} enregistré{logs.total > 1 ? 's' : ''}</p>
+                            <h1 className="al-title">{t('index.heading')}</h1>
+                            <p className="al-sub">{t('index.eventsRecorded', { count: logs.total })}</p>
                         </div>
                         <div className="al-hdr-actions">
                             <a href={exportUrl()} download>
                                 <Button variant="outline" className="h-10 px-4 text-sm gap-1.5">
-                                    <Download size={14}/> Exporter CSV
+                                    <Download size={14}/> {t('index.exportCsv')}
                                 </Button>
                             </a>
                             {isSA && (
                                 <Button onClick={() => setShowPurge(true)} variant="outline"
                                         className="h-10 px-4 text-sm gap-1.5 text-red-600 border-red-200 hover:bg-red-50">
-                                    <Trash2 size={14}/> Purger
+                                    <Trash2 size={14}/> {t('index.purge')}
                                 </Button>
                             )}
                         </div>
@@ -208,24 +212,24 @@ export default function AuditLogsIndex({ logs, filters, actions, entityTypes, is
                     {/* Toolbar recherche + filtres rapides */}
                     <div className="al-toolbar">
                         <form className="al-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par utilisateur, action, IP…"/>
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.searchPlaceholder')}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         <select className="al-select" value={filters.action ?? ''} onChange={e => applyFilter({ action: e.target.value, page:'1' })}>
-                            <option value="">Toutes les actions</option>
+                            <option value="">{t('index.allActions')}</option>
                             {actions.map(a => <option key={a} value={a}>{a.replace(/_/g,' ')}</option>)}
                         </select>
                         <select className="al-select" value={filters.entity_type ?? ''} onChange={e => applyFilter({ entity_type: e.target.value, page:'1' })}>
-                            <option value="">Toutes les entités</option>
+                            <option value="">{t('index.allEntities')}</option>
                             {entityTypes.map(e => <option key={e} value={e}>{e}</option>)}
                         </select>
                         <button onClick={() => setShowFilters(s => !s)} style={{ padding:'9px 12px', background: showFilters ? '#eff6ff' : 'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color: showFilters ? '#1d4ed8' : '#64748b', display:'flex', alignItems:'center', gap:5, fontSize:12, fontFamily:'inherit' }}>
-                            <Filter size={13}/> Filtres avancés
+                            <Filter size={13}/> {t('index.advancedFilters')}
                             {hasActiveFilters && <span className="active-filter-dot"/>}
                         </button>
                         {hasActiveFilters && (
                             <button onClick={clearFilters} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('index.clear')}
                             </button>
                         )}
                     </div>
@@ -234,21 +238,21 @@ export default function AuditLogsIndex({ logs, filters, actions, entityTypes, is
                     {showFilters && (
                         <div className="al-filters">
                             <div>
-                                <label className="filter-label">Date début</label>
+                                <label className="filter-label">{t('index.dateFrom')}</label>
                                 <input type="date" className="al-date" style={{ width:'100%' }}
                                        value={filters.date_from ?? ''}
                                        onChange={e => applyFilter({ date_from: e.target.value, page:'1' })}/>
                             </div>
                             <div>
-                                <label className="filter-label">Date fin</label>
+                                <label className="filter-label">{t('index.dateTo')}</label>
                                 <input type="date" className="al-date" style={{ width:'100%' }}
                                        value={filters.date_to ?? ''}
                                        onChange={e => applyFilter({ date_to: e.target.value, page:'1' })}/>
                             </div>
                             {isSA && (
                                 <div>
-                                    <label className="filter-label">Filiale</label>
-                                    <input type="text" placeholder="ID filiale…"
+                                    <label className="filter-label">{t('index.tenant')}</label>
+                                    <input type="text" placeholder={t('index.tenantPlaceholder')}
                                            className="al-date" style={{ width:'100%' }}
                                            value={filters.tenant_id ?? ''}
                                            onChange={e => applyFilter({ tenant_id: e.target.value, page:'1' })}/>
@@ -260,19 +264,19 @@ export default function AuditLogsIndex({ logs, filters, actions, entityTypes, is
                     {/* Tableau */}
                     <div className="al-card">
                         {logs.data.length === 0 ? (
-                            <div className="al-empty">Aucun log trouvé.</div>
+                            <div className="al-empty">{t('index.noLogs')}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Date</th>
-                                            <th>Utilisateur</th>
-                                            <th>Action</th>
-                                            <th>Entité</th>
-                                            {isSA && <th>Filiale</th>}
-                                            <th>IP</th>
-                                            <th>Détail</th>
+                                            <th>{t('index.columns.date')}</th>
+                                            <th>{t('index.columns.user')}</th>
+                                            <th>{t('index.columns.action')}</th>
+                                            <th>{t('index.columns.entity')}</th>
+                                            {isSA && <th>{t('index.columns.tenant')}</th>}
+                                            <th>{t('index.columns.ip')}</th>
+                                            <th>{t('index.columns.detail')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -299,7 +303,7 @@ export default function AuditLogsIndex({ logs, filters, actions, entityTypes, is
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <span style={{ color:'#cbd5e1', fontSize:11 }}>Système</span>
+                                                            <span style={{ color:'#cbd5e1', fontSize:11 }}>{t('index.system')}</span>
                                                         )}
                                                     </td>
                                                     <td>
@@ -323,7 +327,7 @@ export default function AuditLogsIndex({ logs, filters, actions, entityTypes, is
                                                     <td>
                                                         <Link href={route('admin.audit-logs.show', { auditLog: log.id })}
                                                               className="btn-act">
-                                                            <Eye size={11}/> Voir
+                                                            <Eye size={11}/> {t('index.view')}
                                                         </Link>
                                                     </td>
                                                 </tr>
@@ -334,7 +338,7 @@ export default function AuditLogsIndex({ logs, filters, actions, entityTypes, is
 
                                 {logs.last_page > 1 && (
                                     <div className="al-pagination">
-                                        <span className="al-pg-info">Page {logs.current_page} / {logs.last_page} · {logs.total.toLocaleString()} logs</span>
+                                        <span className="al-pg-info">{t('index.pageInfo', { current: logs.current_page, last: logs.last_page, total: logs.total.toLocaleString() })}</span>
                                         <div className="al-pg-links">
                                             <button className="pg-btn" disabled={logs.current_page === 1}
                                                     onClick={() => applyFilter({ page: String(logs.current_page - 1) })}>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import type { BreadcrumbItem } from '@/types';
@@ -8,10 +9,6 @@ import {
     X, ChevronLeft, ChevronRight,
     Globe, DollarSign, Ship, Package, Truck, Layers,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Données de référence', href: '/admin/reference' },
-];
 
 interface RefItem  { [key: string]: any; }
 interface Paginated<T> {
@@ -25,98 +22,105 @@ interface Props {
     counts:  Record<string, number>;
 }
 
-// ── Config des onglets ────────────────────────────────────────
-const TABS = [
-    { key:'countries',              label:'Pays',             icon: Globe,       color:'#3b82f6' },
-    { key:'currencies',             label:'Devises',          icon: DollarSign,  color:'#16a34a' },
-    { key:'incoterms',              label:'Incoterms',        icon: Ship,        color:'#7c3aed' },
-    { key:'transport_modes',        label:'Transports',       icon: Truck,       color:'#0f766e' },
-    { key:'merchandise_categories', label:'Marchandises',     icon: Package,     color:'#f97316' },
-];
+function useRefConfig(t: (key: string, options?: any) => any) {
+    // ── Config des onglets ────────────────────────────────────────
+    const TABS = [
+        { key:'countries',              label: t('tabs.countries'),              icon: Globe,       color:'#3b82f6' },
+        { key:'currencies',             label: t('tabs.currencies'),             icon: DollarSign,  color:'#16a34a' },
+        { key:'incoterms',              label: t('tabs.incoterms'),              icon: Ship,        color:'#7c3aed' },
+        { key:'transport_modes',        label: t('tabs.transportModes'),         icon: Truck,       color:'#0f766e' },
+        { key:'merchandise_categories', label: t('tabs.merchandiseCategories'),  icon: Package,     color:'#f97316' },
+    ];
 
-// ── Colonnes et champs par onglet ─────────────────────────────
-const CONFIG: Record<string, {
-    columns: string[];
-    fields:  string[];
-    pk:      string;
-    canToggle: boolean;
-}> = {
-    countries: {
-        columns:   ['Code', 'Nom FR', 'Nom EN', 'Région'],
-        fields:    ['code', 'name_fr', 'name_en', 'region'],
-        pk:        'code',
-        canToggle: false,
-    },
-    currencies: {
-        columns:   ['Code', 'Nom', 'Symbole'],
-        fields:    ['code', 'name', 'symbol'],
-        pk:        'code',
-        canToggle: true,
-    },
-    incoterms: {
-        columns:   ['Code', 'Nom', 'Description', 'Modes compatibles'],
-        fields:    ['code', 'name', 'description', 'compatible_modes'],
-        pk:        'code',
-        canToggle: false,
-    },
-    transport_modes: {
-        columns:   ['Code', 'Nom FR', 'Nom EN', 'Icône'],
-        fields:    ['code', 'name_fr', 'name_en', 'icon'],
-        pk:        'id',
-        canToggle: false,
-    },
-    merchandise_categories: {
-        columns:   ['Code', 'Nom', 'Niveau de risque', 'Parent'],
-        fields:    ['code', 'name', 'risk_level', 'parent'],
-        pk:        'id',
-        canToggle: true,
-    },
-};
+    // ── Colonnes et champs par onglet ─────────────────────────────
+    const CONFIG: Record<string, {
+        columns: string[];
+        fields:  string[];
+        pk:      string;
+        canToggle: boolean;
+    }> = {
+        countries: {
+            columns:   t('columns.countries', { returnObjects: true }),
+            fields:    ['code', 'name_fr', 'name_en', 'region'],
+            pk:        'code',
+            canToggle: false,
+        },
+        currencies: {
+            columns:   t('columns.currencies', { returnObjects: true }),
+            fields:    ['code', 'name', 'symbol'],
+            pk:        'code',
+            canToggle: true,
+        },
+        incoterms: {
+            columns:   t('columns.incoterms', { returnObjects: true }),
+            fields:    ['code', 'name', 'description', 'compatible_modes'],
+            pk:        'code',
+            canToggle: false,
+        },
+        transport_modes: {
+            columns:   t('columns.transport_modes', { returnObjects: true }),
+            fields:    ['code', 'name_fr', 'name_en', 'icon'],
+            pk:        'id',
+            canToggle: false,
+        },
+        merchandise_categories: {
+            columns:   t('columns.merchandise_categories', { returnObjects: true }),
+            fields:    ['code', 'name', 'risk_level', 'parent'],
+            pk:        'id',
+            canToggle: true,
+        },
+    };
 
-// ── Champs formulaire création/édition par onglet ─────────────
-const FORM_FIELDS: Record<string, { key: string; label: string; type: 'text'|'boolean'|'number'|'textarea'|'array' }[]> = {
-    countries: [
-        { key:'code',    label:'Code ISO (2 lettres)', type:'text' },
-        { key:'name_fr', label:'Nom en français',      type:'text' },
-        { key:'name_en', label:'Nom en anglais',       type:'text' },
-        { key:'region',  label:'Région',               type:'text' },
-    ],
-    currencies: [
-        { key:'code',      label:'Code ISO (3 lettres)', type:'text' },
-        { key:'name',      label:'Nom',                  type:'text' },
-        { key:'symbol',    label:'Symbole',              type:'text' },
-        { key:'is_active', label:'Active',               type:'boolean' },
-    ],
-    incoterms: [
-        { key:'code',        label:'Code',          type:'text' },
-        { key:'name',        label:'Nom',           type:'text' },
-        { key:'description', label:'Description',   type:'textarea' },
-    ],
-    transport_modes: [
-        { key:'code',    label:'Code',        type:'text' },
-        { key:'name_fr', label:'Nom FR',      type:'text' },
-        { key:'name_en', label:'Nom EN',      type:'text' },
-        { key:'icon',    label:'Icône',       type:'text' },
-    ],
-    merchandise_categories: [
-        { key:'code',       label:'Code',             type:'text' },
-        { key:'name',       label:'Nom',              type:'text' },
-        { key:'risk_level', label:'Niveau de risque (1-3)', type:'number' },
-    ],
-};
+    // ── Champs formulaire création/édition par onglet ─────────────
+    const FORM_FIELDS: Record<string, { key: string; label: string; type: 'text'|'boolean'|'number'|'textarea'|'array' }[]> = {
+        countries: [
+            { key:'code',    label: t('fields.countryCode'), type:'text' },
+            { key:'name_fr', label: t('fields.nameFr'),      type:'text' },
+            { key:'name_en', label: t('fields.nameEn'),      type:'text' },
+            { key:'region',  label: t('fields.region'),      type:'text' },
+        ],
+        currencies: [
+            { key:'code',      label: t('fields.currencyCode'), type:'text' },
+            { key:'name',      label: t('fields.name'),         type:'text' },
+            { key:'symbol',    label: t('fields.symbol'),       type:'text' },
+            { key:'is_active', label: t('fields.active'),       type:'boolean' },
+        ],
+        incoterms: [
+            { key:'code',        label: t('fields.code'),        type:'text' },
+            { key:'name',        label: t('fields.name'),        type:'text' },
+            { key:'description', label: t('fields.description'), type:'textarea' },
+        ],
+        transport_modes: [
+            { key:'code',    label: t('fields.code'),         type:'text' },
+            { key:'name_fr', label: t('fields.nameFrShort'),  type:'text' },
+            { key:'name_en', label: t('fields.nameEnShort'),  type:'text' },
+            { key:'icon',    label: t('fields.icon'),         type:'text' },
+        ],
+        merchandise_categories: [
+            { key:'code',       label: t('fields.code'),      type:'text' },
+            { key:'name',       label: t('fields.name'),      type:'text' },
+            { key:'risk_level', label: t('fields.riskLevel'), type:'number' },
+        ],
+    };
 
-const RISK_LABELS: Record<number, { label: string; color: string }> = {
-    1: { label:'Faible',  color:'#15803d' },
-    2: { label:'Moyen',   color:'#c2410c' },
-    3: { label:'Élevé',   color:'#dc2626' },
-};
+    const RISK_LABELS: Record<number, { label: string; color: string }> = {
+        1: { label: t('riskLabels.low'),    color:'#15803d' },
+        2: { label: t('riskLabels.medium'), color:'#c2410c' },
+        3: { label: t('riskLabels.high'),   color:'#dc2626' },
+    };
+
+    return { TABS, CONFIG, FORM_FIELDS, RISK_LABELS };
+}
 
 // ── Modal créer / éditer ──────────────────────────────────────
 function RefModal({ tab, item, onClose }: { tab: string; item?: RefItem; onClose: () => void }) {
+    const { t } = useTranslation('reference');
+    const { t: tc } = useTranslation('common');
+    const { TABS, CONFIG, FORM_FIELDS } = useRefConfig(t);
     const isEdit    = !!item;
     const cfg       = CONFIG[tab];
     const formDefs  = FORM_FIELDS[tab] ?? [];
-    const tabInfo   = TABS.find(t => t.key === tab);
+    const tabInfo   = TABS.find(tabItem => tabItem.key === tab);
 
     const initialData = Object.fromEntries(
         formDefs.map(f => [f.key, item?.[f.key] ?? (f.type === 'boolean' ? false : f.type === 'number' ? 1 : '')])
@@ -153,7 +157,7 @@ function RefModal({ tab, item, onClose }: { tab: string; item?: RefItem; onClose
                             {tabInfo && <tabInfo.icon size={16} color={tabInfo.color}/>}
                         </div>
                         <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>
-                            {isEdit ? 'Modifier' : 'Nouveau'} — {tabInfo?.label}
+                            {isEdit ? t('modal.edit') : t('modal.new')} — {tabInfo?.label}
                         </p>
                     </div>
                     <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}>
@@ -175,7 +179,7 @@ function RefModal({ tab, item, onClose }: { tab: string; item?: RefItem; onClose
                                         <div style={{ width:36, height:20, borderRadius:10, background: form[field.key] ? '#1e3a8a' : '#e2e8f0', position:'relative', transition:'background .2s', flexShrink:0 }}>
                                             <div style={{ width:14, height:14, borderRadius:'50%', background:'#fff', position:'absolute', top:3, left: form[field.key] ? 19 : 3, transition:'left .2s' }}/>
                                         </div>
-                                        <span style={{ fontSize:12, color:'#475569' }}>{form[field.key] ? 'Oui' : 'Non'}</span>
+                                        <span style={{ fontSize:12, color:'#475569' }}>{form[field.key] ? t('modal.yes') : t('modal.no')}</span>
                                     </div>
                                 ) : field.type === 'textarea' ? (
                                     <>
@@ -207,9 +211,9 @@ function RefModal({ tab, item, onClose }: { tab: string; item?: RefItem; onClose
 
                 {/* Footer */}
                 <div style={{ padding:'14px 20px', borderTop:'1px solid #f1f5f9', display:'flex', gap:8, justifyContent:'flex-end' }}>
-                    <Button variant="outline" onClick={onClose}>Annuler</Button>
+                    <Button variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
                     <Button onClick={submit as any} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white">
-                        {isEdit ? 'Enregistrer' : 'Créer'}
+                        {isEdit ? tc('actions.save') : tc('actions.create')}
                     </Button>
                 </div>
             </div>
@@ -219,12 +223,18 @@ function RefModal({ tab, item, onClose }: { tab: string; item?: RefItem; onClose
 
 // ── Page principale ───────────────────────────────────────────
 export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
+    const { t } = useTranslation('reference');
+    const { t: tc } = useTranslation('common');
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb'), href: '/admin/reference' },
+    ];
+    const { TABS, CONFIG, RISK_LABELS } = useRefConfig(t);
     const [showModal, setShowModal] = useState(false);
     const [editItem,  setEditItem]  = useState<RefItem | null>(null);
     const [search,    setSearch]    = useState(filters?.search ?? '');
 
     const cfg        = CONFIG[tab] ?? CONFIG.countries;
-    const currentTab = TABS.find(t => t.key === tab) ?? TABS[0];
+    const currentTab = TABS.find(tabItem => tabItem.key === tab) ?? TABS[0];
 
     const changeTab = (key: string) =>
         router.get('/admin/reference', { tab: key }, { preserveState:false });
@@ -241,8 +251,8 @@ export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
 
         // Booléen
         if (typeof v === 'boolean') return v
-            ? <span style={{ fontSize:11, padding:'2px 7px', borderRadius:8, background:'#f0fdf4', color:'#15803d', border:'1px solid #bbf7d0' }}>Oui</span>
-            : <span style={{ fontSize:11, padding:'2px 7px', borderRadius:8, background:'#f8fafc', color:'#94a3b8', border:'1px solid #e2e8f0' }}>Non</span>;
+            ? <span style={{ fontSize:11, padding:'2px 7px', borderRadius:8, background:'#f0fdf4', color:'#15803d', border:'1px solid #bbf7d0' }}>{tc('states.yes')}</span>
+            : <span style={{ fontSize:11, padding:'2px 7px', borderRadius:8, background:'#f8fafc', color:'#94a3b8', border:'1px solid #e2e8f0' }}>{tc('states.no')}</span>;
 
         // Niveau de risque
         if (field === 'risk_level') {
@@ -270,7 +280,7 @@ export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Données de référence — NSIA Transport"/>
+            <Head title={t('title')}/>
             <style>{`
                 .ref-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .ref-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -320,23 +330,23 @@ export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
                     {/* Header */}
                     <div className="ref-hdr">
                         <div>
-                            <h1 className="ref-title">Données de référence</h1>
-                            <p className="ref-sub">Tables de référence utilisées dans les contrats et certificats</p>
+                            <h1 className="ref-title">{t('heading')}</h1>
+                            <p className="ref-sub">{t('subtitle')}</p>
                         </div>
                         <Button onClick={() => { setEditItem(null); setShowModal(true); }}
                                 className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                            <Plus size={15}/> Nouvelle entrée
+                            <Plus size={15}/> {t('newEntry')}
                         </Button>
                     </div>
 
                     {/* Onglets */}
                     <div className="ref-tabs">
-                        {TABS.map(t => (
-                            <button key={t.key} className={`ref-tab ${tab === t.key ? 'active' : ''}`}
-                                    onClick={() => changeTab(t.key)}>
-                                <t.icon size={14}/>
-                                {t.label}
-                                <span className="ref-tab-count">{counts[t.key] ?? 0}</span>
+                        {TABS.map(tabItem => (
+                            <button key={tabItem.key} className={`ref-tab ${tab === tabItem.key ? 'active' : ''}`}
+                                    onClick={() => changeTab(tabItem.key)}>
+                                <tabItem.icon size={14}/>
+                                {tabItem.label}
+                                <span className="ref-tab-count">{counts[tabItem.key] ?? 0}</span>
                             </button>
                         ))}
                     </div>
@@ -345,13 +355,13 @@ export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
                     <div className="ref-toolbar">
                         <form className="ref-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
                             <input value={search} onChange={e => setSearch(e.target.value)}
-                                   placeholder={`Rechercher dans ${currentTab.label.toLowerCase()}…`}/>
+                                   placeholder={t('searchPlaceholder', { tab: currentTab.label.toLowerCase() })}/>
                             <button type="submit"><Search size={14}/></button>
                         </form>
                         {filters?.search && (
                             <button onClick={() => router.get('/admin/reference', { tab })}
                                     style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> Effacer
+                                <X size={12}/> {t('clear')}
                             </button>
                         )}
                     </div>
@@ -359,15 +369,15 @@ export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
                     {/* Table */}
                     <div className="ref-card">
                         {data.data.length === 0 ? (
-                            <div className="ref-empty">Aucune entrée trouvée dans {currentTab.label}.</div>
+                            <div className="ref-empty">{t('noEntries', { tab: currentTab.label })}</div>
                         ) : (
                             <>
                                 <table>
                                     <thead>
                                         <tr>
                                             {cfg.columns.map(col => <th key={col}>{col}</th>)}
-                                            {cfg.canToggle && <th>Statut</th>}
-                                            <th>Actions</th>
+                                            {cfg.canToggle && <th>{t('statusColumn')}</th>}
+                                            <th>{t('actionsColumn')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -384,8 +394,8 @@ export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
                                                 {cfg.canToggle && (
                                                     <td>
                                                         {item.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>Actif</span>
-                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>Inactif</span>
+                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{t('active')}</span>
+                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{t('inactive')}</span>
                                                         }
                                                     </td>
                                                 )}
@@ -393,14 +403,14 @@ export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
                                                     <div className="actions">
                                                         <button className="btn-act btn-edit"
                                                                 onClick={() => { setEditItem(item); setShowModal(true); }}>
-                                                            <Edit2 size={11}/> Modifier
+                                                            <Edit2 size={11}/> {t('actions.edit')}
                                                         </button>
                                                         {cfg.canToggle && (
                                                             <button className={`btn-act ${item.is_active ? 'btn-on' : 'btn-off'}`}
                                                                     onClick={() => handleToggle(item)}>
                                                                 {item.is_active
-                                                                    ? <><ToggleLeft size={11}/> Désactiver</>
-                                                                    : <><ToggleRight size={11}/> Activer</>
+                                                                    ? <><ToggleLeft size={11}/> {t('actions.deactivate')}</>
+                                                                    : <><ToggleRight size={11}/> {t('actions.activate')}</>
                                                                 }
                                                             </button>
                                                         )}
@@ -414,7 +424,7 @@ export default function ReferenceIndex({ tab, data, filters, counts }: Props) {
                                 {data.last_page > 1 && (
                                     <div className="ref-pagination">
                                         <span className="ref-pg-info">
-                                            Page {data.current_page}/{data.last_page} · {data.total} entrées
+                                            {t('pageInfo', { current: data.current_page, last: data.last_page, total: data.total })}
                                         </span>
                                         <div className="ref-pg-links">
                                             <button className="pg-btn" disabled={data.current_page === 1}

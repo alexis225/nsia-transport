@@ -1,0 +1,15 @@
+{
+    "breadcrumb": "Paramètres généraux",
+    "title": "Paramètres généraux — NSIA Transport",
+    "heading": "Paramètres généraux",
+    "subtitle": "Réglages uniques pour toute l'application — pas par filiale, pas par contrat",
+    "ceilings": {
+        "title": "Plafonds NN300 / Traité",
+        "description": "Un contrat dont le « Plein d'Assurance » dépasse le plafond NN300 est automatiquement soumis en brouillon pour validation par le Groupe (DTAG). Une fois validé, ses certificats sont couverts jusqu'au Plafond Traité sans nouvelle escalade.",
+        "nn300Label": "Plafond NN300 (FCFA) *",
+        "treatyLabel": "Plafond ou limite Traité (FCFA) *",
+        "treatyHint": "Au-delà, alerte pour placement en réassurance facultative."
+    },
+    "saving": "Enregistrement…",
+    "saved": "Enregistré"
+}

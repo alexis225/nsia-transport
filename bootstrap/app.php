@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureStaffAccess;
 use App\Http\Middleware\EnsureTenantIsolation;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             HandleAppearance::class,
+            SetLocale::class,          // resout la langue avant le partage Inertia
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             CheckIpBlacklist::class,  // US-050

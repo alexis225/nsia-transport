@@ -136,6 +136,10 @@ it('les KPIs reflètent les certificats émis ce mois', function () {
         ]);
     });
 
+    // Les libelles KPI suivent la langue resolue par SetLocale : on la fixe
+    // explicitement pour que le test ne depende pas de APP_LOCALE.
+    $user->forceFill(['locale' => 'fr'])->save();
+
     /** @var \Tests\TestCase $this */
     $response = $this->actingAs($user)->get('/admin/dashboard');
 

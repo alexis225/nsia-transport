@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import {
@@ -10,10 +11,6 @@ import {
     Mail, Smartphone, Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Centre de notifications', href: '/admin/notifications' },
-];
 
 interface Notif {
     id: string; type: string; icon: string;
@@ -56,6 +53,10 @@ const ICON_MAP: Record<string, any> = {
 const fmtDt = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 
 export default function NotificationCenter({ notifications, stats, preferences, eventTypes, filters }: Props) {
+    const { t } = useTranslation('notifications');
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('breadcrumb'), href: '/admin/notifications' },
+    ];
     const [tab,   setTab]   = useState<'notifications' | 'preferences'>('notifications');
     const [prefs, setPrefs] = useState(preferences);
     const [saving, setSaving] = useState(false);
@@ -95,7 +96,7 @@ export default function NotificationCenter({ notifications, stats, preferences, 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Centre de notifications — NSIA Transport"/>
+            <Head title={t('title')}/>
             <style>{`
                 .nc-page{padding:4px;display:flex;flex-direction:column;gap:14px;}
                 .nc-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -144,19 +145,19 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                     {/* Header */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10 }}>
                         <div>
-                            <h1 className="nc-title">Centre de notifications</h1>
-                            <p className="nc-sub">Historique des 90 derniers jours</p>
+                            <h1 className="nc-title">{t('heading')}</h1>
+                            <p className="nc-sub">{t('subtitle')}</p>
                         </div>
                         <div style={{ display:'flex', gap:8 }}>
                             {stats.unread > 0 && (
                                 <Button variant="outline" onClick={markAllRead} className="h-9 px-3 text-xs">
-                                    <Check size={12}/> Tout marquer comme lu
+                                    <Check size={12}/> {t('markAllRead')}
                                 </Button>
                             )}
                             <Button variant="outline" onClick={clearRead}
                                     style={{ color:'#dc2626', borderColor:'#fecaca' }}
                                     className="h-9 px-3 text-xs">
-                                <Trash2 size={12}/> Supprimer les lues
+                                <Trash2 size={12}/> {t('deleteRead')}
                             </Button>
                         </div>
                     </div>
@@ -165,17 +166,17 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                     <div className="kpi-grid">
                         <div className="kpi-card">
                             <div className="kpi-val">{stats.total}</div>
-                            <div className="kpi-lbl">Total 90 jours</div>
+                            <div className="kpi-lbl">{t('kpis.total90Days')}</div>
                         </div>
                         <div className="kpi-card" style={{ borderColor: stats.unread > 0 ? '#bfdbfe' : undefined }}>
                             <div className="kpi-val" style={{ color: stats.unread > 0 ? '#1d4ed8' : '#1e293b' }}>
                                 {stats.unread}
                             </div>
-                            <div className="kpi-lbl">Non lues</div>
+                            <div className="kpi-lbl">{t('kpis.unread')}</div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val">{stats.today}</div>
-                            <div className="kpi-lbl">Aujourd'hui</div>
+                            <div className="kpi-lbl">{t('kpis.today')}</div>
                         </div>
                     </div>
 
@@ -183,7 +184,7 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                     <div className="tabs">
                         <button className={`tab ${tab === 'notifications' ? 'active' : ''}`}
                                 onClick={() => setTab('notifications')}>
-                            <Bell size={13}/> Notifications
+                            <Bell size={13}/> {t('tabs.notifications')}
                             {stats.unread > 0 && (
                                 <span style={{ background:'#dc2626', color:'#fff', borderRadius:8, fontSize:10, padding:'1px 5px', fontWeight:700 }}>
                                     {stats.unread}
@@ -192,7 +193,7 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                         </button>
                         <button className={`tab ${tab === 'preferences' ? 'active' : ''}`}
                                 onClick={() => setTab('preferences')}>
-                            <Settings size={13}/> Préférences
+                            <Settings size={13}/> {t('tabs.preferences')}
                         </button>
                     </div>
 
@@ -203,32 +204,32 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                                 <Filter size={13} color="#94a3b8"/>
                                 <select className="hs-select" value={filters?.type ?? ''}
                                         onChange={e => applyFilter({ type: e.target.value })}>
-                                    <option value="">Tous les types</option>
+                                    <option value="">{t('allTypes')}</option>
                                     {Object.entries(eventTypes).map(([type, label]) => (
                                         <option key={type} value={type}>{label as string}</option>
                                     ))}
                                 </select>
                                 <select className="hs-select" value={filters?.status ?? ''}
                                         onChange={e => applyFilter({ status: e.target.value })}>
-                                    <option value="">Tous les statuts</option>
-                                    <option value="unread">Non lues</option>
-                                    <option value="read">Lues</option>
+                                    <option value="">{t('allStatuses')}</option>
+                                    <option value="unread">{t('unreadOption')}</option>
+                                    <option value="read">{t('readOption')}</option>
                                 </select>
                                 {(filters?.type || filters?.status) && (
                                     <button onClick={() => router.get('/admin/notifications')}
                                             style={{ fontSize:11, color:'#94a3b8', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:3 }}>
-                                        <X size={11}/> Effacer
+                                        <X size={11}/> {t('clear')}
                                     </button>
                                 )}
                                 <span style={{ marginLeft:'auto', fontSize:11, color:'#94a3b8' }}>
-                                    {notifications.total} notification{notifications.total > 1 ? 's' : ''}
+                                    {t('notificationCount', { count: notifications.total })}
                                 </span>
                             </div>
 
                             {notifications.data.length === 0 ? (
                                 <div className="empty">
                                     <Bell size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
-                                    <div>Aucune notification trouvée.</div>
+                                    <div>{t('noNotifications')}</div>
                                 </div>
                             ) : (
                                 <>
@@ -264,13 +265,13 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                                                             <a href={notif.url}
                                                                onClick={() => !notif.read && markOne(notif.id)}
                                                                style={{ fontSize:11, color:'#1d4ed8', textDecoration:'none' }}>
-                                                                Voir →
+                                                                {t('viewLink')}
                                                             </a>
                                                         )}
                                                         {!notif.read && (
                                                             <button onClick={() => markOne(notif.id)}
                                                                     style={{ fontSize:11, color:'#64748b', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:3 }}>
-                                                                <Check size={10}/> Marquer lu
+                                                                <Check size={10}/> {t('markRead')}
                                                             </button>
                                                         )}
                                                     </div>
@@ -283,7 +284,7 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                                     {notifications.last_page > 1 && (
                                         <div className="pg-wrap">
                                             <span className="pg-info">
-                                                {notifications.from}–{notifications.to} sur {notifications.total}
+                                                {t('pagination.range', { from: notifications.from, to: notifications.to, total: notifications.total })}
                                             </span>
                                             <div className="pg-links">
                                                 <button className="pg-btn"
@@ -320,20 +321,20 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                             <div className="pref-section">
                                 <div className="pref-header">
                                     <div>
-                                        <div style={{ fontSize:13, fontWeight:600, color:'#1e293b' }}>Préférences de notifications</div>
+                                        <div style={{ fontSize:13, fontWeight:600, color:'#1e293b' }}>{t('preferences.title')}</div>
                                         <div style={{ fontSize:11, color:'#94a3b8', marginTop:2 }}>
-                                            Configurez les canaux de notification par type d'événement
+                                            {t('preferences.subtitle')}
                                         </div>
                                     </div>
                                     <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                                         {saved && (
                                             <span style={{ fontSize:12, color:'#15803d', display:'flex', alignItems:'center', gap:4 }}>
-                                                <CheckCircle size={13}/> Sauvegardé
+                                                <CheckCircle size={13}/> {t('preferences.saved')}
                                             </span>
                                         )}
                                         <Button onClick={savePrefs} disabled={saving}
                                                 className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-9 px-4 text-xs">
-                                            {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+                                            {saving ? t('preferences.saving') : t('preferences.save')}
                                         </Button>
                                     </div>
                                 </div>
@@ -341,15 +342,15 @@ export default function NotificationCenter({ notifications, stats, preferences, 
                                 <table className="pref-table">
                                     <thead>
                                         <tr>
-                                            <th>Type d'événement</th>
+                                            <th>{t('preferences.columns.eventType')}</th>
                                             <th style={{ textAlign:'center', width:100 }}>
                                                 <span style={{ display:'flex', alignItems:'center', gap:4, justifyContent:'center' }}>
-                                                    <Smartphone size={11}/> In-App
+                                                    <Smartphone size={11}/> {t('preferences.columns.inApp')}
                                                 </span>
                                             </th>
                                             <th style={{ textAlign:'center', width:100 }}>
                                                 <span style={{ display:'flex', alignItems:'center', gap:4, justifyContent:'center' }}>
-                                                    <Mail size={11}/> Email
+                                                    <Mail size={11}/> {t('preferences.columns.email')}
                                                 </span>
                                             </th>
                                         </tr>

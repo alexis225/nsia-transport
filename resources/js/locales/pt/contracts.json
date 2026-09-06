@@ -1,0 +1,476 @@
+{
+    "statusLabels": {
+        "DRAFT": "Rascunho",
+        "PENDING_APPROVAL": "Aguardando aprovação",
+        "ACTIVE": "Ativo",
+        "SUSPENDED": "Suspenso",
+        "EXPIRED": "Expirado",
+        "CANCELLED": "Cancelado"
+    },
+    "typeLabels": {
+        "OPEN_POLICY": "Apólice aberta",
+        "VOYAGE": "Por viagem (única)",
+        "ANNUAL_VOYAGE": "Viagens anuais",
+        "TIERS_CHARGEUR": "Apólice de terceiro carregador"
+    },
+    "coverageLabels": {
+        "TOUS_RISQUES": "Todos os riscos",
+        "FAP_SAUF": "FAP sauf (livre de avaria particular, exceto)",
+        "FAP_ABSOLUE": "FAP absolue (livre de avaria particular, absoluto)"
+    },
+    "conditioningLabels": {
+        "CONTAINER": "Contêiner",
+        "GROUPAGE": "Consolidação",
+        "CONVENTIONNEL": "Convencional",
+        "BOUT_EN_BOUT": "Ponta a ponta",
+        "VRAC": "Granel"
+    },
+    "amendmentStatusLabels": {
+        "DRAFT": "Rascunho",
+        "PENDING": "Pendente",
+        "APPROVED": "Aprovado",
+        "REJECTED": "Rejeitado"
+    },
+    "amendmentFieldLabels": {
+        "premium_rate": "Taxa de prêmio global",
+        "rate_ro": "Taxa R.O.",
+        "rate_rg": "Taxa R.G.",
+        "rate_surprime": "Sobretaxa",
+        "rate_accessories": "Acessórios (antigo, %)",
+        "accessories_amount": "Acessórios",
+        "rate_tax": "Imposto",
+        "subscription_limit": "Limite NN300",
+        "effective_date": "Data de vigência",
+        "expiry_date": "Data de expiração",
+        "notice_period_days": "Prazo de aviso prévio",
+        "clauses": "Cláusulas",
+        "exclusions": "Exclusões",
+        "broker_id": "Corretor",
+        "incoterm_code": "Incoterm",
+        "coverage_type": "Cobertura"
+    },
+    "amendmentEditableFieldLabels": {
+        "rate_ro": "Taxa R.O. (%)",
+        "rate_rg": "Taxa R.G. (%)",
+        "accessories_amount": "Acessórios (valor)",
+        "rate_tax": "Imposto (%)",
+        "effective_date": "Data de vigência",
+        "expiry_date": "Data de expiração",
+        "notice_period_days": "Prazo de aviso prévio (dias)",
+        "clauses": "Cláusulas",
+        "exclusions": "Exclusões",
+        "broker_id": "Corretor",
+        "incoterm_code": "Incoterm",
+        "coverage_type": "Tipo de cobertura"
+    },
+    "breadcrumb": {
+        "contracts": "Contratos",
+        "newContract": "Novo contrato",
+        "edit": "Editar",
+        "limits": "Acompanhamento de limites NN300",
+        "amendments": "Aditivos",
+        "newAmendment": "Novo aditivo"
+    },
+    "index": {
+        "title": "Contratos — NSIA Transport",
+        "heading": "Contratos de seguro",
+        "count_one": "{{count}} contrato",
+        "count_other": "{{count}} contratos",
+        "newContract": "Novo contrato",
+        "searchPlaceholder": "N° do contrato, segurado, corretor…",
+        "allStatuses": "Todos os status",
+        "allTypes": "Todos os tipos",
+        "allTenants": "Todas as filiais",
+        "clear": "Limpar",
+        "empty": "Nenhum contrato encontrado.",
+        "table": {
+            "number": "N° do contrato",
+            "insuredBroker": "Segurado / Corretor",
+            "tenant": "Filial",
+            "type": "Tipo",
+            "period": "Período",
+            "usage": "Utilização",
+            "status": "Status",
+            "actions": "Ações"
+        },
+        "unlimited": "Ilimitado",
+        "view": "Ver",
+        "edit": "Editar",
+        "delete": "Excluir",
+        "confirmDelete": "Excluir o contrato \"{{number}}\"?",
+        "pageInfo": "Página {{current}}/{{last}} · {{total}} contratos"
+    },
+    "create": {
+        "title": "Novo contrato — NSIA Transport",
+        "heroTitle": "Novo contrato de seguro de transporte",
+        "heroSub": "Crie uma apólice de seguro para um segurado",
+        "submitLabel": "Criar o contrato"
+    },
+    "edit": {
+        "title": "Editar {{number}} — NSIA Transport",
+        "heroTitle": "Editar — {{number}}",
+        "heroSub": "Edição do contrato de seguro de transporte",
+        "submitLabel": "Salvar alterações"
+    },
+    "form": {
+        "saving": "Salvando…",
+        "cancel": "Cancelar",
+        "identification": {
+            "title": "Identificação",
+            "tenant": "Filial *",
+            "tenantPlaceholder": "Selecione uma filial",
+            "type": "Tipo de contrato *",
+            "typeOpenPolicy": "Apólice aberta (várias viagens)",
+            "typeVoyage": "Por viagem (única)",
+            "typeAnnualVoyage": "Viagens anuais",
+            "typeTiersChargeur": "Apólice de terceiro carregador (várias viagens)",
+            "broker": "Corretor (opcional)",
+            "noBroker": "Sem corretor",
+            "subscriber": "Gestor do processo (opcional)",
+            "noSubscriber": "Não atribuído",
+            "subscriberHint": "Usuário NSIA responsável pelo processo — distinto do subscritor (contratante) abaixo.",
+            "commissionRate": "Comissão do corretor para este contrato — % (opcional)",
+            "commissionRatePlaceholder": "Deixe em branco para usar a taxa geral do corretor",
+            "commissionRateHint": "Comissão padrão de {{brokerName}}: {{rate}}%. Se informado acima, esta taxa substitui a taxa padrão apenas para este contrato.",
+            "defaultBrokerName": "este corretor"
+        },
+        "coinsurers": {
+            "title": "Cosseguradoras (opcional)",
+            "subtitle": "Participação de cosseguro específica deste contrato — a mesma cosseguradora pode ter uma taxa diferente em outro contrato",
+            "sharePlaceholder": "Participação %",
+            "totalShare": "Total das participações: {{total}}%",
+            "exceeds100": " — excede 100%",
+            "add": "Adicionar uma cosseguradora",
+            "none": "Nenhuma cosseguradora criada para esta filial — crie uma no módulo Cosseguradoras."
+        },
+        "experts": {
+            "title": "Peritos (opcional)",
+            "subtitle": "Peritos designados neste contrato para perícia / acompanhamento de sinistros",
+            "none": "Nenhum perito criado para esta filial — crie um no módulo Peritos."
+        },
+        "subscriber": {
+            "title": "Subscritor",
+            "subtitle": "O contratante — quem subscreve e paga os prêmios (pode ser diferente do Segurado)",
+            "name": "Nome / Razão social",
+            "namePlaceholder": "Nome do subscritor",
+            "email": "Email",
+            "phone": "Telefone",
+            "address": "Endereço"
+        },
+        "insured": {
+            "title": "Segurado",
+            "name": "Nome / Razão social *",
+            "namePlaceholder": "Nome do segurado",
+            "email": "Email",
+            "phone": "Telefone",
+            "address": "Endereço"
+        },
+        "period": {
+            "title": "Período de vigência",
+            "effectiveDate": "Data de vigência *",
+            "expiryDate": "Data de expiração *",
+            "noticePeriod": "Prazo de aviso prévio (dias)"
+        },
+        "coverage": {
+            "title": "Garantias & Cobertura",
+            "coverageType": "Tipo de cobertura",
+            "unspecified": "Não especificado",
+            "allRisks": "Todos os riscos",
+            "fapSauf": "FAP sauf",
+            "fapAbsolue": "FAP absolue",
+            "incoterm": "Incoterm",
+            "allIncoterms": "Todos",
+            "transportMode": "Modo de transporte",
+            "allModes": "Todos os modos",
+            "conditioningType": "Tipo de acondicionamento",
+            "conditioningContainer": "Contêiner",
+            "conditioningConventional": "Convencional",
+            "conditioningBulk": "Granel",
+            "conditioningGroupage": "Consolidação",
+            "conditioningEndToEnd": "Ponta a ponta",
+            "conditioningHint": "Acondicionamentos possíveis nesta apólice — reutilizados automaticamente como opções do modo nos certificados deste contrato.",
+            "clauses": "Cláusulas",
+            "clausesPlaceholder": "ex: Cláusula de greve, Cláusula de guerra…",
+            "exclusions": "Exclusões",
+            "exclusionsPlaceholder": "ex: Vício próprio, Defeito de embalagem…",
+            "addTag": "Adicionar"
+        },
+        "financial": {
+            "title": "Condições financeiras",
+            "currency": "Moeda",
+            "currencyHint": "Moeda do país da filial — todos os valores do contrato e dos seus certificados são expressos nela.",
+            "globalPremiumRate": "Taxa de prêmio global (%)",
+            "globalPremiumRateHint": "Soma das taxas R.O. + R.G. abaixo.",
+            "deductible": "Franquia",
+            "detailedRates": "Taxas detalhadas (%)",
+            "rateRO": "R.O.",
+            "rateRG": "R.G.",
+            "detailedRatesHint": "Diversos e sobretaxa são especificados caso a caso na emissão de cada certificado. O imposto é calculado automaticamente na emissão a partir da tabela de referência de impostos (Impostos > Referência).",
+            "accessories": "Acessórios (valor fixo)",
+            "accessoriesPlaceholder": "ex: 500",
+            "accessoriesHint": "Valor fixo (a partir de 500 {{currency}}), não uma taxa.",
+            "defaultCurrency": "FCFA",
+            "certificatesLimit": "Limite de certificados",
+            "certificatesLimitPlaceholder": "Ilimitado se deixado em branco"
+        },
+        "escalade": {
+            "title": "Parâmetros de negócio & Escalonamento",
+            "subtitle": "Valor máximo segurado e acionamento automático da validação NN300",
+            "plein": "Valor máximo segurado",
+            "pleinPlaceholder": "Valor máximo segurado por viagem e por meio de transporte",
+            "pleinHint": "Valor máximo segurado por viagem e por meio de transporte — específico deste contrato/cliente. Acima do limite NN300 (parâmetro geral da aplicação), é necessária a validação DTAG antes da ativação.",
+            "enabledLabel": "Escalonamento automático ativado",
+            "enabledHint": "Aciona uma validação NN300 se o valor segurado ultrapassar o limite abaixo",
+            "threshold": "Limite de escalonamento (%)",
+            "thresholdPlaceholder": "15% por padrão"
+        },
+        "options": {
+            "title": "Opções & Notas",
+            "requiresApprovalLabel": "Aprovação necessária",
+            "requiresApprovalHint": "O contrato deverá ser aprovado por um supervisor antes da ativação",
+            "internalNotes": "Notas internas",
+            "internalNotesPlaceholder": "Observações, condições particulares…"
+        }
+    },
+    "show": {
+        "title": "{{number}} — NSIA Transport",
+        "certLabel": "cert.",
+        "amendments": "Aditivos",
+        "edit": "Editar",
+        "submit": "Enviar",
+        "approveActivate": "Aprovar & Ativar",
+        "reject": "Rejeitar",
+        "suspend": "Suspender",
+        "reactivate": "Reativar",
+        "cancelContract": "Cancelar o contrato",
+        "rejectionReason": "Motivo da rejeição",
+        "approvalNotes": "Notas de aprovação",
+        "usage": {
+            "title": "Utilização do limite NN300",
+            "almostReached": "Limite quase atingido"
+        },
+        "insuredBroker": {
+            "title": "Segurado & Corretor",
+            "insured": "Segurado",
+            "broker": "Corretor",
+            "subscriber": "Gestor do processo",
+            "address": "Endereço"
+        },
+        "subscriberSection": {
+            "title": "Subscritor (contratante)",
+            "name": "Nome",
+            "address": "Endereço"
+        },
+        "coinsurers": {
+            "title": "Cosseguradoras"
+        },
+        "experts": {
+            "title": "Peritos"
+        },
+        "period": {
+            "title": "Período de vigência",
+            "effectiveDate": "Data de vigência",
+            "expiryDate": "Data de expiração",
+            "noticePeriod": "Aviso prévio de rescisão",
+            "days": "dias"
+        },
+        "transportCoverage": {
+            "title": "Transporte & Cobertura",
+            "coverage": "Cobertura",
+            "incoterm": "Incoterm",
+            "transportMode": "Modo de transporte",
+            "conditioningType": "Tipo de acondicionamento"
+        },
+        "clauses": {
+            "title": "Cláusulas"
+        },
+        "exclusions": {
+            "title": "Exclusões"
+        },
+        "financial": {
+            "title": "Condições financeiras",
+            "currency": "Moeda",
+            "nn300Limit": "Limite NN300",
+            "unlimited": "Ilimitado",
+            "treatyLimit": "Limite ou teto do Tratado",
+            "notDefined": "Não definido",
+            "globalPremiumRate": "Taxa de prêmio global",
+            "deductible": "Franquia",
+            "contractPlein": "Valor máximo segurado do contrato",
+            "escalade": "Escalonamento NN300",
+            "escaladeEnabled": "Ativado · limite {{threshold}} %",
+            "escaladeDisabled": "Desativado",
+            "detailedRates": "Taxas detalhadas",
+            "rateRO": "R.O.",
+            "rateRG": "R.G.",
+            "tax": "Imposto",
+            "accessories": "Acessórios",
+            "note": "Diversos e sobretaxa são especificados caso a caso em cada certificado."
+        },
+        "notes": {
+            "title": "Notas internas"
+        },
+        "meta": {
+            "createdBy": "Criado por {{name}}",
+            "approvedBy": "· Aprovado por {{name}}",
+            "approvedOn": " em {{date}}",
+            "suspendedOn": "· Suspenso em {{date}}"
+        },
+        "modals": {
+            "approveTitle": "Aprovar e ativar",
+            "approveAction": "Aprovar & Ativar",
+            "rejectTitle": "Rejeitar o contrato",
+            "rejectAction": "Rejeitar",
+            "suspendTitle": "Suspender o contrato",
+            "suspendAction": "Suspender",
+            "cancelTitle": "Cancelar o contrato",
+            "cancelAction": "Cancelar definitivamente",
+            "reasonLabel": "Motivo *",
+            "reasonPlaceholder": "Especifique o motivo…",
+            "cancel": "Cancelar"
+        }
+    },
+    "limits": {
+        "title": "Acompanhamento de limites NN300 — NSIA Transport",
+        "heading": "Acompanhamento de limites NN300",
+        "subheading": "Contratos ativos com limite de subscrição",
+        "kpi": {
+            "tracked": "Contratos acompanhados",
+            "critical": "Críticos ≥ 95%",
+            "warning": "Em alerta ≥ 80%",
+            "normal": "Normais",
+            "globalUsage": "Utilização global"
+        },
+        "searchPlaceholder": "Pesquisar um contrato, um segurado…",
+        "emptyAll": "Nenhum contrato com limite NN300 ativo.",
+        "emptySearch": "Nenhum contrato corresponde a \"{{search}}\".",
+        "alertLabels": {
+            "critical": "Crítico",
+            "warning": "Alerta",
+            "ok": "Normal"
+        },
+        "unlockedTreaty": "Desbloqueado (Tratado)",
+        "blocked": "Bloqueado",
+        "usageLabel": "Utilização do limite",
+        "used": "Utilizado",
+        "remaining": "Restante",
+        "effectiveTreatyLimit": "Limite efetivo (Tratado)",
+        "totalNN300Limit": "Limite total NN300",
+        "standardNN300Limit": "Limite NN300 padrão: {{amount}}",
+        "certificates_one": "certificado",
+        "certificates_other": "certificados",
+        "expiry": "Exp. {{date}}",
+        "view": "Ver"
+    },
+    "amendments": {
+        "create": {
+            "title": "Novo aditivo — {{number}}",
+            "heroTitle": "Novo aditivo — {{number}}",
+            "reasonSection": {
+                "title": "Motivo do aditivo",
+                "reason": "Motivo *",
+                "reasonPlaceholder": "ex: Revisão das taxas após renovação…",
+                "description": "Descrição (opcional)",
+                "descriptionPlaceholder": "Detalhes adicionais…"
+            },
+            "fieldsSection": {
+                "title": "Campos a modificar",
+                "subtitle": "Selecione os campos afetados por este aditivo"
+            },
+            "ratesSection": {
+                "title": "Taxas de prêmio",
+                "current": "Atual: {{value}} {{unit}}"
+            },
+            "periodSection": {
+                "title": "Período de vigência",
+                "effectiveDate": "Data de vigência",
+                "expiryDate": "Data de expiração",
+                "noticePeriod": "Prazo de aviso prévio (dias)",
+                "currentDate": "Atual: {{date}}",
+                "currentDays": "Atual: {{days}} dias"
+            },
+            "coverageSection": {
+                "title": "Condições de cobertura",
+                "coverageType": "Tipo de cobertura",
+                "allRisks": "Todos os riscos",
+                "fapSauf": "FAP sauf",
+                "fapAbsolue": "FAP absolue",
+                "incoterm": "Incoterm",
+                "incotermPlaceholder": "ex: FOB, CIF, EXW…",
+                "current": "Atual: {{value}}"
+            },
+            "listsSection": {
+                "title": "Cláusulas & Exclusões",
+                "clauses": "Cláusulas",
+                "clausesPlaceholder": "Adicionar uma cláusula…",
+                "exclusions": "Exclusões",
+                "exclusionsPlaceholder": "Adicionar uma exclusão…"
+            },
+            "noFieldsWarning": "Selecione pelo menos um campo a modificar.",
+            "saving": "Salvando…",
+            "submit": "Criar o aditivo",
+            "cancel": "Cancelar"
+        },
+        "index": {
+            "title": "Aditivos — {{number}}",
+            "heading": "Aditivos — {{number}}",
+            "count_one": "{{count}} aditivo",
+            "count_other": "{{count}} aditivos",
+            "newAmendment": "Novo aditivo",
+            "pendingBanner_one": "{{count}} aditivo aguardando sua validação.",
+            "pendingBanner_other": "{{count}} aditivos aguardando sua validação.",
+            "empty": "Nenhum aditivo para este contrato.",
+            "table": {
+                "number": "N° do aditivo",
+                "reason": "Motivo",
+                "changes": "Modificações",
+                "createdAt": "Criado em",
+                "appliedAt": "Aplicado em",
+                "status": "Status",
+                "actions": "Ações"
+            },
+            "sequenceLabel": "Aditivo n° {{sequence}}",
+            "createdBy": "por {{name}}",
+            "fields_one": "{{count}} campo",
+            "fields_other": "{{count}} campos",
+            "view": "Ver"
+        },
+        "show": {
+            "title": "{{number}} — NSIA Transport",
+            "sequenceInfo": "Aditivo n° {{sequence}} · {{contractNumber}} · {{tenant}}",
+            "changesBadge_one": "{{count}} modificação",
+            "changesBadge_other": "{{count}} modificações",
+            "appliedOn": "aplicado em {{date}}",
+            "submitForValidation": "Enviar para validação",
+            "approveApply": "Aprovar & Aplicar",
+            "reject": "Rejeitar",
+            "rejectionReason": "Motivo da rejeição",
+            "approvalNotes": "Notas de aprovação",
+            "reasonSection": {
+                "title": "Motivo do aditivo"
+            },
+            "changesSection": {
+                "title": "Modificações ({{count}})",
+                "field": "Campo",
+                "before": "Valor antes",
+                "after": "Valor depois"
+            },
+            "history": {
+                "title": "Histórico",
+                "created": "Criado",
+                "submitted": "Enviado",
+                "approved": "Aprovado",
+                "rejected": "Rejeitado",
+                "by": "por {{name}}"
+            },
+            "modals": {
+                "approveTitle": "Aprovar e aplicar o aditivo",
+                "approveAction": "Aprovar & Aplicar",
+                "rejectTitle": "Rejeitar o aditivo",
+                "rejectAction": "Rejeitar",
+                "reasonLabel": "Motivo *",
+                "cancel": "Cancelar"
+            }
+        }
+    }
+}

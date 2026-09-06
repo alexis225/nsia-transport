@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { ExpertForm } from './create';
 import type { BreadcrumbItem } from '@/types';
@@ -18,10 +19,11 @@ interface Props {
 }
 
 export default function ExpertsEdit({ expert, tenants }: Props) {
+    const { t } = useTranslation('experts');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Experts', href: '/admin/experts' },
+        { title: t('index.breadcrumb'), href: '/admin/experts' },
         { title: expert.name, href: route('admin.experts.show', { expert: expert.id }) },
-        { title: 'Modifier' },
+        { title: t('edit.breadcrumb') },
     ];
 
     const { data, setData, put, processing, errors } = useForm({
@@ -39,14 +41,14 @@ export default function ExpertsEdit({ expert, tenants }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Modifier ${expert.name} — NSIA Transport`}/>
+            <Head title={t('edit.title', { name: expert.name })}/>
             <ExpertForm
                 data={data} setData={setData} errors={errors}
                 processing={processing} onSubmit={submit}
                 tenants={tenants}
-                submitLabel="Enregistrer les modifications"
-                heroTitle={`Modifier : ${expert.name}`}
-                heroSub="Mettez à jour les informations de l'expert"
+                submitLabel={t('edit.submitLabel')}
+                heroTitle={t('edit.heroTitle', { name: expert.name })}
+                heroSub={t('edit.heroSub')}
             />
         </AppLayout>
     );
