@@ -17,13 +17,15 @@
 use App\Models\Broker;
 use App\Models\Certificate;
 use App\Models\CertificateRequest;
+use App\Models\CertificateRequestDocument;
 use App\Models\InsuranceContract;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
-    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
     $this->artisan('db:seed --class=RolesAndPermissionsSeeder');
 });
 
@@ -37,6 +39,7 @@ function makeCertReqStaff(Tenant $tenant, string $role = 'souscripteur'): User
 {
     $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole($role);
+
     return $user;
 }
 
@@ -46,14 +49,14 @@ function makeCertReqPartner(Tenant $tenant): array
     $user->assignRole('courtier_local');
 
     $broker = Broker::create([
-        'tenant_id'       => $tenant->id,
-        'user_id'         => $user->id,
-        'code'            => 'BRK-' . Str::random(6),
-        'name'            => 'Courtier Test',
-        'type'            => Broker::TYPE_LOCAL,
-        'country_code'    => 'CI',
+        'tenant_id' => $tenant->id,
+        'user_id' => $user->id,
+        'code' => 'BRK-'.Str::random(6),
+        'name' => 'Courtier Test',
+        'type' => Broker::TYPE_LOCAL,
+        'country_code' => 'CI',
         'commission_rate' => 5.00,
-        'is_active'       => true,
+        'is_active' => true,
     ]);
 
     return compact('user', 'broker');
@@ -62,27 +65,27 @@ function makeCertReqPartner(Tenant $tenant): array
 function makeCertReqRequest(Tenant $tenant, Broker $broker, User $creator, array $overrides = []): CertificateRequest
 {
     return CertificateRequest::create(array_merge([
-        'tenant_id'    => $tenant->id,
-        'broker_id'    => $broker->id,
-        'created_by'   => $creator->id,
+        'tenant_id' => $tenant->id,
+        'broker_id' => $broker->id,
+        'created_by' => $creator->id,
         'insured_name' => 'IVOIRE LOGISTIQUE',
-        'voyage_from'  => 'Abidjan',
-        'voyage_to'    => 'Le Havre',
-        'status'       => CertificateRequest::STATUS_PENDING,
+        'voyage_from' => 'Abidjan',
+        'voyage_to' => 'Le Havre',
+        'status' => CertificateRequest::STATUS_PENDING,
     ], $overrides));
 }
 
 function makeCertReqIssuedCertificate(Tenant $tenant): Certificate
 {
     $broker = Broker::create([
-        'tenant_id' => $tenant->id, 'code' => 'BRK-CERT-' . Str::random(4),
+        'tenant_id' => $tenant->id, 'code' => 'BRK-CERT-'.Str::random(4),
         'name' => 'Courtier Cert', 'type' => Broker::TYPE_LOCAL,
         'country_code' => 'CI', 'commission_rate' => 5.0, 'is_active' => true,
     ]);
 
     $contract = InsuranceContract::create([
         'tenant_id' => $tenant->id, 'broker_id' => $broker->id,
-        'contract_number' => 'CTR-CERTREQ-' . Str::random(6),
+        'contract_number' => 'CTR-CERTREQ-'.Str::random(6),
         'type' => 'VOYAGE', 'insured_name' => 'IVOIRE LOGISTIQUE',
         'currency_code' => 'XOF', 'subscription_limit' => 100_000_000, 'used_limit' => 0,
         'status' => 'ACTIVE', 'effective_date' => now()->subMonth(), 'expiry_date' => now()->addYear(),
@@ -91,7 +94,7 @@ function makeCertReqIssuedCertificate(Tenant $tenant): Certificate
 
     return Certificate::withoutEvents(fn () => Certificate::create([
         'tenant_id' => $tenant->id, 'contract_id' => $contract->id,
-        'certificate_number' => 'CERT-CR-' . Str::random(6), 'policy_number' => 'POL-CR-' . Str::random(6),
+        'certificate_number' => 'CERT-CR-'.Str::random(6), 'policy_number' => 'POL-CR-'.Str::random(6),
         'insured_name' => 'IVOIRE LOGISTIQUE', 'voyage_from' => 'Abidjan', 'voyage_to' => 'Le Havre',
         'voyage_date' => now()->addWeek(), 'transport_type' => 'SEA', 'currency_code' => 'XOF',
         'insured_value' => 5_000_000, 'prime_total' => 50_000, 'status' => 'ISSUED', 'issued_at' => now(),
@@ -132,12 +135,12 @@ it('le souscripteur peut demander un complément — la demande passe en INFO_RE
         ->and($req->info_request_notes)->toBe('Merci de joindre la facture commerciale et le connaissement définitif.');
 });
 
-it("le partenaire complète son dossier et la demande passe en COMPLETED (cas n°2 du rapport)", function () {
+it('le partenaire complète son dossier et la demande passe en COMPLETED (cas n°2 du rapport)', function () {
     $tenant = makeCertReqTenant();
     ['broker' => $broker, 'user' => $partner] = makeCertReqPartner($tenant);
     $req = makeCertReqRequest($tenant, $broker, $partner, [
-        'status'             => CertificateRequest::STATUS_INFO_REQUESTED,
-        'info_requested_at'  => now(),
+        'status' => CertificateRequest::STATUS_INFO_REQUESTED,
+        'info_requested_at' => now(),
         'info_request_notes' => 'Facture manquante.',
     ]);
 
@@ -172,14 +175,14 @@ it('une demande brouillon transmise reçoit une référence unique et devient PE
     ['broker' => $broker, 'user' => $partner] = makeCertReqPartner($tenant);
     $req = makeCertReqRequest($tenant, $broker, $partner, ['status' => CertificateRequest::STATUS_DRAFT, 'reference' => null]);
 
-    \App\Models\CertificateRequestDocument::create([
+    CertificateRequestDocument::create([
         'certificate_request_id' => $req->id,
-        'file_path'              => 'certificate-requests/x/y.pdf',
-        'file_original_name'     => 'y.pdf',
-        'file_mime_type'         => 'application/pdf',
-        'file_size'              => 100,
-        'document_type'          => 'AUTRE',
-        'uploaded_by'            => $partner->id,
+        'file_path' => 'certificate-requests/x/y.pdf',
+        'file_original_name' => 'y.pdf',
+        'file_mime_type' => 'application/pdf',
+        'file_size' => 100,
+        'document_type' => 'AUTRE',
+        'uploaded_by' => $partner->id,
     ]);
 
     $this->actingAs($partner)

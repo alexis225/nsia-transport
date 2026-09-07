@@ -24,7 +24,8 @@ use Throwable;
  */
 class ExchangeRateService
 {
-    private const PRIMARY_BASE_URL  = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies';
+    private const PRIMARY_BASE_URL = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies';
+
     private const FALLBACK_BASE_URL = 'https://latest.currency-api.pages.dev/v1/currencies';
 
     /**
@@ -38,7 +39,7 @@ class ExchangeRateService
         }
 
         $fromCode = strtolower($from);
-        $toCode   = strtolower($to);
+        $toCode = strtolower($to);
 
         return $this->fetchRate(self::PRIMARY_BASE_URL, $fromCode, $toCode)
             ?? $this->fetchRate(self::FALLBACK_BASE_URL, $fromCode, $toCode);

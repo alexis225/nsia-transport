@@ -649,11 +649,26 @@
                 "heading": "New certificate request",
                 "subtitle": "Describe the shipment and attach your supporting documents",
                 "documentTypes": {
-                    "BL": { "label": "BL (Bill of Lading)", "hint": "Maritime bill of lading" },
-                    "FACTURE": { "label": "Invoice", "hint": "Commercial invoice" },
-                    "FDI": { "label": "FDI", "hint": "Import declaration form" },
-                    "DOCUMENTS_TRANSPORT": { "label": "Transport documents", "hint": "Air waybill, CMR, delivery note..." },
-                    "AUTRE": { "label": "Other supporting documents", "hint": "Any other useful document" }
+                    "BL": {
+                        "label": "BL (Bill of Lading)",
+                        "hint": "Maritime bill of lading"
+                    },
+                    "FACTURE": {
+                        "label": "Invoice",
+                        "hint": "Commercial invoice"
+                    },
+                    "FDI": {
+                        "label": "FDI",
+                        "hint": "Import declaration form"
+                    },
+                    "DOCUMENTS_TRANSPORT": {
+                        "label": "Transport documents",
+                        "hint": "Air waybill, CMR, delivery note..."
+                    },
+                    "AUTRE": {
+                        "label": "Other supporting documents",
+                        "hint": "Any other useful document"
+                    }
                 },
                 "tenant": {
                     "title": "Subsidiary",

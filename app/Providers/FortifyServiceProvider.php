@@ -38,8 +38,8 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister'      => Features::enabled(Features::registration()),
-            'status'           => $request->session()->get('status'),
+            'canRegister' => Features::enabled(Features::registration()),
+            'status' => $request->session()->get('status'),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
@@ -68,8 +68,9 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(
-                Str::lower($request->input(Fortify::username())) . '|' . $request->ip()
+                Str::lower($request->input(Fortify::username())).'|'.$request->ip()
             );
+
             return Limit::perMinute(5)->by($throttleKey);
         });
     }
@@ -82,18 +83,21 @@ class FortifyServiceProvider extends ServiceProvider
 
             if (! $user) {
                 $this->auditLog($request, null, 'login_failed', ['email' => $request->email]);
+
                 return null;
             }
 
             // Compte désactivé
             if (! $user->is_active) {
                 $this->auditLog($request, $user->id, 'login_blocked');
+
                 return null;
             }
 
             // Compte verrouillé temporairement
             if ($user->locked_until && $user->locked_until->isFuture()) {
                 $this->auditLog($request, $user->id, 'login_locked');
+
                 return null;
             }
 
@@ -115,9 +119,9 @@ class FortifyServiceProvider extends ServiceProvider
             // ── Succès ────────────────────────────────────────
             $user->update([
                 'failed_login_attempts' => 0,
-                'locked_until'          => null,
-                'last_login_at'         => now(),
-                'last_login_ip'         => $request->ip(),
+                'locked_until' => null,
+                'last_login_at' => now(),
+                'last_login_ip' => $request->ip(),
             ]);
 
             $this->auditLog($request, $user->id, 'login_success');
@@ -129,18 +133,18 @@ class FortifyServiceProvider extends ServiceProvider
     private function auditLog(
         Request $request,
         ?string $userId,
-        string  $action,
-        array   $metadata = [],
+        string $action,
+        array $metadata = [],
     ): void {
         AuditLog::create([
-            'tenant_id'   => null,
-            'user_id'     => $userId,
-            'action'      => $action,
+            'tenant_id' => null,
+            'user_id' => $userId,
+            'action' => $action,
             'entity_type' => 'auth',
-            'entity_id'   => $userId ?? null,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => $metadata ?: null,
+            'entity_id' => $userId ?? null,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => $metadata ?: null,
         ]);
     }
 }

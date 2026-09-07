@@ -25,8 +25,8 @@ class DashboardController extends Controller
     // ── Dashboard principal ───────────────────────────────────
     public function index(Request $request): Response
     {
-        $user     = $request->user();
-        $isSA     = $user->hasRole('super_admin');
+        $user = $request->user();
+        $isSA = $user->hasRole('super_admin');
         $tenantId = $user->tenant_id;
 
         $withTenant = fn ($q) => $q->when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId));
@@ -98,28 +98,28 @@ class DashboardController extends Controller
 
         $kpis = [
             [
-                'label'  => __('dashboard.kpis.certificates_issued'),
-                'value'  => number_format($issuedMonth, 0, ',', ' '),
+                'label' => __('dashboard.kpis.certificates_issued'),
+                'value' => number_format($issuedMonth, 0, ',', ' '),
                 'change' => $this->pctChange($issuedMonth, $issuedPrev),
-                'sub'    => __('dashboard.periods.this_month'),
+                'sub' => __('dashboard.periods.this_month'),
             ],
             [
-                'label'  => __('dashboard.kpis.premiums_issued'),
-                'value'  => $this->fmtAmount($primeMonth),
+                'label' => __('dashboard.kpis.premiums_issued'),
+                'value' => $this->fmtAmount($primeMonth),
                 'change' => $this->pctChange($primeMonth, $primePrev),
-                'sub'    => __('dashboard.periods.this_month'),
+                'sub' => __('dashboard.periods.this_month'),
             ],
             [
-                'label'  => __('dashboard.kpis.contracts_active'),
-                'value'  => (string) $contractsActive,
+                'label' => __('dashboard.kpis.contracts_active'),
+                'value' => (string) $contractsActive,
                 'change' => $this->pctChange($contractsNewMonth, $contractsNewPrev),
-                'sub'    => __('dashboard.periods.total'),
+                'sub' => __('dashboard.periods.total'),
             ],
             [
-                'label'  => __('dashboard.kpis.brokers_active'),
-                'value'  => (string) $brokersMonth,
+                'label' => __('dashboard.kpis.brokers_active'),
+                'value' => (string) $brokersMonth,
                 'change' => $this->pctChange($brokersMonth, $brokersPrev),
-                'sub'    => __('dashboard.periods.this_month'),
+                'sub' => __('dashboard.periods.this_month'),
             ],
         ];
 
@@ -143,10 +143,10 @@ class DashboardController extends Controller
 
         $monthlyData = [];
         for ($i = 11; $i >= 0; $i--) {
-            $date          = now()->subMonths($i);
-            $key           = $date->format('Y-m');
+            $date = now()->subMonths($i);
+            $key = $date->format('Y-m');
             $monthlyData[] = [
-                'month'  => $date->locale(app()->getLocale())->isoFormat('MMM'),
+                'month' => $date->locale(app()->getLocale())->isoFormat('MMM'),
                 'issued' => (int) ($rawCounts[$key] ?? 0),
                 'amount' => (float) ($rawMonthly[$key] ?? 0),
             ];
@@ -159,12 +159,12 @@ class DashboardController extends Controller
             ->limit(8)
             ->get(['id', 'certificate_number', 'insured_name', 'insured_value', 'currency_code', 'status', 'issued_at', 'created_at'])
             ->map(fn ($c) => [
-                'id'     => $c->id,
+                'id' => $c->id,
                 'number' => $c->certificate_number,
                 'client' => $c->insured_name,
-                'amount' => number_format((float) $c->insured_value, 0, ',', ' ') . ' ' . $c->currency_code,
+                'amount' => number_format((float) $c->insured_value, 0, ',', ' ').' '.$c->currency_code,
                 'status' => $c->status,
-                'date'   => $c->issued_at?->format('d/m/Y') ?? $c->created_at->format('d/m/Y'),
+                'date' => $c->issued_at?->format('d/m/Y') ?? $c->created_at->format('d/m/Y'),
             ]);
 
         // ── Top courtiers ce mois ─────────────────────────────
@@ -188,8 +188,8 @@ class DashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(fn ($b) => [
-                'name'   => $b->name,
-                'count'  => (int) $b->count,
+                'name' => $b->name,
+                'count' => (int) $b->count,
                 'amount' => $this->fmtAmount((float) $b->total_prime),
             ]);
 
@@ -204,8 +204,8 @@ class DashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(fn ($r) => [
-                'name'   => $r->insured_name,
-                'count'  => (int) $r->count,
+                'name' => $r->insured_name,
+                'count' => (int) $r->count,
                 'amount' => $this->fmtAmount((float) $r->total_prime),
             ]);
 
@@ -224,8 +224,8 @@ class DashboardController extends Controller
                 ->limit(3)
                 ->get()
                 ->map(fn ($t) => [
-                    'name'   => $t->name,
-                    'count'  => (int) $t->count,
+                    'name' => $t->name,
+                    'count' => (int) $t->count,
                     'amount' => $this->fmtAmount((float) $t->total_prime),
                 ])
             : collect();
@@ -244,24 +244,24 @@ class DashboardController extends Controller
         $requestBase = CertificateRequest::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId));
 
         $operationalStats = [
-            'received'  => (clone $requestBase)->count(),
-            'pending'   => (clone $requestBase)->whereIn('status', ['PENDING', 'IN_REVIEW'])->count(),
+            'received' => (clone $requestBase)->count(),
+            'pending' => (clone $requestBase)->whereIn('status', ['PENDING', 'IN_REVIEW'])->count(),
             'processed' => (clone $requestBase)->whereIn('status', ['APPROVED', 'REJECTED'])->count(),
         ];
 
         return Inertia::render('dashboard', [
-            'kpis'               => $kpis,
-            'recentCerts'        => $recentCerts,
-            'topBrokers'         => $topBrokers,
-            'topInsured'         => $topInsured,
-            'topFiliales'        => $topFiliales,
-            'monthlyData'        => $monthlyData,
-            'period'             => now()->locale(app()->getLocale())->isoFormat('MMMM YYYY'),
-            'tenantName'         => $user->tenant?->name ?? 'Toutes filiales',
-            'isSA'               => $isSA,
+            'kpis' => $kpis,
+            'recentCerts' => $recentCerts,
+            'topBrokers' => $topBrokers,
+            'topInsured' => $topInsured,
+            'topFiliales' => $topFiliales,
+            'monthlyData' => $monthlyData,
+            'period' => now()->locale(app()->getLocale())->isoFormat('MMMM YYYY'),
+            'tenantName' => $user->tenant?->name ?? 'Toutes filiales',
+            'isSA' => $isSA,
             'brokersActiveTotal' => $brokersActiveTotal,
-            'primeAllTime'       => $this->fmtAmount($primeAllTime),
-            'operationalStats'   => $operationalStats,
+            'primeAllTime' => $this->fmtAmount($primeAllTime),
+            'operationalStats' => $operationalStats,
         ]);
     }
 
@@ -273,11 +273,11 @@ class DashboardController extends Controller
 
         // ── Certificats en attente (SUBMITTED) ────────────────
         $pending = Certificate::with([
-                'tenant:id,name,code',
-                'contract:id,contract_number,insured_name',
-                'template:id,name,type',
-                'submittedBy:id,first_name,last_name',
-            ])
+            'tenant:id,name,code',
+            'contract:id,contract_number,insured_name',
+            'template:id,name,type',
+            'submittedBy:id,first_name,last_name',
+        ])
             ->where('status', Certificate::STATUS_SUBMITTED)
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
             ->when($request->tenant_id && $isSA, fn ($q) => $q->where('tenant_id', $request->tenant_id))
@@ -289,11 +289,11 @@ class DashboardController extends Controller
         $baseQuery = Certificate::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id));
 
         $stats = [
-            'submitted'       => (clone $baseQuery)->where('status', 'SUBMITTED')->count(),
-            'issued_today'    => (clone $baseQuery)->where('status', 'ISSUED')->whereDate('issued_at', today())->count(),
-            'issued_week'     => (clone $baseQuery)->where('status', 'ISSUED')->whereBetween('issued_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-            'issued_month'    => (clone $baseQuery)->where('status', 'ISSUED')->whereMonth('issued_at', now()->month)->whereYear('issued_at', now()->year)->count(),
-            'draft'           => (clone $baseQuery)->where('status', 'DRAFT')->count(),
+            'submitted' => (clone $baseQuery)->where('status', 'SUBMITTED')->count(),
+            'issued_today' => (clone $baseQuery)->where('status', 'ISSUED')->whereDate('issued_at', today())->count(),
+            'issued_week' => (clone $baseQuery)->where('status', 'ISSUED')->whereBetween('issued_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+            'issued_month' => (clone $baseQuery)->where('status', 'ISSUED')->whereMonth('issued_at', now()->month)->whereYear('issued_at', now()->year)->count(),
+            'draft' => (clone $baseQuery)->where('status', 'DRAFT')->count(),
             'cancelled_month' => (clone $baseQuery)->where('status', 'CANCELLED')->whereMonth('cancelled_at', now()->month)->count(),
         ];
 
@@ -302,14 +302,14 @@ class DashboardController extends Controller
             ->whereNotNull('submitted_at')
             ->whereNotNull('issued_at')
             ->whereMonth('issued_at', now()->month)
-            ->selectRaw("AVG(EXTRACT(EPOCH FROM (issued_at - submitted_at)) / 3600) as avg_hours")
+            ->selectRaw('AVG(EXTRACT(EPOCH FROM (issued_at - submitted_at)) / 3600) as avg_hours')
             ->value('avg_hours');
 
         $recentIssued = Certificate::with([
-                'submittedBy:id,first_name,last_name',
-                'issuedBy:id,first_name,last_name',
-                'contract:id,contract_number',
-            ])
+            'submittedBy:id,first_name,last_name',
+            'issuedBy:id,first_name,last_name',
+            'contract:id,contract_number',
+        ])
             ->where('status', 'ISSUED')
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
             ->orderBy('issued_at', 'desc')
@@ -325,14 +325,14 @@ class DashboardController extends Controller
             ->get(['id', 'contract_number', 'insured_name', 'expiry_date', 'tenant_id']);
 
         return Inertia::render('admin/dashboard/pending', [
-            'pending'            => $pending,
-            'stats'              => $stats,
+            'pending' => $pending,
+            'stats' => $stats,
             'avgProcessingHours' => $avgProcessing ? round($avgProcessing, 1) : null,
-            'recentIssued'       => $recentIssued,
-            'expiringContracts'  => $expiringContracts,
-            'filters'            => $request->only(['tenant_id']),
-            'isSA'               => $isSA,
-            'can'                => [
+            'recentIssued' => $recentIssued,
+            'expiringContracts' => $expiringContracts,
+            'filters' => $request->only(['tenant_id']),
+            'isSA' => $isSA,
+            'can' => [
                 'validate' => $user->can('certificates.validate'),
             ],
         ]);
@@ -344,20 +344,22 @@ class DashboardController extends Controller
         if ($previous == 0) {
             return $current > 0 ? 100 : 0;
         }
+
         return (int) round(($current - $previous) / $previous * 100);
     }
 
     private function fmtAmount(float $amount): string
     {
         if ($amount >= 1_000_000_000) {
-            return number_format($amount / 1_000_000_000, 1, ',', ' ') . 'G';
+            return number_format($amount / 1_000_000_000, 1, ',', ' ').'G';
         }
         if ($amount >= 1_000_000) {
-            return number_format($amount / 1_000_000, 1, ',', ' ') . 'M';
+            return number_format($amount / 1_000_000, 1, ',', ' ').'M';
         }
         if ($amount >= 1_000) {
-            return number_format($amount / 1_000, 0, ',', ' ') . 'K';
+            return number_format($amount / 1_000, 0, ',', ' ').'K';
         }
+
         return number_format($amount, 0, ',', ' ');
     }
 }

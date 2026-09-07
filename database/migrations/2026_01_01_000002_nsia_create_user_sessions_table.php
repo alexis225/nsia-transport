@@ -20,8 +20,8 @@ return new class extends Migration
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             $table->foreignUuid('user_id')
-                  ->constrained('users')
-                  ->cascadeOnDelete();
+                ->constrained('users')
+                ->cascadeOnDelete();
 
             $table->string('token_hash')->unique();     // SHA-256 du bearer token Sanctum
             $table->ipAddress('ip_address')->nullable();

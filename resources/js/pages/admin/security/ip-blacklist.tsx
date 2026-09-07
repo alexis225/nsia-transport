@@ -1,13 +1,37 @@
-import { useState } from 'react';
 import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import {
+    Shield,
+    Plus,
+    Trash2,
+    AlertTriangle,
+    User,
+    X,
+    CheckCircle,
+} from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Shield, Plus, Trash2, AlertTriangle, User, X, CheckCircle } from 'lucide-react';
-import axios from 'axios';
 
-interface Entry     { id: string; ip_range: string; reason: string | null; is_active: boolean; expires_at: string | null; created_at: string; blocked_by: string }
-interface SuspiciousUser { id: string; first_name: string; last_name: string; email: string; failed_login_attempts: number; last_login_ip: string | null; locked_until: string | null }
+interface Entry {
+    id: string;
+    ip_range: string;
+    reason: string | null;
+    is_active: boolean;
+    expires_at: string | null;
+    created_at: string;
+    blocked_by: string;
+}
+interface SuspiciousUser {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    failed_login_attempts: number;
+    last_login_ip: string | null;
+    locked_until: string | null;
+}
 
 export default function IpBlacklist({
     entries: initial,
@@ -18,48 +42,73 @@ export default function IpBlacklist({
 }) {
     const { t } = useTranslation('security');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('ipBlacklist.breadcrumbDashboard'), href: route('admin.dashboard') },
+        {
+            title: t('ipBlacklist.breadcrumbDashboard'),
+            href: route('admin.dashboard'),
+        },
         { title: t('ipBlacklist.breadcrumbSecurity') },
         { title: t('ipBlacklist.breadcrumbIpBlacklist') },
     ];
-    const [entries, setEntries]          = useState(initial);
-    const [suspicious, setSuspicious]    = useState(initialSuspicious);
-    const [showForm, setShowForm]        = useState(false);
-    const [form, setForm]                = useState({ ip_range: '', reason: '', expires_at: '' });
-    const [error, setError]              = useState('');
-    const [loading, setLoading]          = useState(false);
+    const [entries, setEntries] = useState(initial);
+    const [suspicious, setSuspicious] = useState(initialSuspicious);
+    const [showForm, setShowForm] = useState(false);
+    const [form, setForm] = useState({
+        ip_range: '',
+        reason: '',
+        expires_at: '',
+    });
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const addEntry = async () => {
-        setError(''); setLoading(true);
+        setError('');
+        setLoading(true);
+
         try {
-            const { data } = await axios.post(route('admin.security.ip-blacklist.store'), form);
-            setEntries(prev => [{
-                id: data.id, ip_range: form.ip_range, reason: form.reason || null,
-                is_active: true,
-                expires_at: form.expires_at || null,
-                created_at: new Date().toLocaleDateString('fr-FR'),
-                blocked_by: t('ipBlacklist.me'),
-            }, ...prev]);
+            const { data } = await axios.post(
+                route('admin.security.ip-blacklist.store'),
+                form,
+            );
+            setEntries((prev) => [
+                {
+                    id: data.id,
+                    ip_range: form.ip_range,
+                    reason: form.reason || null,
+                    is_active: true,
+                    expires_at: form.expires_at || null,
+                    created_at: new Date().toLocaleDateString('fr-FR'),
+                    blocked_by: t('ipBlacklist.me'),
+                },
+                ...prev,
+            ]);
             setForm({ ip_range: '', reason: '', expires_at: '' });
             setShowForm(false);
         } catch (e: any) {
-            setError(e.response?.data?.message ?? t('ipBlacklist.addErrorFallback'));
-        } finally { setLoading(false); }
+            setError(
+                e.response?.data?.message ?? t('ipBlacklist.addErrorFallback'),
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     const removeEntry = async (id: string) => {
-        await axios.delete(route('admin.security.ip-blacklist.destroy', { id }));
-        setEntries(prev => prev.filter(e => e.id !== id));
+        await axios.delete(
+            route('admin.security.ip-blacklist.destroy', { id }),
+        );
+        setEntries((prev) => prev.filter((e) => e.id !== id));
     };
 
     const unlockUser = async (userId: string) => {
-        await axios.patch(route('admin.security.ip-blacklist.unlock', { userId }));
-        setSuspicious(prev => prev.filter(u => u.id !== userId));
+        await axios.patch(
+            route('admin.security.ip-blacklist.unlock', { userId }),
+        );
+        setSuspicious((prev) => prev.filter((u) => u.id !== userId));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('ipBlacklist.title')}/>
+            <Head title={t('ipBlacklist.title')} />
             <style>{`
                 .sec-page { padding:4px; display:flex; flex-direction:column; gap:14px; }
                 .panel { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
@@ -86,18 +135,38 @@ export default function IpBlacklist({
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="sec-page">
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}
+                    >
                         <div>
-                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b' }}>
+                            <h1
+                                style={{
+                                    fontSize: 18,
+                                    fontWeight: 700,
+                                    color: '#1e293b',
+                                }}
+                            >
                                 {t('ipBlacklist.heading')}
                             </h1>
-                            <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
+                            <p
+                                style={{
+                                    fontSize: 12,
+                                    color: '#94a3b8',
+                                    marginTop: 3,
+                                }}
+                            >
                                 {t('ipBlacklist.subtitle')}
                             </p>
                         </div>
-                        <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-                            <Plus size={13}/> {t('ipBlacklist.blockIp')}
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => setShowForm((v) => !v)}
+                        >
+                            <Plus size={13} /> {t('ipBlacklist.blockIp')}
                         </button>
                     </div>
 
@@ -105,78 +174,262 @@ export default function IpBlacklist({
                     <div className="panel">
                         <div className="panel-hdr">
                             <div className="panel-hdr-title">
-                                <Shield size={14} color="#dc2626"/> {t('ipBlacklist.panel.blockedRanges', { count: entries.length })}
+                                <Shield size={14} color="#dc2626" />{' '}
+                                {t('ipBlacklist.panel.blockedRanges', {
+                                    count: entries.length,
+                                })}
                             </div>
                         </div>
                         {showForm && (
                             <div className="form-row">
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                    <label style={{ fontSize: 10, color: '#64748b' }}>{t('ipBlacklist.panel.ipOrCidr')}</label>
-                                    <input className="fin" style={{ width: 170 }}
-                                           placeholder={t('ipBlacklist.panel.ipOrCidrPlaceholder')}
-                                           value={form.ip_range}
-                                           onChange={e => setForm(p => ({ ...p, ip_range: e.target.value }))}/>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 3,
+                                    }}
+                                >
+                                    <label
+                                        style={{
+                                            fontSize: 10,
+                                            color: '#64748b',
+                                        }}
+                                    >
+                                        {t('ipBlacklist.panel.ipOrCidr')}
+                                    </label>
+                                    <input
+                                        className="fin"
+                                        style={{ width: 170 }}
+                                        placeholder={t(
+                                            'ipBlacklist.panel.ipOrCidrPlaceholder',
+                                        )}
+                                        value={form.ip_range}
+                                        onChange={(e) =>
+                                            setForm((p) => ({
+                                                ...p,
+                                                ip_range: e.target.value,
+                                            }))
+                                        }
+                                    />
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
-                                    <label style={{ fontSize: 10, color: '#64748b' }}>{t('ipBlacklist.panel.reason')}</label>
-                                    <input className="fin" style={{ minWidth: 200 }}
-                                           placeholder={t('ipBlacklist.panel.reasonPlaceholder')}
-                                           value={form.reason}
-                                           onChange={e => setForm(p => ({ ...p, reason: e.target.value }))}/>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 3,
+                                        flex: 1,
+                                    }}
+                                >
+                                    <label
+                                        style={{
+                                            fontSize: 10,
+                                            color: '#64748b',
+                                        }}
+                                    >
+                                        {t('ipBlacklist.panel.reason')}
+                                    </label>
+                                    <input
+                                        className="fin"
+                                        style={{ minWidth: 200 }}
+                                        placeholder={t(
+                                            'ipBlacklist.panel.reasonPlaceholder',
+                                        )}
+                                        value={form.reason}
+                                        onChange={(e) =>
+                                            setForm((p) => ({
+                                                ...p,
+                                                reason: e.target.value,
+                                            }))
+                                        }
+                                    />
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                    <label style={{ fontSize: 10, color: '#64748b' }}>{t('ipBlacklist.panel.expiration')}</label>
-                                    <input type="datetime-local" className="fin" style={{ width: 180 }}
-                                           value={form.expires_at}
-                                           onChange={e => setForm(p => ({ ...p, expires_at: e.target.value }))}/>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 3,
+                                    }}
+                                >
+                                    <label
+                                        style={{
+                                            fontSize: 10,
+                                            color: '#64748b',
+                                        }}
+                                    >
+                                        {t('ipBlacklist.panel.expiration')}
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        className="fin"
+                                        style={{ width: 180 }}
+                                        value={form.expires_at}
+                                        onChange={(e) =>
+                                            setForm((p) => ({
+                                                ...p,
+                                                expires_at: e.target.value,
+                                            }))
+                                        }
+                                    />
                                 </div>
-                                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', paddingBottom: 1 }}>
-                                    <button className="btn btn-primary" onClick={addEntry} disabled={loading || !form.ip_range}>
-                                        {loading ? '…' : t('ipBlacklist.panel.block')}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        gap: 6,
+                                        alignItems: 'flex-end',
+                                        paddingBottom: 1,
+                                    }}
+                                >
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={addEntry}
+                                        disabled={loading || !form.ip_range}
+                                    >
+                                        {loading
+                                            ? '…'
+                                            : t('ipBlacklist.panel.block')}
                                     </button>
-                                    <button className="btn btn-sec" onClick={() => { setShowForm(false); setError(''); }}>
-                                        <X size={12}/>
+                                    <button
+                                        className="btn btn-sec"
+                                        onClick={() => {
+                                            setShowForm(false);
+                                            setError('');
+                                        }}
+                                    >
+                                        <X size={12} />
                                     </button>
                                 </div>
-                                {error && <div style={{ width: '100%', fontSize: 11, color: '#dc2626' }}>{error}</div>}
+                                {error && (
+                                    <div
+                                        style={{
+                                            width: '100%',
+                                            fontSize: 11,
+                                            color: '#dc2626',
+                                        }}
+                                    >
+                                        {error}
+                                    </div>
+                                )}
                             </div>
                         )}
                         {entries.length === 0 ? (
                             <div className="empty">
-                                <CheckCircle size={24} style={{ marginBottom: 6, opacity: .4 }}/>
+                                <CheckCircle
+                                    size={24}
+                                    style={{ marginBottom: 6, opacity: 0.4 }}
+                                />
                                 <div>{t('ipBlacklist.panel.noBlockedIp')}</div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>{t('ipBlacklist.panel.columns.ipRange')}</th>
-                                        <th>{t('ipBlacklist.panel.columns.reason')}</th>
-                                        <th>{t('ipBlacklist.panel.columns.blockedBy')}</th>
-                                        <th>{t('ipBlacklist.panel.columns.expiration')}</th>
-                                        <th>{t('ipBlacklist.panel.columns.status')}</th>
-                                        <th>{t('ipBlacklist.panel.columns.addedOn')}</th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.panel.columns.ipRange',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.panel.columns.reason',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.panel.columns.blockedBy',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.panel.columns.expiration',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.panel.columns.status',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.panel.columns.addedOn',
+                                            )}
+                                        </th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {entries.map(e => (
+                                    {entries.map((e) => (
                                         <tr key={e.id}>
-                                            <td><code style={{ fontFamily: 'monospace', fontWeight: 700, color: '#dc2626' }}>{e.ip_range}</code></td>
-                                            <td style={{ color: '#64748b' }}>{e.reason ?? '—'}</td>
-                                            <td style={{ fontSize: 11, color: '#64748b' }}>{e.blocked_by}</td>
-                                            <td style={{ fontSize: 11, color: e.expires_at ? '#d97706' : '#94a3b8' }}>
-                                                {e.expires_at ?? t('ipBlacklist.panel.permanent')}
+                                            <td>
+                                                <code
+                                                    style={{
+                                                        fontFamily: 'monospace',
+                                                        fontWeight: 700,
+                                                        color: '#dc2626',
+                                                    }}
+                                                >
+                                                    {e.ip_range}
+                                                </code>
+                                            </td>
+                                            <td style={{ color: '#64748b' }}>
+                                                {e.reason ?? '—'}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#64748b',
+                                                }}
+                                            >
+                                                {e.blocked_by}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: e.expires_at
+                                                        ? '#d97706'
+                                                        : '#94a3b8',
+                                                }}
+                                            >
+                                                {e.expires_at ??
+                                                    t(
+                                                        'ipBlacklist.panel.permanent',
+                                                    )}
                                             </td>
                                             <td>
-                                                <span className={e.is_active ? 'badge-active' : 'badge-exp'}>
-                                                    {e.is_active ? t('ipBlacklist.panel.active') : t('ipBlacklist.panel.expired')}
+                                                <span
+                                                    className={
+                                                        e.is_active
+                                                            ? 'badge-active'
+                                                            : 'badge-exp'
+                                                    }
+                                                >
+                                                    {e.is_active
+                                                        ? t(
+                                                              'ipBlacklist.panel.active',
+                                                          )
+                                                        : t(
+                                                              'ipBlacklist.panel.expired',
+                                                          )}
                                                 </span>
                                             </td>
-                                            <td style={{ fontSize: 11, color: '#94a3b8' }}>{e.created_at}</td>
+                                            <td
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#94a3b8',
+                                                }}
+                                            >
+                                                {e.created_at}
+                                            </td>
                                             <td>
-                                                <button className="btn-del" onClick={() => removeEntry(e.id)} title={t('ipBlacklist.panel.delete')}>
-                                                    <Trash2 size={13}/>
+                                                <button
+                                                    className="btn-del"
+                                                    onClick={() =>
+                                                        removeEntry(e.id)
+                                                    }
+                                                    title={t(
+                                                        'ipBlacklist.panel.delete',
+                                                    )}
+                                                >
+                                                    <Trash2 size={13} />
                                                 </button>
                                             </td>
                                         </tr>
@@ -190,45 +443,111 @@ export default function IpBlacklist({
                     <div className="panel">
                         <div className="panel-hdr">
                             <div className="panel-hdr-title">
-                                <AlertTriangle size={14} color="#d97706"/>
+                                <AlertTriangle size={14} color="#d97706" />
                                 {t('ipBlacklist.suspicious.title')}
                             </div>
                         </div>
                         {suspicious.length === 0 ? (
                             <div className="empty">
-                                <CheckCircle size={24} style={{ marginBottom: 6, opacity: .4 }}/>
-                                <div>{t('ipBlacklist.suspicious.noSuspicious')}</div>
+                                <CheckCircle
+                                    size={24}
+                                    style={{ marginBottom: 6, opacity: 0.4 }}
+                                />
+                                <div>
+                                    {t('ipBlacklist.suspicious.noSuspicious')}
+                                </div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>{t('ipBlacklist.suspicious.columns.user')}</th>
-                                        <th>{t('ipBlacklist.suspicious.columns.email')}</th>
-                                        <th>{t('ipBlacklist.suspicious.columns.failedAttempts')}</th>
-                                        <th>{t('ipBlacklist.suspicious.columns.lastIp')}</th>
-                                        <th>{t('ipBlacklist.suspicious.columns.lockedUntil')}</th>
-                                        <th>{t('ipBlacklist.suspicious.columns.action')}</th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.suspicious.columns.user',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.suspicious.columns.email',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.suspicious.columns.failedAttempts',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.suspicious.columns.lastIp',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.suspicious.columns.lockedUntil',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'ipBlacklist.suspicious.columns.action',
+                                            )}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {suspicious.map(u => (
+                                    {suspicious.map((u) => (
                                         <tr key={u.id}>
-                                            <td style={{ fontWeight: 500 }}>{u.first_name} {u.last_name}</td>
-                                            <td style={{ fontSize: 11, color: '#64748b' }}>{u.email}</td>
+                                            <td style={{ fontWeight: 500 }}>
+                                                {u.first_name} {u.last_name}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#64748b',
+                                                }}
+                                            >
+                                                {u.email}
+                                            </td>
                                             <td>
-                                                <span style={{ fontWeight: 700, color: u.failed_login_attempts >= 5 ? '#dc2626' : '#d97706',
-                                                               fontSize: 14 }}>
+                                                <span
+                                                    style={{
+                                                        fontWeight: 700,
+                                                        color:
+                                                            u.failed_login_attempts >=
+                                                            5
+                                                                ? '#dc2626'
+                                                                : '#d97706',
+                                                        fontSize: 14,
+                                                    }}
+                                                >
                                                     {u.failed_login_attempts}
                                                 </span>
                                             </td>
-                                            <td><code style={{ fontSize: 11 }}>{u.last_login_ip ?? '—'}</code></td>
-                                            <td style={{ fontSize: 11, color: u.locked_until ? '#dc2626' : '#94a3b8' }}>
+                                            <td>
+                                                <code style={{ fontSize: 11 }}>
+                                                    {u.last_login_ip ?? '—'}
+                                                </code>
+                                            </td>
+                                            <td
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: u.locked_until
+                                                        ? '#dc2626'
+                                                        : '#94a3b8',
+                                                }}
+                                            >
                                                 {u.locked_until ?? '—'}
                                             </td>
                                             <td>
-                                                <button className="btn-unlock" onClick={() => unlockUser(u.id)}>
-                                                    <User size={10}/> {t('ipBlacklist.suspicious.unlock')}
+                                                <button
+                                                    className="btn-unlock"
+                                                    onClick={() =>
+                                                        unlockUser(u.id)
+                                                    }
+                                                >
+                                                    <User size={10} />{' '}
+                                                    {t(
+                                                        'ipBlacklist.suspicious.unlock',
+                                                    )}
                                                 </button>
                                             </td>
                                         </tr>
@@ -237,7 +556,6 @@ export default function IpBlacklist({
                             </table>
                         )}
                     </div>
-
                 </div>
             </div>
         </AppLayout>

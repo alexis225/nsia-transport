@@ -9,7 +9,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * US-047 — Export asynchrone grands volumes
@@ -21,7 +20,8 @@ class AsyncCertificateExportJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout = 600; // 10 min max
-    public int $tries   = 2;
+
+    public int $tries = 2;
 
     public function __construct(
         private readonly string $executionId,
@@ -30,38 +30,39 @@ class AsyncCertificateExportJob implements ShouldQueue
     public function handle(): void
     {
         $execution = ReportExecution::find($this->executionId);
-        if (! $execution) return;
+        if (! $execution) {
+            return;
+        }
 
         $execution->update([
-            'status'     => ReportExecution::STATUS_PROCESSING,
+            'status' => ReportExecution::STATUS_PROCESSING,
             'started_at' => now(),
         ]);
 
         try {
-            $params   = $execution->parameters ?? [];
-            $isSA     = $params['is_super_admin'] ?? false;
-            $tenantId = $params['tenant_id']      ?? null;
+            $params = $execution->parameters ?? [];
+            $isSA = $params['is_super_admin'] ?? false;
+            $tenantId = $params['tenant_id'] ?? null;
 
             $query = Certificate::with([
-                    'contract:id,contract_number,broker_id',
-                    'contract.broker:id,name',
-                    'tenant:id,name,code',
-                    'issuedBy:id,first_name,last_name',
-                ])
+                'contract:id,contract_number,broker_id',
+                'contract.broker:id,name',
+                'tenant:id,name,code',
+                'issuedBy:id,first_name,last_name',
+            ])
                 ->when(! $isSA && $tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
                 ->when($params['status'] ?? null, fn ($q, $v) => $q->where('status', $v))
                 ->when($params['transport_type'] ?? null, fn ($q, $v) => $q->where('transport_type', $v))
                 ->when($params['date_from'] ?? null, fn ($q, $v) => $q->whereDate('issued_at', '>=', $v))
-                ->when($params['date_to']   ?? null, fn ($q, $v) => $q->whereDate('issued_at', '<=', $v))
+                ->when($params['date_to'] ?? null, fn ($q, $v) => $q->whereDate('issued_at', '<=', $v))
                 ->when($params['broker_id'] ?? null, fn ($q, $v) => $q->whereHas('contract', fn ($q) => $q->where('broker_id', $v)))
-                ->when($params['search']    ?? null, fn ($q, $v) => $q->where(fn ($q) =>
-                    $q->where('certificate_number', 'ilike', "%{$v}%")
-                      ->orWhere('insured_name', 'ilike', "%{$v}%")
+                ->when($params['search'] ?? null, fn ($q, $v) => $q->where(fn ($q) => $q->where('certificate_number', 'ilike', "%{$v}%")
+                    ->orWhere('insured_name', 'ilike', "%{$v}%")
                 ))
                 ->orderByDesc('created_at');
 
-            $path     = "exports/{$executionId}.csv";
-            $tmpPath  = storage_path("app/{$path}");
+            $path = "exports/{$executionId}.csv";
+            $tmpPath = storage_path("app/{$path}");
 
             // Écriture en streaming
             $handle = fopen($tmpPath, 'w');
@@ -90,7 +91,7 @@ class AsyncCertificateExportJob implements ShouldQueue
                         number_format((float) $c->prime_total, 2, ',', ' '),
                         $c->status,
                         $c->issued_at?->format('d/m/Y H:i') ?? '',
-                        $c->issuedBy ? $c->issuedBy->first_name . ' ' . $c->issuedBy->last_name : '',
+                        $c->issuedBy ? $c->issuedBy->first_name.' '.$c->issuedBy->last_name : '',
                         $c->contract?->broker?->name ?? '',
                         $c->tenant?->code ?? '',
                     ], ';');
@@ -100,19 +101,19 @@ class AsyncCertificateExportJob implements ShouldQueue
             fclose($handle);
 
             $execution->update([
-                'status'       => ReportExecution::STATUS_COMPLETED,
-                'file_path'    => $path,
-                'file_size'    => filesize($tmpPath),
-                'row_count'    => $rowCount,
+                'status' => ReportExecution::STATUS_COMPLETED,
+                'file_path' => $path,
+                'file_size' => filesize($tmpPath),
+                'row_count' => $rowCount,
                 'completed_at' => now(),
-                'expires_at'   => now()->addHours(24),
+                'expires_at' => now()->addHours(24),
             ]);
 
         } catch (\Throwable $e) {
             $execution->update([
-                'status'        => ReportExecution::STATUS_FAILED,
+                'status' => ReportExecution::STATUS_FAILED,
                 'error_message' => $e->getMessage(),
-                'completed_at'  => now(),
+                'completed_at' => now(),
             ]);
         }
     }
@@ -120,9 +121,9 @@ class AsyncCertificateExportJob implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         ReportExecution::where('id', $this->executionId)->update([
-            'status'        => ReportExecution::STATUS_FAILED,
+            'status' => ReportExecution::STATUS_FAILED,
             'error_message' => $e->getMessage(),
-            'completed_at'  => now(),
+            'completed_at' => now(),
         ]);
     }
 }

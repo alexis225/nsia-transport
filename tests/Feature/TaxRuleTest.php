@@ -22,8 +22,8 @@
  */
 
 use App\Models\Country;
-use App\Models\Tenant;
 use App\Models\TaxRule;
+use App\Models\Tenant;
 use App\Models\TransportMode;
 use App\Models\User;
 use Spatie\Permission\PermissionRegistrar;
@@ -42,8 +42,9 @@ function makeRefTaxTenant(): Tenant
 function makeRefTaxAdmin(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
@@ -51,6 +52,7 @@ function makeRefTaxSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
@@ -59,21 +61,23 @@ function makeRefTaxSuperAdmin(): User
 function makeRefTaxSouscripteur(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('souscripteur');
+
     return $user;
 }
 
 function makeRefTaxBareUser(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
+
     return User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
 }
 
 function makeRefTransportMode(string $code = 'SEA'): TransportMode
 {
     return TransportMode::create([
-        'code'    => $code,
+        'code' => $code,
         'name_fr' => 'Maritime',
         'name_en' => 'Sea',
     ]);
@@ -90,10 +94,10 @@ function makeRefCountry(string $code = 'CI'): Country
 function makeRefTaxRule(string $tenantId, array $overrides = []): TaxRule
 {
     return TaxRule::create(array_merge([
-        'tenant_id'      => $tenantId,
-        'rate_pct'       => 2.5,
+        'tenant_id' => $tenantId,
+        'rate_pct' => 2.5,
         'effective_date' => now()->subMonth()->toDateString(),
-        'is_active'      => true,
+        'is_active' => true,
     ], $overrides));
 }
 
@@ -126,37 +130,37 @@ it('crée un taux de taxe générique (sans mode/pays) avec des données valides
 
     $this->actingAs($admin)
         ->post('/admin/taxes/rules', [
-            'rate_pct'       => 3.5,
+            'rate_pct' => 3.5,
             'effective_date' => now()->toDateString(),
         ])
         ->assertRedirect();
 
     $this->assertDatabaseHas('tax_rules', [
-        'tenant_id'         => $admin->tenant_id,
+        'tenant_id' => $admin->tenant_id,
         'transport_mode_id' => null,
-        'country_code'      => null,
-        'created_by'        => $admin->id,
+        'country_code' => null,
+        'created_by' => $admin->id,
     ]);
 });
 
 it('crée un taux de taxe spécifique à un mode de transport et un pays', function () {
-    $admin    = makeRefTaxAdmin();
-    $mode     = makeRefTransportMode('AIR');
-    $country  = makeRefCountry('SN');
+    $admin = makeRefTaxAdmin();
+    $mode = makeRefTransportMode('AIR');
+    $country = makeRefCountry('SN');
 
     $this->actingAs($admin)
         ->post('/admin/taxes/rules', [
             'transport_mode_id' => $mode->id,
-            'country_code'      => $country->code,
-            'rate_pct'          => 5,
-            'effective_date'    => now()->toDateString(),
+            'country_code' => $country->code,
+            'rate_pct' => 5,
+            'effective_date' => now()->toDateString(),
         ])
         ->assertRedirect();
 
     $this->assertDatabaseHas('tax_rules', [
-        'tenant_id'         => $admin->tenant_id,
+        'tenant_id' => $admin->tenant_id,
         'transport_mode_id' => $mode->id,
-        'country_code'      => $country->code,
+        'country_code' => $country->code,
     ]);
 });
 
@@ -175,9 +179,9 @@ it('refuse la création avec une end_date antérieure à effective_date', functi
 
     $this->actingAs($admin)
         ->post('/admin/taxes/rules', [
-            'rate_pct'       => 3,
+            'rate_pct' => 3,
             'effective_date' => now()->toDateString(),
-            'end_date'       => now()->subDay()->toDateString(),
+            'end_date' => now()->subDay()->toDateString(),
         ])
         ->assertSessionHasErrors(['end_date']);
 });
@@ -191,8 +195,8 @@ it('refuse la création avec un transport_mode_id inexistant', function () {
     $this->actingAs($admin)
         ->post('/admin/taxes/rules', [
             'transport_mode_id' => 32000,
-            'rate_pct'          => 3,
-            'effective_date'    => now()->toDateString(),
+            'rate_pct' => 3,
+            'effective_date' => now()->toDateString(),
         ])
         ->assertSessionHasErrors(['transport_mode_id']);
 });
@@ -202,7 +206,7 @@ it('refuse la création avec un rate_pct hors bornes', function () {
 
     $this->actingAs($admin)
         ->post('/admin/taxes/rules', [
-            'rate_pct'       => 150,
+            'rate_pct' => 150,
             'effective_date' => now()->toDateString(),
         ])
         ->assertSessionHasErrors(['rate_pct']);
@@ -213,7 +217,7 @@ it('un super_admin doit préciser un tenant_id pour créer un taux', function ()
 
     $this->actingAs($superAdmin)
         ->post('/admin/taxes/rules', [
-            'rate_pct'       => 3,
+            'rate_pct' => 3,
             'effective_date' => now()->toDateString(),
         ])
         ->assertSessionHasErrors(['tenant_id']);
@@ -221,19 +225,19 @@ it('un super_admin doit préciser un tenant_id pour créer un taux', function ()
 
 it('un super_admin crée un taux pour la filiale de son choix', function () {
     $superAdmin = makeRefTaxSuperAdmin();
-    $tenant     = makeRefTaxTenant();
+    $tenant = makeRefTaxTenant();
 
     $this->actingAs($superAdmin)
         ->post('/admin/taxes/rules', [
-            'tenant_id'      => $tenant->id,
-            'rate_pct'       => 3,
+            'tenant_id' => $tenant->id,
+            'rate_pct' => 3,
             'effective_date' => now()->toDateString(),
         ])
         ->assertRedirect();
 
     $this->assertDatabaseHas('tax_rules', [
         'tenant_id' => $tenant->id,
-        'created_by'=> $superAdmin->id,
+        'created_by' => $superAdmin->id,
     ]);
 });
 
@@ -242,7 +246,7 @@ it('refuse la création pour un rôle autre que admin_filiale/super_admin', func
 
     $this->actingAs($user)
         ->post('/admin/taxes/rules', [
-            'rate_pct'       => 3,
+            'rate_pct' => 3,
             'effective_date' => now()->toDateString(),
         ])
         ->assertStatus(403);
@@ -253,7 +257,7 @@ it('refuse la création pour un rôle autre que admin_filiale/super_admin', func
 // ── Toggle (toggleRule) ──────────────────────────────────────
 it('active/désactive un taux de taxe via toggle', function () {
     $admin = makeRefTaxAdmin();
-    $rule  = makeRefTaxRule($admin->tenant_id, ['is_active' => true]);
+    $rule = makeRefTaxRule($admin->tenant_id, ['is_active' => true]);
 
     $this->actingAs($admin)
         ->patch("/admin/taxes/rules/{$rule->id}/toggle")
@@ -265,8 +269,8 @@ it('active/désactive un taux de taxe via toggle', function () {
 it('un admin_filiale ne peut pas toggler un taux d\'une autre filiale', function () {
     $tenantA = makeRefTaxTenant();
     $tenantB = makeRefTaxTenant();
-    $admin   = makeRefTaxAdmin($tenantA->id);
-    $rule    = makeRefTaxRule($tenantB->id, ['is_active' => true]);
+    $admin = makeRefTaxAdmin($tenantA->id);
+    $rule = makeRefTaxRule($tenantB->id, ['is_active' => true]);
 
     $this->actingAs($admin)
         ->patch("/admin/taxes/rules/{$rule->id}/toggle")
@@ -284,8 +288,8 @@ it('un admin_filiale ne peut pas toggler un taux d\'une autre filiale', function
 // activer/désactiver un taux de taxe. Ce test échoue donc avec le code actuel.
 it('refuse le toggle sans la permission referential.edit', function () {
     $tenant = makeRefTaxTenant();
-    $user   = makeRefTaxSouscripteur($tenant->id);
-    $rule   = makeRefTaxRule($tenant->id, ['is_active' => true]);
+    $user = makeRefTaxSouscripteur($tenant->id);
+    $rule = makeRefTaxRule($tenant->id, ['is_active' => true]);
 
     $this->actingAs($user)
         ->patch("/admin/taxes/rules/{$rule->id}/toggle")
@@ -298,7 +302,7 @@ it('refuse le toggle sans la permission referential.edit', function () {
 it('un admin_filiale ne voit que les taux de sa propre filiale', function () {
     $tenantA = makeRefTaxTenant();
     $tenantB = makeRefTaxTenant();
-    $admin   = makeRefTaxAdmin($tenantA->id);
+    $admin = makeRefTaxAdmin($tenantA->id);
     makeRefTaxRule($tenantA->id, ['rate_pct' => 1.11]);
     makeRefTaxRule($tenantB->id, ['rate_pct' => 9.99]);
 
@@ -312,7 +316,7 @@ it('un admin_filiale ne voit que les taux de sa propre filiale', function () {
 });
 
 it('un super_admin voit les taux de toutes les filiales via le filtre tenant_id', function () {
-    $tenantA    = makeRefTaxTenant();
+    $tenantA = makeRefTaxTenant();
     $superAdmin = makeRefTaxSuperAdmin();
     makeRefTaxRule($tenantA->id);
 

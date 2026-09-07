@@ -68,19 +68,19 @@ class RolesAndPermissionsSeeder extends Seeder
             // ── Certificats ───────────────────────────────────
             'certificates.view',
             'certificates.create',  // créer + soumettre
-            'certificates.validate',// émettre / rejeter (US-018)
+            'certificates.validate', // émettre / rejeter (US-018)
             'certificates.cancel',  // annuler
             // ── Audit Logs ────────────────────────────────────
             'audit_logs.view',
             'audit_logs.export',
-                        // ── Rapports ──────────────────────────────────────
+            // ── Rapports ──────────────────────────────────────
             'reports.view',
             'reports.dashboard_filiale',
             'reports.dashboard_dtag',
             'reports.certificates',
             'reports.contracts',
             'reports.export',
-            
+
         ];
 
         foreach ($permissions as $perm) {
@@ -157,6 +157,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'profile.view', 'profile.edit', 'profile.mfa',
         ]);
 
-        $this->command->info('✓ 6 rôles et ' . count($permissions) . ' permissions seedés.');
+        $this->command->info('✓ 6 rôles et '.count($permissions).' permissions seedés.');
     }
 }

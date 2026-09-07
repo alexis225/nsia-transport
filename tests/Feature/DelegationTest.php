@@ -35,8 +35,9 @@ function makeDelegTenant(): Tenant
 function makeDelegAdmin(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
@@ -44,22 +45,25 @@ function makeDelegSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
 function makeDelegSouscripteur(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('souscripteur');
+
     return $user;
 }
 
 function makeDelegCourtier(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('courtier_local');
+
     return $user;
 }
 
@@ -71,15 +75,15 @@ function makeDelegCourtier(?string $tenantId = null): User
 function makeDelegGrant(User $grantee, User $grantor, array $overrides = []): UserRoleGrant
 {
     return UserRoleGrant::create(array_merge([
-        'user_id'    => $grantee->id,
-        'tenant_id'  => $grantor->tenant_id,
-        'role_name'  => 'souscripteur',
+        'user_id' => $grantee->id,
+        'tenant_id' => $grantor->tenant_id,
+        'role_name' => 'souscripteur',
         'granted_by' => $grantor->id,
         'granted_at' => now(),
         'expires_at' => now()->addDays(7),
         'revoked_by' => null,
         'revoked_at' => null,
-        'reason'     => null,
+        'reason' => null,
     ], $overrides));
 }
 
@@ -88,10 +92,10 @@ function makeDelegGrant(User $grantee, User $grantor, array $overrides = []): Us
 // ══════════════════════════════════════════════════════════════
 
 it('DelegationService::create crée un UserRoleGrant avec les bons champs', function () {
-    $tenant   = makeDelegTenant();
-    $grantor  = makeDelegAdmin($tenant->id);
-    $grantee  = makeDelegCourtier($tenant->id);
-    $expires  = now()->addDays(10)->toDateTimeString();
+    $tenant = makeDelegTenant();
+    $grantor = makeDelegAdmin($tenant->id);
+    $grantee = makeDelegCourtier($tenant->id);
+    $expires = now()->addDays(10)->toDateTimeString();
 
     $grant = app(DelegationService::class)->create(
         $grantor, $grantee, 'courtier_local', $expires, 'Remplacement congés'
@@ -107,15 +111,15 @@ it('DelegationService::create crée un UserRoleGrant avec les bons champs', func
         ->and($grant->granted_at)->not->toBeNull();
 
     $this->assertDatabaseHas('user_role_grants', [
-        'id'         => $grant->id,
-        'user_id'    => $grantee->id,
+        'id' => $grant->id,
+        'user_id' => $grantee->id,
         'granted_by' => $grantor->id,
-        'role_name'  => 'courtier_local',
+        'role_name' => 'courtier_local',
     ]);
 });
 
 it('DelegationService::create envoie une notification au délégataire et au délégant', function () {
-    $tenant  = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $grantor = makeDelegAdmin($tenant->id);
     $grantee = makeDelegCourtier($tenant->id);
 
@@ -124,15 +128,15 @@ it('DelegationService::create envoie une notification au délégataire et au dé
     );
 
     $this->assertDatabaseHas('notifications', [
-        'type'            => 'DelegationGranted',
+        'type' => 'DelegationGranted',
         'notifiable_type' => User::class,
-        'notifiable_id'   => $grantee->id,
+        'notifiable_id' => $grantee->id,
     ]);
 
     $this->assertDatabaseHas('notifications', [
-        'type'            => 'DelegationCreated',
+        'type' => 'DelegationCreated',
         'notifiable_type' => User::class,
-        'notifiable_id'   => $grantor->id,
+        'notifiable_id' => $grantor->id,
     ]);
 
     expect(Notification::where('notifiable_id', $grantee->id)->count())->toBe(1)
@@ -140,7 +144,7 @@ it('DelegationService::create envoie une notification au délégataire et au dé
 });
 
 it('DelegationService::create crée un audit_log delegation.created', function () {
-    $tenant  = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $grantor = makeDelegAdmin($tenant->id);
     $grantee = makeDelegCourtier($tenant->id);
 
@@ -149,12 +153,12 @@ it('DelegationService::create crée un audit_log delegation.created', function (
     );
 
     $this->assertDatabaseHas('audit_logs', [
-        'tenant_id'   => $grantor->tenant_id,
-        'user_id'     => $grantor->id,
-        'action'      => 'delegation.created',
+        'tenant_id' => $grantor->tenant_id,
+        'user_id' => $grantor->id,
+        'action' => 'delegation.created',
         'entity_type' => 'UserRoleGrant',
-        'entity_id'   => $grant->id,
-        'severity'    => 'WARNING',
+        'entity_id' => $grant->id,
+        'severity' => 'WARNING',
     ]);
 
     $log = AuditLog::where('entity_id', $grant->id)->where('action', 'delegation.created')->first();
@@ -168,10 +172,10 @@ it('DelegationService::create crée un audit_log delegation.created', function (
 // ══════════════════════════════════════════════════════════════
 
 it('DelegationService::revoke renseigne revoked_by et revoked_at', function () {
-    $tenant  = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $grantor = makeDelegAdmin($tenant->id);
     $grantee = makeDelegCourtier($tenant->id);
-    $grant   = makeDelegGrant($grantee, $grantor);
+    $grant = makeDelegGrant($grantee, $grantor);
 
     app(DelegationService::class)->revoke($grant, $grantor, 'Fin de mission');
 
@@ -183,35 +187,35 @@ it('DelegationService::revoke renseigne revoked_by et revoked_at', function () {
 });
 
 it('DelegationService::revoke notifie le délégataire', function () {
-    $tenant  = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $grantor = makeDelegAdmin($tenant->id);
     $grantee = makeDelegCourtier($tenant->id);
-    $grant   = makeDelegGrant($grantee, $grantor);
+    $grant = makeDelegGrant($grantee, $grantor);
 
     app(DelegationService::class)->revoke($grant, $grantor, 'Test révocation');
 
     $this->assertDatabaseHas('notifications', [
-        'type'            => 'DelegationRevoked',
+        'type' => 'DelegationRevoked',
         'notifiable_type' => User::class,
-        'notifiable_id'   => $grantee->id,
+        'notifiable_id' => $grantee->id,
     ]);
 });
 
 it('DelegationService::revoke crée un audit_log delegation.revoked', function () {
-    $tenant  = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $grantor = makeDelegAdmin($tenant->id);
     $grantee = makeDelegCourtier($tenant->id);
-    $grant   = makeDelegGrant($grantee, $grantor);
+    $grant = makeDelegGrant($grantee, $grantor);
 
     app(DelegationService::class)->revoke($grant, $grantor, 'Motif révocation');
 
     $this->assertDatabaseHas('audit_logs', [
-        'tenant_id'   => $grant->tenant_id,
-        'user_id'     => $grantor->id,
-        'action'      => 'delegation.revoked',
+        'tenant_id' => $grant->tenant_id,
+        'user_id' => $grantor->id,
+        'action' => 'delegation.revoked',
         'entity_type' => 'UserRoleGrant',
-        'entity_id'   => $grant->id,
-        'severity'    => 'WARNING',
+        'entity_id' => $grant->id,
+        'severity' => 'WARNING',
     ]);
 });
 
@@ -220,12 +224,12 @@ it('DelegationService::revoke crée un audit_log delegation.revoked', function (
 // ══════════════════════════════════════════════════════════════
 
 it('expireOverdue traite les grants expirés non révoqués et ignore les autres', function () {
-    $tenant  = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $grantor = makeDelegAdmin($tenant->id);
 
-    $granteeExpired  = makeDelegCourtier($tenant->id);
-    $granteeRevoked  = makeDelegCourtier($tenant->id);
-    $granteeFuture   = makeDelegCourtier($tenant->id);
+    $granteeExpired = makeDelegCourtier($tenant->id);
+    $granteeRevoked = makeDelegCourtier($tenant->id);
+    $granteeFuture = makeDelegCourtier($tenant->id);
     $granteePermanent = makeDelegCourtier($tenant->id);
 
     // Expiré et non révoqué → doit être traité
@@ -256,14 +260,14 @@ it('expireOverdue traite les grants expirés non révoqués et ignore les autres
 
     // Notifications envoyées aux deux parties du grant expiré
     $this->assertDatabaseHas('notifications', [
-        'type'            => 'DelegationExpired',
+        'type' => 'DelegationExpired',
         'notifiable_type' => User::class,
-        'notifiable_id'   => $granteeExpired->id,
+        'notifiable_id' => $granteeExpired->id,
     ]);
     $this->assertDatabaseHas('notifications', [
-        'type'            => 'DelegationExpiredGrantor',
+        'type' => 'DelegationExpiredGrantor',
         'notifiable_type' => User::class,
-        'notifiable_id'   => $grantor->id,
+        'notifiable_id' => $grantor->id,
     ]);
 
     // Aucune notification "expired" pour les grants ignorés
@@ -280,7 +284,7 @@ it('expireOverdue traite les grants expirés non révoqués et ignore les autres
  * renotifié tant qu'il n'a pas été traité un jour différent.
  */
 it('expireOverdue() est idempotent : un second appel le même jour ne renotifie pas le même grant', function () {
-    $tenant  = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $grantor = makeDelegAdmin($tenant->id);
     $grantee = makeDelegCourtier($tenant->id);
 
@@ -288,7 +292,7 @@ it('expireOverdue() est idempotent : un second appel le même jour ne renotifie 
 
     $service = app(DelegationService::class);
 
-    $firstRun  = $service->expireOverdue();
+    $firstRun = $service->expireOverdue();
     $secondRun = $service->expireOverdue();
 
     expect($firstRun)->toBe(1)
@@ -304,7 +308,7 @@ it('expireOverdue() est idempotent : un second appel le même jour ne renotifie 
 
 it('GET /admin/delegations liste les délégations pour un admin_filiale', function () {
     $tenant = makeDelegTenant();
-    $admin  = makeDelegAdmin($tenant->id);
+    $admin = makeDelegAdmin($tenant->id);
 
     $this->actingAs($admin)
         ->get('/admin/delegations')
@@ -320,29 +324,29 @@ it('GET /admin/delegations liste les délégations pour un admin_filiale', funct
 });
 
 it('POST /admin/delegations crée une délégation (cas nominal)', function () {
-    $tenant   = makeDelegTenant();
-    $admin    = makeDelegAdmin($tenant->id);
+    $tenant = makeDelegTenant();
+    $admin = makeDelegAdmin($tenant->id);
     $courtier = makeDelegCourtier($tenant->id);
 
     $this->actingAs($admin)
         ->post('/admin/delegations', [
             'grantee_id' => $courtier->id,
-            'role_name'  => 'courtier_local',
+            'role_name' => 'courtier_local',
             'expires_at' => now()->addDays(3)->toDateString(),
-            'reason'     => 'Congés',
+            'reason' => 'Congés',
         ])
         ->assertRedirect();
 
     $this->assertDatabaseHas('user_role_grants', [
-        'user_id'    => $courtier->id,
+        'user_id' => $courtier->id,
         'granted_by' => $admin->id,
-        'role_name'  => 'courtier_local',
+        'role_name' => 'courtier_local',
     ]);
 });
 
 it('POST /admin/delegations échoue en validation sans grantee_id/role_name/expires_at', function () {
     $tenant = makeDelegTenant();
-    $admin  = makeDelegAdmin($tenant->id);
+    $admin = makeDelegAdmin($tenant->id);
 
     $this->actingAs($admin)
         ->post('/admin/delegations', [])
@@ -350,14 +354,14 @@ it('POST /admin/delegations échoue en validation sans grantee_id/role_name/expi
 });
 
 it('POST /admin/delegations refuse une date d\'expiration passée', function () {
-    $tenant   = makeDelegTenant();
-    $admin    = makeDelegAdmin($tenant->id);
+    $tenant = makeDelegTenant();
+    $admin = makeDelegAdmin($tenant->id);
     $courtier = makeDelegCourtier($tenant->id);
 
     $this->actingAs($admin)
         ->post('/admin/delegations', [
             'grantee_id' => $courtier->id,
-            'role_name'  => 'courtier_local',
+            'role_name' => 'courtier_local',
             'expires_at' => now()->subDay()->toDateString(),
         ])
         ->assertSessionHasErrors(['expires_at']);
@@ -365,62 +369,62 @@ it('POST /admin/delegations refuse une date d\'expiration passée', function () 
 
 it('POST /admin/delegations refuse un role_name non déléguable par un admin_filiale', function () {
     $tenant = makeDelegTenant();
-    $admin  = makeDelegAdmin($tenant->id);
+    $admin = makeDelegAdmin($tenant->id);
     // admin_filiale ne peut déléguer que souscripteur/courtier_local, pas admin_filiale
-    $other  = makeDelegAdmin($tenant->id);
+    $other = makeDelegAdmin($tenant->id);
 
     $this->actingAs($admin)
         ->post('/admin/delegations', [
             'grantee_id' => $other->id,
-            'role_name'  => 'admin_filiale',
+            'role_name' => 'admin_filiale',
             'expires_at' => now()->addDays(3)->toDateString(),
         ])
         ->assertSessionHasErrors(['role_name']);
 });
 
 it('POST /admin/delegations refuse un délégataire d\'une autre filiale pour un admin_filiale', function () {
-    $tenantA  = makeDelegTenant();
-    $tenantB  = makeDelegTenant();
-    $admin    = makeDelegAdmin($tenantA->id);
+    $tenantA = makeDelegTenant();
+    $tenantB = makeDelegTenant();
+    $admin = makeDelegAdmin($tenantA->id);
     $courtier = makeDelegCourtier($tenantB->id);
 
     $this->actingAs($admin)
         ->post('/admin/delegations', [
             'grantee_id' => $courtier->id,
-            'role_name'  => 'courtier_local',
+            'role_name' => 'courtier_local',
             'expires_at' => now()->addDays(3)->toDateString(),
         ])
         ->assertStatus(403);
 });
 
 it('POST /admin/delegations refuse un doublon de délégation active', function () {
-    $tenant   = makeDelegTenant();
-    $admin    = makeDelegAdmin($tenant->id);
+    $tenant = makeDelegTenant();
+    $admin = makeDelegAdmin($tenant->id);
     $courtier = makeDelegCourtier($tenant->id);
 
     makeDelegGrant($courtier, $admin, [
-        'role_name'  => 'courtier_local',
+        'role_name' => 'courtier_local',
         'expires_at' => now()->addDays(5),
     ]);
 
     $this->actingAs($admin)
         ->post('/admin/delegations', [
             'grantee_id' => $courtier->id,
-            'role_name'  => 'courtier_local',
+            'role_name' => 'courtier_local',
             'expires_at' => now()->addDays(10)->toDateString(),
         ])
         ->assertSessionHasErrors(['role_name']);
 });
 
 it('POST /admin/delegations refuse un souscripteur (rôle non autorisé à déléguer)', function () {
-    $tenant       = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $souscripteur = makeDelegSouscripteur($tenant->id);
-    $courtier     = makeDelegCourtier($tenant->id);
+    $courtier = makeDelegCourtier($tenant->id);
 
     $this->actingAs($souscripteur)
         ->post('/admin/delegations', [
             'grantee_id' => $courtier->id,
-            'role_name'  => 'courtier_local',
+            'role_name' => 'courtier_local',
             'expires_at' => now()->addDays(3)->toDateString(),
         ])
         ->assertStatus(403);
@@ -428,29 +432,29 @@ it('POST /admin/delegations refuse un souscripteur (rôle non autorisé à dél�
 
 it('super_admin peut déléguer le rôle admin_filiale à un utilisateur d\'une autre filiale', function () {
     $superAdmin = makeDelegSuperAdmin();
-    $tenant     = makeDelegTenant();
-    $courtier   = makeDelegCourtier($tenant->id);
+    $tenant = makeDelegTenant();
+    $courtier = makeDelegCourtier($tenant->id);
 
     $this->actingAs($superAdmin)
         ->post('/admin/delegations', [
             'grantee_id' => $courtier->id,
-            'role_name'  => 'admin_filiale',
+            'role_name' => 'admin_filiale',
             'expires_at' => now()->addDays(3)->toDateString(),
         ])
         ->assertRedirect();
 
     $this->assertDatabaseHas('user_role_grants', [
-        'user_id'    => $courtier->id,
+        'user_id' => $courtier->id,
         'granted_by' => $superAdmin->id,
-        'role_name'  => 'admin_filiale',
+        'role_name' => 'admin_filiale',
     ]);
 });
 
 it('PATCH /admin/delegations/{grant}/revoke révoque une délégation par son délégant', function () {
-    $tenant   = makeDelegTenant();
-    $admin    = makeDelegAdmin($tenant->id);
+    $tenant = makeDelegTenant();
+    $admin = makeDelegAdmin($tenant->id);
     $courtier = makeDelegCourtier($tenant->id);
-    $grant    = makeDelegGrant($courtier, $admin);
+    $grant = makeDelegGrant($courtier, $admin);
 
     $this->actingAs($admin)
         ->patch("/admin/delegations/{$grant->id}/revoke", ['reason' => 'Test HTTP'])
@@ -462,11 +466,11 @@ it('PATCH /admin/delegations/{grant}/revoke révoque une délégation par son d�
 });
 
 it('PATCH /admin/delegations/{grant}/revoke refuse un utilisateur qui n\'est ni le délégant ni super_admin', function () {
-    $tenant     = makeDelegTenant();
-    $admin      = makeDelegAdmin($tenant->id);
+    $tenant = makeDelegTenant();
+    $admin = makeDelegAdmin($tenant->id);
     $otherAdmin = makeDelegAdmin($tenant->id);
-    $courtier   = makeDelegCourtier($tenant->id);
-    $grant      = makeDelegGrant($courtier, $admin);
+    $courtier = makeDelegCourtier($tenant->id);
+    $grant = makeDelegGrant($courtier, $admin);
 
     $this->actingAs($otherAdmin)
         ->patch("/admin/delegations/{$grant->id}/revoke", ['reason' => 'Non autorisé'])
@@ -476,10 +480,10 @@ it('PATCH /admin/delegations/{grant}/revoke refuse un utilisateur qui n\'est ni 
 });
 
 it('PATCH /admin/delegations/{grant}/revoke refuse une délégation déjà révoquée', function () {
-    $tenant   = makeDelegTenant();
-    $admin    = makeDelegAdmin($tenant->id);
+    $tenant = makeDelegTenant();
+    $admin = makeDelegAdmin($tenant->id);
     $courtier = makeDelegCourtier($tenant->id);
-    $grant    = makeDelegGrant($courtier, $admin, [
+    $grant = makeDelegGrant($courtier, $admin, [
         'revoked_by' => $admin->id,
         'revoked_at' => now()->subHour(),
     ]);
@@ -490,11 +494,11 @@ it('PATCH /admin/delegations/{grant}/revoke refuse une délégation déjà révo
 });
 
 it('super_admin peut révoquer la délégation accordée par un autre admin_filiale', function () {
-    $tenant     = makeDelegTenant();
-    $admin      = makeDelegAdmin($tenant->id);
-    $courtier   = makeDelegCourtier($tenant->id);
+    $tenant = makeDelegTenant();
+    $admin = makeDelegAdmin($tenant->id);
+    $courtier = makeDelegCourtier($tenant->id);
     $superAdmin = makeDelegSuperAdmin();
-    $grant      = makeDelegGrant($courtier, $admin);
+    $grant = makeDelegGrant($courtier, $admin);
 
     $this->actingAs($superAdmin)
         ->patch("/admin/delegations/{$grant->id}/revoke", ['reason' => 'Révocation par super admin'])
@@ -508,21 +512,21 @@ it('redirige vers /login si non authentifié (index)', function () {
 });
 
 it('redirige vers /login si non authentifié (store)', function () {
-    $tenant   = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $courtier = makeDelegCourtier($tenant->id);
 
     $this->post('/admin/delegations', [
         'grantee_id' => $courtier->id,
-        'role_name'  => 'courtier_local',
+        'role_name' => 'courtier_local',
         'expires_at' => now()->addDays(3)->toDateString(),
     ])->assertRedirect('/login');
 });
 
 it('redirige vers /login si non authentifié (revoke)', function () {
-    $tenant   = makeDelegTenant();
-    $admin    = makeDelegAdmin($tenant->id);
+    $tenant = makeDelegTenant();
+    $admin = makeDelegAdmin($tenant->id);
     $courtier = makeDelegCourtier($tenant->id);
-    $grant    = makeDelegGrant($courtier, $admin);
+    $grant = makeDelegGrant($courtier, $admin);
 
     $this->patch("/admin/delegations/{$grant->id}/revoke")->assertRedirect('/login');
 });
@@ -532,7 +536,7 @@ it('redirige vers /login si non authentifié (revoke)', function () {
 // ══════════════════════════════════════════════════════════════
 
 it('la commande nsia:check-delegations déclenche expireOverdue et notifie', function () {
-    $tenant  = makeDelegTenant();
+    $tenant = makeDelegTenant();
     $grantor = makeDelegAdmin($tenant->id);
     $grantee = makeDelegCourtier($tenant->id);
 
@@ -542,8 +546,8 @@ it('la commande nsia:check-delegations déclenche expireOverdue et notifie', fun
         ->assertExitCode(0);
 
     $this->assertDatabaseHas('notifications', [
-        'type'            => 'DelegationExpired',
+        'type' => 'DelegationExpired',
         'notifiable_type' => User::class,
-        'notifiable_id'   => $grantee->id,
+        'notifiable_id' => $grantee->id,
     ]);
 });

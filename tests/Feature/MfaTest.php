@@ -10,20 +10,22 @@
 
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
 
 function makeMfaUser(array $overrides = []): User
 {
     $tenant = Tenant::factory()->create();
+
     return User::factory()->create(array_merge([
-        'tenant_id'             => $tenant->id,
-        'email'                 => 'mfa@nsia-ci.com',
-        'password'              => Hash::make('Password@123'),
-        'is_active'             => true,
+        'tenant_id' => $tenant->id,
+        'email' => 'mfa@nsia-ci.com',
+        'password' => Hash::make('Password@123'),
+        'is_active' => true,
         'failed_login_attempts' => 0,
-        'locked_until'          => null,
-        'mfa_enabled'           => false
+        'locked_until' => null,
+        'mfa_enabled' => false,
     ], $overrides));
 }
 
@@ -63,7 +65,7 @@ it('stocke le secret MFA chiffré en base', function () {
     $user->refresh();
 
     // Le secret en base doit être chiffré (pas un code TOTP nu)
-    $raw = \Illuminate\Support\Facades\DB::table('users')
+    $raw = DB::table('users')
         ->where('id', $user->id)
         ->value('two_factor_secret');
 
@@ -72,11 +74,10 @@ it('stocke le secret MFA chiffré en base', function () {
     expect(strlen($raw))->toBeGreaterThan(32);
 
     // Vérifier qu'on peut le déchiffrer
-    expect(fn () => decrypt($raw))->not->toThrow(\Exception::class);
+    expect(fn () => decrypt($raw))->not->toThrow(Exception::class);
 });
 
 // ── Test 4 : QR code disponible après activation ─────────────
-
 
 // ── Test 5 : Challenge MFA requis après login si MFA activé ──
 it('retourne un QR code SVG après activation MFA', function () {
@@ -142,7 +143,7 @@ it('crée un audit_log mfa_enable_initiated', function () {
 
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $user->id,
-        'action'  => 'mfa_enable_initiated',
+        'action' => 'mfa_enable_initiated',
     ]);
 });
 
@@ -158,7 +159,7 @@ it('crée un audit_log mfa_disabled', function () {
 
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $user->id,
-        'action'  => 'mfa_disabled',
+        'action' => 'mfa_disabled',
     ]);
 });
 

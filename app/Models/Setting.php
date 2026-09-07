@@ -13,14 +13,18 @@ use Illuminate\Support\Facades\Cache;
 class Setting extends Model
 {
     protected $table = 'app_settings';
+
     protected $primaryKey = 'key';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = ['key', 'value', 'label'];
 
     const KEY_NN300_CEILING = 'nn300_ceiling';
-    const KEY_TREATY_LIMIT  = 'treaty_limit';
+
+    const KEY_TREATY_LIMIT = 'treaty_limit';
 
     public static function get(string $key, mixed $default = null): mixed
     {

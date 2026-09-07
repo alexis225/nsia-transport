@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Tenant;
 use App\Models\TaxRule;
+use App\Models\Tenant;
 use App\Models\TenantGuaranteeRate;
 use App\Models\TransportMode;
 use Illuminate\Database\Seeder;
@@ -50,25 +50,27 @@ class TenantGuaranteeRateSeeder extends Seeder
 
         foreach ($barème as [$code, $fapSauf, $tousRisques, $accFapSauf, $accTousRisques, $pnFapSauf, $pnTousRisques, $notes]) {
             $tenant = Tenant::where('code', $code)->first();
-            if (! $tenant) continue;
+            if (! $tenant) {
+                continue;
+            }
 
             TenantGuaranteeRate::updateOrCreate(
                 ['tenant_id' => $tenant->id, 'coverage_type' => TenantGuaranteeRate::COVERAGE_FAP_SAUF],
                 [
-                    'min_rate_pct'           => $fapSauf,
+                    'min_rate_pct' => $fapSauf,
                     'min_accessories_amount' => $accFapSauf,
-                    'min_net_premium'        => $pnFapSauf,
-                    'notes'                  => $notes,
+                    'min_net_premium' => $pnFapSauf,
+                    'notes' => $notes,
                 ]
             );
 
             TenantGuaranteeRate::updateOrCreate(
                 ['tenant_id' => $tenant->id, 'coverage_type' => TenantGuaranteeRate::COVERAGE_TOUS_RISQUES],
                 [
-                    'min_rate_pct'           => $tousRisques,
+                    'min_rate_pct' => $tousRisques,
                     'min_accessories_amount' => $accTousRisques,
-                    'min_net_premium'        => $pnTousRisques,
-                    'notes'                  => $notes,
+                    'min_net_premium' => $pnTousRisques,
+                    'notes' => $notes,
                 ]
             );
         }
@@ -97,19 +99,23 @@ class TenantGuaranteeRateSeeder extends Seeder
 
         foreach ($parMode as $code => $rates) {
             $tenant = Tenant::where('code', $code)->first();
-            if (! $tenant) continue;
+            if (! $tenant) {
+                continue;
+            }
 
             foreach (['SEA' => $sea, 'AIR' => $air, 'ROAD' => $road] as $modeCode => $modeId) {
-                if (! $modeId) continue;
+                if (! $modeId) {
+                    continue;
+                }
 
                 TaxRule::updateOrCreate(
                     ['tenant_id' => $tenant->id, 'transport_mode_id' => $modeId, 'country_code' => null],
                     [
-                        'rate_pct'       => $rates[$modeCode],
+                        'rate_pct' => $rates[$modeCode],
                         'effective_date' => now()->startOfYear(),
-                        'end_date'       => null,
-                        'is_active'      => true,
-                        'notes'          => 'Taux par défaut par mode de transport (barème Groupe) — indépendant du pays de destination.',
+                        'end_date' => null,
+                        'is_active' => true,
+                        'notes' => 'Taux par défaut par mode de transport (barème Groupe) — indépendant du pays de destination.',
                     ]
                 );
             }
@@ -129,16 +135,18 @@ class TenantGuaranteeRateSeeder extends Seeder
 
         foreach ($unique as $code => $ratePct) {
             $tenant = Tenant::where('code', $code)->first();
-            if (! $tenant) continue;
+            if (! $tenant) {
+                continue;
+            }
 
             TaxRule::updateOrCreate(
                 ['tenant_id' => $tenant->id, 'transport_mode_id' => null, 'country_code' => null],
                 [
-                    'rate_pct'       => $ratePct,
+                    'rate_pct' => $ratePct,
                     'effective_date' => now()->startOfYear(),
-                    'end_date'       => null,
-                    'is_active'      => true,
-                    'notes'          => 'Taxe unique par défaut (barème Groupe) — indépendante du mode de transport et du pays de destination.',
+                    'end_date' => null,
+                    'is_active' => true,
+                    'notes' => 'Taxe unique par défaut (barème Groupe) — indépendante du mode de transport et du pays de destination.',
                 ]
             );
         }

@@ -30,14 +30,16 @@ function makeCtrLimSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
 function makeCtrLimAdmin(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
@@ -47,45 +49,45 @@ function makeCtrLimAdmin(?string $tenantId = null): User
 function makeCtrLimContract(Tenant $tenant, array $overrides = []): InsuranceContract
 {
     return InsuranceContract::create(array_merge([
-        'tenant_id'          => $tenant->id,
-        'contract_number'    => 'CTR-LIM-' . Str::random(8),
-        'type'               => 'OPEN_POLICY',
-        'insured_name'       => 'Société Test SA',
-        'currency_code'      => $tenant->currency_code,
+        'tenant_id' => $tenant->id,
+        'contract_number' => 'CTR-LIM-'.Str::random(8),
+        'type' => 'OPEN_POLICY',
+        'insured_name' => 'Société Test SA',
+        'currency_code' => $tenant->currency_code,
         'subscription_limit' => 10_000_000,
-        'used_limit'         => 0,
-        'status'             => 'ACTIVE',
-        'effective_date'     => now()->subMonth(),
-        'expiry_date'        => now()->addYear(),
-        'requires_approval'  => false,
+        'used_limit' => 0,
+        'status' => 'ACTIVE',
+        'effective_date' => now()->subMonth(),
+        'expiry_date' => now()->addYear(),
+        'requires_approval' => false,
     ], $overrides));
 }
 
 function makeCtrLimCertificate(InsuranceContract $contract, array $overrides = []): Certificate
 {
     return Certificate::create(array_merge([
-        'tenant_id'          => $contract->tenant_id,
-        'contract_id'        => $contract->id,
-        'certificate_number' => 'CERT-LIM-' . Str::random(6),
-        'policy_number'      => 'POL-LIM-' . Str::random(6),
-        'insured_name'       => 'Importateur Test',
-        'voyage_from'        => 'Abidjan',
-        'voyage_to'          => 'Lagos',
-        'voyage_date'        => now()->addWeek(),
-        'transport_type'     => 'SEA',
-        'currency_code'      => $contract->currency_code,
-        'insured_value'      => 1_000_000,
-        'prime_total'        => 10_000,
-        'status'             => Certificate::STATUS_ISSUED,
-        'issued_at'          => now(),
+        'tenant_id' => $contract->tenant_id,
+        'contract_id' => $contract->id,
+        'certificate_number' => 'CERT-LIM-'.Str::random(6),
+        'policy_number' => 'POL-LIM-'.Str::random(6),
+        'insured_name' => 'Importateur Test',
+        'voyage_from' => 'Abidjan',
+        'voyage_to' => 'Lagos',
+        'voyage_date' => now()->addWeek(),
+        'transport_type' => 'SEA',
+        'currency_code' => $contract->currency_code,
+        'insured_value' => 1_000_000,
+        'prime_total' => 10_000,
+        'status' => Certificate::STATUS_ISSUED,
+        'issued_at' => now(),
     ], $overrides));
 }
 
 // ── status() : indicateurs d'un contrat ──────────────────────────────
 
 it('status() retourne les indicateurs de plafond d\'un contrat', function () {
-    $tenant   = makeCtrLimTenant();
-    $admin    = makeCtrLimAdmin($tenant->id);
+    $tenant = makeCtrLimTenant();
+    $admin = makeCtrLimAdmin($tenant->id);
     $contract = makeCtrLimContract($tenant, ['subscription_limit' => 10_000_000, 'used_limit' => 5_000_000]);
 
     $response = $this->actingAs($admin)->get("/admin/contracts/{$contract->id}/limit-status");
@@ -102,8 +104,8 @@ it('status() retourne les indicateurs de plafond d\'un contrat', function () {
 });
 
 it('alert_level = critical à partir de 95% d\'utilisation du plafond', function () {
-    $tenant   = makeCtrLimTenant();
-    $admin    = makeCtrLimAdmin($tenant->id);
+    $tenant = makeCtrLimTenant();
+    $admin = makeCtrLimAdmin($tenant->id);
     $contract = makeCtrLimContract($tenant, ['subscription_limit' => 10_000_000, 'used_limit' => 9_500_000]);
 
     $this->actingAs($admin)->get("/admin/contracts/{$contract->id}/limit-status")
@@ -112,8 +114,8 @@ it('alert_level = critical à partir de 95% d\'utilisation du plafond', function
 });
 
 it('alert_level = warning entre 80% et 95% d\'utilisation du plafond', function () {
-    $tenant   = makeCtrLimTenant();
-    $admin    = makeCtrLimAdmin($tenant->id);
+    $tenant = makeCtrLimTenant();
+    $admin = makeCtrLimAdmin($tenant->id);
     $contract = makeCtrLimContract($tenant, ['subscription_limit' => 10_000_000, 'used_limit' => 8_500_000]);
 
     $this->actingAs($admin)->get("/admin/contracts/{$contract->id}/limit-status")
@@ -122,14 +124,14 @@ it('alert_level = warning entre 80% et 95% d\'utilisation du plafond', function 
 });
 
 it('le plafond effectif devient le plafond Traité une fois le NN300 débloqué', function () {
-    $tenant   = makeCtrLimTenant();
-    $admin    = makeCtrLimAdmin($tenant->id);
+    $tenant = makeCtrLimTenant();
+    $admin = makeCtrLimAdmin($tenant->id);
     $contract = makeCtrLimContract($tenant, [
         'subscription_limit' => 10_000_000,
-        'treaty_limit'       => 20_000_000,
-        'used_limit'         => 15_000_000,
-        'nn300_unlocked_at'  => now(),
-        'requires_approval'  => true,
+        'treaty_limit' => 20_000_000,
+        'used_limit' => 15_000_000,
+        'nn300_unlocked_at' => now(),
+        'requires_approval' => true,
     ]);
 
     $this->actingAs($admin)->get("/admin/contracts/{$contract->id}/limit-status")
@@ -140,25 +142,25 @@ it('le plafond effectif devient le plafond Traité une fois le NN300 débloqué'
 });
 
 it('isolation tenant : refuse le statut de plafond d\'un contrat d\'une autre filiale (403)', function () {
-    $tenantA  = makeCtrLimTenant();
-    $tenantB  = makeCtrLimTenant();
-    $admin    = makeCtrLimAdmin($tenantA->id);
+    $tenantA = makeCtrLimTenant();
+    $tenantB = makeCtrLimTenant();
+    $admin = makeCtrLimAdmin($tenantA->id);
     $contract = makeCtrLimContract($tenantB);
 
     $this->actingAs($admin)->get("/admin/contracts/{$contract->id}/limit-status")->assertStatus(403);
 });
 
 it('redirige vers /login si non authentifié (status)', function () {
-    $tenant   = makeCtrLimTenant();
+    $tenant = makeCtrLimTenant();
     $contract = makeCtrLimContract($tenant);
 
     $this->get("/admin/contracts/{$contract->id}/limit-status")->assertRedirect('/login');
 });
 
 it('status() retourne les derniers certificats émis dans recent_certs', function () {
-    $tenant      = makeCtrLimTenant();
-    $admin       = makeCtrLimAdmin($tenant->id);
-    $contract    = makeCtrLimContract($tenant);
+    $tenant = makeCtrLimTenant();
+    $admin = makeCtrLimAdmin($tenant->id);
+    $contract = makeCtrLimContract($tenant);
     $certificate = makeCtrLimCertificate($contract, ['insured_value' => 750_000]);
 
     $response = $this->actingAs($admin)->get("/admin/contracts/{$contract->id}/limit-status");
@@ -176,9 +178,9 @@ it('status() retourne les derniers certificats émis dans recent_certs', functio
 
 it('index() liste les contrats actifs avec plafond, triés par consommation décroissante', function () {
     $tenant = makeCtrLimTenant();
-    $admin  = makeCtrLimAdmin($tenant->id);
+    $admin = makeCtrLimAdmin($tenant->id);
 
-    $lowUsage  = makeCtrLimContract($tenant, ['subscription_limit' => 10_000_000, 'used_limit' => 1_000_000]);
+    $lowUsage = makeCtrLimContract($tenant, ['subscription_limit' => 10_000_000, 'used_limit' => 1_000_000]);
     $highUsage = makeCtrLimContract($tenant, ['subscription_limit' => 10_000_000, 'used_limit' => 9_000_000]);
 
     $response = $this->actingAs($admin)->get('/admin/contracts/limits');
@@ -194,7 +196,7 @@ it('index() liste les contrats actifs avec plafond, triés par consommation déc
 
 it('index() ignore les contrats sans plafond de souscription ou non actifs', function () {
     $tenant = makeCtrLimTenant();
-    $admin  = makeCtrLimAdmin($tenant->id);
+    $admin = makeCtrLimAdmin($tenant->id);
 
     makeCtrLimContract($tenant, ['subscription_limit' => null]);
     makeCtrLimContract($tenant, ['status' => 'DRAFT']);
@@ -211,7 +213,7 @@ it('index() ignore les contrats sans plafond de souscription ou non actifs', fun
 it('index() isole les contrats par filiale pour un admin_filiale', function () {
     $tenantA = makeCtrLimTenant();
     $tenantB = makeCtrLimTenant();
-    $admin   = makeCtrLimAdmin($tenantA->id);
+    $admin = makeCtrLimAdmin($tenantA->id);
     makeCtrLimContract($tenantA);
     makeCtrLimContract($tenantB);
 
@@ -222,7 +224,7 @@ it('index() isole les contrats par filiale pour un admin_filiale', function () {
 
 it('index() calcule les stats globales par niveau d\'alerte', function () {
     $tenant = makeCtrLimTenant();
-    $sa     = makeCtrLimSuperAdmin();
+    $sa = makeCtrLimSuperAdmin();
 
     makeCtrLimContract($tenant, ['subscription_limit' => 10_000_000, 'used_limit' => 9_600_000]); // critical
     makeCtrLimContract($tenant, ['subscription_limit' => 10_000_000, 'used_limit' => 8_500_000]); // warning

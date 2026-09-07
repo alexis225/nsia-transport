@@ -5,11 +5,13 @@ import type { CertificateForPrint } from './types';
 // imprimable — partagé par tous les modèles de souche (chaque pays ne
 // définit que les COORDONNÉES, jamais la logique d'extraction des
 // valeurs, pour éviter toute divergence entre pays sur le contenu).
-export function buildFieldValues(cert: CertificateForPrint): Record<string, string> {
+export function buildFieldValues(
+    cert: CertificateForPrint,
+): Record<string, string> {
     const contract = cert.contract;
     const settings = cert.tenant?.settings ?? {};
     const primes = cert.prime_breakdown ?? [];
-    const primeRow = (key: string) => primes.find(p => p.key === key) ?? null;
+    const primeRow = (key: string) => primes.find((p) => p.key === key) ?? null;
     const item = cert.expedition_items?.[0];
     const transportType = cert.transport_type ?? '';
 
@@ -41,7 +43,9 @@ export function buildFieldValues(cert: CertificateForPrint): Record<string, stri
         // Combiné pour les souches dont la case ASSURE n'offre qu'une
         // seule ligne libre (ex. Togo) — nom et adresse sur la même
         // ligne plutôt que deux champs superposés.
-        insured_name_and_address: [cert.insured_name, contract?.insured_address].filter(Boolean).join(' — '),
+        insured_name_and_address: [cert.insured_name, contract?.insured_address]
+            .filter(Boolean)
+            .join(' — '),
         insured_ref: cert.insured_ref ?? '',
         voyage_date: fmtDate(cert.voyage_date),
         voyage_from: cert.voyage_from ?? '',
@@ -55,19 +59,26 @@ export function buildFieldValues(cert: CertificateForPrint): Record<string, stri
         voyage_mode: cert.voyage_mode ?? '',
         marks: item?.marks ?? '',
         package_numbers: item?.package_numbers ?? '',
-        package_count: item?.package_count != null ? String(item.package_count) : '',
+        package_count:
+            item?.package_count != null ? String(item.package_count) : '',
         weight: item?.weight ?? '',
         nature: item?.nature ?? '',
         packaging: item?.packaging ?? '',
         insured_value: fmt(cert.insured_value, cert.currency_code),
         insured_value_letters: cert.insured_value_letters ?? '',
         guarantee_mode: cert.guarantee_mode ?? contract?.coverage_type ?? '',
-        rate_ro: ro.rate, amount_ro: ro.amount,
-        rate_rg: rg.rate, amount_rg: rg.amount,
-        rate_surprime: surprime.rate, amount_surprime: surprime.amount,
-        rate_divers: divers.rate, amount_divers: divers.amount,
-        rate_accessoires: accessoires.rate, amount_accessoires: accessoires.amount,
-        rate_taxe: taxe.rate, amount_taxe: taxe.amount,
+        rate_ro: ro.rate,
+        amount_ro: ro.amount,
+        rate_rg: rg.rate,
+        amount_rg: rg.amount,
+        rate_surprime: surprime.rate,
+        amount_surprime: surprime.amount,
+        rate_divers: divers.rate,
+        amount_divers: divers.amount,
+        rate_accessoires: accessoires.rate,
+        amount_accessoires: accessoires.amount,
+        rate_taxe: taxe.rate,
+        amount_taxe: taxe.amount,
         // prime_nette est une colonne propre du certificat (somme
         // RO+RG+Divers+Surprime déjà calculée), PAS une ligne de
         // prime_breakdown — contrairement aux autres montants ci-dessus.
@@ -75,6 +86,8 @@ export function buildFieldValues(cert: CertificateForPrint): Record<string, stri
         amount_prime_nette: fmt(cert.prime_nette, cert.currency_code),
         prime_total: fmt(cert.prime_total, cert.currency_code),
         currency_code: cert.currency_code ?? '',
-        issued_by: cert.issued_by ? `${cert.issued_by.first_name} ${cert.issued_by.last_name}` : '',
+        issued_by: cert.issued_by
+            ? `${cert.issued_by.first_name} ${cert.issued_by.last_name}`
+            : '',
     };
 }

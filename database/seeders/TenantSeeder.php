@@ -31,6 +31,7 @@ class TenantSeeder extends Seeder
         foreach ($tenants as $data) {
             if (DB::table('tenants')->where('code', $data['code'])->exists()) {
                 $this->command->line("  → <comment>{$data['code']}</comment> déjà existant, ignoré.");
+
                 continue;
             }
 
@@ -38,24 +39,24 @@ class TenantSeeder extends Seeder
             $id = (string) Str::uuid();
 
             DB::table('tenants')->insert([
-                'id'                        => $id,
-                'code'                      => $data['code'],
-                'name'                      => $data['name'],
-                'country_code'              => $data['country_code'],
-                'currency_code'             => $data['currency_code'],
-                'has_state_platform'        => $data['has_state_platform'],
-                'state_platform_name'       => $data['state_platform_name'],
-                'state_platform_api_url'    => $data['state_platform_api_url'],
-                'is_active'                 => true,
-                'settings'                  => json_encode($data['settings']),
+                'id' => $id,
+                'code' => $data['code'],
+                'name' => $data['name'],
+                'country_code' => $data['country_code'],
+                'currency_code' => $data['currency_code'],
+                'has_state_platform' => $data['has_state_platform'],
+                'state_platform_name' => $data['state_platform_name'],
+                'state_platform_api_url' => $data['state_platform_api_url'],
+                'is_active' => true,
+                'settings' => json_encode($data['settings']),
                 'subscription_limit_config' => json_encode([]),
-                'created_at'                => now(),
-                'updated_at'                => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $this->command->line("  → <info>{$data['code']}</info> — {$data['name']} ({$id})");
         }
 
-        $this->command->info('✅ ' . count($tenants) . ' filiales traitées.');
+        $this->command->info('✅ '.count($tenants).' filiales traitées.');
     }
 }

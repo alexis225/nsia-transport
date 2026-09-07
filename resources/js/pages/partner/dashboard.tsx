@@ -1,33 +1,66 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Briefcase, FilePlus2, Inbox, Clock, CheckCircle2, XCircle, AlertTriangle, Bell, X, Award } from 'lucide-react';
+import {
+    Briefcase,
+    FilePlus2,
+    Inbox,
+    Clock,
+    CheckCircle2,
+    XCircle,
+    AlertTriangle,
+    Bell,
+    X,
+    Award,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
-interface NotificationItem { id: string; title: string; body: string; url: string | null; }
+interface NotificationItem {
+    id: string;
+    title: string;
+    body: string;
+    url: string | null;
+}
 
 interface Props {
     broker: { id: string; name: string; code: string; type: string } | null;
     tenant: { id: string; name: string; code: string } | null;
-    counts: { pending: number; in_review: number; approved: number; rejected: number } | null;
+    counts: {
+        pending: number;
+        in_review: number;
+        approved: number;
+        rejected: number;
+    } | null;
     certificateCounts: { issued: number; guce: number } | null;
     notifications: NotificationItem[];
 }
 
-interface BarDatum { key: string; label: string; value: number; color: string; icon?: any; }
+interface BarDatum {
+    key: string;
+    label: string;
+    value: number;
+    color: string;
+    icon?: any;
+}
 
 function MiniBarChart({ title, data }: { title: string; data: BarDatum[] }) {
     const [hovered, setHovered] = useState<string | null>(null);
-    const maxValue = Math.max(1, ...data.map(d => d.value));
+    const maxValue = Math.max(1, ...data.map((d) => d.value));
 
     return (
         <div className="pd-chart">
             <div className="pd-chart-title">{title}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {data.map(d => {
-                    const pct = d.value === 0 ? 0 : Math.max(4, Math.round((d.value / maxValue) * 100));
+                {data.map((d) => {
+                    const pct =
+                        d.value === 0
+                            ? 0
+                            : Math.max(
+                                  4,
+                                  Math.round((d.value / maxValue) * 100),
+                              );
                     const isHovered = hovered === d.key;
                     const Icon = d.icon;
 
@@ -40,23 +73,72 @@ function MiniBarChart({ title, data }: { title: string; data: BarDatum[] }) {
                             onFocus={() => setHovered(d.key)}
                             onBlur={() => setHovered(null)}
                             tabIndex={0}
-                            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', outline: 'none' }}>
-                            <div style={{ width: 150, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                                padding: '5px 0',
+                                outline: 'none',
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: 150,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    flexShrink: 0,
+                                }}
+                            >
                                 {Icon && <Icon size={13} color="#64748b" />}
-                                <span style={{ fontSize: 12, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.label}</span>
+                                <span
+                                    style={{
+                                        fontSize: 12,
+                                        color: '#475569',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                    }}
+                                >
+                                    {d.label}
+                                </span>
                             </div>
-                            <div style={{ flex: 1, height: 18, background: '#f1f5f9', borderRadius: 4, position: 'relative' }}>
-                                <div style={{
-                                    height: '100%',
-                                    width: `${pct}%`,
-                                    background: d.color,
-                                    borderRadius: '0 4px 4px 0',
-                                    opacity: hovered && !isHovered ? 0.55 : 1,
-                                    boxShadow: isHovered ? '0 0 0 2px rgba(30,41,59,0.12)' : 'none',
-                                    transition: 'opacity .12s, box-shadow .12s',
-                                }} />
+                            <div
+                                style={{
+                                    flex: 1,
+                                    height: 18,
+                                    background: '#f1f5f9',
+                                    borderRadius: 4,
+                                    position: 'relative',
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        height: '100%',
+                                        width: `${pct}%`,
+                                        background: d.color,
+                                        borderRadius: '0 4px 4px 0',
+                                        opacity:
+                                            hovered && !isHovered ? 0.55 : 1,
+                                        boxShadow: isHovered
+                                            ? '0 0 0 2px rgba(30,41,59,0.12)'
+                                            : 'none',
+                                        transition:
+                                            'opacity .12s, box-shadow .12s',
+                                    }}
+                                />
                             </div>
-                            <div style={{ width: 28, textAlign: 'right', fontSize: 12.5, fontWeight: 600, color: '#1e293b', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                            <div
+                                style={{
+                                    width: 28,
+                                    textAlign: 'right',
+                                    fontSize: 12.5,
+                                    fontWeight: 600,
+                                    color: '#1e293b',
+                                    fontVariantNumeric: 'tabular-nums',
+                                    flexShrink: 0,
+                                }}
+                            >
                                 {d.value}
                             </div>
                         </div>
@@ -67,7 +149,13 @@ function MiniBarChart({ title, data }: { title: string; data: BarDatum[] }) {
     );
 }
 
-export default function PartnerDashboard({ broker, tenant, counts, certificateCounts, notifications: initialNotifications }: Props) {
+export default function PartnerDashboard({
+    broker,
+    tenant,
+    counts,
+    certificateCounts,
+    notifications: initialNotifications,
+}: Props) {
     const { t } = useTranslation('dashboard');
     const [notifications, setNotifications] = useState(initialNotifications);
 
@@ -76,8 +164,12 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
     ];
 
     function dismiss(id: string) {
-        setNotifications(prev => prev.filter(n => n.id !== id));
-        router.patch(route('partner.notifications.read', { id }), {}, { preserveState: true, preserveScroll: true });
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+        router.patch(
+            route('partner.notifications.read', { id }),
+            {},
+            { preserveState: true, preserveScroll: true },
+        );
     }
 
     function open(notif: NotificationItem) {
@@ -117,37 +209,94 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
                 <div className="pd-wrap">
                     <div className="pd-hero">
                         <div className="pd-hero-left">
-                            <div className="pd-hero-ico"><Briefcase size={22} color="rgba(255,255,255,0.85)" /></div>
+                            <div className="pd-hero-ico">
+                                <Briefcase
+                                    size={22}
+                                    color="rgba(255,255,255,0.85)"
+                                />
+                            </div>
                             <div>
-                                <div className="pd-hero-title">{broker ? broker.name : t('partner.hero')}</div>
+                                <div className="pd-hero-title">
+                                    {broker ? broker.name : t('partner.hero')}
+                                </div>
                                 <div className="pd-hero-sub">
-                                    {broker ? `${broker.code} · ${tenant?.name ?? '—'}` : t('partner.welcome')}
+                                    {broker
+                                        ? `${broker.code} · ${tenant?.name ?? '—'}`
+                                        : t('partner.welcome')}
                                 </div>
                             </div>
                         </div>
                         {broker && (
-                            <Link href={route('partner.certificate-requests.create')}>
-                                <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-10 px-4" variant="outline">
-                                    <FilePlus2 size={15} /> {t('partner.newRequest')}
+                            <Link
+                                href={route(
+                                    'partner.certificate-requests.create',
+                                )}
+                            >
+                                <Button
+                                    className="h-10 border-white/20 bg-white/10 px-4 text-white hover:bg-white/20"
+                                    variant="outline"
+                                >
+                                    <FilePlus2 size={15} />{' '}
+                                    {t('partner.newRequest')}
                                 </Button>
                             </Link>
                         )}
                     </div>
 
                     {notifications.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {notifications.map(notif => (
-                                <div key={notif.id} className="pd-notif" onClick={() => open(notif)}>
-                                    <Bell size={16} color="#1d4ed8" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 8,
+                            }}
+                        >
+                            {notifications.map((notif) => (
+                                <div
+                                    key={notif.id}
+                                    className="pd-notif"
+                                    onClick={() => open(notif)}
+                                >
+                                    <Bell
+                                        size={16}
+                                        color="#1d4ed8"
+                                        style={{ flexShrink: 0, marginTop: 2 }}
+                                    />
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: 13, fontWeight: 600, color: '#1e3a8a' }}>{notif.title}</div>
-                                        {notif.body && <div style={{ fontSize: 12, color: '#1e40af', marginTop: 2 }}>{notif.body}</div>}
-                                    </div>
-                                    <button onClick={e => {
-                                                e.stopPropagation();
-                                                dismiss(notif.id);
+                                        <div
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                color: '#1e3a8a',
                                             }}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', flexShrink: 0 }}>
+                                        >
+                                            {notif.title}
+                                        </div>
+                                        {notif.body && (
+                                            <div
+                                                style={{
+                                                    fontSize: 12,
+                                                    color: '#1e40af',
+                                                    marginTop: 2,
+                                                }}
+                                            >
+                                                {notif.body}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            dismiss(notif.id);
+                                        }}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            color: '#60a5fa',
+                                            flexShrink: 0,
+                                        }}
+                                    >
                                         <X size={14} />
                                     </button>
                                 </div>
@@ -157,10 +306,28 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
 
                     {!broker ? (
                         <div className="pd-warn">
-                            <AlertTriangle size={20} color="#b45309" style={{ flexShrink: 0, marginTop: 2 }} />
+                            <AlertTriangle
+                                size={20}
+                                color="#b45309"
+                                style={{ flexShrink: 0, marginTop: 2 }}
+                            />
                             <div>
-                                <div style={{ fontWeight: 600, fontSize: 13, color: '#92400e' }}>{t('partner.unlinked.title')}</div>
-                                <div style={{ fontSize: 12.5, color: '#92400e', marginTop: 3 }}>
+                                <div
+                                    style={{
+                                        fontWeight: 600,
+                                        fontSize: 13,
+                                        color: '#92400e',
+                                    }}
+                                >
+                                    {t('partner.unlinked.title')}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 12.5,
+                                        color: '#92400e',
+                                        marginTop: 3,
+                                    }}
+                                >
                                     {t('partner.unlinked.text')}
                                 </div>
                             </div>
@@ -169,24 +336,63 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
                         <>
                             <div className="pd-stats">
                                 <div className="pd-stat">
-                                    <div className="pd-stat-ico" style={{ background: '#fffbeb' }}><Clock size={17} color="#d97706" /></div>
-                                    <div className="pd-stat-val">{counts?.pending ?? 0}</div>
-                                    <div className="pd-stat-lbl">{t('partner.stats.pending')}</div>
+                                    <div
+                                        className="pd-stat-ico"
+                                        style={{ background: '#fffbeb' }}
+                                    >
+                                        <Clock size={17} color="#d97706" />
+                                    </div>
+                                    <div className="pd-stat-val">
+                                        {counts?.pending ?? 0}
+                                    </div>
+                                    <div className="pd-stat-lbl">
+                                        {t('partner.stats.pending')}
+                                    </div>
                                 </div>
                                 <div className="pd-stat">
-                                    <div className="pd-stat-ico" style={{ background: '#eff6ff' }}><Inbox size={17} color="#2563eb" /></div>
-                                    <div className="pd-stat-val">{counts?.in_review ?? 0}</div>
-                                    <div className="pd-stat-lbl">{t('partner.stats.inReview')}</div>
+                                    <div
+                                        className="pd-stat-ico"
+                                        style={{ background: '#eff6ff' }}
+                                    >
+                                        <Inbox size={17} color="#2563eb" />
+                                    </div>
+                                    <div className="pd-stat-val">
+                                        {counts?.in_review ?? 0}
+                                    </div>
+                                    <div className="pd-stat-lbl">
+                                        {t('partner.stats.inReview')}
+                                    </div>
                                 </div>
                                 <div className="pd-stat">
-                                    <div className="pd-stat-ico" style={{ background: '#f0fdf4' }}><CheckCircle2 size={17} color="#16a34a" /></div>
-                                    <div className="pd-stat-val">{counts?.approved ?? 0}</div>
-                                    <div className="pd-stat-lbl">{t('partner.stats.approved')}</div>
+                                    <div
+                                        className="pd-stat-ico"
+                                        style={{ background: '#f0fdf4' }}
+                                    >
+                                        <CheckCircle2
+                                            size={17}
+                                            color="#16a34a"
+                                        />
+                                    </div>
+                                    <div className="pd-stat-val">
+                                        {counts?.approved ?? 0}
+                                    </div>
+                                    <div className="pd-stat-lbl">
+                                        {t('partner.stats.approved')}
+                                    </div>
                                 </div>
                                 <div className="pd-stat">
-                                    <div className="pd-stat-ico" style={{ background: '#fef2f2' }}><XCircle size={17} color="#dc2626" /></div>
-                                    <div className="pd-stat-val">{counts?.rejected ?? 0}</div>
-                                    <div className="pd-stat-lbl">{t('partner.stats.rejected')}</div>
+                                    <div
+                                        className="pd-stat-ico"
+                                        style={{ background: '#fef2f2' }}
+                                    >
+                                        <XCircle size={17} color="#dc2626" />
+                                    </div>
+                                    <div className="pd-stat-val">
+                                        {counts?.rejected ?? 0}
+                                    </div>
+                                    <div className="pd-stat-lbl">
+                                        {t('partner.stats.rejected')}
+                                    </div>
                                 </div>
                             </div>
 
@@ -194,23 +400,72 @@ export default function PartnerDashboard({ broker, tenant, counts, certificateCo
                                 <MiniBarChart
                                     title={t('partner.charts.requests')}
                                     data={[
-                                        { key: 'pending',   label: t('partner.stats.pending'),   value: counts?.pending   ?? 0, color: '#fab219', icon: Clock },
-                                        { key: 'in_review', label: t('partner.stats.inReview'),  value: counts?.in_review ?? 0, color: '#2a78d6', icon: Inbox },
-                                        { key: 'approved',  label: t('partner.stats.approved'),  value: counts?.approved  ?? 0, color: '#0ca30c', icon: CheckCircle2 },
-                                        { key: 'rejected',  label: t('partner.stats.rejected'),  value: counts?.rejected  ?? 0, color: '#d03b3b', icon: XCircle },
+                                        {
+                                            key: 'pending',
+                                            label: t('partner.stats.pending'),
+                                            value: counts?.pending ?? 0,
+                                            color: '#fab219',
+                                            icon: Clock,
+                                        },
+                                        {
+                                            key: 'in_review',
+                                            label: t('partner.stats.inReview'),
+                                            value: counts?.in_review ?? 0,
+                                            color: '#2a78d6',
+                                            icon: Inbox,
+                                        },
+                                        {
+                                            key: 'approved',
+                                            label: t('partner.stats.approved'),
+                                            value: counts?.approved ?? 0,
+                                            color: '#0ca30c',
+                                            icon: CheckCircle2,
+                                        },
+                                        {
+                                            key: 'rejected',
+                                            label: t('partner.stats.rejected'),
+                                            value: counts?.rejected ?? 0,
+                                            color: '#d03b3b',
+                                            icon: XCircle,
+                                        },
                                     ]}
                                 />
                                 <MiniBarChart
                                     title={t('partner.charts.certificates')}
                                     data={[
-                                        { key: 'issued', label: t('partner.charts.issued'), value: certificateCounts?.issued ?? 0, color: '#2a78d6', icon: Award },
-                                        { key: 'guce',   label: t('partner.charts.guce'),   value: certificateCounts?.guce   ?? 0, color: '#008300', icon: Award },
+                                        {
+                                            key: 'issued',
+                                            label: t('partner.charts.issued'),
+                                            value:
+                                                certificateCounts?.issued ?? 0,
+                                            color: '#2a78d6',
+                                            icon: Award,
+                                        },
+                                        {
+                                            key: 'guce',
+                                            label: t('partner.charts.guce'),
+                                            value: certificateCounts?.guce ?? 0,
+                                            color: '#008300',
+                                            icon: Award,
+                                        },
                                     ]}
                                 />
                             </div>
 
-                            <Link href={route('partner.certificate-requests.index')}
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#1e3a8a', fontWeight: 500, textDecoration: 'none' }}>
+                            <Link
+                                href={route(
+                                    'partner.certificate-requests.index',
+                                )}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    fontSize: 13,
+                                    color: '#1e3a8a',
+                                    fontWeight: 500,
+                                    textDecoration: 'none',
+                                }}
+                            >
                                 <Inbox size={14} /> {t('partner.allRequests')}
                             </Link>
                         </>

@@ -21,8 +21,9 @@ beforeEach(function () {
 function makeAdmin(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
@@ -30,21 +31,23 @@ function makeSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
 function makeCourtier(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('courtier_local');
+
     return $user;
 }
 
 // ── Test 1 : Admin filiale bloque un courtier ────────────────
 it('admin_filiale peut bloquer un courtier de sa filiale', function () {
-    $tenant   = Tenant::factory()->create();
-    $admin    = makeAdmin($tenant->id);
+    $tenant = Tenant::factory()->create();
+    $admin = makeAdmin($tenant->id);
     $courtier = makeCourtier($tenant->id);
 
     $this->actingAs($admin);
@@ -56,12 +59,12 @@ it('admin_filiale peut bloquer un courtier de sa filiale', function () {
     $courtier->refresh();
 
     expect($courtier->is_active)->toBeFalse();
-    //expect($courtier->blocked_by)->toBe($admin->id);
+    // expect($courtier->blocked_by)->toBe($admin->id);
     expect($courtier->blocked_reason)->toBe('Comportement suspect détecté.');
     expect($courtier->blocked_at)->not->toBeNull();
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $admin->id,
-        'action'  => 'user_blocked',
+        'action' => 'user_blocked',
     ]);
 });
 
@@ -71,7 +74,7 @@ it('un utilisateur bloqué ne peut pas se connecter', function () {
     $courtier->update(['is_active' => false]);
 
     $this->post('/login', [
-        'email'    => $courtier->email,
+        'email' => $courtier->email,
         'password' => 'password',
     ])->assertSessionHasErrors();
 
@@ -80,9 +83,9 @@ it('un utilisateur bloqué ne peut pas se connecter', function () {
 
 // ── Test 3 : Admin ne peut pas bloquer hors de sa filiale ────
 it('admin_filiale ne peut pas bloquer un utilisateur d\'une autre filiale', function () {
-    $tenantA  = Tenant::factory()->create();
-    $tenantB  = Tenant::factory()->create();
-    $admin    = makeAdmin($tenantA->id);
+    $tenantA = Tenant::factory()->create();
+    $tenantB = Tenant::factory()->create();
+    $admin = makeAdmin($tenantA->id);
     $courtier = makeCourtier($tenantB->id);
 
     $this->actingAs($admin);
@@ -108,7 +111,7 @@ it('admin ne peut pas se bloquer lui-même', function () {
 
 // ── Test 5 : Admin ne peut pas bloquer un super admin ────────
 it('admin_filiale ne peut pas bloquer un super_admin', function () {
-    $admin      = makeAdmin();
+    $admin = makeAdmin();
     $superAdmin = makeSuperAdmin();
 
     $this->actingAs($admin);
@@ -124,9 +127,9 @@ it('admin_filiale ne peut pas bloquer un super_admin', function () {
 it('super_admin peut débloquer un utilisateur bloqué', function () {
     $courtier = makeCourtier();
     $courtier->update([
-        'is_active'      => false,
-        'blocked_by'     => $courtier->id,
-        'blocked_at'     => now(),
+        'is_active' => false,
+        'blocked_by' => $courtier->id,
+        'blocked_at' => now(),
         'blocked_reason' => 'Test blocage.',
     ]);
 
@@ -146,8 +149,8 @@ it('super_admin peut débloquer un utilisateur bloqué', function () {
 
 // ── Test 7 : Admin filiale ne peut pas débloquer ─────────────
 it('admin_filiale ne peut pas débloquer (permission manquante)', function () {
-    $tenant   = Tenant::factory()->create();
-    $admin    = makeAdmin($tenant->id);
+    $tenant = Tenant::factory()->create();
+    $admin = makeAdmin($tenant->id);
     $courtier = makeCourtier($tenant->id);
     $courtier->update(['is_active' => false]);
 
@@ -161,8 +164,8 @@ it('admin_filiale ne peut pas débloquer (permission manquante)', function () {
 
 // ── Test 8 : Raison obligatoire pour bloquer ─────────────────
 it('la raison est obligatoire pour bloquer', function () {
-    $tenant   = Tenant::factory()->create();
-    $admin    = makeAdmin($tenant->id);
+    $tenant = Tenant::factory()->create();
+    $admin = makeAdmin($tenant->id);
     $courtier = makeCourtier($tenant->id);
 
     $this->actingAs($admin);
@@ -176,8 +179,8 @@ it('la raison est obligatoire pour bloquer', function () {
 
 // ── Test 9 : Audit log créé au blocage ───────────────────────
 it('crée un audit_log user_blocked', function () {
-    $tenant   = Tenant::factory()->create();
-    $admin    = makeAdmin($tenant->id);
+    $tenant = Tenant::factory()->create();
+    $admin = makeAdmin($tenant->id);
     $courtier = makeCourtier($tenant->id);
 
     $this->actingAs($admin);
@@ -187,10 +190,10 @@ it('crée un audit_log user_blocked', function () {
     ]);
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'        => $admin->id,
-        'action'         => 'user_blocked',
+        'user_id' => $admin->id,
+        'action' => 'user_blocked',
         'entity_type' => 'user',
-        'entity_id'   => $courtier->id,
+        'entity_id' => $courtier->id,
     ]);
 });
 
@@ -205,10 +208,10 @@ it('crée un audit_log user_unblocked', function () {
     $this->patch("/admin/users/{$courtier->id}/unblock");
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'        => $superAdmin->id,
-        'action'         => 'user_unblocked',
+        'user_id' => $superAdmin->id,
+        'action' => 'user_unblocked',
         'entity_type' => 'user',
-        'entity_id'   => $courtier->id,
+        'entity_id' => $courtier->id,
     ]);
 });
 

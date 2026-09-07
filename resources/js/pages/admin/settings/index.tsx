@@ -1,12 +1,12 @@
 import { Head, useForm } from '@inertiajs/react';
+import { Settings, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
 import { AmountInput } from '@/components/amount-input';
 import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Settings, Check } from 'lucide-react';
 
 interface Props {
     nn300Ceiling: number;
@@ -16,13 +16,12 @@ interface Props {
 export default function SettingsIndex({ nn300Ceiling, treatyLimit }: Props) {
     const { t } = useTranslation('adminSettings');
     const { t: tc } = useTranslation('common');
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('breadcrumb') },
-    ];
-    const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
-        nn300_ceiling: String(nn300Ceiling),
-        treaty_limit:  String(treatyLimit),
-    });
+    const breadcrumbs: BreadcrumbItem[] = [{ title: t('breadcrumb') }];
+    const { data, setData, put, processing, errors, recentlySuccessful } =
+        useForm({
+            nn300_ceiling: String(nn300Ceiling),
+            treaty_limit: String(treatyLimit),
+        });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,7 +30,7 @@ export default function SettingsIndex({ nn300Ceiling, treatyLimit }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('title')}/>
+            <Head title={t('title')} />
             <style>{`
                 .set-wrap{width:100%;max-width:640px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .set-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;}
@@ -50,43 +49,97 @@ export default function SettingsIndex({ nn300Ceiling, treatyLimit }: Props) {
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="set-wrap">
                     <div className="set-hero">
-                        <div className="set-hero-ico"><Settings size={22} color="rgba(255,255,255,0.8)"/></div>
+                        <div className="set-hero-ico">
+                            <Settings size={22} color="rgba(255,255,255,0.8)" />
+                        </div>
                         <div>
                             <div className="set-hero-title">{t('heading')}</div>
                             <div className="set-hero-sub">{t('subtitle')}</div>
                         </div>
                     </div>
 
-                    <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                    <form
+                        onSubmit={submit}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
+                    >
                         <div className="set-card">
                             <div className="set-card-hdr">
-                                <div className="set-card-ttl">{t('ceilings.title')}</div>
+                                <div className="set-card-ttl">
+                                    {t('ceilings.title')}
+                                </div>
                                 <div className="set-card-sub">
                                     {t('ceilings.description')}
                                 </div>
                             </div>
                             <div className="set-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="set-label">{t('ceilings.nn300Label')}</Label>
-                                    <AmountInput className="h-11" value={data.nn300_ceiling} onChange={v => setData('nn300_ceiling', v)}/>
-                                    <InputError message={errors.nn300_ceiling}/>
+                                    <Label className="set-label">
+                                        {t('ceilings.nn300Label')}
+                                    </Label>
+                                    <AmountInput
+                                        className="h-11"
+                                        value={data.nn300_ceiling}
+                                        onChange={(v) =>
+                                            setData('nn300_ceiling', v)
+                                        }
+                                    />
+                                    <InputError
+                                        message={errors.nn300_ceiling}
+                                    />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="set-label">{t('ceilings.treatyLabel')}</Label>
-                                    <AmountInput className="h-11" value={data.treaty_limit} onChange={v => setData('treaty_limit', v)}/>
-                                    <InputError message={errors.treaty_limit}/>
-                                    <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                    <Label className="set-label">
+                                        {t('ceilings.treatyLabel')}
+                                    </Label>
+                                    <AmountInput
+                                        className="h-11"
+                                        value={data.treaty_limit}
+                                        onChange={(v) =>
+                                            setData('treaty_limit', v)
+                                        }
+                                    />
+                                    <InputError message={errors.treaty_limit} />
+                                    <p
+                                        style={{
+                                            fontSize: 11,
+                                            color: '#94a3b8',
+                                        }}
+                                    >
                                         {t('ceilings.treatyHint')}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                            <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? t('saving') : <><Check size={14}/> {tc('actions.save')}</>}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                            }}
+                        >
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                            >
+                                {processing ? (
+                                    t('saving')
+                                ) : (
+                                    <>
+                                        <Check size={14} /> {tc('actions.save')}
+                                    </>
+                                )}
                             </Button>
-                            {recentlySuccessful && <span className="status-ok"><Check size={13}/> {t('saved')}</span>}
+                            {recentlySuccessful && (
+                                <span className="status-ok">
+                                    <Check size={13} /> {t('saved')}
+                                </span>
+                            )}
                         </div>
                     </form>
                 </div>

@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
 import { useRecaptchaToken } from '@/hooks/use-recaptcha-token';
+import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
@@ -24,7 +24,10 @@ export default function Register() {
             <Head title={t('register.title')} />
             <Form
                 {...store.form()}
-                transform={(data) => ({ ...data, 'g-recaptcha-response': recaptchaToken ?? '' })}
+                transform={(data) => ({
+                    ...data,
+                    'g-recaptcha-response': recaptchaToken ?? '',
+                })}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
                 className="flex flex-col gap-6"
@@ -33,7 +36,9 @@ export default function Register() {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">{t('register.name')}</Label>
+                                <Label htmlFor="name">
+                                    {t('register.name')}
+                                </Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -51,7 +56,9 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">{t('register.email')}</Label>
+                                <Label htmlFor="email">
+                                    {t('register.email')}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -65,7 +72,9 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password">{t('register.password')}</Label>
+                                <Label htmlFor="password">
+                                    {t('register.password')}
+                                </Label>
                                 <PasswordInput
                                     id="password"
                                     required
@@ -87,7 +96,9 @@ export default function Register() {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
-                                    placeholder={t('register.confirmPlaceholder')}
+                                    placeholder={t(
+                                        'register.confirmPlaceholder',
+                                    )}
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
@@ -95,7 +106,9 @@ export default function Register() {
                             </div>
 
                             {errors['g-recaptcha-response'] && (
-                                <InputError message={errors['g-recaptcha-response']} />
+                                <InputError
+                                    message={errors['g-recaptcha-response']}
+                                />
                             )}
 
                             <Button

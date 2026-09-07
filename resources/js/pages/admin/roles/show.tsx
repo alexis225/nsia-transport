@@ -1,77 +1,271 @@
-import { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
-    ArrowLeft, Shield, Users, Lock, Check,
-    Search, UserCog, ChevronLeft, ChevronRight,
-    X, AlertCircle, Loader2,
+    ArrowLeft,
+    Users,
+    Check,
+    Search,
+    UserCog,
+    ChevronLeft,
+    ChevronRight,
+    X,
+    AlertCircle,
+    Loader2,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
-interface Permission { id: number; name: string; }
-interface Role { id: number; name: string; permissions: Permission[]; }
+interface Permission {
+    id: number;
+    name: string;
+}
+interface Role {
+    id: number;
+    name: string;
+    permissions: Permission[];
+}
 interface User {
-    id: string; first_name: string; last_name: string;
-    email: string; is_active: boolean;
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    is_active: boolean;
     tenant: { name: string } | null;
 }
 interface Paginated<T> {
-    data: T[]; current_page: number; last_page: number; total: number;
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
-    role:           Role;
-    users:          Paginated<User>;
+    role: Role;
+    users: Paginated<User>;
     allPermissions: Record<string, Permission[]>;
 }
 
-const ROLE_COLORS: Record<string, { bg: string; color: string; avatarBg: string; avatarColor: string }> = {
-    super_admin:         { bg:'#EEF2FF', color:'#4338CA', avatarBg:'#4338CA', avatarColor:'#fff' },
-    admin_filiale:       { bg:'#ECFDF5', color:'#065F46', avatarBg:'#065F46', avatarColor:'#fff' },
-    souscripteur:        { bg:'#EFF6FF', color:'#1D4ED8', avatarBg:'#1D4ED8', avatarColor:'#fff' },
-    courtier_local:      { bg:'#FFF7ED', color:'#C2410C', avatarBg:'#C2410C', avatarColor:'#fff' },
-    partenaire_etranger: { bg:'#FDF4FF', color:'#7E22CE', avatarBg:'#7E22CE', avatarColor:'#fff' },
-    client:              { bg:'#F9FAFB', color:'#374151', avatarBg:'#374151', avatarColor:'#fff' },
+const ROLE_COLORS: Record<
+    string,
+    { bg: string; color: string; avatarBg: string; avatarColor: string }
+> = {
+    super_admin: {
+        bg: '#EEF2FF',
+        color: '#4338CA',
+        avatarBg: '#4338CA',
+        avatarColor: '#fff',
+    },
+    admin_filiale: {
+        bg: '#ECFDF5',
+        color: '#065F46',
+        avatarBg: '#065F46',
+        avatarColor: '#fff',
+    },
+    souscripteur: {
+        bg: '#EFF6FF',
+        color: '#1D4ED8',
+        avatarBg: '#1D4ED8',
+        avatarColor: '#fff',
+    },
+    courtier_local: {
+        bg: '#FFF7ED',
+        color: '#C2410C',
+        avatarBg: '#C2410C',
+        avatarColor: '#fff',
+    },
+    partenaire_etranger: {
+        bg: '#FDF4FF',
+        color: '#7E22CE',
+        avatarBg: '#7E22CE',
+        avatarColor: '#fff',
+    },
+    client: {
+        bg: '#F9FAFB',
+        color: '#374151',
+        avatarBg: '#374151',
+        avatarColor: '#fff',
+    },
 };
 
 // ── Modal assigner rôle ───────────────────────────────────────
-function AssignModal({ roleId, roleName, onClose }: { roleId: number; roleName: string; onClose: () => void }) {
+function AssignModal({
+    roleName,
+    onClose,
+}: {
+    roleName: string;
+    onClose: () => void;
+}) {
     const { t } = useTranslation('roles');
     const { t: tc } = useTranslation('common');
-    const { data, setData, post, processing, errors } = useForm({ user_id:'', role: roleName });
+    const { data, setData, post, processing, errors } = useForm({
+        user_id: '',
+        role: roleName,
+    });
 
     return (
-        <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
-            <div style={{ background:'#fff', borderRadius:14, width:'100%', maxWidth:420, border:'1.5px solid #e2e8f0', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
-                <div style={{ padding:'18px 22px', borderBottom:'1px solid #f1f5f9', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div style={{ width:36, height:36, background:'#eff6ff', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                            <UserCog size={17} color="#3b82f6"/>
+        <div
+            style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 50,
+                background: 'rgba(15,23,42,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+            }}
+        >
+            <div
+                style={{
+                    background: '#fff',
+                    borderRadius: 14,
+                    width: '100%',
+                    maxWidth: 420,
+                    border: '1.5px solid #e2e8f0',
+                    boxShadow: '0 24px 64px rgba(0,0,0,.15)',
+                }}
+            >
+                <div
+                    style={{
+                        padding: '18px 22px',
+                        borderBottom: '1px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: 36,
+                                height: 36,
+                                background: '#eff6ff',
+                                borderRadius: 9,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <UserCog size={17} color="#3b82f6" />
                         </div>
                         <div>
-                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('show.assignModal.title')}</p>
-                            <p style={{ fontSize:11, color:'#94a3b8' }}>{roleName.replace(/_/g,' ')}</p>
+                            <p
+                                style={{
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    color: '#1e293b',
+                                }}
+                            >
+                                {t('show.assignModal.title')}
+                            </p>
+                            <p style={{ fontSize: 11, color: '#94a3b8' }}>
+                                {roleName.replace(/_/g, ' ')}
+                            </p>
                         </div>
                     </div>
-                    <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#94a3b8',
+                        }}
+                    >
+                        <X size={17} />
+                    </button>
                 </div>
-                <div style={{ padding:'20px 22px' }}>
-                    <div style={{ marginBottom:16 }}>
-                        <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>{t('show.assignModal.userIdLabel')}</label>
+                <div style={{ padding: '20px 22px' }}>
+                    <div style={{ marginBottom: 16 }}>
+                        <label
+                            style={{
+                                display: 'block',
+                                fontSize: 10.5,
+                                fontWeight: 600,
+                                color: '#64748b',
+                                textTransform: 'uppercase',
+                                letterSpacing: '.08em',
+                                marginBottom: 6,
+                            }}
+                        >
+                            {t('show.assignModal.userIdLabel')}
+                        </label>
                         <input
-                            type="text" value={data.user_id} onChange={e => setData('user_id', e.target.value)}
+                            type="text"
+                            value={data.user_id}
+                            onChange={(e) => setData('user_id', e.target.value)}
                             placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                            style={{ width:'100%', padding:'10px 13px', fontSize:12, fontFamily:'monospace', color:'#1e293b', background:'#f8fafc', border:`1.5px solid ${errors.user_id ? '#ef4444' : '#e2e8f0'}`, borderRadius:9, outline:'none', boxSizing:'border-box' }}
+                            style={{
+                                width: '100%',
+                                padding: '10px 13px',
+                                fontSize: 12,
+                                fontFamily: 'monospace',
+                                color: '#1e293b',
+                                background: '#f8fafc',
+                                border: `1.5px solid ${errors.user_id ? '#ef4444' : '#e2e8f0'}`,
+                                borderRadius: 9,
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                            }}
                         />
-                        {errors.user_id && <p style={{ fontSize:11, color:'#ef4444', marginTop:4, display:'flex', alignItems:'center', gap:3 }}><AlertCircle size={11}/>{errors.user_id}</p>}
-                        <p style={{ fontSize:11, color:'#94a3b8', marginTop:5 }}>{t('show.assignModal.note')}</p>
+                        {errors.user_id && (
+                            <p
+                                style={{
+                                    fontSize: 11,
+                                    color: '#ef4444',
+                                    marginTop: 4,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 3,
+                                }}
+                            >
+                                <AlertCircle size={11} />
+                                {errors.user_id}
+                            </p>
+                        )}
+                        <p
+                            style={{
+                                fontSize: 11,
+                                color: '#94a3b8',
+                                marginTop: 5,
+                            }}
+                        >
+                            {t('show.assignModal.note')}
+                        </p>
                     </div>
-                    <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
-                        <Button onClick={e => { e.preventDefault(); post(route('admin.roles.assign-user'), { onSuccess: onClose }); }} disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white">
-                            {processing ? <Loader2 size={13} className="animate-spin"/> : <UserCog size={13}/>}
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: 8,
+                            justifyContent: 'flex-end',
+                        }}
+                    >
+                        <Button variant="outline" onClick={onClose}>
+                            {tc('actions.cancel')}
+                        </Button>
+                        <Button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                post(route('admin.roles.assign-user'), {
+                                    onSuccess: onClose,
+                                });
+                            }}
+                            disabled={processing}
+                            className="bg-[#1e3a8a] text-white hover:bg-[#1e40af]"
+                        >
+                            {processing ? (
+                                <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                                <UserCog size={13} />
+                            )}
                             {t('show.assignModal.assign')}
                         </Button>
                     </div>
@@ -85,26 +279,33 @@ function AssignModal({ roleId, roleName, onClose }: { roleId: number; roleName: 
 export default function RoleShow({ role, users, allPermissions }: Props) {
     const { t } = useTranslation('roles');
     const [showAssign, setShowAssign] = useState(false);
-    const [search,     setSearch]     = useState('');
+    const [search, setSearch] = useState('');
 
-    const rc       = ROLE_COLORS[role.name] ?? { bg:'#f1f5f9', color:'#64748b', avatarBg:'#475569', avatarColor:'#fff' };
-    const rolePerms = new Set(role.permissions.map(p => p.name));
+    const rc = ROLE_COLORS[role.name] ?? {
+        bg: '#f1f5f9',
+        color: '#64748b',
+        avatarBg: '#475569',
+        avatarColor: '#fff',
+    };
+    const rolePerms = new Set(role.permissions.map((p) => p.name));
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('show.breadcrumb'), href: '/admin/roles' },
-        { title: role.name.replace(/_/g,' ') },
+        { title: role.name.replace(/_/g, ' ') },
     ];
 
     const applySearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get(route('admin.roles.show', { role: role.id }), { search }, { preserveState:true, replace:true });
+        router.get(
+            route('admin.roles.show', { role: role.id }),
+            { search },
+            { preserveState: true, replace: true },
+        );
     };
-
-    const fmt = (d: string | null) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) : '—';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('show.title', { name: role.name })}/>
+            <Head title={t('show.title', { name: role.name })} />
             <style>{`
                 .rs-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .rs-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
@@ -154,72 +355,140 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="rs-page">
-
                     {/* Header */}
                     <div className="rs-hdr">
                         <div className="rs-hdr-left">
-                            <Link href="/admin/roles" style={{ display:'flex', alignItems:'center', gap:5, fontSize:13, color:'#64748b', textDecoration:'none' }}>
-                                <ArrowLeft size={15}/>
+                            <Link
+                                href="/admin/roles"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    fontSize: 13,
+                                    color: '#64748b',
+                                    textDecoration: 'none',
+                                }}
+                            >
+                                <ArrowLeft size={15} />
                             </Link>
-                            <div className="rs-avatar" style={{ background: rc.avatarBg, color: rc.avatarColor }}>
-                                {role.name.slice(0,2).toUpperCase()}
+                            <div
+                                className="rs-avatar"
+                                style={{
+                                    background: rc.avatarBg,
+                                    color: rc.avatarColor,
+                                }}
+                            >
+                                {role.name.slice(0, 2).toUpperCase()}
                             </div>
                             <div>
-                                <h1 className="rs-name">{role.name.replace(/_/g,' ')}</h1>
+                                <h1 className="rs-name">
+                                    {role.name.replace(/_/g, ' ')}
+                                </h1>
                                 <p className="rs-sub">
-                                    {t('show.permissionsCount', { count: role.permissions.length })} · {t('show.usersCount', { count: users.total })}
+                                    {t('show.permissionsCount', {
+                                        count: role.permissions.length,
+                                    })}{' '}
+                                    ·{' '}
+                                    {t('show.usersCount', {
+                                        count: users.total,
+                                    })}
                                 </p>
                             </div>
                         </div>
-                        <Button onClick={() => setShowAssign(true)} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                            <UserCog size={15}/> {t('show.assignButton')}
+                        <Button
+                            onClick={() => setShowAssign(true)}
+                            className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]"
+                        >
+                            <UserCog size={15} /> {t('show.assignButton')}
                         </Button>
                     </div>
 
                     {/* Permissions par module */}
                     <div className="perm-grid">
-                        {Object.entries(allPermissions).map(([module, perms]) => {
-                            const has    = perms.filter(p => rolePerms.has(p.name));
-                            const hasNot = perms.filter(p => !rolePerms.has(p.name));
-                            return (
-                                <div key={module} className="perm-module-card">
-                                    <div className="perm-module-hdr">
-                                        <span className="perm-module-name">{module}</span>
-                                        <span className="perm-module-count">{has.length}/{perms.length}</span>
+                        {Object.entries(allPermissions).map(
+                            ([module, perms]) => {
+                                const has = perms.filter((p) =>
+                                    rolePerms.has(p.name),
+                                );
+
+                                return (
+                                    <div
+                                        key={module}
+                                        className="perm-module-card"
+                                    >
+                                        <div className="perm-module-hdr">
+                                            <span className="perm-module-name">
+                                                {module}
+                                            </span>
+                                            <span className="perm-module-count">
+                                                {has.length}/{perms.length}
+                                            </span>
+                                        </div>
+                                        <div className="perm-module-body">
+                                            {perms.map((perm) => {
+                                                const active = rolePerms.has(
+                                                    perm.name,
+                                                );
+                                                const action =
+                                                    perm.name.split('.')[1];
+
+                                                return (
+                                                    <span
+                                                        key={perm.id}
+                                                        className={
+                                                            active
+                                                                ? 'perm-yes'
+                                                                : 'perm-no'
+                                                        }
+                                                    >
+                                                        {active && (
+                                                            <Check size={9} />
+                                                        )}
+                                                        {action}
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                    <div className="perm-module-body">
-                                        {perms.map(perm => {
-                                            const active = rolePerms.has(perm.name);
-                                            const action = perm.name.split('.')[1];
-                                            return (
-                                                <span key={perm.id} className={active ? 'perm-yes' : 'perm-no'}>
-                                                    {active && <Check size={9}/>}
-                                                    {action}
-                                                </span>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            },
+                        )}
                     </div>
 
                     {/* Table utilisateurs */}
                     <div className="rs-card">
                         <div className="rs-card-hdr">
                             <span className="rs-card-ttl">
-                                <Users size={15} color="#94a3b8"/>
+                                <Users size={15} color="#94a3b8" />
                                 {t('show.usersSection.title')}
-                                <span style={{ fontSize:11, color:'#94a3b8', fontWeight:400 }}>({users.total})</span>
+                                <span
+                                    style={{
+                                        fontSize: 11,
+                                        color: '#94a3b8',
+                                        fontWeight: 400,
+                                    }}
+                                >
+                                    ({users.total})
+                                </span>
                             </span>
                             <form onSubmit={applySearch} className="rs-search">
-                                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('show.usersSection.searchPlaceholder')}/>
-                                <button type="submit"><Search size={13}/></button>
+                                <input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder={t(
+                                        'show.usersSection.searchPlaceholder',
+                                    )}
+                                />
+                                <button type="submit">
+                                    <Search size={13} />
+                                </button>
                             </form>
                         </div>
 
                         {users.data.length === 0 ? (
-                            <div className="rs-empty">{t('show.usersSection.empty')}</div>
+                            <div className="rs-empty">
+                                {t('show.usersSection.empty')}
+                            </div>
                         ) : (
                             <>
                                 <table>
@@ -231,25 +500,76 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {users.data.map(user => {
-                                            const initials = `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
+                                        {users.data.map((user) => {
+                                            const initials =
+                                                `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
+
                                             return (
                                                 <tr key={user.id}>
                                                     <td>
-                                                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                                            <div className="u-avatar">{initials}</div>
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 10,
+                                                            }}
+                                                        >
+                                                            <div className="u-avatar">
+                                                                {initials}
+                                                            </div>
                                                             <div>
-                                                                <div className="u-name">{user.first_name} {user.last_name}</div>
-                                                                <div className="u-email">{user.email}</div>
+                                                                <div className="u-name">
+                                                                    {
+                                                                        user.first_name
+                                                                    }{' '}
+                                                                    {
+                                                                        user.last_name
+                                                                    }
+                                                                </div>
+                                                                <div className="u-email">
+                                                                    {user.email}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td style={{ fontSize:12, color:'#64748b' }}>{user.tenant?.name ?? '—'}</td>
+                                                    <td
+                                                        style={{
+                                                            fontSize: 12,
+                                                            color: '#64748b',
+                                                        }}
+                                                    >
+                                                        {user.tenant?.name ??
+                                                            '—'}
+                                                    </td>
                                                     <td>
-                                                        {user.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{t('show.status.active')}</span>
-                                                            : <span className="s-blocked"><span className="s-dot" style={{ background:'#ef4444' }}/>{t('show.status.blocked')}</span>
-                                                        }
+                                                        {user.is_active ? (
+                                                            <span className="s-active">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#22c55e',
+                                                                    }}
+                                                                />
+                                                                {t(
+                                                                    'show.status.active',
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="s-blocked">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#ef4444',
+                                                                    }}
+                                                                />
+                                                                {t(
+                                                                    'show.status.blocked',
+                                                                )}
+                                                            </span>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             );
@@ -259,21 +579,87 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
 
                                 {users.last_page > 1 && (
                                     <div className="rs-pagination">
-                                        <span className="rs-pg-info">{t('show.pagination.info', { current: users.current_page, last: users.last_page, total: users.total })}</span>
+                                        <span className="rs-pg-info">
+                                            {t('show.pagination.info', {
+                                                current: users.current_page,
+                                                last: users.last_page,
+                                                total: users.total,
+                                            })}
+                                        </span>
                                         <div className="rs-pg-links">
-                                            <button className="pg-btn" disabled={users.current_page === 1}
-                                                onClick={() => router.get(route('admin.roles.show', { role: role.id }), { page: users.current_page - 1 }, { preserveState:true })}>
-                                                <ChevronLeft size={13}/>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    users.current_page === 1
+                                                }
+                                                onClick={() =>
+                                                    router.get(
+                                                        route(
+                                                            'admin.roles.show',
+                                                            { role: role.id },
+                                                        ),
+                                                        {
+                                                            page:
+                                                                users.current_page -
+                                                                1,
+                                                        },
+                                                        { preserveState: true },
+                                                    )
+                                                }
+                                            >
+                                                <ChevronLeft size={13} />
                                             </button>
-                                            {users.links.slice(1,-1).map((link, i) => (
-                                                <button key={i} className={`pg-btn ${link.active ? 'act' : ''}`}
-                                                    onClick={() => link.url && router.get(route('admin.roles.show', { role: role.id }), { page: link.label }, { preserveState:true })}
-                                                    disabled={!link.url}
-                                                    dangerouslySetInnerHTML={{ __html: link.label }}/>
-                                            ))}
-                                            <button className="pg-btn" disabled={users.current_page === users.last_page}
-                                                onClick={() => router.get(route('admin.roles.show', { role: role.id }), { page: users.current_page + 1 }, { preserveState:true })}>
-                                                <ChevronRight size={13}/>
+                                            {users.links
+                                                .slice(1, -1)
+                                                .map((link, i) => (
+                                                    <button
+                                                        key={i}
+                                                        className={`pg-btn ${link.active ? 'act' : ''}`}
+                                                        onClick={() =>
+                                                            link.url &&
+                                                            router.get(
+                                                                route(
+                                                                    'admin.roles.show',
+                                                                    {
+                                                                        role: role.id,
+                                                                    },
+                                                                ),
+                                                                {
+                                                                    page: link.label,
+                                                                },
+                                                                {
+                                                                    preserveState: true,
+                                                                },
+                                                            )
+                                                        }
+                                                        disabled={!link.url}
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: link.label,
+                                                        }}
+                                                    />
+                                                ))}
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    users.current_page ===
+                                                    users.last_page
+                                                }
+                                                onClick={() =>
+                                                    router.get(
+                                                        route(
+                                                            'admin.roles.show',
+                                                            { role: role.id },
+                                                        ),
+                                                        {
+                                                            page:
+                                                                users.current_page +
+                                                                1,
+                                                        },
+                                                        { preserveState: true },
+                                                    )
+                                                }
+                                            >
+                                                <ChevronRight size={13} />
                                             </button>
                                         </div>
                                     </div>
@@ -281,11 +667,15 @@ export default function RoleShow({ role, users, allPermissions }: Props) {
                             </>
                         )}
                     </div>
-
                 </div>
             </div>
 
-            {showAssign && <AssignModal roleId={role.id} roleName={role.name} onClose={() => setShowAssign(false)}/>}
+            {showAssign && (
+                <AssignModal
+                    roleName={role.name}
+                    onClose={() => setShowAssign(false)}
+                />
+            )}
         </AppLayout>
     );
 }

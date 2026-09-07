@@ -40,10 +40,10 @@ return new class extends Migration
 
             // Valeurs calculées
             $table->char('currency_code', 3);
-            $table->decimal('prime_brute',    20, 2); // prime_total du certificat
-            $table->decimal('rate_pct',        5, 2); // taux appliqué
-            $table->decimal('commission',     20, 2); // prime_brute * rate_pct / 100
-            $table->decimal('prime_nette',    20, 2); // prime_brute - commission
+            $table->decimal('prime_brute', 20, 2); // prime_total du certificat
+            $table->decimal('rate_pct', 5, 2); // taux appliqué
+            $table->decimal('commission', 20, 2); // prime_brute * rate_pct / 100
+            $table->decimal('prime_nette', 20, 2); // prime_brute - commission
 
             // Période comptable
             $table->string('period_month', 7);
@@ -65,10 +65,10 @@ return new class extends Migration
             $table->index(['tenant_id', 'period_month', 'status']);
             $table->index(['certificate_id']);
         });
- 
+
         DB::statement("ALTER TABLE commission_transactions ADD CONSTRAINT ct_status_check
             CHECK (status IN ('PENDING','PAID','CANCELLED'))");
- 
+
         DB::statement("CREATE UNIQUE INDEX idx_commission_cert_unique
             ON commission_transactions(certificate_id)
             WHERE status != 'CANCELLED'");

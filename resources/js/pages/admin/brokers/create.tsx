@@ -8,26 +8,43 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
-interface Tenant { id: string; name: string; code: string; }
+interface Tenant {
+    id: string;
+    name: string;
+    code: string;
+}
 interface Props {
-    tenants:         Tenant[];
-    allTenants:      Tenant[];
+    tenants: Tenant[];
+    allTenants: Tenant[];
     defaultTenantId: string | null;
 }
 
 const COUNTRIES = [
-    { code:'CI', name:'Côte d\'Ivoire' }, { code:'SN', name:'Sénégal' },
-    { code:'ML', name:'Mali' }, { code:'BF', name:'Burkina Faso' },
-    { code:'GN', name:'Guinée' }, { code:'TG', name:'Togo' },
-    { code:'BJ', name:'Bénin' }, { code:'CM', name:'Cameroun' },
-    { code:'CG', name:'Congo' }, { code:'GA', name:'Gabon' },
-    { code:'MG', name:'Madagascar' }, { code:'NG', name:'Nigeria' },
-    { code:'FR', name:'France' }, { code:'BE', name:'Belgique' },
-    { code:'CH', name:'Suisse' }, { code:'MA', name:'Maroc' },
-    { code:'DZ', name:'Algérie' }, { code:'TN', name:'Tunisie' },
+    { code: 'CI', name: "Côte d'Ivoire" },
+    { code: 'SN', name: 'Sénégal' },
+    { code: 'ML', name: 'Mali' },
+    { code: 'BF', name: 'Burkina Faso' },
+    { code: 'GN', name: 'Guinée' },
+    { code: 'TG', name: 'Togo' },
+    { code: 'BJ', name: 'Bénin' },
+    { code: 'CM', name: 'Cameroun' },
+    { code: 'CG', name: 'Congo' },
+    { code: 'GA', name: 'Gabon' },
+    { code: 'MG', name: 'Madagascar' },
+    { code: 'NG', name: 'Nigeria' },
+    { code: 'FR', name: 'France' },
+    { code: 'BE', name: 'Belgique' },
+    { code: 'CH', name: 'Suisse' },
+    { code: 'MA', name: 'Maroc' },
+    { code: 'DZ', name: 'Algérie' },
+    { code: 'TN', name: 'Tunisie' },
 ];
 
-export default function BrokerCreate({ tenants, allTenants, defaultTenantId }: Props) {
+export default function BrokerCreate({
+    tenants,
+    allTenants,
+    defaultTenantId,
+}: Props) {
     const { t } = useTranslation('brokers');
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('index.breadcrumb'), href: '/admin/brokers' },
@@ -35,19 +52,19 @@ export default function BrokerCreate({ tenants, allTenants, defaultTenantId }: P
     ];
 
     const { data, setData, post, processing, errors } = useForm({
-        name:             '',
-        code:             '',
-        type:             'courtier_local' as 'courtier_local' | 'partenaire_etranger',
+        name: '',
+        code: '',
+        type: 'courtier_local' as 'courtier_local' | 'partenaire_etranger',
         registration_number: '',
-        email:            '',
-        phone:            '',
-        phone_secondary:  '',
-        address:          '',
-        city:             '',
-        country_code:     'CI',
-        commission_rate:  '',
-        is_active:        true,
-        tenant_id:        defaultTenantId ?? '',
+        email: '',
+        phone: '',
+        phone_secondary: '',
+        address: '',
+        city: '',
+        country_code: 'CI',
+        commission_rate: '',
+        is_active: true,
+        tenant_id: defaultTenantId ?? '',
         additional_tenant_ids: [] as string[],
     });
 
@@ -58,11 +75,15 @@ export default function BrokerCreate({ tenants, allTenants, defaultTenantId }: P
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('create.title')}/>
+            <Head title={t('create.title')} />
             <BrokerForm
-                data={data} setData={setData} errors={errors}
-                processing={processing} onSubmit={submit}
-                tenants={tenants} allTenants={allTenants}
+                data={data}
+                setData={setData}
+                errors={errors}
+                processing={processing}
+                onSubmit={submit}
+                tenants={tenants}
+                allTenants={allTenants}
                 submitLabel={t('create.submitLabel')}
                 heroTitle={t('create.heroTitle')}
                 heroSub={t('create.heroSub')}
@@ -72,14 +93,28 @@ export default function BrokerCreate({ tenants, allTenants, defaultTenantId }: P
 }
 
 // ── Formulaire partagé ────────────────────────────────────────
-export function BrokerForm({ data, setData, errors, processing, onSubmit, tenants, allTenants, submitLabel, heroTitle, heroSub }: any) {
+export function BrokerForm({
+    data,
+    setData,
+    errors,
+    processing,
+    onSubmit,
+    tenants,
+    allTenants,
+    submitLabel,
+    heroTitle,
+    heroSub,
+}: any) {
     const { t } = useTranslation('brokers');
     const { t: tc } = useTranslation('common');
     const toggleAdditionalTenant = (id: string) => {
         const current: string[] = data.additional_tenant_ids ?? [];
-        setData('additional_tenant_ids', current.includes(id)
-            ? current.filter((t: string) => t !== id)
-            : [...current, id]);
+        setData(
+            'additional_tenant_ids',
+            current.includes(id)
+                ? current.filter((t: string) => t !== id)
+                : [...current, id],
+        );
     };
 
     return (
@@ -110,91 +145,236 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="bf-wrap">
-
                     {/* Hero */}
                     <div className="bf-hero">
-                        <div className="bf-hero-ico"><Briefcase size={22} color="rgba(255,255,255,0.8)"/></div>
+                        <div className="bf-hero-ico">
+                            <Briefcase
+                                size={22}
+                                color="rgba(255,255,255,0.8)"
+                            />
+                        </div>
                         <div className="bf-hero-info">
                             <div className="bf-hero-title">{heroTitle}</div>
                             <div className="bf-hero-sub">{heroSub}</div>
                         </div>
                     </div>
 
-                    <form onSubmit={onSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
-
+                    <form
+                        onSubmit={onSubmit}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
+                    >
                         {/* ── Identification ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">{t('form.identification.title')}</div>
-                                <div className="bf-card-sub">{t('form.identification.subtitle')}</div>
+                                <div className="bf-card-ttl">
+                                    {t('form.identification.title')}
+                                </div>
+                                <div className="bf-card-sub">
+                                    {t('form.identification.subtitle')}
+                                </div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.identification.name')}</Label>
-                                        <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder={t('form.identification.namePlaceholder')}/>
-                                        <InputError message={errors.name}/>
+                                        <Label className="bf-label">
+                                            {t('form.identification.name')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            value={data.name}
+                                            onChange={(e) =>
+                                                setData('name', e.target.value)
+                                            }
+                                            placeholder={t(
+                                                'form.identification.namePlaceholder',
+                                            )}
+                                        />
+                                        <InputError message={errors.name} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.identification.code')}</Label>
-                                        <Input className="h-11" value={data.code}
-                                               onChange={e => setData('code', e.target.value.toUpperCase())}
-                                               placeholder={t('form.identification.codePlaceholder')} maxLength={20}
-                                               style={{ fontFamily:'monospace', letterSpacing:'.06em' }}/>
-                                        <InputError message={errors.code}/>
+                                        <Label className="bf-label">
+                                            {t('form.identification.code')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            value={data.code}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'code',
+                                                    e.target.value.toUpperCase(),
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'form.identification.codePlaceholder',
+                                            )}
+                                            maxLength={20}
+                                            style={{
+                                                fontFamily: 'monospace',
+                                                letterSpacing: '.06em',
+                                            }}
+                                        />
+                                        <InputError message={errors.code} />
                                     </div>
                                 </div>
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.identification.type')}</Label>
-                                        <select className="bf-select" value={data.type} onChange={e => setData('type', e.target.value)}>
-                                            <option value="courtier_local">{t('form.identification.typeLocal')}</option>
-                                            <option value="partenaire_etranger">{t('form.identification.typeForeign')}</option>
+                                        <Label className="bf-label">
+                                            {t('form.identification.type')}
+                                        </Label>
+                                        <select
+                                            className="bf-select"
+                                            value={data.type}
+                                            onChange={(e) =>
+                                                setData('type', e.target.value)
+                                            }
+                                        >
+                                            <option value="courtier_local">
+                                                {t(
+                                                    'form.identification.typeLocal',
+                                                )}
+                                            </option>
+                                            <option value="partenaire_etranger">
+                                                {t(
+                                                    'form.identification.typeForeign',
+                                                )}
+                                            </option>
                                         </select>
-                                        <InputError message={errors.type}/>
+                                        <InputError message={errors.type} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.identification.registrationNumber')}</Label>
-                                        <Input className="h-11" value={data.registration_number}
-                                               onChange={e => setData('registration_number', e.target.value)}
-                                               placeholder={t('form.identification.registrationNumberPlaceholder')}/>
-                                        <InputError message={errors.registration_number}/>
+                                        <Label className="bf-label">
+                                            {t(
+                                                'form.identification.registrationNumber',
+                                            )}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            value={data.registration_number}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'registration_number',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'form.identification.registrationNumberPlaceholder',
+                                            )}
+                                        />
+                                        <InputError
+                                            message={errors.registration_number}
+                                        />
                                     </div>
                                 </div>
 
                                 {tenants?.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.identification.mainTenant')}</Label>
-                                        <select className="bf-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
-                                            <option value="">{t('form.identification.selectTenant')}</option>
-                                            {tenants.map((t: any) => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                        <Label className="bf-label">
+                                            {t(
+                                                'form.identification.mainTenant',
+                                            )}
+                                        </Label>
+                                        <select
+                                            className="bf-select"
+                                            value={data.tenant_id}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'tenant_id',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            <option value="">
+                                                {t(
+                                                    'form.identification.selectTenant',
+                                                )}
+                                            </option>
+                                            {tenants.map((t: any) => (
+                                                <option key={t.id} value={t.id}>
+                                                    {t.name} ({t.code})
+                                                </option>
+                                            ))}
                                         </select>
-                                        <InputError message={errors.tenant_id}/>
+                                        <InputError
+                                            message={errors.tenant_id}
+                                        />
                                     </div>
                                 )}
 
                                 {allTenants?.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.identification.additionalTenants')}</Label>
-                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: -6, marginBottom: 2 }}>
-                                            {t('form.identification.additionalTenantsHint')}
+                                        <Label className="bf-label">
+                                            {t(
+                                                'form.identification.additionalTenants',
+                                            )}
+                                        </Label>
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#94a3b8',
+                                                marginTop: -6,
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            {t(
+                                                'form.identification.additionalTenantsHint',
+                                            )}
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto', border: '1.5px solid #e2e8f0', borderRadius: 9, padding: 10 }}>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 6,
+                                                maxHeight: 200,
+                                                overflowY: 'auto',
+                                                border: '1.5px solid #e2e8f0',
+                                                borderRadius: 9,
+                                                padding: 10,
+                                            }}
+                                        >
                                             {allTenants
-                                                .filter((t: any) => t.id !== data.tenant_id)
+                                                .filter(
+                                                    (t: any) =>
+                                                        t.id !== data.tenant_id,
+                                                )
                                                 .map((t: any) => (
-                                                    <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1e293b', cursor: 'pointer' }}>
+                                                    <label
+                                                        key={t.id}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems:
+                                                                'center',
+                                                            gap: 8,
+                                                            fontSize: 13,
+                                                            color: '#1e293b',
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
                                                         <input
                                                             type="checkbox"
-                                                            checked={(data.additional_tenant_ids ?? []).includes(t.id)}
-                                                            onChange={() => toggleAdditionalTenant(t.id)}
+                                                            checked={(
+                                                                data.additional_tenant_ids ??
+                                                                []
+                                                            ).includes(t.id)}
+                                                            onChange={() =>
+                                                                toggleAdditionalTenant(
+                                                                    t.id,
+                                                                )
+                                                            }
                                                         />
                                                         {t.name} ({t.code})
                                                     </label>
                                                 ))}
                                         </div>
-                                        <InputError message={errors.additional_tenant_ids}/>
+                                        <InputError
+                                            message={
+                                                errors.additional_tenant_ids
+                                            }
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -203,17 +383,44 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Commission ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">{t('form.commission.title')}</div>
-                                <div className="bf-card-sub">{t('form.commission.subtitle')}</div>
+                                <div className="bf-card-ttl">
+                                    {t('form.commission.title')}
+                                </div>
+                                <div className="bf-card-sub">
+                                    {t('form.commission.subtitle')}
+                                </div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="bf-label">{t('form.commission.rate')}</Label>
-                                    <Input className="h-11" type="number" step="0.01" min={0} max={100}
-                                           value={data.commission_rate} onChange={e => setData('commission_rate', e.target.value)}
-                                           placeholder={t('form.commission.ratePlaceholder')}/>
-                                    <InputError message={errors.commission_rate}/>
-                                    <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                                    <Label className="bf-label">
+                                        {t('form.commission.rate')}
+                                    </Label>
+                                    <Input
+                                        className="h-11"
+                                        type="number"
+                                        step="0.01"
+                                        min={0}
+                                        max={100}
+                                        value={data.commission_rate}
+                                        onChange={(e) =>
+                                            setData(
+                                                'commission_rate',
+                                                e.target.value,
+                                            )
+                                        }
+                                        placeholder={t(
+                                            'form.commission.ratePlaceholder',
+                                        )}
+                                    />
+                                    <InputError
+                                        message={errors.commission_rate}
+                                    />
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            color: '#94a3b8',
+                                        }}
+                                    >
                                         {t('form.commission.hint')}
                                     </div>
                                 </div>
@@ -223,31 +430,70 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Contact ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">{t('form.contact.title')}</div>
-                                <div className="bf-card-sub">{t('form.contact.subtitle')}</div>
+                                <div className="bf-card-ttl">
+                                    {t('form.contact.title')}
+                                </div>
+                                <div className="bf-card-sub">
+                                    {t('form.contact.subtitle')}
+                                </div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="bf-label">{t('form.contact.email')}</Label>
-                                    <Input className="h-11" type="email" value={data.email}
-                                           onChange={e => setData('email', e.target.value)}
-                                           placeholder={t('form.contact.emailPlaceholder')}/>
-                                    <InputError message={errors.email}/>
+                                    <Label className="bf-label">
+                                        {t('form.contact.email')}
+                                    </Label>
+                                    <Input
+                                        className="h-11"
+                                        type="email"
+                                        value={data.email}
+                                        onChange={(e) =>
+                                            setData('email', e.target.value)
+                                        }
+                                        placeholder={t(
+                                            'form.contact.emailPlaceholder',
+                                        )}
+                                    />
+                                    <InputError message={errors.email} />
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.contact.phone')}</Label>
-                                        <Input className="h-11" type="tel" value={data.phone}
-                                               onChange={e => setData('phone', e.target.value)}
-                                               placeholder={t('form.contact.phonePlaceholder')}/>
-                                        <InputError message={errors.phone}/>
+                                        <Label className="bf-label">
+                                            {t('form.contact.phone')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            type="tel"
+                                            value={data.phone}
+                                            onChange={(e) =>
+                                                setData('phone', e.target.value)
+                                            }
+                                            placeholder={t(
+                                                'form.contact.phonePlaceholder',
+                                            )}
+                                        />
+                                        <InputError message={errors.phone} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.contact.phoneSecondary')}</Label>
-                                        <Input className="h-11" type="tel" value={data.phone_secondary}
-                                               onChange={e => setData('phone_secondary', e.target.value)}
-                                               placeholder={t('form.contact.phonePlaceholder')}/>
-                                        <InputError message={errors.phone_secondary}/>
+                                        <Label className="bf-label">
+                                            {t('form.contact.phoneSecondary')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            type="tel"
+                                            value={data.phone_secondary}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'phone_secondary',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'form.contact.phonePlaceholder',
+                                            )}
+                                        />
+                                        <InputError
+                                            message={errors.phone_secondary}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -256,32 +502,73 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Adresse ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">{t('form.address.title')}</div>
-                                <div className="bf-card-sub">{t('form.address.subtitle')}</div>
+                                <div className="bf-card-ttl">
+                                    {t('form.address.title')}
+                                </div>
+                                <div className="bf-card-sub">
+                                    {t('form.address.subtitle')}
+                                </div>
                             </div>
                             <div className="bf-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="bf-label">{t('form.address.address')}</Label>
-                                    <Input className="h-11" value={data.address}
-                                           onChange={e => setData('address', e.target.value)}
-                                           placeholder={t('form.address.addressPlaceholder')}/>
-                                    <InputError message={errors.address}/>
+                                    <Label className="bf-label">
+                                        {t('form.address.address')}
+                                    </Label>
+                                    <Input
+                                        className="h-11"
+                                        value={data.address}
+                                        onChange={(e) =>
+                                            setData('address', e.target.value)
+                                        }
+                                        placeholder={t(
+                                            'form.address.addressPlaceholder',
+                                        )}
+                                    />
+                                    <InputError message={errors.address} />
                                 </div>
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.address.city')}</Label>
-                                        <Input className="h-11" value={data.city}
-                                               onChange={e => setData('city', e.target.value)}
-                                               placeholder={t('form.address.cityPlaceholder')}/>
-                                        <InputError message={errors.city}/>
+                                        <Label className="bf-label">
+                                            {t('form.address.city')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            value={data.city}
+                                            onChange={(e) =>
+                                                setData('city', e.target.value)
+                                            }
+                                            placeholder={t(
+                                                'form.address.cityPlaceholder',
+                                            )}
+                                        />
+                                        <InputError message={errors.city} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="bf-label">{t('form.address.country')}</Label>
-                                        <select className="bf-select" value={data.country_code}
-                                                onChange={e => setData('country_code', e.target.value)}>
-                                            {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                                        <Label className="bf-label">
+                                            {t('form.address.country')}
+                                        </Label>
+                                        <select
+                                            className="bf-select"
+                                            value={data.country_code}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'country_code',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            {COUNTRIES.map((c) => (
+                                                <option
+                                                    key={c.code}
+                                                    value={c.code}
+                                                >
+                                                    {c.name}
+                                                </option>
+                                            ))}
                                         </select>
-                                        <InputError message={errors.country_code}/>
+                                        <InputError
+                                            message={errors.country_code}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -290,19 +577,56 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         {/* ── Statut ── */}
                         <div className="bf-card">
                             <div className="bf-card-hdr">
-                                <div className="bf-card-ttl">{t('form.status.title')}</div>
+                                <div className="bf-card-ttl">
+                                    {t('form.status.title')}
+                                </div>
                             </div>
                             <div className="bf-card-body">
-                                <div className="bf-toggle" onClick={() => setData('is_active', !data.is_active)}>
-                                    <div className="bf-toggle-box" style={{ background: data.is_active ? '#1e3a8a' : '#e2e8f0' }}>
-                                        <div className="bf-toggle-thumb" style={{ left: data.is_active ? '21px' : '3px' }}/>
+                                <div
+                                    className="bf-toggle"
+                                    onClick={() =>
+                                        setData('is_active', !data.is_active)
+                                    }
+                                >
+                                    <div
+                                        className="bf-toggle-box"
+                                        style={{
+                                            background: data.is_active
+                                                ? '#1e3a8a'
+                                                : '#e2e8f0',
+                                        }}
+                                    >
+                                        <div
+                                            className="bf-toggle-thumb"
+                                            style={{
+                                                left: data.is_active
+                                                    ? '21px'
+                                                    : '3px',
+                                            }}
+                                        />
                                     </div>
                                     <div>
-                                        <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>
-                                            {data.is_active ? t('form.status.active') : t('form.status.inactive')}
+                                        <div
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 500,
+                                                color: '#1e293b',
+                                            }}
+                                        >
+                                            {data.is_active
+                                                ? t('form.status.active')
+                                                : t('form.status.inactive')}
                                         </div>
-                                        <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>
-                                            {data.is_active ? t('form.status.activeHint') : t('form.status.inactiveHint')}
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#94a3b8',
+                                                marginTop: 1,
+                                            }}
+                                        >
+                                            {data.is_active
+                                                ? t('form.status.activeHint')
+                                                : t('form.status.inactiveHint')}
                                         </div>
                                     </div>
                                 </div>
@@ -310,11 +634,25 @@ export function BrokerForm({ data, setData, errors, processing, onSubmit, tenant
                         </div>
 
                         {/* Actions */}
-                        <div style={{ display:'flex', gap:8 }}>
-                            <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? tc('states.saving') : <><Check size={14}/> {submitLabel}</>}
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                            >
+                                {processing ? (
+                                    tc('states.saving')
+                                ) : (
+                                    <>
+                                        <Check size={14} /> {submitLabel}
+                                    </>
+                                )}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => window.history.back()}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => window.history.back()}
+                            >
                                 {tc('actions.cancel')}
                             </Button>
                         </div>

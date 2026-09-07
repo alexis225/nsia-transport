@@ -1,14 +1,14 @@
 <?php
 
 namespace App\Observers;
- 
+
 use App\Models\Certificate;
 use App\Services\CommissionService;
- 
+
 class CertificateObserver
 {
     public function __construct(private CommissionService $service) {}
- 
+
     /**
      * Déclenché quand status passe à ISSUED
      */
@@ -20,7 +20,7 @@ class CertificateObserver
         ) {
             $this->service->calculate($certificate);
         }
- 
+
         // Annuler la commission si certificat annulé
         if (
             $certificate->isDirty('status') &&
@@ -30,4 +30,3 @@ class CertificateObserver
         }
     }
 }
- 

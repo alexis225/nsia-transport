@@ -11,7 +11,9 @@ createServer(async (page) => {
     // Une instance i18next par requete : deux requetes de langues differentes
     // ne doivent pas se marcher dessus dans le processus SSR.
     const i18n = await createI18n(
-        typeof page.props.locale === 'string' ? page.props.locale : FALLBACK_LOCALE,
+        typeof page.props.locale === 'string'
+            ? page.props.locale
+            : FALLBACK_LOCALE,
     );
 
     return createInertiaApp({

@@ -14,28 +14,29 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     use HasFactory;
-    use HasUuids;       // ← PK UUID
+    // ← PK UUID
     use HasRoles;
+    use HasUuids;
     use Notifiable;
     use SoftDeletes;
     use TwoFactorAuthenticatable;
 
-
     // ── UUID ──────────────────────────────────────────────
-    protected $keyType   = 'string';
+    protected $keyType = 'string';
+
     public $incrementing = false;
 
-   protected $fillable = [
-    'tenant_id', 'first_name', 'last_name', 'email', 'password',
-    'phone', 'avatar_path', 'locale', 'timezone', 'is_active',
-    'mfa_enabled', 'mfa_secret', 'blocked_by', 'blocked_at',
-    'blocked_reason', 'password_changed_at', 'created_by',
-    'email_verified_at',
-    'last_login_at',   // ← ajouter
-    'last_login_ip',   // ← ajouter
-    'failed_login_attempts', // ← ajouter
-    'locked_until',    // ← ajouter
-];
+    protected $fillable = [
+        'tenant_id', 'first_name', 'last_name', 'email', 'password',
+        'phone', 'avatar_path', 'locale', 'timezone', 'is_active',
+        'mfa_enabled', 'mfa_secret', 'blocked_by', 'blocked_at',
+        'blocked_reason', 'password_changed_at', 'created_by',
+        'email_verified_at',
+        'last_login_at',   // ← ajouter
+        'last_login_ip',   // ← ajouter
+        'failed_login_attempts', // ← ajouter
+        'locked_until',    // ← ajouter
+    ];
 
     // ── Hidden ────────────────────────────────────────────
     protected $hidden = [
@@ -48,15 +49,15 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'   => 'datetime',
+            'email_verified_at' => 'datetime',
             'password_changed_at' => 'datetime',
-            'last_login_at'       => 'datetime',
-            'blocked_at'          => 'datetime',
-            'blocked_by'          => 'string',
-            'locked_until'        => 'datetime',
-            'password'            => 'hashed',
-            'is_active'           => 'boolean',
-            'mfa_enabled'         => 'boolean',
+            'last_login_at' => 'datetime',
+            'blocked_at' => 'datetime',
+            'blocked_by' => 'string',
+            'locked_until' => 'datetime',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
+            'mfa_enabled' => 'boolean',
         ];
     }
 

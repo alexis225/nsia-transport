@@ -17,13 +17,13 @@ return new class extends Migration
             ON certificates(tenant_id, issued_at DESC)
             WHERE status = 'ISSUED' AND deleted_at IS NULL");
 
-        DB::statement("CREATE INDEX IF NOT EXISTS idx_certs_tenant_status_created
+        DB::statement('CREATE INDEX IF NOT EXISTS idx_certs_tenant_status_created
             ON certificates(tenant_id, status, created_at DESC)
-            WHERE deleted_at IS NULL");
+            WHERE deleted_at IS NULL');
 
-        DB::statement("CREATE INDEX IF NOT EXISTS idx_certs_transport
+        DB::statement('CREATE INDEX IF NOT EXISTS idx_certs_transport
             ON certificates(transport_type, issued_at DESC)
-            WHERE deleted_at IS NULL");
+            WHERE deleted_at IS NULL');
 
         // ── Transactions de commissions ───────────────────────────
         DB::statement('CREATE INDEX IF NOT EXISTS idx_comm_tx_period

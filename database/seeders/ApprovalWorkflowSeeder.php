@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Database\Seeders;
 
 use App\Models\ApprovalWorkflowConfig;
@@ -14,9 +13,9 @@ class ApprovalWorkflowSeeder extends Seeder
         foreach (Tenant::all() as $tenant) {
             ApprovalWorkflowConfig::firstOrCreate(
                 [
-                    'tenant_id'   => $tenant->id,
+                    'tenant_id' => $tenant->id,
                     'entity_type' => 'CERTIFICATE',
-                    'name'        => 'Escalade NN300 — ' . $tenant->name,
+                    'name' => 'Escalade NN300 — '.$tenant->name,
                 ],
                 [
                     'trigger_condition' => [
@@ -25,15 +24,15 @@ class ApprovalWorkflowSeeder extends Seeder
                     ],
                     'steps_config' => [
                         [
-                            'step'          => 1,
-                            'role'          => 'admin_filiale',
-                            'label'         => 'Approbation Admin Filiale',
+                            'step' => 1,
+                            'role' => 'admin_filiale',
+                            'label' => 'Approbation Admin Filiale',
                             'timeout_hours' => 48,
                         ],
                         [
-                            'step'          => 2,
-                            'role'          => 'super_admin',
-                            'label'         => 'Approbation Super Admin (DTAG)',
+                            'step' => 2,
+                            'role' => 'super_admin',
+                            'label' => 'Approbation Super Admin (DTAG)',
                             'timeout_hours' => 48,
                         ],
                     ],
@@ -46,23 +45,23 @@ class ApprovalWorkflowSeeder extends Seeder
             // "Module Escalade / Renforcement").
             ApprovalWorkflowConfig::firstOrCreate(
                 [
-                    'tenant_id'   => $tenant->id,
+                    'tenant_id' => $tenant->id,
                     'entity_type' => 'CERTIFICATE',
-                    'name'        => 'Escalade Plafond NN300 — ' . $tenant->name,
+                    'name' => 'Escalade Plafond NN300 — '.$tenant->name,
                 ],
                 [
                     'trigger_condition' => ['subscription_limit_exceeded' => true],
-                    'steps_config'      => [
+                    'steps_config' => [
                         [
-                            'step'          => 1,
-                            'role'          => 'admin_filiale',
-                            'label'         => 'Approbation Admin Filiale',
+                            'step' => 1,
+                            'role' => 'admin_filiale',
+                            'label' => 'Approbation Admin Filiale',
                             'timeout_hours' => 48,
                         ],
                         [
-                            'step'          => 2,
-                            'role'          => 'super_admin',
-                            'label'         => 'Approbation Super Admin (DTAG)',
+                            'step' => 2,
+                            'role' => 'super_admin',
+                            'label' => 'Approbation Super Admin (DTAG)',
                             'timeout_hours' => 48,
                         ],
                     ],
@@ -72,23 +71,23 @@ class ApprovalWorkflowSeeder extends Seeder
 
             ApprovalWorkflowConfig::firstOrCreate(
                 [
-                    'tenant_id'   => $tenant->id,
+                    'tenant_id' => $tenant->id,
                     'entity_type' => 'CERTIFICATE',
-                    'name'        => 'Escalade Nombre de certificats — ' . $tenant->name,
+                    'name' => 'Escalade Nombre de certificats — '.$tenant->name,
                 ],
                 [
                     'trigger_condition' => ['certificates_limit_reached' => true],
-                    'steps_config'      => [
+                    'steps_config' => [
                         [
-                            'step'          => 1,
-                            'role'          => 'admin_filiale',
-                            'label'         => 'Approbation Admin Filiale',
+                            'step' => 1,
+                            'role' => 'admin_filiale',
+                            'label' => 'Approbation Admin Filiale',
                             'timeout_hours' => 48,
                         ],
                         [
-                            'step'          => 2,
-                            'role'          => 'super_admin',
-                            'label'         => 'Approbation Super Admin (DTAG)',
+                            'step' => 2,
+                            'role' => 'super_admin',
+                            'label' => 'Approbation Super Admin (DTAG)',
                             'timeout_hours' => 48,
                         ],
                     ],
@@ -97,6 +96,6 @@ class ApprovalWorkflowSeeder extends Seeder
             );
         }
 
-        $this->command->info('Workflows NN300 créés pour ' . Tenant::count() . ' filiale(s).');
+        $this->command->info('Workflows NN300 créés pour '.Tenant::count().' filiale(s).');
     }
 }

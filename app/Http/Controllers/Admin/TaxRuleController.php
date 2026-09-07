@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Country;
-use App\Models\Tenant;
 use App\Models\TaxRule;
+use App\Models\Tenant;
 use App\Models\TransportMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,13 +36,13 @@ class TaxRuleController extends Controller
             ->withQueryString();
 
         return Inertia::render('admin/taxes/rules', [
-            'rules'          => $rules,
-            'tenants'        => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']) : collect(),
+            'rules' => $rules,
+            'tenants' => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']) : collect(),
             'transportModes' => TransportMode::orderBy('name_fr')->get(['id', 'code', 'name_fr']),
-            'countries'      => Country::orderBy('name_fr')->get(['code', 'name_fr']),
-            'filters'        => $request->only(['tenant_id']),
-            'isSA'           => $isSA,
-            'defaultTenantId'=> $user->tenant_id,
+            'countries' => Country::orderBy('name_fr')->get(['code', 'name_fr']),
+            'filters' => $request->only(['tenant_id']),
+            'isSA' => $isSA,
+            'defaultTenantId' => $user->tenant_id,
         ]);
     }
 
@@ -58,25 +58,25 @@ class TaxRuleController extends Controller
         // vides, ou taux par mode indépendant du pays de destination si
         // seul le pays est vide.
         $validated = $request->validate([
-            'tenant_id'         => [$isSA ? 'required' : 'nullable', 'uuid', 'exists:tenants,id'],
+            'tenant_id' => [$isSA ? 'required' : 'nullable', 'uuid', 'exists:tenants,id'],
             'transport_mode_id' => ['nullable', 'exists:transport_modes,id'],
-            'country_code'      => ['nullable', 'string', 'size:2', 'exists:countries,code'],
-            'rate_pct'          => ['required', 'numeric', 'min:0', 'max:100'],
-            'effective_date'    => ['required', 'date'],
-            'end_date'          => ['nullable', 'date', 'after:effective_date'],
-            'notes'             => ['nullable', 'string', 'max:255'],
+            'country_code' => ['nullable', 'string', 'size:2', 'exists:countries,code'],
+            'rate_pct' => ['required', 'numeric', 'min:0', 'max:100'],
+            'effective_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date', 'after:effective_date'],
+            'notes' => ['nullable', 'string', 'max:255'],
         ]);
 
         TaxRule::create([
-            'tenant_id'         => $isSA ? $validated['tenant_id'] : $user->tenant_id,
+            'tenant_id' => $isSA ? $validated['tenant_id'] : $user->tenant_id,
             'transport_mode_id' => $validated['transport_mode_id'] ?? null,
-            'country_code'      => $validated['country_code'] ?? null,
-            'rate_pct'          => $validated['rate_pct'],
-            'effective_date'    => $validated['effective_date'],
-            'end_date'          => $validated['end_date'] ?? null,
-            'is_active'         => true,
-            'notes'             => $validated['notes'] ?? null,
-            'created_by'        => $user->id,
+            'country_code' => $validated['country_code'] ?? null,
+            'rate_pct' => $validated['rate_pct'],
+            'effective_date' => $validated['effective_date'],
+            'end_date' => $validated['end_date'] ?? null,
+            'is_active' => true,
+            'notes' => $validated['notes'] ?? null,
+            'created_by' => $user->id,
         ]);
 
         return back()->with('status', 'Taux de taxe créé.');
@@ -95,7 +95,11 @@ class TaxRuleController extends Controller
     private function authorizeTenant(string $tenantId): void
     {
         $user = auth()->user();
-        if ($user->hasRole('super_admin')) return;
-        if ((string) $user->tenant_id !== (string) $tenantId) abort(403);
+        if ($user->hasRole('super_admin')) {
+            return;
+        }
+        if ((string) $user->tenant_id !== (string) $tenantId) {
+            abort(403);
+        }
     }
 }

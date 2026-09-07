@@ -1,50 +1,95 @@
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem } from '@/types';
+import type { TFunction } from 'i18next';
 import {
-    Award, AlertTriangle, TrendingUp, CheckCircle,
-    Clock, FileText, Percent, BarChart2,
-    Ship, Plane, Truck, Users,
+    Award,
+    AlertTriangle,
+    TrendingUp,
+    Clock,
+    FileText,
+    Percent,
+    BarChart2,
+    Ship,
+    Plane,
+    Truck,
+    Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 // ── Types ────────────────────────────────────────────────────
-interface MonthData  { label: string; count: number }
-interface TopBroker  { broker_name: string; count: number; total_value: string; total_prime: string }
+interface MonthData {
+    label: string;
+    count: number;
+}
+interface TopBroker {
+    broker_name: string;
+    count: number;
+    total_value: string;
+    total_prime: string;
+}
 
 interface Props {
     certStats: {
-        issued_month: number; issued_prev_month: number; issued_ytd: number;
-        submitted: number; draft: number; cancelled_month: number;
+        issued_month: number;
+        issued_prev_month: number;
+        issued_ytd: number;
+        submitted: number;
+        draft: number;
+        cancelled_month: number;
     };
     avgProcessingHours: number | null;
-    monthlyData:        MonthData[];
+    monthlyData: MonthData[];
     transportBreakdown: Record<string, number>;
-    contractStats:      { active: number; expiring_30: number; expiring_7: number; draft: number; expired: number };
-    limitUsagePct:      number | null;
-    commStats:          { pending_amount: number; paid_month: number; pending_count: number };
-    escaladeStats:      { pending: number; approved: number; rejected: number };
-    approvalRate:       number | null;
-    topBrokers:         TopBroker[];
-    isSA:               boolean;
-    currentMonth:       string;
-    currentYear:        number;
+    contractStats: {
+        active: number;
+        expiring_30: number;
+        expiring_7: number;
+        draft: number;
+        expired: number;
+    };
+    limitUsagePct: number | null;
+    commStats: {
+        pending_amount: number;
+        paid_month: number;
+        pending_count: number;
+    };
+    escaladeStats: { pending: number; approved: number; rejected: number };
+    approvalRate: number | null;
+    topBrokers: TopBroker[];
+    isSA: boolean;
+    currentMonth: string;
+    currentYear: number;
 }
 
 // ── Helpers ──────────────────────────────────────────────────
 const fmtNum = (n: number) => n.toLocaleString('fr-FR');
 const fmtAmt = (n: number | string) =>
-    parseFloat(String(n)).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    parseFloat(String(n)).toLocaleString('fr-FR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    });
 
 function Trend({ curr, prev }: { curr: number; prev: number }) {
-    if (prev === 0) return null;
+    if (prev === 0) {
+        return null;
+    }
+
     const pct = Math.round(((curr - prev) / prev) * 100);
-    const up  = pct >= 0;
+    const up = pct >= 0;
+
     return (
-        <span style={{ fontSize: 10, fontWeight: 600, color: up ? '#15803d' : '#dc2626',
-                       background: up ? '#f0fdf4' : '#fef2f2',
-                       borderRadius: 6, padding: '1px 5px', marginLeft: 4 }}>
+        <span
+            style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: up ? '#15803d' : '#dc2626',
+                background: up ? '#f0fdf4' : '#fef2f2',
+                borderRadius: 6,
+                padding: '1px 5px',
+                marginLeft: 4,
+            }}
+        >
             {up ? '▲' : '▼'} {Math.abs(pct)}%
         </span>
     );
@@ -52,35 +97,66 @@ function Trend({ curr, prev }: { curr: number; prev: number }) {
 
 // ── Bar Chart SVG ────────────────────────────────────────────
 function BarChart({ data }: { data: MonthData[] }) {
-    const max    = Math.max(...data.map(d => d.count), 1);
-    const W      = 560;
-    const H      = 90;
-    const barW   = 32;
-    const gap    = (W - data.length * barW) / (data.length + 1);
-    const blue   = '#1d4ed8';
+    const max = Math.max(...data.map((d) => d.count), 1);
+    const W = 560;
+    const H = 90;
+    const barW = 32;
+    const gap = (W - data.length * barW) / (data.length + 1);
+    const blue = '#1d4ed8';
     const blueLt = '#dbeafe';
 
     return (
-        <svg viewBox={`0 0 ${W} ${H + 28}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+        <svg
+            viewBox={`0 0 ${W} ${H + 28}`}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
+        >
             {data.map((d, i) => {
-                const x    = gap + i * (barW + gap);
-                const bH   = max === 0 ? 2 : Math.max(3, Math.round((d.count / max) * H));
-                const y    = H - bH;
+                const x = gap + i * (barW + gap);
+                const bH =
+                    max === 0
+                        ? 2
+                        : Math.max(3, Math.round((d.count / max) * H));
+                const y = H - bH;
                 const isLast = i === data.length - 1;
+
                 return (
                     <g key={d.label}>
-                        <rect x={x} y={0} width={barW} height={H}
-                              fill={blueLt} rx={3} opacity={0.3}/>
-                        <rect x={x} y={y} width={barW} height={bH}
-                              fill={isLast ? '#1e3a8a' : blue} rx={3}/>
+                        <rect
+                            x={x}
+                            y={0}
+                            width={barW}
+                            height={H}
+                            fill={blueLt}
+                            rx={3}
+                            opacity={0.3}
+                        />
+                        <rect
+                            x={x}
+                            y={y}
+                            width={barW}
+                            height={bH}
+                            fill={isLast ? '#1e3a8a' : blue}
+                            rx={3}
+                        />
                         {d.count > 0 && (
-                            <text x={x + barW / 2} y={y - 4}
-                                  textAnchor="middle" fontSize={9} fill="#475569" fontWeight="600">
+                            <text
+                                x={x + barW / 2}
+                                y={y - 4}
+                                textAnchor="middle"
+                                fontSize={9}
+                                fill="#475569"
+                                fontWeight="600"
+                            >
                                 {d.count}
                             </text>
                         )}
-                        <text x={x + barW / 2} y={H + 14}
-                              textAnchor="middle" fontSize={8.5} fill="#94a3b8">
+                        <text
+                            x={x + barW / 2}
+                            y={H + 14}
+                            textAnchor="middle"
+                            fontSize={8.5}
+                            fill="#94a3b8"
+                        >
                             {d.label}
                         </text>
                     </g>
@@ -92,41 +168,107 @@ function BarChart({ data }: { data: MonthData[] }) {
 
 // ── Donut Chart SVG ──────────────────────────────────────────
 const TRANSPORT_COLORS: Record<string, string> = {
-    SEA: '#0284c7', AIR: '#7c3aed', ROAD: '#059669', RAIL: '#d97706', AUTRE: '#94a3b8',
+    SEA: '#0284c7',
+    AIR: '#7c3aed',
+    ROAD: '#059669',
+    RAIL: '#d97706',
+    AUTRE: '#94a3b8',
 };
 const TRANSPORT_ICONS: Record<string, any> = {
-    SEA: Ship, AIR: Plane, ROAD: Truck, RAIL: Truck, AUTRE: Award,
+    SEA: Ship,
+    AIR: Plane,
+    ROAD: Truck,
+    RAIL: Truck,
+    AUTRE: Award,
 };
 
-function TransportBreakdown({ data, t }: { data: Record<string, number>; t: TFunction }) {
+function TransportBreakdown({
+    data,
+    t,
+}: {
+    data: Record<string, number>;
+    t: TFunction;
+}) {
     const total = Object.values(data).reduce((s, v) => s + v, 0);
+
     if (total === 0) {
         return (
-            <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '16px 0' }}>
+            <div
+                style={{
+                    fontSize: 12,
+                    color: '#94a3b8',
+                    textAlign: 'center',
+                    padding: '16px 0',
+                }}
+            >
                 {t('kpi.transport.empty')}
             </div>
         );
     }
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {Object.entries(data).map(([type, count]) => {
-                const pct  = Math.round((count / total) * 100);
+                const pct = Math.round((count / total) * 100);
                 const Icon = TRANSPORT_ICONS[type] ?? Award;
-                const col  = TRANSPORT_COLORS[type] ?? '#64748b';
+                const col = TRANSPORT_COLORS[type] ?? '#64748b';
+
                 return (
                     <div key={type}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#475569' }}>
-                                <Icon size={11} color={col}/>
-                                {t(`kpi.transport.labels.${type}`, { defaultValue: type })}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: 3,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    fontSize: 11,
+                                    color: '#475569',
+                                }}
+                            >
+                                <Icon size={11} color={col} />
+                                {t(`kpi.transport.labels.${type}`, {
+                                    defaultValue: type,
+                                })}
                             </div>
-                            <div style={{ fontSize: 11, fontWeight: 600, color: '#1e293b' }}>
-                                {count} <span style={{ fontSize: 10, color: '#94a3b8' }}>({pct}%)</span>
+                            <div
+                                style={{
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    color: '#1e293b',
+                                }}
+                            >
+                                {count}{' '}
+                                <span
+                                    style={{ fontSize: 10, color: '#94a3b8' }}
+                                >
+                                    ({pct}%)
+                                </span>
                             </div>
                         </div>
-                        <div style={{ height: 5, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${pct}%`, background: col, borderRadius: 3,
-                                          transition: 'width .5s ease' }}/>
+                        <div
+                            style={{
+                                height: 5,
+                                background: '#f1f5f9',
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                            }}
+                        >
+                            <div
+                                style={{
+                                    height: '100%',
+                                    width: `${pct}%`,
+                                    background: col,
+                                    borderRadius: 3,
+                                    transition: 'width .5s ease',
+                                }}
+                            />
                         </div>
                     </div>
                 );
@@ -138,41 +280,108 @@ function TransportBreakdown({ data, t }: { data: Record<string, number>; t: TFun
 // ── Progress Bar ─────────────────────────────────────────────
 function ProgressBar({ pct, color }: { pct: number; color: string }) {
     const capped = Math.min(pct, 100);
+
     return (
-        <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden', marginTop: 6 }}>
-            <div style={{ height: '100%', width: `${capped}%`, background: color, borderRadius: 4,
-                          transition: 'width .5s ease' }}/>
+        <div
+            style={{
+                height: 8,
+                background: '#f1f5f9',
+                borderRadius: 4,
+                overflow: 'hidden',
+                marginTop: 6,
+            }}
+        >
+            <div
+                style={{
+                    height: '100%',
+                    width: `${capped}%`,
+                    background: color,
+                    borderRadius: 4,
+                    transition: 'width .5s ease',
+                }}
+            />
         </div>
     );
 }
 
 // ── KPI Card ─────────────────────────────────────────────────
 function KpiCard({
-    label, value, sub, color = '#1e293b', bg = '#fff',
-    border = '#e2e8f0', icon: Icon, trend,
+    label,
+    value,
+    sub,
+    color = '#1e293b',
+    bg = '#fff',
+    border = '#e2e8f0',
+    icon: Icon,
+    trend,
 }: {
-    label: string; value: string | number; sub?: string;
-    color?: string; bg?: string; border?: string;
-    icon?: any; trend?: React.ReactNode;
+    label: string;
+    value: string | number;
+    sub?: string;
+    color?: string;
+    bg?: string;
+    border?: string;
+    icon?: any;
+    trend?: React.ReactNode;
 }) {
     return (
-        <div style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 12,
-                      padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div
+            style={{
+                background: bg,
+                border: `1.5px solid ${border}`,
+                borderRadius: 12,
+                padding: '13px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+            }}
+        >
             {Icon && (
-                <div style={{ width: 36, height: 36, borderRadius: 9, background: `${color}18`,
-                              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon size={17} color={color}/>
+                <div
+                    style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 9,
+                        background: `${color}18`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                    }}
+                >
+                    <Icon size={17} color={color} />
                 </div>
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase',
-                              letterSpacing: '.05em', marginBottom: 2 }}>
+                <div
+                    style={{
+                        fontSize: 10,
+                        color: '#94a3b8',
+                        textTransform: 'uppercase',
+                        letterSpacing: '.05em',
+                        marginBottom: 2,
+                    }}
+                >
                     {label}
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 700, color, lineHeight: 1 }}>
-                    {value}{trend}
+                <div
+                    style={{
+                        fontSize: 22,
+                        fontWeight: 700,
+                        color,
+                        lineHeight: 1,
+                    }}
+                >
+                    {value}
+                    {trend}
                 </div>
-                {sub && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{sub}</div>}
+                {sub && (
+                    <div
+                        style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}
+                    >
+                        {sub}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -180,9 +389,18 @@ function KpiCard({
 
 // ── Main Component ───────────────────────────────────────────
 export default function KpiDashboard({
-    certStats, avgProcessingHours, monthlyData, transportBreakdown,
-    contractStats, limitUsagePct, commStats, escaladeStats, approvalRate,
-    topBrokers, isSA, currentMonth, currentYear,
+    certStats,
+    avgProcessingHours,
+    monthlyData,
+    transportBreakdown,
+    contractStats,
+    limitUsagePct,
+    commStats,
+    escaladeStats,
+    approvalRate,
+    topBrokers,
+    currentMonth,
+    currentYear,
 }: Props) {
     const { t } = useTranslation('dashboard');
 
@@ -192,12 +410,15 @@ export default function KpiDashboard({
     ];
 
     const issuedEvolution = (
-        <Trend curr={certStats.issued_month} prev={certStats.issued_prev_month}/>
+        <Trend
+            curr={certStats.issued_month}
+            prev={certStats.issued_prev_month}
+        />
     );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('kpi.headTitle')}/>
+            <Head title={t('kpi.headTitle')} />
             <style>{`
                 .kpi-page { padding: 4px; display: flex; flex-direction: column; gap: 16px; }
                 .kpi-section-title {
@@ -238,26 +459,65 @@ export default function KpiDashboard({
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="kpi-page">
-
                     {/* ── Header ──────────────────────────────── */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}
+                    >
                         <div>
-                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                            <h1
+                                style={{
+                                    fontSize: 18,
+                                    fontWeight: 700,
+                                    color: '#1e293b',
+                                    lineHeight: 1,
+                                }}
+                            >
                                 {t('kpi.heading')}
                             </h1>
-                            <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
-                                {t('kpi.subtitle', { month: currentMonth, year: currentYear })}
+                            <p
+                                style={{
+                                    fontSize: 12,
+                                    color: '#94a3b8',
+                                    marginTop: 3,
+                                }}
+                            >
+                                {t('kpi.subtitle', {
+                                    month: currentMonth,
+                                    year: currentYear,
+                                })}
                             </p>
                         </div>
-                        <Link href={route('admin.dashboard.pending')}
-                              style={{ fontSize: 12, color: '#1d4ed8', textDecoration: 'none',
-                                       display: 'flex', alignItems: 'center', gap: 5,
-                                       background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
-                                       border: '1px solid #bfdbfe' }}>
-                            <Clock size={13}/> {t('kpi.validationQueue')}
+                        <Link
+                            href={route('admin.dashboard.pending')}
+                            style={{
+                                fontSize: 12,
+                                color: '#1d4ed8',
+                                textDecoration: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 5,
+                                background: '#eff6ff',
+                                padding: '6px 12px',
+                                borderRadius: 8,
+                                border: '1px solid #bfdbfe',
+                            }}
+                        >
+                            <Clock size={13} /> {t('kpi.validationQueue')}
                             {certStats.submitted > 0 && (
-                                <span style={{ background: '#dc2626', color: '#fff', borderRadius: 10,
-                                               fontSize: 10, padding: '0 5px', fontWeight: 700 }}>
+                                <span
+                                    style={{
+                                        background: '#dc2626',
+                                        color: '#fff',
+                                        borderRadius: 10,
+                                        fontSize: 10,
+                                        padding: '0 5px',
+                                        fontWeight: 700,
+                                    }}
+                                >
                                     {certStats.submitted}
                                 </span>
                             )}
@@ -266,50 +526,106 @@ export default function KpiDashboard({
 
                     {/* ── KPIs Certificats (top row) ──────────── */}
                     <div>
-                        <div className="kpi-section-title">{t('kpi.sections.certificates')}</div>
-                        <div className="kpi-row kpi-row-4" style={{ gridTemplateColumns: 'repeat(4,1fr) repeat(2,1fr)', gap: 10 }}>
-                            <KpiCard label={t('kpi.cards.issuedMonth')}
-                                     value={fmtNum(certStats.issued_month)}
-                                     sub={t('kpi.cards.issuedMonthSub', { count: fmtNum(certStats.issued_prev_month) })}
-                                     color="#1d4ed8" icon={Award}
-                                     trend={issuedEvolution}/>
-                            <KpiCard label={t('kpi.cards.issuedYtd', { year: currentYear })}
-                                     value={fmtNum(certStats.issued_ytd)}
-                                     color="#0284c7" icon={TrendingUp}/>
-                            <KpiCard label={t('kpi.cards.pending')}
-                                     value={fmtNum(certStats.submitted)}
-                                     bg={certStats.submitted > 5 ? '#fef2f2' : '#fff'}
-                                     border={certStats.submitted > 5 ? '#fecaca' : '#e2e8f0'}
-                                     color={certStats.submitted > 5 ? '#dc2626' : '#f59e0b'}
-                                     icon={Clock}/>
-                            <KpiCard label={t('kpi.cards.draft')}
-                                     value={fmtNum(certStats.draft)}
-                                     color="#64748b" icon={FileText}/>
-                            <KpiCard label={t('kpi.cards.cancelledMonth')}
-                                     value={fmtNum(certStats.cancelled_month)}
-                                     color={certStats.cancelled_month > 0 ? '#dc2626' : '#94a3b8'}
-                                     icon={AlertTriangle}/>
-                            <KpiCard label={t('kpi.cards.avgProcessing')}
-                                     value={avgProcessingHours !== null ? `${avgProcessingHours}h` : '—'}
-                                     sub={t('kpi.cards.avgProcessingSub')}
-                                     color="#7c3aed" icon={Clock}/>
+                        <div className="kpi-section-title">
+                            {t('kpi.sections.certificates')}
+                        </div>
+                        <div
+                            className="kpi-row kpi-row-4"
+                            style={{
+                                gridTemplateColumns:
+                                    'repeat(4,1fr) repeat(2,1fr)',
+                                gap: 10,
+                            }}
+                        >
+                            <KpiCard
+                                label={t('kpi.cards.issuedMonth')}
+                                value={fmtNum(certStats.issued_month)}
+                                sub={t('kpi.cards.issuedMonthSub', {
+                                    count: fmtNum(certStats.issued_prev_month),
+                                })}
+                                color="#1d4ed8"
+                                icon={Award}
+                                trend={issuedEvolution}
+                            />
+                            <KpiCard
+                                label={t('kpi.cards.issuedYtd', {
+                                    year: currentYear,
+                                })}
+                                value={fmtNum(certStats.issued_ytd)}
+                                color="#0284c7"
+                                icon={TrendingUp}
+                            />
+                            <KpiCard
+                                label={t('kpi.cards.pending')}
+                                value={fmtNum(certStats.submitted)}
+                                bg={
+                                    certStats.submitted > 5 ? '#fef2f2' : '#fff'
+                                }
+                                border={
+                                    certStats.submitted > 5
+                                        ? '#fecaca'
+                                        : '#e2e8f0'
+                                }
+                                color={
+                                    certStats.submitted > 5
+                                        ? '#dc2626'
+                                        : '#f59e0b'
+                                }
+                                icon={Clock}
+                            />
+                            <KpiCard
+                                label={t('kpi.cards.draft')}
+                                value={fmtNum(certStats.draft)}
+                                color="#64748b"
+                                icon={FileText}
+                            />
+                            <KpiCard
+                                label={t('kpi.cards.cancelledMonth')}
+                                value={fmtNum(certStats.cancelled_month)}
+                                color={
+                                    certStats.cancelled_month > 0
+                                        ? '#dc2626'
+                                        : '#94a3b8'
+                                }
+                                icon={AlertTriangle}
+                            />
+                            <KpiCard
+                                label={t('kpi.cards.avgProcessing')}
+                                value={
+                                    avgProcessingHours !== null
+                                        ? `${avgProcessingHours}h`
+                                        : '—'
+                                }
+                                sub={t('kpi.cards.avgProcessingSub')}
+                                color="#7c3aed"
+                                icon={Clock}
+                            />
                         </div>
                     </div>
 
                     {/* ── Tendance + Transport + Contrats ─────── */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px 240px', gap: 14 }}>
-
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 240px 240px',
+                            gap: 14,
+                        }}
+                    >
                         {/* Bar chart mensuel */}
                         <div className="kpi-panel">
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
-                                    <BarChart2 size={14} color="#1d4ed8"/>
+                                    <BarChart2 size={14} color="#1d4ed8" />
                                     {t('kpi.monthlyChart.title')}
                                 </div>
-                                <span style={{ fontSize: 10, color: '#94a3b8' }}>{t('kpi.monthlyChart.badge')}</span>
+                                <span
+                                    style={{ fontSize: 10, color: '#94a3b8' }}
+                                >
+                                    {t('kpi.monthlyChart.badge')}
+                                </span>
                             </div>
                             <div className="kpi-panel-body">
-                                <BarChart data={monthlyData}/>
+                                <BarChart data={monthlyData} />
                             </div>
                         </div>
 
@@ -317,12 +633,15 @@ export default function KpiDashboard({
                         <div className="kpi-panel">
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
-                                    <Ship size={14} color="#0284c7"/>
+                                    <Ship size={14} color="#0284c7" />
                                     {t('kpi.transport.title')}
                                 </div>
                             </div>
                             <div className="kpi-panel-body">
-                                <TransportBreakdown data={transportBreakdown} t={t}/>
+                                <TransportBreakdown
+                                    data={transportBreakdown}
+                                    t={t}
+                                />
                             </div>
                         </div>
 
@@ -330,53 +649,106 @@ export default function KpiDashboard({
                         <div className="kpi-panel">
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
-                                    <FileText size={14} color="#059669"/>
+                                    <FileText size={14} color="#059669" />
                                     {t('kpi.contracts.title')}
                                 </div>
-                                <Link href={route('admin.contracts.index')}
-                                      style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
+                                <Link
+                                    href={route('admin.contracts.index')}
+                                    style={{
+                                        fontSize: 10,
+                                        color: '#1d4ed8',
+                                        textDecoration: 'none',
+                                    }}
+                                >
                                     {t('kpi.contracts.seeAll')}
                                 </Link>
                             </div>
                             <div className="kpi-panel-body">
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.contracts.active')}</span>
-                                    <span className="stat-val" style={{ color: '#059669' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.contracts.active')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{ color: '#059669' }}
+                                    >
                                         {contractStats.active}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.contracts.expiring30')}</span>
-                                    <span className="stat-val"
-                                          style={{ color: contractStats.expiring_30 > 0 ? '#f59e0b' : '#64748b' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.contracts.expiring30')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{
+                                            color:
+                                                contractStats.expiring_30 > 0
+                                                    ? '#f59e0b'
+                                                    : '#64748b',
+                                        }}
+                                    >
                                         {contractStats.expiring_30}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.contracts.expiring7')}</span>
-                                    <span className="stat-val"
-                                          style={{ color: contractStats.expiring_7 > 0 ? '#dc2626' : '#64748b' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.contracts.expiring7')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{
+                                            color:
+                                                contractStats.expiring_7 > 0
+                                                    ? '#dc2626'
+                                                    : '#64748b',
+                                        }}
+                                    >
                                         {contractStats.expiring_7}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.contracts.draft')}</span>
-                                    <span className="stat-val" style={{ color: '#64748b' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.contracts.draft')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{ color: '#64748b' }}
+                                    >
                                         {contractStats.draft}
                                     </span>
                                 </div>
                                 {limitUsagePct !== null && (
                                     <div style={{ marginTop: 8 }}>
-                                        <div style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>
+                                        <div
+                                            style={{
+                                                fontSize: 10,
+                                                color: '#64748b',
+                                                marginBottom: 2,
+                                            }}
+                                        >
                                             {t('kpi.contracts.limitUsage')}
                                         </div>
-                                        <div style={{ fontSize: 14, fontWeight: 700,
-                                                      color: Number(limitUsagePct) > 80 ? '#dc2626' : '#059669' }}>
+                                        <div
+                                            style={{
+                                                fontSize: 14,
+                                                fontWeight: 700,
+                                                color:
+                                                    Number(limitUsagePct) > 80
+                                                        ? '#dc2626'
+                                                        : '#059669',
+                                            }}
+                                        >
                                             {limitUsagePct}%
                                         </div>
                                         <ProgressBar
                                             pct={Number(limitUsagePct)}
-                                            color={Number(limitUsagePct) > 80 ? '#dc2626' : '#059669'}/>
+                                            color={
+                                                Number(limitUsagePct) > 80
+                                                    ? '#dc2626'
+                                                    : '#059669'
+                                            }
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -384,37 +756,67 @@ export default function KpiDashboard({
                     </div>
 
                     {/* ── Bottom row : Commissions + Escalades + Top courtiers */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '220px 220px 1fr', gap: 14 }}>
-
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: '220px 220px 1fr',
+                            gap: 14,
+                        }}
+                    >
                         {/* Commissions */}
                         <div className="kpi-panel">
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
-                                    <Percent size={14} color="#7c3aed"/>
+                                    <Percent size={14} color="#7c3aed" />
                                     {t('kpi.commissions.title')}
                                 </div>
-                                <Link href={route('admin.commissions.bordereau')}
-                                      style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
+                                <Link
+                                    href={route('admin.commissions.bordereau')}
+                                    style={{
+                                        fontSize: 10,
+                                        color: '#1d4ed8',
+                                        textDecoration: 'none',
+                                    }}
+                                >
                                     {t('kpi.commissions.bordereau')}
                                 </Link>
                             </div>
                             <div className="kpi-panel-body">
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.commissions.paidMonth')}</span>
-                                    <span className="stat-val" style={{ color: '#15803d', fontFamily: 'monospace' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.commissions.paidMonth')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{
+                                            color: '#15803d',
+                                            fontFamily: 'monospace',
+                                        }}
+                                    >
                                         {fmtAmt(commStats.paid_month)}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.commissions.pendingMonth')}</span>
-                                    <span className="stat-val"
-                                          style={{ color: commStats.pending_amount > 0 ? '#f59e0b' : '#64748b',
-                                                   fontFamily: 'monospace' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.commissions.pendingMonth')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{
+                                            color:
+                                                commStats.pending_amount > 0
+                                                    ? '#f59e0b'
+                                                    : '#64748b',
+                                            fontFamily: 'monospace',
+                                        }}
+                                    >
                                         {fmtAmt(commStats.pending_amount)}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.commissions.pendingCount')}</span>
+                                    <span className="stat-lbl">
+                                        {t('kpi.commissions.pendingCount')}
+                                    </span>
                                     <span className="stat-val">
                                         {commStats.pending_count}
                                     </span>
@@ -426,50 +828,100 @@ export default function KpiDashboard({
                         <div className="kpi-panel">
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
-                                    <TrendingUp size={14} color="#f59e0b"/>
+                                    <TrendingUp size={14} color="#f59e0b" />
                                     {t('kpi.escalades.title')}
                                 </div>
-                                <Link href={route('admin.approvals.index')}
-                                      style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
+                                <Link
+                                    href={route('admin.approvals.index')}
+                                    style={{
+                                        fontSize: 10,
+                                        color: '#1d4ed8',
+                                        textDecoration: 'none',
+                                    }}
+                                >
                                     {t('kpi.escalades.seeAll')}
                                 </Link>
                             </div>
                             <div className="kpi-panel-body">
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.escalades.inProgress')}</span>
-                                    <span className="stat-val"
-                                          style={{ color: escaladeStats.pending > 0 ? '#dc2626' : '#64748b' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.escalades.inProgress')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{
+                                            color:
+                                                escaladeStats.pending > 0
+                                                    ? '#dc2626'
+                                                    : '#64748b',
+                                        }}
+                                    >
                                         {escaladeStats.pending}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.escalades.approvedMonth')}</span>
-                                    <span className="stat-val" style={{ color: '#15803d' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.escalades.approvedMonth')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{ color: '#15803d' }}
+                                    >
                                         {escaladeStats.approved}
                                     </span>
                                 </div>
                                 <div className="stat-row">
-                                    <span className="stat-lbl">{t('kpi.escalades.rejectedMonth')}</span>
-                                    <span className="stat-val" style={{ color: '#dc2626' }}>
+                                    <span className="stat-lbl">
+                                        {t('kpi.escalades.rejectedMonth')}
+                                    </span>
+                                    <span
+                                        className="stat-val"
+                                        style={{ color: '#dc2626' }}
+                                    >
                                         {escaladeStats.rejected}
                                     </span>
                                 </div>
                                 {approvalRate !== null && (
                                     <div style={{ marginTop: 8 }}>
-                                        <div style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>
+                                        <div
+                                            style={{
+                                                fontSize: 10,
+                                                color: '#64748b',
+                                                marginBottom: 2,
+                                            }}
+                                        >
                                             {t('kpi.escalades.approvalRate')}
                                         </div>
-                                        <div style={{ fontSize: 18, fontWeight: 700,
-                                                      color: approvalRate >= 80 ? '#15803d' : '#f59e0b' }}>
+                                        <div
+                                            style={{
+                                                fontSize: 18,
+                                                fontWeight: 700,
+                                                color:
+                                                    approvalRate >= 80
+                                                        ? '#15803d'
+                                                        : '#f59e0b',
+                                            }}
+                                        >
                                             {approvalRate}%
                                         </div>
                                         <ProgressBar
                                             pct={approvalRate}
-                                            color={approvalRate >= 80 ? '#15803d' : '#f59e0b'}/>
+                                            color={
+                                                approvalRate >= 80
+                                                    ? '#15803d'
+                                                    : '#f59e0b'
+                                            }
+                                        />
                                     </div>
                                 )}
                                 {approvalRate === null && (
-                                    <div style={{ marginTop: 6, fontSize: 10, color: '#94a3b8' }}>
+                                    <div
+                                        style={{
+                                            marginTop: 6,
+                                            fontSize: 10,
+                                            color: '#94a3b8',
+                                        }}
+                                    >
                                         {t('kpi.escalades.noDecision')}
                                     </div>
                                 )}
@@ -480,72 +932,185 @@ export default function KpiDashboard({
                         <div className="kpi-panel">
                             <div className="kpi-panel-hdr">
                                 <div className="kpi-panel-hdr-title">
-                                    <Users size={14} color="#1d4ed8"/>
+                                    <Users size={14} color="#1d4ed8" />
                                     {t('kpi.topBrokers.title')}
                                 </div>
-                                <Link href={route('admin.brokers.index')}
-                                      style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
+                                <Link
+                                    href={route('admin.brokers.index')}
+                                    style={{
+                                        fontSize: 10,
+                                        color: '#1d4ed8',
+                                        textDecoration: 'none',
+                                    }}
+                                >
                                     {t('kpi.topBrokers.seeAll')}
                                 </Link>
                             </div>
-                            <div className="kpi-panel-body" style={{ padding: '8px 16px' }}>
+                            <div
+                                className="kpi-panel-body"
+                                style={{ padding: '8px 16px' }}
+                            >
                                 {topBrokers.length === 0 ? (
-                                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '14px 0' }}>
+                                    <div
+                                        style={{
+                                            fontSize: 12,
+                                            color: '#94a3b8',
+                                            textAlign: 'center',
+                                            padding: '14px 0',
+                                        }}
+                                    >
                                         {t('kpi.topBrokers.empty')}
                                     </div>
-                                ) : topBrokers.map((b, i) => (
-                                    <div key={b.broker_name} className="broker-row">
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                            <div style={{ width: 24, height: 24, borderRadius: 6,
-                                                          background: i === 0 ? '#fef3c7' : '#f8fafc',
-                                                          border: `1px solid ${i === 0 ? '#fde68a' : '#e2e8f0'}`,
-                                                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                          fontSize: 11, fontWeight: 700,
-                                                          color: i === 0 ? '#d97706' : '#94a3b8', flexShrink: 0 }}>
-                                                {i + 1}
-                                            </div>
-                                            <div>
-                                                <div className="broker-name"
-                                                     style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                    {b.broker_name}
+                                ) : (
+                                    topBrokers.map((b, i) => (
+                                        <div
+                                            key={b.broker_name}
+                                            className="broker-row"
+                                        >
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 10,
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        width: 24,
+                                                        height: 24,
+                                                        borderRadius: 6,
+                                                        background:
+                                                            i === 0
+                                                                ? '#fef3c7'
+                                                                : '#f8fafc',
+                                                        border: `1px solid ${i === 0 ? '#fde68a' : '#e2e8f0'}`,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent:
+                                                            'center',
+                                                        fontSize: 11,
+                                                        fontWeight: 700,
+                                                        color:
+                                                            i === 0
+                                                                ? '#d97706'
+                                                                : '#94a3b8',
+                                                        flexShrink: 0,
+                                                    }}
+                                                >
+                                                    {i + 1}
                                                 </div>
-                                                <div className="broker-sub">
-                                                    {t('kpi.topBrokers.value', { amount: fmtAmt(b.total_value) })}
+                                                <div>
+                                                    <div
+                                                        className="broker-name"
+                                                        style={{
+                                                            maxWidth: 200,
+                                                            overflow: 'hidden',
+                                                            textOverflow:
+                                                                'ellipsis',
+                                                            whiteSpace:
+                                                                'nowrap',
+                                                        }}
+                                                    >
+                                                        {b.broker_name}
+                                                    </div>
+                                                    <div className="broker-sub">
+                                                        {t(
+                                                            'kpi.topBrokers.value',
+                                                            {
+                                                                amount: fmtAmt(
+                                                                    b.total_value,
+                                                                ),
+                                                            },
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="broker-cnt">
+                                                {b.count}
+                                                <div
+                                                    style={{
+                                                        fontSize: 9,
+                                                        color: '#94a3b8',
+                                                        fontWeight: 400,
+                                                    }}
+                                                >
+                                                    {t(
+                                                        'kpi.topBrokers.certSuffix',
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="broker-cnt">
-                                            {b.count}
-                                            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 400 }}>{t('kpi.topBrokers.certSuffix')}</div>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))
+                                )}
                             </div>
                         </div>
-
                     </div>
 
                     {/* ── Accès rapide ─────────────────────────── */}
-                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10,
-                                  padding: '10px 16px', display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b', alignSelf: 'center' }}>
+                    <div
+                        style={{
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: 10,
+                            padding: '10px 16px',
+                            display: 'flex',
+                            gap: 20,
+                            flexWrap: 'wrap',
+                        }}
+                    >
+                        <span
+                            style={{
+                                fontSize: 11,
+                                fontWeight: 600,
+                                color: '#64748b',
+                                alignSelf: 'center',
+                            }}
+                        >
                             {t('kpi.quickAccess.label')}
                         </span>
                         {[
-                            { href: route('admin.certificates.index'), icon: Award, label: t('kpi.quickAccess.certificates') },
-                            { href: route('admin.contracts.index'),    icon: FileText, label: t('kpi.quickAccess.contracts') },
-                            { href: route('admin.commissions.bordereau'), icon: Percent, label: t('kpi.quickAccess.bordereau') },
-                            { href: route('admin.approvals.index'),    icon: TrendingUp, label: t('kpi.quickAccess.escalades') },
-                            { href: route('admin.dashboard.pending'),  icon: Clock, label: t('kpi.quickAccess.validationQueue') },
-                        ].map(item => (
-                            <Link key={item.label} href={item.href}
-                                  style={{ fontSize: 11, color: '#1d4ed8', textDecoration: 'none',
-                                           display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <item.icon size={11}/> {item.label}
+                            {
+                                href: route('admin.certificates.index'),
+                                icon: Award,
+                                label: t('kpi.quickAccess.certificates'),
+                            },
+                            {
+                                href: route('admin.contracts.index'),
+                                icon: FileText,
+                                label: t('kpi.quickAccess.contracts'),
+                            },
+                            {
+                                href: route('admin.commissions.bordereau'),
+                                icon: Percent,
+                                label: t('kpi.quickAccess.bordereau'),
+                            },
+                            {
+                                href: route('admin.approvals.index'),
+                                icon: TrendingUp,
+                                label: t('kpi.quickAccess.escalades'),
+                            },
+                            {
+                                href: route('admin.dashboard.pending'),
+                                icon: Clock,
+                                label: t('kpi.quickAccess.validationQueue'),
+                            },
+                        ].map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                style={{
+                                    fontSize: 11,
+                                    color: '#1d4ed8',
+                                    textDecoration: 'none',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                }}
+                            >
+                                <item.icon size={11} /> {item.label}
                             </Link>
                         ))}
                     </div>
-
                 </div>
             </div>
         </AppLayout>

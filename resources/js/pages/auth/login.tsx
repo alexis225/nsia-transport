@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/language-switcher';
 import { useRecaptchaToken } from '@/hooks/use-recaptcha-token';
@@ -13,20 +13,23 @@ interface LoginProps {
 export default function Login({ status, canResetPassword = true }: LoginProps) {
     const { t } = useTranslation('auth');
     const [showPassword, setShowPassword] = useState(false);
-    const [mounted, setMounted]           = useState(false);
+    const [mounted, setMounted] = useState(false);
     const recaptchaToken = useRecaptchaToken('login');
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- declenche la transition CSS d'entree apres le montage
     useEffect(() => setMounted(true), []);
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        email:    '',
+        email: '',
         password: '',
         remember: false,
         'g-recaptcha-response': '',
     });
 
     useEffect(() => {
-        if (recaptchaToken) setData('g-recaptcha-response', recaptchaToken);
+        if (recaptchaToken) {
+            setData('g-recaptcha-response', recaptchaToken);
+        }
     }, [recaptchaToken, setData]);
 
     const submit = (e: React.FormEvent) => {
@@ -317,7 +320,6 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
             `}</style>
 
             <div className="root">
-
                 {/* ── Panneau gauche ── */}
                 <div className="left">
                     <div className="deco-circle-1" />
@@ -325,75 +327,242 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
 
                     {/* Logo */}
                     <div className="left-brand">
-                        <svg className="brand-icon" viewBox="0 0 36 36" fill="none">
-                            <rect width="36" height="36" rx="8" fill="rgba(255,255,255,0.12)"/>
-                            <path d="M18 8L10 13V20C10 24.4 13.4 28.5 18 30C22.6 28.5 26 24.4 26 20V13L18 8Z"
-                                  stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
-                            <path d="M14 20L17 23L22 17" stroke="white" strokeWidth="1.5"
-                                  strokeLinecap="round" strokeLinejoin="round"/>
+                        <svg
+                            className="brand-icon"
+                            viewBox="0 0 36 36"
+                            fill="none"
+                        >
+                            <rect
+                                width="36"
+                                height="36"
+                                rx="8"
+                                fill="rgba(255,255,255,0.12)"
+                            />
+                            <path
+                                d="M18 8L10 13V20C10 24.4 13.4 28.5 18 30C22.6 28.5 26 24.4 26 20V13L18 8Z"
+                                stroke="white"
+                                strokeWidth="1.5"
+                                strokeLinejoin="round"
+                            />
+                            <path
+                                d="M14 20L17 23L22 17"
+                                stroke="white"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
                         </svg>
-                        <span className="brand-name">NSIA <span>TRANSPORT</span></span>
+                        <span className="brand-name">
+                            NSIA <span>TRANSPORT</span>
+                        </span>
                     </div>
 
                     {/* Illustration */}
                     <div className="illustration">
-                        <svg width="320" height="260" viewBox="0 0 320 260" fill="none">
+                        <svg
+                            width="320"
+                            height="260"
+                            viewBox="0 0 320 260"
+                            fill="none"
+                        >
                             {/* Bureau */}
-                            <rect x="60" y="160" width="200" height="10" rx="5" fill="rgba(255,255,255,0.15)"/>
-                            <rect x="80" y="170" width="8" height="40" rx="4" fill="rgba(255,255,255,0.1)"/>
-                            <rect x="232" y="170" width="8" height="40" rx="4" fill="rgba(255,255,255,0.1)"/>
+                            <rect
+                                x="60"
+                                y="160"
+                                width="200"
+                                height="10"
+                                rx="5"
+                                fill="rgba(255,255,255,0.15)"
+                            />
+                            <rect
+                                x="80"
+                                y="170"
+                                width="8"
+                                height="40"
+                                rx="4"
+                                fill="rgba(255,255,255,0.1)"
+                            />
+                            <rect
+                                x="232"
+                                y="170"
+                                width="8"
+                                height="40"
+                                rx="4"
+                                fill="rgba(255,255,255,0.1)"
+                            />
 
                             {/* Écran */}
-                            <rect x="100" y="80" width="120" height="85" rx="8" fill="rgba(255,255,255,0.18)"/>
-                            <rect x="108" y="88" width="104" height="65" rx="4" fill="rgba(255,255,255,0.1)"/>
+                            <rect
+                                x="100"
+                                y="80"
+                                width="120"
+                                height="85"
+                                rx="8"
+                                fill="rgba(255,255,255,0.18)"
+                            />
+                            <rect
+                                x="108"
+                                y="88"
+                                width="104"
+                                height="65"
+                                rx="4"
+                                fill="rgba(255,255,255,0.1)"
+                            />
 
                             {/* Contenu écran — lignes */}
-                            <rect x="116" y="96" width="50" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
-                            <rect x="116" y="106" width="70" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
-                            <rect x="116" y="114" width="60" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
-                            <rect x="116" y="122" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.15)"/>
+                            <rect
+                                x="116"
+                                y="96"
+                                width="50"
+                                height="4"
+                                rx="2"
+                                fill="rgba(255,255,255,0.4)"
+                            />
+                            <rect
+                                x="116"
+                                y="106"
+                                width="70"
+                                height="3"
+                                rx="1.5"
+                                fill="rgba(255,255,255,0.2)"
+                            />
+                            <rect
+                                x="116"
+                                y="114"
+                                width="60"
+                                height="3"
+                                rx="1.5"
+                                fill="rgba(255,255,255,0.2)"
+                            />
+                            <rect
+                                x="116"
+                                y="122"
+                                width="40"
+                                height="3"
+                                rx="1.5"
+                                fill="rgba(255,255,255,0.15)"
+                            />
 
                             {/* Pied écran */}
-                            <rect x="152" y="165" width="16" height="6" rx="3" fill="rgba(255,255,255,0.12)"/>
-                            <rect x="140" y="171" width="40" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+                            <rect
+                                x="152"
+                                y="165"
+                                width="16"
+                                height="6"
+                                rx="3"
+                                fill="rgba(255,255,255,0.12)"
+                            />
+                            <rect
+                                x="140"
+                                y="171"
+                                width="40"
+                                height="4"
+                                rx="2"
+                                fill="rgba(255,255,255,0.1)"
+                            />
 
                             {/* Personnage — corps */}
-                            <ellipse cx="220" cy="185" rx="18" ry="10" fill="rgba(255,255,255,0.08)"/>
-                            <rect x="210" y="145" width="20" height="42" rx="10" fill="rgba(255,255,255,0.2)"/>
+                            <ellipse
+                                cx="220"
+                                cy="185"
+                                rx="18"
+                                ry="10"
+                                fill="rgba(255,255,255,0.08)"
+                            />
+                            <rect
+                                x="210"
+                                y="145"
+                                width="20"
+                                height="42"
+                                rx="10"
+                                fill="rgba(255,255,255,0.2)"
+                            />
                             {/* Tête */}
-                            <circle cx="220" cy="135" r="14" fill="rgba(255,255,255,0.25)"/>
+                            <circle
+                                cx="220"
+                                cy="135"
+                                r="14"
+                                fill="rgba(255,255,255,0.25)"
+                            />
                             {/* Bras vers l'écran */}
-                            <path d="M210 160 Q180 150 165 140" stroke="rgba(255,255,255,0.2)" strokeWidth="8" strokeLinecap="round"/>
+                            <path
+                                d="M210 160 Q180 150 165 140"
+                                stroke="rgba(255,255,255,0.2)"
+                                strokeWidth="8"
+                                strokeLinecap="round"
+                            />
 
                             {/* Plante déco */}
-                            <rect x="68" y="145" width="8" height="18" rx="4" fill="rgba(255,255,255,0.12)"/>
-                            <ellipse cx="72" cy="140" rx="10" ry="8" fill="rgba(255,255,255,0.15)"/>
-                            <ellipse cx="66" cy="144" rx="7" ry="5" fill="rgba(255,255,255,0.12)"/>
-                            <ellipse cx="78" cy="144" rx="7" ry="5" fill="rgba(255,255,255,0.12)"/>
+                            <rect
+                                x="68"
+                                y="145"
+                                width="8"
+                                height="18"
+                                rx="4"
+                                fill="rgba(255,255,255,0.12)"
+                            />
+                            <ellipse
+                                cx="72"
+                                cy="140"
+                                rx="10"
+                                ry="8"
+                                fill="rgba(255,255,255,0.15)"
+                            />
+                            <ellipse
+                                cx="66"
+                                cy="144"
+                                rx="7"
+                                ry="5"
+                                fill="rgba(255,255,255,0.12)"
+                            />
+                            <ellipse
+                                cx="78"
+                                cy="144"
+                                rx="7"
+                                ry="5"
+                                fill="rgba(255,255,255,0.12)"
+                            />
 
                             {/* Points déco */}
-                            <circle cx="260" cy="60" r="3" fill="rgba(255,255,255,0.2)"/>
-                            <circle cx="275" cy="75" r="2" fill="rgba(255,255,255,0.15)"/>
-                            <circle cx="55"  cy="100" r="2" fill="rgba(255,255,255,0.15)"/>
-                            <circle cx="45"  cy="120" r="3" fill="rgba(255,255,255,0.1)"/>
+                            <circle
+                                cx="260"
+                                cy="60"
+                                r="3"
+                                fill="rgba(255,255,255,0.2)"
+                            />
+                            <circle
+                                cx="275"
+                                cy="75"
+                                r="2"
+                                fill="rgba(255,255,255,0.15)"
+                            />
+                            <circle
+                                cx="55"
+                                cy="100"
+                                r="2"
+                                fill="rgba(255,255,255,0.15)"
+                            />
+                            <circle
+                                cx="45"
+                                cy="120"
+                                r="3"
+                                fill="rgba(255,255,255,0.1)"
+                            />
                         </svg>
                     </div>
 
                     {/* Texte bas */}
                     <div className="left-text">
-                        <h2 className='text-white text-3xl font-bold mb-4'>
+                        <h2 className="mb-4 text-3xl font-bold text-white">
                             {t('login.asideTitle')}
                         </h2>
-                        <p className="left-sub">
-                            {t('login.asideText')}
-                        </p>
+                        <p className="left-sub">{t('login.asideText')}</p>
                     </div>
                 </div>
 
                 {/* ── Panneau droit ── */}
                 <div className="right">
                     <div className={`form-box ${mounted ? 'visible' : ''}`}>
-
                         <div className="switcher-row">
                             <LanguageSwitcher />
                         </div>
@@ -403,18 +572,19 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                         {status && <div className="status-ok">{status}</div>}
 
                         <form onSubmit={submit}>
-
                             {/* Email */}
                             <div className="field">
                                 <input
                                     type="email"
                                     value={data.email}
-                                    onChange={e => setData('email', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('email', e.target.value)
+                                    }
                                     autoComplete="email"
                                     autoFocus
                                     placeholder={t('login.email')}
                                     disabled={processing}
-                                    className={`field-input${errors.email ? ' has-error' : ''}`}
+                                    className={`field-input${errors.email ? 'has-error' : ''}`}
                                 />
                                 {errors.email && (
                                     <p className="field-error">
@@ -427,82 +597,165 @@ export default function Login({ status, canResetPassword = true }: LoginProps) {
                             <div className="field">
                                 <div className="pw-wrap">
                                     <input
-                                        type={showPassword ? 'text' : 'password'}
+                                        type={
+                                            showPassword ? 'text' : 'password'
+                                        }
                                         value={data.password}
-                                        onChange={e => setData('password', e.target.value)}
+                                        onChange={(e) =>
+                                            setData('password', e.target.value)
+                                        }
                                         autoComplete="current-password"
                                         placeholder={t('login.password')}
                                         disabled={processing}
-                                        className={`field-input${errors.password ? ' has-error' : ''}`}
+                                        className={`field-input${errors.password ? 'has-error' : ''}`}
                                     />
-                                    <button type="button" className="pw-toggle"
-                                            onClick={() => setShowPassword(s => !s)}>
-                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    <button
+                                        type="button"
+                                        className="pw-toggle"
+                                        onClick={() =>
+                                            setShowPassword((s) => !s)
+                                        }
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff size={16} />
+                                        ) : (
+                                            <Eye size={16} />
+                                        )}
                                     </button>
                                 </div>
                                 {errors.password && (
                                     <p className="field-error">
-                                        <AlertCircle size={12} /> {errors.password}
+                                        <AlertCircle size={12} />{' '}
+                                        {errors.password}
                                     </p>
                                 )}
                             </div>
 
                             {/* Remember + Forgot */}
                             <div className="remember-row">
-                                <label className="remember-label"
-                                       onClick={() => setData('remember', !data.remember)}>
-                                    <div className={`checkbox${data.remember ? ' checked' : ''}`}>
+                                <label
+                                    className="remember-label"
+                                    onClick={() =>
+                                        setData('remember', !data.remember)
+                                    }
+                                >
+                                    <div
+                                        className={`checkbox${data.remember ? 'checked' : ''}`}
+                                    >
                                         {data.remember && (
-                                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                                <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white"
-                                                      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <svg
+                                                width="10"
+                                                height="10"
+                                                viewBox="0 0 10 10"
+                                                fill="none"
+                                            >
+                                                <path
+                                                    d="M1.5 5L4 7.5L8.5 2.5"
+                                                    stroke="white"
+                                                    strokeWidth="1.5"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
                                             </svg>
                                         )}
                                     </div>
                                     {t('login.remember')}
                                 </label>
                                 {canResetPassword && (
-                                    <Link href={route('password.request')} className="forgot-link">
+                                    <Link
+                                        href={route('password.request')}
+                                        className="forgot-link"
+                                    >
                                         {t('login.forgot')}
                                     </Link>
                                 )}
                             </div>
 
                             {errors['g-recaptcha-response'] && (
-                                <p className="field-error" style={{ marginBottom: 14 }}>
-                                    <AlertCircle size={12} /> {errors['g-recaptcha-response']}
+                                <p
+                                    className="field-error"
+                                    style={{ marginBottom: 14 }}
+                                >
+                                    <AlertCircle size={12} />{' '}
+                                    {errors['g-recaptcha-response']}
                                 </p>
                             )}
 
                             {/* Bouton login */}
-                            <button type="submit" disabled={processing} className="btn-login">
-                                {processing
-                                    ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> {t('login.submitting')}</>
-                                    : t('login.submit')
-                                }
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="btn-login"
+                            >
+                                {processing ? (
+                                    <>
+                                        <Loader2
+                                            size={16}
+                                            style={{
+                                                animation:
+                                                    'spin 1s linear infinite',
+                                            }}
+                                        />{' '}
+                                        {t('login.submitting')}
+                                    </>
+                                ) : (
+                                    t('login.submit')
+                                )}
                             </button>
                         </form>
 
                         {/* OAuth */}
                         <div className="divider">
                             <div className="divider-line" />
-                            <span className="divider-text">{t('login.or')}</span>
+                            <span className="divider-text">
+                                {t('login.or')}
+                            </span>
                             <div className="divider-line" />
                         </div>
 
-                        <button type="button" className="btn-oauth" disabled={processing}
-                                onClick={() => handleOAuth('microsoft')}>
+                        <button
+                            type="button"
+                            className="btn-oauth"
+                            disabled={processing}
+                            onClick={() => handleOAuth('microsoft')}
+                        >
                             <svg width="16" height="16" viewBox="0 0 23 23">
-                                <rect x="0"    y="0"    width="10.5" height="10.5" fill="#F25022"/>
-                                <rect x="12.5" y="0"    width="10.5" height="10.5" fill="#7FBA00"/>
-                                <rect x="0"    y="12.5" width="10.5" height="10.5" fill="#00A4EF"/>
-                                <rect x="12.5" y="12.5" width="10.5" height="10.5" fill="#FFB900"/>
+                                <rect
+                                    x="0"
+                                    y="0"
+                                    width="10.5"
+                                    height="10.5"
+                                    fill="#F25022"
+                                />
+                                <rect
+                                    x="12.5"
+                                    y="0"
+                                    width="10.5"
+                                    height="10.5"
+                                    fill="#7FBA00"
+                                />
+                                <rect
+                                    x="0"
+                                    y="12.5"
+                                    width="10.5"
+                                    height="10.5"
+                                    fill="#00A4EF"
+                                />
+                                <rect
+                                    x="12.5"
+                                    y="12.5"
+                                    width="10.5"
+                                    height="10.5"
+                                    fill="#FFB900"
+                                />
                             </svg>
                             {t('login.microsoft')}
                         </button>
 
                         <div className="form-footer">
-                            {t('brand.copyright', { year: new Date().getFullYear() })}
+                            {t('brand.copyright', {
+                                year: new Date().getFullYear(),
+                            })}
                         </div>
                     </div>
                 </div>

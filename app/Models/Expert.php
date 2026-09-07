@@ -38,8 +38,8 @@ class Expert extends Model
     public function scopeSearch($query, string $term)
     {
         return $query->where(function ($q) use ($term) {
-            $q->where('name',  'ilike', "%{$term}%")
-              ->orWhere('email','ilike', "%{$term}%");
+            $q->where('name', 'ilike', "%{$term}%")
+                ->orWhere('email', 'ilike', "%{$term}%");
         });
     }
 

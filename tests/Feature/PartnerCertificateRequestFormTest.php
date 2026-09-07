@@ -16,9 +16,10 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
-    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
     $this->artisan('db:seed --class=RolesAndPermissionsSeeder');
 });
 
@@ -33,20 +34,20 @@ function makePartnerFormUser(Tenant $tenant, string $role = 'courtier_local'): a
     $user->assignRole($role);
 
     $broker = Broker::create([
-        'tenant_id'       => $tenant->id,
-        'user_id'         => $user->id,
-        'code'            => 'BRK-PF-' . Str::random(6),
-        'name'            => 'Courtier Formulaire Test',
-        'type'            => Broker::TYPE_LOCAL,
-        'country_code'    => 'CI',
+        'tenant_id' => $tenant->id,
+        'user_id' => $user->id,
+        'code' => 'BRK-PF-'.Str::random(6),
+        'name' => 'Courtier Formulaire Test',
+        'type' => Broker::TYPE_LOCAL,
+        'country_code' => 'CI',
         'commission_rate' => 5.00,
-        'is_active'       => true,
+        'is_active' => true,
     ]);
 
     return compact('user', 'broker');
 }
 
-it("un partenaire connecté (courtier_local) accède au formulaire de nouvelle demande", function () {
+it('un partenaire connecté (courtier_local) accède au formulaire de nouvelle demande', function () {
     $tenant = makePartnerFormTenant();
     ['user' => $partner] = makePartnerFormUser($tenant);
 
@@ -56,7 +57,7 @@ it("un partenaire connecté (courtier_local) accède au formulaire de nouvelle d
         ->assertInertia(fn ($page) => $page->component('partner/certificate-requests/create'));
 });
 
-it("un partenaire connecté (partenaire_etranger) accède aussi au formulaire", function () {
+it('un partenaire connecté (partenaire_etranger) accède aussi au formulaire', function () {
     $tenant = makePartnerFormTenant();
     ['user' => $partner] = makePartnerFormUser($tenant, 'partenaire_etranger');
 
@@ -65,7 +66,7 @@ it("un partenaire connecté (partenaire_etranger) accède aussi au formulaire", 
         ->assertOk();
 });
 
-it("un partenaire peut soumettre une demande de certificat avec pièces jointes", function () {
+it('un partenaire peut soumettre une demande de certificat avec pièces jointes', function () {
     Storage::fake('local');
 
     $tenant = makePartnerFormTenant();
@@ -73,40 +74,40 @@ it("un partenaire peut soumettre une demande de certificat avec pièces jointes"
 
     $this->actingAs($partner)
         ->post(route('partner.certificate-requests.store'), [
-            'insured_name'      => 'SOTRACI',
-            'voyage_from'       => 'Abidjan',
-            'voyage_to'         => 'Le Havre',
-            'voyage_date'       => now()->addDays(10)->toDateString(),
-            'transport_type'    => 'SEA',
+            'insured_name' => 'SOTRACI',
+            'voyage_from' => 'Abidjan',
+            'voyage_to' => 'Le Havre',
+            'voyage_date' => now()->addDays(10)->toDateString(),
+            'transport_type' => 'SEA',
             'cargo_description' => 'Véhicules neufs',
-            'estimated_value'   => 25_000_000,
-            'currency_code'     => 'XOF',
-            'notes'             => 'Départ imminent.',
-            'documents'         => [UploadedFile::fake()->create('facture.pdf', 100, 'application/pdf')],
-            'document_types'    => ['FACTURE'],
+            'estimated_value' => 25_000_000,
+            'currency_code' => 'XOF',
+            'notes' => 'Départ imminent.',
+            'documents' => [UploadedFile::fake()->create('facture.pdf', 100, 'application/pdf')],
+            'document_types' => ['FACTURE'],
         ])
         ->assertRedirect();
 
     $this->assertDatabaseHas('certificate_requests', [
-        'tenant_id'    => $tenant->id,
-        'broker_id'    => $broker->id,
-        'created_by'   => $partner->id,
+        'tenant_id' => $tenant->id,
+        'broker_id' => $broker->id,
+        'created_by' => $partner->id,
         'insured_name' => 'SOTRACI',
-        'status'       => CertificateRequest::STATUS_PENDING,
+        'status' => CertificateRequest::STATUS_PENDING,
     ]);
 
     $req = CertificateRequest::where('insured_name', 'SOTRACI')->firstOrFail();
     expect($req->documents()->count())->toBe(1);
 });
 
-it("un partenaire peut enregistrer un brouillon sans pièce jointe — il reçoit quand même une référence", function () {
+it('un partenaire peut enregistrer un brouillon sans pièce jointe — il reçoit quand même une référence', function () {
     $tenant = makePartnerFormTenant();
     ['user' => $partner] = makePartnerFormUser($tenant);
 
     $this->actingAs($partner)
         ->post(route('partner.certificate-requests.store'), [
             'insured_name' => 'BROUILLON SOTRACI',
-            'save_as'      => 'draft',
+            'save_as' => 'draft',
         ])
         ->assertRedirect();
 
@@ -117,7 +118,7 @@ it("un partenaire peut enregistrer un brouillon sans pièce jointe — il reçoi
         ->and($req->submitted_at)->toBeNull();
 });
 
-it("la demande soumise sans aucune pièce jointe est refusée", function () {
+it('la demande soumise sans aucune pièce jointe est refusée', function () {
     $tenant = makePartnerFormTenant();
     ['user' => $partner] = makePartnerFormUser($tenant);
 
@@ -128,7 +129,7 @@ it("la demande soumise sans aucune pièce jointe est refusée", function () {
         ->assertSessionHasErrors(['documents']);
 });
 
-it("un partenaire voit sa liste de demandes et uniquement les siennes", function () {
+it('un partenaire voit sa liste de demandes et uniquement les siennes', function () {
     $tenant = makePartnerFormTenant();
     ['user' => $partnerA, 'broker' => $brokerA] = makePartnerFormUser($tenant);
     ['broker' => $brokerB] = makePartnerFormUser($tenant);
@@ -176,7 +177,7 @@ it("un utilisateur non-partenaire (souscripteur) n'accède pas à l'espace parte
         ->assertStatus(403);
 });
 
-it("un visiteur non authentifié est redirigé vers /login", function () {
+it('un visiteur non authentifié est redirigé vers /login', function () {
     $this->get(route('partner.certificate-requests.index'))->assertRedirect('/login');
     $this->get(route('partner.certificate-requests.create'))->assertRedirect('/login');
 });

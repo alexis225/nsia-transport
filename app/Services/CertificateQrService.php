@@ -30,8 +30,8 @@ class CertificateQrService
     {
         if (! $certificate->qr_token) {
             // Token 48 chars : 32 aléatoires + 16 dérivés du certificat
-            $token = Str::random(32) . substr(
-                md5($certificate->id . $certificate->certificate_number . now()->timestamp),
+            $token = Str::random(32).substr(
+                md5($certificate->id.$certificate->certificate_number.now()->timestamp),
                 0, 16
             );
             $certificate->update(['qr_token' => $token]);
@@ -48,6 +48,7 @@ class CertificateQrService
     public function getVerifyUrl(Certificate $certificate): string
     {
         $token = $this->ensureToken($certificate);
+
         return url("/verify/{$token}");
     }
 
@@ -62,12 +63,12 @@ class CertificateQrService
         $verifyUrl = $this->getVerifyUrl($certificate);
 
         return 'https://api.qrserver.com/v1/create-qr-code/?'
-            . http_build_query([
-                'size'        => "{$size}x{$size}",
-                'data'        => $verifyUrl,
-                'ecc'         => 'M',   // correction d'erreur Medium
-                'margin'      => 4,
-                'format'      => 'png',
+            .http_build_query([
+                'size' => "{$size}x{$size}",
+                'data' => $verifyUrl,
+                'ecc' => 'M',   // correction d'erreur Medium
+                'margin' => 4,
+                'format' => 'png',
             ]);
     }
 
@@ -86,9 +87,11 @@ class CertificateQrService
             return null;
         }
 
-        if (! $response->successful()) return null;
+        if (! $response->successful()) {
+            return null;
+        }
 
-        return 'data:image/png;base64,' . base64_encode($response->body());
+        return 'data:image/png;base64,'.base64_encode($response->body());
     }
 
     /**
@@ -109,6 +112,7 @@ class CertificateQrService
     {
         $certificate->update(['qr_token' => null]);
         $certificate->refresh();
+
         return $this->ensureToken($certificate);
     }
 }

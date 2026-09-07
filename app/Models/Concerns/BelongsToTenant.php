@@ -34,7 +34,7 @@ trait BelongsToTenant
             // Super admin → pas de filtre tenant
             if ($tenantId) {
                 $builder->where(
-                    (new static)->getTable() . '.tenant_id',
+                    (new static)->getTable().'.tenant_id',
                     $tenantId
                 );
             }

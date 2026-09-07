@@ -11,13 +11,17 @@ interface Props {
 // Rendu commun à tous les modèles de souche pays : chaque champ est
 // positionné en absolu (mm) par-dessus la page, sans bordure ni fond —
 // pensé pour être imprimé sur un papier déjà pré-imprimé par NSIA.
-export default function StubOverlay({ certificate, positions, calibrate = false }: Props) {
+export default function StubOverlay({
+    certificate,
+    positions,
+    calibrate = false,
+}: Props) {
     const values = buildFieldValues(certificate);
 
     return (
         <div className="stub-page">
-            {calibrate && <CalibrationGrid/>}
-            {positions.map(pos => {
+            {calibrate && <CalibrationGrid />}
+            {positions.map((pos) => {
                 const text = values[pos.key] ?? '';
 
                 if (!text && !calibrate) {
@@ -25,17 +29,25 @@ export default function StubOverlay({ certificate, positions, calibrate = false 
                 }
 
                 return (
-                    <div key={pos.key}
-                         className={calibrate ? 'stub-field stub-field--calibrate' : 'stub-field'}
-                         style={{
-                             top: `${pos.top}mm`,
-                             left: `${pos.left}mm`,
-                             width: pos.width ? `${pos.width}mm` : undefined,
-                             fontSize: `${pos.fontSize ?? 9}pt`,
-                             textAlign: pos.align ?? 'left',
-                             fontWeight: pos.bold ? 700 : 400,
-                         }}>
-                        {calibrate && <span className="stub-field-key">{pos.key}</span>}
+                    <div
+                        key={pos.key}
+                        className={
+                            calibrate
+                                ? 'stub-field stub-field--calibrate'
+                                : 'stub-field'
+                        }
+                        style={{
+                            top: `${pos.top}mm`,
+                            left: `${pos.left}mm`,
+                            width: pos.width ? `${pos.width}mm` : undefined,
+                            fontSize: `${pos.fontSize ?? 9}pt`,
+                            textAlign: pos.align ?? 'left',
+                            fontWeight: pos.bold ? 700 : 400,
+                        }}
+                    >
+                        {calibrate && (
+                            <span className="stub-field-key">{pos.key}</span>
+                        )}
                         {text || (calibrate ? '—' : '')}
                     </div>
                 );
@@ -66,13 +78,21 @@ function CalibrationGrid() {
 
     return (
         <div className="calibration-grid">
-            {verticals.map(x => (
-                <div key={`v${x}`} className={`grid-line grid-line--v ${x % 50 === 0 ? 'grid-line--major' : ''}`} style={{ left: `${x}mm` }}>
+            {verticals.map((x) => (
+                <div
+                    key={`v${x}`}
+                    className={`grid-line grid-line--v ${x % 50 === 0 ? 'grid-line--major' : ''}`}
+                    style={{ left: `${x}mm` }}
+                >
                     <span>{x}</span>
                 </div>
             ))}
-            {horizontals.map(y => (
-                <div key={`h${y}`} className={`grid-line grid-line--h ${y % 50 === 0 ? 'grid-line--major' : ''}`} style={{ top: `${y}mm` }}>
+            {horizontals.map((y) => (
+                <div
+                    key={`h${y}`}
+                    className={`grid-line grid-line--h ${y % 50 === 0 ? 'grid-line--major' : ''}`}
+                    style={{ top: `${y}mm` }}
+                >
                     <span>{y}</span>
                 </div>
             ))}

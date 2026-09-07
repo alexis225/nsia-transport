@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Inertia\Inertia;
@@ -32,33 +33,29 @@ class UserController extends Controller
     public function index(Request $request): Response
     {
         $query = User::with(['roles', 'tenant'])
-            ->when($request->search, fn ($q) =>
-                $q->where(fn ($q) =>
-                    $q->where('first_name', 'ilike', "%{$request->search}%")
-                      ->orWhere('last_name',  'ilike', "%{$request->search}%")
-                      ->orWhere('email',      'ilike', "%{$request->search}%")
-                )
+            ->when($request->search, fn ($q) => $q->where(fn ($q) => $q->where('first_name', 'ilike', "%{$request->search}%")
+                ->orWhere('last_name', 'ilike', "%{$request->search}%")
+                ->orWhere('email', 'ilike', "%{$request->search}%")
             )
-            ->when($request->role, fn ($q) =>
-                $q->whereHas('roles', fn ($q) => $q->where('name', $request->role))
             )
-            ->when($request->status !== null && $request->status !== '', fn ($q) =>
-                $q->where('is_active', $request->status === 'active')
+            ->when($request->role, fn ($q) => $q->whereHas('roles', fn ($q) => $q->where('name', $request->role))
+            )
+            ->when($request->status !== null && $request->status !== '', fn ($q) => $q->where('is_active', $request->status === 'active')
             )
             ->orderBy('created_at', 'desc')
             ->paginate(20)
             ->withQueryString();
 
         return Inertia::render('admin/users/index', [
-            'users'   => $query,
+            'users' => $query,
             'filters' => $request->only(['search', 'role', 'status']),
-            'roles'   => Role::orderBy('name')->pluck('name'),
-            'can'     => [
-                'create'  => $request->user()->can('users.create'),
-                'edit'    => $request->user()->can('users.edit'),
-                'block'   => $request->user()->can('users.block'),
+            'roles' => Role::orderBy('name')->pluck('name'),
+            'can' => [
+                'create' => $request->user()->can('users.create'),
+                'edit' => $request->user()->can('users.edit'),
+                'block' => $request->user()->can('users.block'),
                 'unblock' => $request->user()->can('users.unblock'),
-                'delete'  => $request->user()->can('users.delete'),
+                'delete' => $request->user()->can('users.delete'),
             ],
         ]);
     }
@@ -71,7 +68,7 @@ class UserController extends Controller
             : $request->user()->tenant_id;
 
         return Inertia::render('admin/users/create', [
-            'roles'   => Role::orderBy('name')->pluck('name'),
+            'roles' => Role::orderBy('name')->pluck('name'),
             'tenants' => $request->user()->hasRole('super_admin')
                 ? Tenant::orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
@@ -79,7 +76,7 @@ class UserController extends Controller
                 ? Broker::where('tenant_id', $tenantId)->whereNull('user_id')->orderBy('name')->get(['id', 'name', 'code', 'type'])
                 : collect(),
             'prefill' => [
-                'role'      => $request->query('role'),
+                'role' => $request->query('role'),
                 'broker_id' => $request->query('broker_id'),
                 'tenant_id' => $request->query('tenant_id'),
             ],
@@ -90,13 +87,13 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $user = User::create([
-            'tenant_id'  => $request->tenant_id ?? $request->user()->tenant_id,
+            'tenant_id' => $request->tenant_id ?? $request->user()->tenant_id,
             'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'phone'      => $request->phone,
-            'password'   => Hash::make($request->password),
-            'is_active'  => true,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+            'is_active' => true,
             'created_by' => $request->user()->id,
         ]);
 
@@ -113,14 +110,14 @@ class UserController extends Controller
         Password::sendResetLink(['email' => $user->email]);
 
         AuditLog::create([
-            'tenant_id'   => $user->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'user_created',
+            'tenant_id' => $user->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'user_created',
             'entity_type' => 'user',
-            'entity_id'   => $user->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => ['email' => $user->email, 'role' => $request->role],
+            'entity_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => ['email' => $user->email, 'role' => $request->role],
         ]);
 
         return redirect()->route('admin.users.index')
@@ -141,7 +138,7 @@ class UserController extends Controller
             ->get();
 
         return Inertia::render('admin/users/show', [
-            'user'      => $user,
+            'user' => $user,
             'auditLogs' => $auditLogs,
         ]);
     }
@@ -153,8 +150,8 @@ class UserController extends Controller
         $user->load(['roles', 'tenant']);
 
         return Inertia::render('admin/users/edit', [
-            'user'    => $user,
-            'roles'   => Role::orderBy('name')->pluck('name'),
+            'user' => $user,
+            'roles' => Role::orderBy('name')->pluck('name'),
             'tenants' => $request->user()->hasRole('super_admin')
                 ? Tenant::orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
@@ -170,9 +167,9 @@ class UserController extends Controller
 
         $user->fill([
             'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'phone'      => $request->phone,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
         ]);
 
         // Seul un super_admin peut déplacer un utilisateur vers une autre
@@ -197,15 +194,15 @@ class UserController extends Controller
         }
 
         AuditLog::create([
-            'tenant_id'   => $user->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'user_updated',
+            'tenant_id' => $user->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'user_updated',
             'entity_type' => 'user',
-            'entity_id'   => $user->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'old_values'  => $oldValues,
-            'new_values'  => $user->only(['first_name', 'last_name', 'email', 'phone', 'tenant_id']),
+            'entity_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'old_values' => $oldValues,
+            'new_values' => $user->only(['first_name', 'last_name', 'email', 'phone', 'tenant_id']),
         ]);
 
         return redirect()->route('admin.users.index')
@@ -229,13 +226,13 @@ class UserController extends Controller
         $user->delete();
 
         AuditLog::create([
-            'tenant_id'   => $user->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'user_deleted',
+            'tenant_id' => $user->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'user_deleted',
             'entity_type' => 'user',
-            'entity_id'   => $user->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'entity_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()->route('admin.users.index')
@@ -258,24 +255,24 @@ class UserController extends Controller
         $this->authorizeTenantAccess($user);
 
         $user->update([
-            'is_active'      => false,
-            'blocked_by'     => $request->user()->id,
-            'blocked_at'     => now(),
+            'is_active' => false,
+            'blocked_by' => $request->user()->id,
+            'blocked_at' => now(),
             'blocked_reason' => $request->reason,
         ]);
 
-        \Illuminate\Support\Facades\DB::table('sessions')
+        DB::table('sessions')
             ->where('user_id', $user->id)->delete();
 
         AuditLog::create([
-            'tenant_id'   => $user->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'user_blocked',
+            'tenant_id' => $user->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'user_blocked',
             'entity_type' => 'user',
-            'entity_id'   => $user->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => ['reason' => $request->reason],
+            'entity_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => ['reason' => $request->reason],
         ]);
 
         return back()->with('status', "Utilisateur {$user->first_name} {$user->last_name} bloqué.");
@@ -285,22 +282,22 @@ class UserController extends Controller
     public function unblock(Request $request, User $user): RedirectResponse
     {
         $user->update([
-            'is_active'             => true,
-            'blocked_by'            => null,
-            'blocked_at'            => null,
-            'blocked_reason'        => null,
+            'is_active' => true,
+            'blocked_by' => null,
+            'blocked_at' => null,
+            'blocked_reason' => null,
             'failed_login_attempts' => 0,
-            'locked_until'          => null,
+            'locked_until' => null,
         ]);
 
         AuditLog::create([
-            'tenant_id'   => $user->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'user_unblocked',
+            'tenant_id' => $user->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'user_unblocked',
             'entity_type' => 'user',
-            'entity_id'   => $user->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'entity_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return back()->with('status', "Utilisateur {$user->first_name} {$user->last_name} débloqué.");
@@ -310,7 +307,9 @@ class UserController extends Controller
     private function authorizeTenantAccess(User $target): void
     {
         $currentUser = auth()->user();
-        if ($currentUser->hasRole('super_admin')) return;
+        if ($currentUser->hasRole('super_admin')) {
+            return;
+        }
         if ((string) $currentUser->tenant_id !== (string) $target->tenant_id) {
             abort(403, 'Accès non autorisé à cet utilisateur.');
         }

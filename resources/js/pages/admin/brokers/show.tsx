@@ -1,8 +1,19 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
-    Edit2, ArrowLeft, Mail, Phone, MapPin,
-    Shield, Building2, ToggleLeft, ToggleRight,
-    Briefcase, FileText, UserPlus, KeyRound, Percent,
+    Edit2,
+    ArrowLeft,
+    Mail,
+    Phone,
+    MapPin,
+    Shield,
+    Building2,
+    ToggleLeft,
+    ToggleRight,
+    Briefcase,
+    FileText,
+    UserPlus,
+    KeyRound,
+    Percent,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -10,22 +21,36 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 interface Broker {
-    id: string; name: string; code: string;
+    id: string;
+    name: string;
+    code: string;
     type: 'courtier_local' | 'partenaire_etranger';
     registration_number: string | null;
     commission_rate: string | null;
-    email: string | null; phone: string | null; phone_secondary: string | null;
-    address: string | null; city: string | null; country_code: string;
-    is_active: boolean; created_at: string;
+    email: string | null;
+    phone: string | null;
+    phone_secondary: string | null;
+    address: string | null;
+    city: string | null;
+    country_code: string;
+    is_active: boolean;
+    created_at: string;
     tenant: { id: string; name: string; code: string } | null;
     tenants: { id: string; name: string; code: string }[];
-    user: { id: string; email: string; first_name: string; last_name: string } | null;
+    user: {
+        id: string;
+        email: string;
+        first_name: string;
+        last_name: string;
+    } | null;
 }
-interface Props { broker: Broker; }
+interface Props {
+    broker: Broker;
+}
 
 const TYPE_STYLES = {
-    courtier_local:      { bg:'#EFF6FF', color:'#1D4ED8' },
-    partenaire_etranger: { bg:'#FDF4FF', color:'#7E22CE' },
+    courtier_local: { bg: '#EFF6FF', color: '#1D4ED8' },
+    partenaire_etranger: { bg: '#FDF4FF', color: '#7E22CE' },
 };
 
 export default function BrokerShow({ broker }: Props) {
@@ -33,12 +58,23 @@ export default function BrokerShow({ broker }: Props) {
     const { t: tc } = useTranslation('common');
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('index.breadcrumb'), href: '/admin/brokers' },
-        { title: broker.name, href: route('admin.brokers.show', { broker: broker.id }) },
+        {
+            title: broker.name,
+            href: route('admin.brokers.show', { broker: broker.id }),
+        },
     ];
 
-    const ts  = TYPE_STYLES[broker.type];
-    const typeLabel = broker.type === 'courtier_local' ? t('show.typeLocal') : t('show.typeForeign');
-    const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+    const ts = TYPE_STYLES[broker.type];
+    const typeLabel =
+        broker.type === 'courtier_local'
+            ? t('show.typeLocal')
+            : t('show.typeForeign');
+    const fmt = (d: string) =>
+        new Date(d).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+        });
 
     const handleToggle = () => {
         const msg = broker.is_active
@@ -52,7 +88,7 @@ export default function BrokerShow({ broker }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${broker.name} — NSIA Transport`}/>
+            <Head title={`${broker.name} — NSIA Transport`} />
             <style>{`
                 .bs-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .bs-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -76,28 +112,81 @@ export default function BrokerShow({ broker }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="bs-wrap">
-
                     {/* Hero */}
                     <div className="bs-hero">
-                        <div className="bs-ico">{broker.name.slice(0,2).toUpperCase()}</div>
+                        <div className="bs-ico">
+                            {broker.name.slice(0, 2).toUpperCase()}
+                        </div>
                         <div className="bs-hero-info">
                             <div className="bs-hero-name">{broker.name}</div>
-                            <div className="bs-hero-sub">{broker.code} · {broker.tenant?.name ?? '—'}</div>
+                            <div className="bs-hero-sub">
+                                {broker.code} · {broker.tenant?.name ?? '—'}
+                            </div>
                             <div className="bs-hero-badges">
-                                <span className="bs-badge" style={{ background: ts.bg, color: ts.color }}>{typeLabel}</span>
-                                <span className="bs-badge" style={{ background: broker.is_active ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)', color: broker.is_active ? '#86efac' : '#fca5a5', border:`1px solid ${broker.is_active ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
-                                    {'● '}{broker.is_active ? tc('states.active') : tc('states.inactive')}
+                                <span
+                                    className="bs-badge"
+                                    style={{
+                                        background: ts.bg,
+                                        color: ts.color,
+                                    }}
+                                >
+                                    {typeLabel}
+                                </span>
+                                <span
+                                    className="bs-badge"
+                                    style={{
+                                        background: broker.is_active
+                                            ? 'rgba(34,197,94,0.2)'
+                                            : 'rgba(239,68,68,0.2)',
+                                        color: broker.is_active
+                                            ? '#86efac'
+                                            : '#fca5a5',
+                                        border: `1px solid ${broker.is_active ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                                    }}
+                                >
+                                    {'● '}
+                                    {broker.is_active
+                                        ? tc('states.active')
+                                        : tc('states.inactive')}
                                 </span>
                             </div>
                         </div>
-                        <div style={{ display:'flex', gap:8, position:'relative', zIndex:1 }}>
-                            <Link href={route('admin.brokers.edit', { broker: broker.id })}>
-                                <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                    <Edit2 size={13}/> {t('show.edit')}
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: 8,
+                                position: 'relative',
+                                zIndex: 1,
+                            }}
+                        >
+                            <Link
+                                href={route('admin.brokers.edit', {
+                                    broker: broker.id,
+                                })}
+                            >
+                                <Button
+                                    className="h-9 border-white/20 bg-white/10 px-4 text-sm text-white hover:bg-white/20"
+                                    variant="outline"
+                                >
+                                    <Edit2 size={13} /> {t('show.edit')}
                                 </Button>
                             </Link>
-                            <Button onClick={handleToggle} className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                {broker.is_active ? <><ToggleLeft size={13}/> {t('show.deactivate')}</> : <><ToggleRight size={13}/> {t('show.activate')}</>}
+                            <Button
+                                onClick={handleToggle}
+                                className="h-9 border-white/20 bg-white/10 px-4 text-sm text-white hover:bg-white/20"
+                                variant="outline"
+                            >
+                                {broker.is_active ? (
+                                    <>
+                                        <ToggleLeft size={13} />{' '}
+                                        {t('show.deactivate')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <ToggleRight size={13} />{' '}
+                                        {t('show.activate')}
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
@@ -105,38 +194,110 @@ export default function BrokerShow({ broker }: Props) {
                     {/* Identification */}
                     <div className="bs-card">
                         <div className="bs-card-hdr">
-                            <div className="bs-card-ico" style={{ background:'#eff6ff' }}><Briefcase size={15} color="#3b82f6"/></div>
-                            <span className="bs-card-ttl">{t('show.identification.title')}</span>
+                            <div
+                                className="bs-card-ico"
+                                style={{ background: '#eff6ff' }}
+                            >
+                                <Briefcase size={15} color="#3b82f6" />
+                            </div>
+                            <span className="bs-card-ttl">
+                                {t('show.identification.title')}
+                            </span>
                         </div>
                         <div className="bs-card-body">
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label"><FileText size={10}/>{t('show.identification.code')}</span>
-                                    <span className="info-value" style={{ fontFamily:'monospace' }}>{broker.code}</span>
+                                    <span className="info-label">
+                                        <FileText size={10} />
+                                        {t('show.identification.code')}
+                                    </span>
+                                    <span
+                                        className="info-value"
+                                        style={{ fontFamily: 'monospace' }}
+                                    >
+                                        {broker.code}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Shield size={10}/>{t('show.identification.agreementNumber')}</span>
-                                    <span className="info-value">{broker.registration_number ?? '—'}</span>
+                                    <span className="info-label">
+                                        <Shield size={10} />
+                                        {t(
+                                            'show.identification.agreementNumber',
+                                        )}
+                                    </span>
+                                    <span className="info-value">
+                                        {broker.registration_number ?? '—'}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Building2 size={10}/>{t('show.identification.mainTenant')}</span>
-                                    <span className="info-value">{broker.tenant?.name ?? '—'}</span>
+                                    <span className="info-label">
+                                        <Building2 size={10} />
+                                        {t('show.identification.mainTenant')}
+                                    </span>
+                                    <span className="info-value">
+                                        {broker.tenant?.name ?? '—'}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Percent size={10}/>{t('show.identification.commission')}</span>
-                                    <span className="info-value">{broker.commission_rate ? `${broker.commission_rate}%` : '—'}</span>
+                                    <span className="info-label">
+                                        <Percent size={10} />
+                                        {t('show.identification.commission')}
+                                    </span>
+                                    <span className="info-value">
+                                        {broker.commission_rate
+                                            ? `${broker.commission_rate}%`
+                                            : '—'}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><FileText size={10}/>{t('show.identification.createdAt')}</span>
-                                    <span className="info-value">{fmt(broker.created_at)}</span>
+                                    <span className="info-label">
+                                        <FileText size={10} />
+                                        {t('show.identification.createdAt')}
+                                    </span>
+                                    <span className="info-value">
+                                        {fmt(broker.created_at)}
+                                    </span>
                                 </div>
-                                {broker.tenants.filter(tn => tn.id !== broker.tenant?.id).length > 0 && (
-                                    <div className="info-item" style={{ gridColumn:'1/-1' }}>
-                                        <span className="info-label"><Building2 size={10}/>{t('show.identification.additionalTenants')}</span>
-                                        <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:2 }}>
-                                            {broker.tenants.filter(tn => tn.id !== broker.tenant?.id).map(tn => (
-                                                <span key={tn.id} className="bs-badge" style={{ background:'#eff6ff', color:'#1d4ed8' }}>{tn.name}</span>
-                                            ))}
+                                {broker.tenants.filter(
+                                    (tn) => tn.id !== broker.tenant?.id,
+                                ).length > 0 && (
+                                    <div
+                                        className="info-item"
+                                        style={{ gridColumn: '1/-1' }}
+                                    >
+                                        <span className="info-label">
+                                            <Building2 size={10} />
+                                            {t(
+                                                'show.identification.additionalTenants',
+                                            )}
+                                        </span>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                gap: 6,
+                                                flexWrap: 'wrap',
+                                                marginTop: 2,
+                                            }}
+                                        >
+                                            {broker.tenants
+                                                .filter(
+                                                    (tn) =>
+                                                        tn.id !==
+                                                        broker.tenant?.id,
+                                                )
+                                                .map((tn) => (
+                                                    <span
+                                                        key={tn.id}
+                                                        className="bs-badge"
+                                                        style={{
+                                                            background:
+                                                                '#eff6ff',
+                                                            color: '#1d4ed8',
+                                                        }}
+                                                    >
+                                                        {tn.name}
+                                                    </span>
+                                                ))}
                                         </div>
                                     </div>
                                 )}
@@ -147,35 +308,70 @@ export default function BrokerShow({ broker }: Props) {
                     {/* Contact */}
                     <div className="bs-card">
                         <div className="bs-card-hdr">
-                            <div className="bs-card-ico" style={{ background:'#f0fdf4' }}><Mail size={15} color="#16a34a"/></div>
-                            <span className="bs-card-ttl">{t('show.contact.title')}</span>
+                            <div
+                                className="bs-card-ico"
+                                style={{ background: '#f0fdf4' }}
+                            >
+                                <Mail size={15} color="#16a34a" />
+                            </div>
+                            <span className="bs-card-ttl">
+                                {t('show.contact.title')}
+                            </span>
                         </div>
                         <div className="bs-card-body">
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label"><Mail size={10}/>{t('show.contact.email')}</span>
-                                    <span className="info-value">{broker.email ?? '—'}</span>
+                                    <span className="info-label">
+                                        <Mail size={10} />
+                                        {t('show.contact.email')}
+                                    </span>
+                                    <span className="info-value">
+                                        {broker.email ?? '—'}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Phone size={10}/>{t('show.contact.phone')}</span>
-                                    <span className="info-value">{broker.phone ?? '—'}</span>
+                                    <span className="info-label">
+                                        <Phone size={10} />
+                                        {t('show.contact.phone')}
+                                    </span>
+                                    <span className="info-value">
+                                        {broker.phone ?? '—'}
+                                    </span>
                                 </div>
                                 {broker.phone_secondary && (
                                     <div className="info-item">
-                                        <span className="info-label"><Phone size={10}/>{t('show.contact.phone2')}</span>
-                                        <span className="info-value">{broker.phone_secondary}</span>
+                                        <span className="info-label">
+                                            <Phone size={10} />
+                                            {t('show.contact.phone2')}
+                                        </span>
+                                        <span className="info-value">
+                                            {broker.phone_secondary}
+                                        </span>
                                     </div>
                                 )}
                                 <div className="info-item">
-                                    <span className="info-label"><MapPin size={10}/>{t('show.contact.cityCountry')}</span>
+                                    <span className="info-label">
+                                        <MapPin size={10} />
+                                        {t('show.contact.cityCountry')}
+                                    </span>
                                     <span className="info-value">
-                                        {[broker.city, broker.country_code].filter(Boolean).join(', ') || '—'}
+                                        {[broker.city, broker.country_code]
+                                            .filter(Boolean)
+                                            .join(', ') || '—'}
                                     </span>
                                 </div>
                                 {broker.address && (
-                                    <div className="info-item" style={{ gridColumn:'1/-1' }}>
-                                        <span className="info-label"><MapPin size={10}/>{t('show.contact.address')}</span>
-                                        <span className="info-value">{broker.address}</span>
+                                    <div
+                                        className="info-item"
+                                        style={{ gridColumn: '1/-1' }}
+                                    >
+                                        <span className="info-label">
+                                            <MapPin size={10} />
+                                            {t('show.contact.address')}
+                                        </span>
+                                        <span className="info-value">
+                                            {broker.address}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -185,27 +381,58 @@ export default function BrokerShow({ broker }: Props) {
                     {/* Accès à l'espace partenaire */}
                     <div className="bs-card">
                         <div className="bs-card-hdr">
-                            <div className="bs-card-ico" style={{ background:'#fdf4ff' }}><KeyRound size={15} color="#a21caf"/></div>
-                            <span className="bs-card-ttl">{t('show.partnerAccess.title')}</span>
+                            <div
+                                className="bs-card-ico"
+                                style={{ background: '#fdf4ff' }}
+                            >
+                                <KeyRound size={15} color="#a21caf" />
+                            </div>
+                            <span className="bs-card-ttl">
+                                {t('show.partnerAccess.title')}
+                            </span>
                         </div>
                         <div className="bs-card-body">
                             {broker.user ? (
                                 <div className="info-item">
-                                    <span className="info-label"><Mail size={10}/>{t('show.partnerAccess.linkedAccount')}</span>
-                                    <span className="info-value">{broker.user.first_name} {broker.user.last_name} · {broker.user.email}</span>
+                                    <span className="info-label">
+                                        <Mail size={10} />
+                                        {t('show.partnerAccess.linkedAccount')}
+                                    </span>
+                                    <span className="info-value">
+                                        {broker.user.first_name}{' '}
+                                        {broker.user.last_name} ·{' '}
+                                        {broker.user.email}
+                                    </span>
                                 </div>
                             ) : (
-                                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
-                                    <span style={{ fontSize:12, color:'#94a3b8' }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        gap: 12,
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            fontSize: 12,
+                                            color: '#94a3b8',
+                                        }}
+                                    >
                                         {t('show.partnerAccess.none')}
                                     </span>
-                                    <Link href={route('admin.users.create', {
-                                        broker_id: broker.id,
-                                        role:      broker.type,
-                                        tenant_id: broker.tenant?.id,
-                                    })}>
-                                        <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-9 px-4 text-sm">
-                                            <UserPlus size={13}/> {t('show.partnerAccess.createAccount')}
+                                    <Link
+                                        href={route('admin.users.create', {
+                                            broker_id: broker.id,
+                                            role: broker.type,
+                                            tenant_id: broker.tenant?.id,
+                                        })}
+                                    >
+                                        <Button className="h-9 bg-[#1e3a8a] px-4 text-sm text-white hover:bg-[#1e40af]">
+                                            <UserPlus size={13} />{' '}
+                                            {t(
+                                                'show.partnerAccess.createAccount',
+                                            )}
                                         </Button>
                                     </Link>
                                 </div>
@@ -213,8 +440,18 @@ export default function BrokerShow({ broker }: Props) {
                         </div>
                     </div>
 
-                    <Link href="/admin/brokers" style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13, color:'#64748b', textDecoration:'none' }}>
-                        <ArrowLeft size={14}/> {t('show.backToList')}
+                    <Link
+                        href="/admin/brokers"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            fontSize: 13,
+                            color: '#64748b',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        <ArrowLeft size={14} /> {t('show.backToList')}
                     </Link>
                 </div>
             </div>

@@ -8,6 +8,7 @@ use App\Models\CertificateTemplate;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,15 +26,12 @@ class TenantController extends Controller
     public function index(Request $request): Response
     {
         $tenants = Tenant::withCount('users')
-            ->when($request->search, fn ($q) =>
-                $q->where(fn ($q) =>
-                    $q->where('name', 'ilike', "%{$request->search}%")
-                      ->orWhere('code', 'ilike', "%{$request->search}%")
-                      ->orWhere('country_code', 'ilike', "%{$request->search}%")
-                )
+            ->when($request->search, fn ($q) => $q->where(fn ($q) => $q->where('name', 'ilike', "%{$request->search}%")
+                ->orWhere('code', 'ilike', "%{$request->search}%")
+                ->orWhere('country_code', 'ilike', "%{$request->search}%")
             )
-            ->when($request->status !== null && $request->status !== '', fn ($q) =>
-                $q->where('is_active', $request->status === 'active')
+            )
+            ->when($request->status !== null && $request->status !== '', fn ($q) => $q->where('is_active', $request->status === 'active')
             )
             ->orderBy('name')
             ->paginate(20)
@@ -55,21 +53,21 @@ class TenantController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'         => ['required', 'string', 'max:150'],
-            'code'         => ['required', 'string', 'max:10', 'unique:tenants,code', 'regex:/^[A-Z]{2,10}$/'],
+            'name' => ['required', 'string', 'max:150'],
+            'code' => ['required', 'string', 'max:10', 'unique:tenants,code', 'regex:/^[A-Z]{2,10}$/'],
             'country_code' => ['required', 'string', 'size:2'],
-            'currency_code'     => ['required', 'string', 'size:3'],
-            'locale'       => ['required', 'string', 'in:fr,en'],
-            'timezone'     => ['required', 'string', 'max:50'],
-            'is_active'    => ['boolean'],
-            'logo'         => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
-            'settings'                  => ['nullable', 'array'],
+            'currency_code' => ['required', 'string', 'size:3'],
+            'locale' => ['required', 'string', 'in:fr,en'],
+            'timezone' => ['required', 'string', 'max:50'],
+            'is_active' => ['boolean'],
+            'logo' => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
+            'settings' => ['nullable', 'array'],
             'subscription_limit_config' => ['nullable', 'array'],
         ], [
-            'code.regex'  => 'Le code doit être en majuscules (ex: CI, SN, CM).',
+            'code.regex' => 'Le code doit être en majuscules (ex: CI, SN, CM).',
             'code.unique' => 'Ce code est déjà utilisé par une autre filiale.',
-            'logo.mimes'  => 'Formats acceptés : JPG, PNG, WebP, SVG.',
-            'logo.max'    => 'La taille maximale du logo est de 2 Mo.',
+            'logo.mimes' => 'Formats acceptés : JPG, PNG, WebP, SVG.',
+            'logo.max' => 'La taille maximale du logo est de 2 Mo.',
         ]);
 
         // Upload logo si fourni
@@ -83,30 +81,30 @@ class TenantController extends Controller
         // Tenant::$fillable). Les valider en top-level puis les fusionner
         // ici est plus simple côté formulaire que des clés "settings.locale".
         $settings = array_merge($validated['settings'] ?? [], [
-            'locale'   => $validated['locale'],
+            'locale' => $validated['locale'],
             'timezone' => $validated['timezone'],
         ]);
 
         $tenant = Tenant::create([
-            'name'                       => $validated['name'],
-            'code'                       => $validated['code'],
-            'country_code'               => $validated['country_code'],
-            'currency_code'              => $validated['currency_code'],
-            'logo_path'                  => $logoPath,
-            'settings'                   => $settings,
-            'subscription_limit_config'  => $validated['subscription_limit_config'] ?? ['nn300_limit' => 0],
-            'is_active'                  => $validated['is_active'] ?? true,
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'country_code' => $validated['country_code'],
+            'currency_code' => $validated['currency_code'],
+            'logo_path' => $logoPath,
+            'settings' => $settings,
+            'subscription_limit_config' => $validated['subscription_limit_config'] ?? ['nn300_limit' => 0],
+            'is_active' => $validated['is_active'] ?? true,
         ]);
 
         AuditLog::create([
-            'tenant_id'   => null,
-            'user_id'     => $request->user()->id,
-            'action'      => 'tenant_created',
+            'tenant_id' => null,
+            'user_id' => $request->user()->id,
+            'action' => 'tenant_created',
             'entity_type' => 'tenant',
-            'entity_id'   => $tenant->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => ['name' => $tenant->name, 'code' => $tenant->code],
+            'entity_id' => $tenant->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => ['name' => $tenant->name, 'code' => $tenant->code],
         ]);
 
         return redirect()->route('admin.tenants.index')
@@ -124,9 +122,9 @@ class TenantController extends Controller
             ->get();
 
         return Inertia::render('admin/tenants/show', [
-            'tenant'             => $tenant,
-            'users'              => $users,
-            'certificateTemplate'=> CertificateTemplate::where('tenant_id', $tenant->id)->first(['id', 'name', 'type', 'is_active']),
+            'tenant' => $tenant,
+            'users' => $users,
+            'certificateTemplate' => CertificateTemplate::where('tenant_id', $tenant->id)->first(['id', 'name', 'type', 'is_active']),
         ]);
     }
 
@@ -142,32 +140,32 @@ class TenantController extends Controller
     public function update(Request $request, Tenant $tenant): RedirectResponse
     {
         $validated = $request->validate([
-            'name'         => ['required', 'string', 'max:150'],
-            'code'         => ['required', 'string', 'max:10', Rule::unique('tenants', 'code')->ignore($tenant->id), 'regex:/^[A-Z]{2,10}$/'],
+            'name' => ['required', 'string', 'max:150'],
+            'code' => ['required', 'string', 'max:10', Rule::unique('tenants', 'code')->ignore($tenant->id), 'regex:/^[A-Z]{2,10}$/'],
             'country_code' => ['required', 'string', 'size:2'],
-            'currency_code'=> ['required', 'string', 'size:3'],
-            'locale'       => ['required', 'string', 'in:fr,en'],
-            'timezone'     => ['required', 'string', 'max:50'],
-            'is_active'    => ['boolean'],
+            'currency_code' => ['required', 'string', 'size:3'],
+            'locale' => ['required', 'string', 'in:fr,en'],
+            'timezone' => ['required', 'string', 'max:50'],
+            'is_active' => ['boolean'],
             'subscription_limit_config' => ['nullable', 'array'],
-            'settings'                  => ['nullable', 'array'],
-            'settings.siege_social'     => ['nullable', 'string', 'max:500'],
-            'settings.phone'            => ['nullable', 'string', 'max:100'],
-            'settings.website'          => ['nullable', 'string', 'max:150'],
-            'settings.email'            => ['nullable', 'string', 'email', 'max:150'],
-            'settings.capital'          => ['nullable', 'string', 'max:200'],
-            'settings.rccm'             => ['nullable', 'string', 'max:150'],
-            'settings.regulator'        => ['nullable', 'string', 'max:200'],
-            'settings.payment_address'  => ['nullable', 'string', 'max:300'],
-            'settings.surveyor_name'    => ['nullable', 'string', 'max:200'],
+            'settings' => ['nullable', 'array'],
+            'settings.siege_social' => ['nullable', 'string', 'max:500'],
+            'settings.phone' => ['nullable', 'string', 'max:100'],
+            'settings.website' => ['nullable', 'string', 'max:150'],
+            'settings.email' => ['nullable', 'string', 'email', 'max:150'],
+            'settings.capital' => ['nullable', 'string', 'max:200'],
+            'settings.rccm' => ['nullable', 'string', 'max:150'],
+            'settings.regulator' => ['nullable', 'string', 'max:200'],
+            'settings.payment_address' => ['nullable', 'string', 'max:300'],
+            'settings.surveyor_name' => ['nullable', 'string', 'max:200'],
             'settings.surveyor_address' => ['nullable', 'string', 'max:300'],
-            'settings.city'             => ['nullable', 'string', 'max:100'],
+            'settings.city' => ['nullable', 'string', 'max:100'],
         ]);
 
         // locale/timezone n'ont pas de colonne dédiée — ce sont des clés du
         // JSON settings (cf. Tenant::$fillable / store() ci-dessus).
         $validated['settings'] = array_merge($validated['settings'] ?? [], [
-            'locale'   => $validated['locale'],
+            'locale' => $validated['locale'],
             'timezone' => $validated['timezone'],
         ]);
         unset($validated['locale'], $validated['timezone']);
@@ -176,15 +174,15 @@ class TenantController extends Controller
         $tenant->update($validated);
 
         AuditLog::create([
-            'tenant_id'   => null,
-            'user_id'     => $request->user()->id,
-            'action'      => 'tenant_updated',
+            'tenant_id' => null,
+            'user_id' => $request->user()->id,
+            'action' => 'tenant_updated',
             'entity_type' => 'tenant',
-            'entity_id'   => $tenant->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'old_values'  => $oldValues,
-            'new_values'  => $tenant->only(['name', 'code', 'is_active']),
+            'entity_id' => $tenant->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'old_values' => $oldValues,
+            'new_values' => $tenant->only(['name', 'code', 'is_active']),
         ]);
 
         return redirect()->route('admin.tenants.index')
@@ -197,23 +195,24 @@ class TenantController extends Controller
         $tenant->update(['is_active' => ! $tenant->is_active]);
 
         AuditLog::create([
-            'tenant_id'   => null,
-            'user_id'     => $request->user()->id,
-            'action'      => $tenant->is_active ? 'tenant_activated' : 'tenant_deactivated',
+            'tenant_id' => null,
+            'user_id' => $request->user()->id,
+            'action' => $tenant->is_active ? 'tenant_activated' : 'tenant_deactivated',
             'entity_type' => 'tenant',
-            'entity_id'   => $tenant->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'entity_id' => $tenant->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         $label = $tenant->is_active ? 'activée' : 'désactivée';
+
         return back()->with('status', "Filiale {$tenant->name} {$label}.");
     }
 
     public function config(Tenant $tenant): Response
     {
         return Inertia::render('admin/tenants/config', [
-            'tenant'        => $tenant,
+            'tenant' => $tenant,
             'moduleRegistry' => Tenant::MODULES,
         ]);
     }
@@ -222,7 +221,7 @@ class TenantController extends Controller
     public function updateModules(Request $request, Tenant $tenant): RedirectResponse
     {
         $validated = $request->validate([
-            'modules'   => ['required', 'array'],
+            'modules' => ['required', 'array'],
             'modules.*' => ['boolean'],
         ]);
 
@@ -234,60 +233,60 @@ class TenantController extends Controller
         $tenant->update(['modules' => $modules]);
 
         AuditLog::create([
-            'tenant_id'   => null,
-            'user_id'     => $request->user()->id,
-            'action'      => 'tenant_modules_updated',
+            'tenant_id' => null,
+            'user_id' => $request->user()->id,
+            'action' => 'tenant_modules_updated',
             'entity_type' => 'tenant',
-            'entity_id'   => $tenant->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => $modules,
+            'entity_id' => $tenant->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => $modules,
         ]);
 
         return back()->with('status', "Modules de {$tenant->name} mis à jour.");
     }
 
-        // ── Upload logo filiale ──────────────────────────────────
+    // ── Upload logo filiale ──────────────────────────────────
     public function updateLogo(Request $request, Tenant $tenant): RedirectResponse
     {
         $request->validate([
             'logo' => ['required', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
         ], [
             'logo.required' => 'Veuillez sélectionner une image.',
-            'logo.mimes'    => 'Formats acceptés : JPG, PNG, WebP, SVG.',
-            'logo.max'      => 'La taille maximale est de 2 Mo.',
+            'logo.mimes' => 'Formats acceptés : JPG, PNG, WebP, SVG.',
+            'logo.max' => 'La taille maximale est de 2 Mo.',
         ]);
- 
+
         // Supprimer l'ancien logo
-        if ($tenant->logo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($tenant->logo_path)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($tenant->logo_path);
+        if ($tenant->logo_path && Storage::disk('public')->exists($tenant->logo_path)) {
+            Storage::disk('public')->delete($tenant->logo_path);
         }
- 
-        $path = $request->file('logo')->store("logos/tenants", 'public');
+
+        $path = $request->file('logo')->store('logos/tenants', 'public');
         $tenant->update(['logo_path' => $path]);
- 
+
         AuditLog::create([
-            'tenant_id'   => null,
-            'user_id'     => $request->user()->id,
-            'action'      => 'tenant_logo_updated',
+            'tenant_id' => null,
+            'user_id' => $request->user()->id,
+            'action' => 'tenant_logo_updated',
             'entity_type' => 'tenant',
-            'entity_id'   => $tenant->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'entity_id' => $tenant->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
- 
+
         return back()->with('status', "Logo de {$tenant->name} mis à jour.");
     }
- 
+
     // ── Supprimer logo filiale ───────────────────────────────
     public function removeLogo(Request $request, Tenant $tenant): RedirectResponse
     {
-        if ($tenant->logo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($tenant->logo_path)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($tenant->logo_path);
+        if ($tenant->logo_path && Storage::disk('public')->exists($tenant->logo_path)) {
+            Storage::disk('public')->delete($tenant->logo_path);
         }
- 
+
         $tenant->update(['logo_path' => null]);
- 
-        return back()->with('status', "Logo supprimé.");
+
+        return back()->with('status', 'Logo supprimé.');
     }
 }

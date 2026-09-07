@@ -649,11 +649,26 @@
                 "heading": "Novo pedido de certificado",
                 "subtitle": "Descreva a expedição e junte os seus comprovativos",
                 "documentTypes": {
-                    "BL": { "label": "BL (Conhecimento de Embarque)", "hint": "Conhecimento de embarque marítimo" },
-                    "FACTURE": { "label": "Fatura", "hint": "Fatura comercial" },
-                    "FDI": { "label": "FDI", "hint": "Ficha de declaração de importação" },
-                    "DOCUMENTS_TRANSPORT": { "label": "Documentos de transporte", "hint": "LTA, CMR, guia de remessa..." },
-                    "AUTRE": { "label": "Outros comprovativos", "hint": "Qualquer outro documento útil" }
+                    "BL": {
+                        "label": "BL (Conhecimento de Embarque)",
+                        "hint": "Conhecimento de embarque marítimo"
+                    },
+                    "FACTURE": {
+                        "label": "Fatura",
+                        "hint": "Fatura comercial"
+                    },
+                    "FDI": {
+                        "label": "FDI",
+                        "hint": "Ficha de declaração de importação"
+                    },
+                    "DOCUMENTS_TRANSPORT": {
+                        "label": "Documentos de transporte",
+                        "hint": "LTA, CMR, guia de remessa..."
+                    },
+                    "AUTRE": {
+                        "label": "Outros comprovativos",
+                        "hint": "Qualquer outro documento útil"
+                    }
                 },
                 "tenant": {
                     "title": "Filial",

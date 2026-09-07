@@ -38,15 +38,15 @@ class MfaSetupController extends Controller
     // ── Page setup MFA ───────────────────────────────────────
     public function show(Request $request): Response
     {
-        $user        = $request->user();
-        $mfaEnabled  = $user->two_factor_confirmed_at !== null;
-        $mfaPending  = ! $mfaEnabled && $user->two_factor_secret !== null;
+        $user = $request->user();
+        $mfaEnabled = $user->two_factor_confirmed_at !== null;
+        $mfaPending = ! $mfaEnabled && $user->two_factor_secret !== null;
 
         return Inertia::render('auth/mfa-setup', [
-            'mfaEnabled'    => $mfaEnabled,
-            'mfaPending'    => $mfaPending,
-            'qrCodeSvg'     => $mfaPending ? $user->twoFactorQrCodeSvg() : null,
-            'secretKey'     => $mfaPending ? decrypt($user->two_factor_secret) : null,
+            'mfaEnabled' => $mfaEnabled,
+            'mfaPending' => $mfaPending,
+            'qrCodeSvg' => $mfaPending ? $user->twoFactorQrCodeSvg() : null,
+            'secretKey' => $mfaPending ? decrypt($user->two_factor_secret) : null,
             'recoveryCodes' => $mfaEnabled ? $user->recoveryCodes() : [],
         ]);
     }
@@ -91,12 +91,12 @@ class MfaSetupController extends Controller
     private function auditLog(Request $request, string $action): void
     {
         AuditLog::create([
-            'tenant_id'      => $request->user()->tenant_id,
-            'user_id'        => $request->user()->id,
-            'action'         => $action,
-            'auditable_id'   => $request->user()->id,
-            'ip_address'     => $request->ip(),
-            'user_agent'     => $request->userAgent(),
+            'tenant_id' => $request->user()->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => $action,
+            'auditable_id' => $request->user()->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
     }
 }

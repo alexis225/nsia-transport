@@ -1,14 +1,14 @@
 import { Head } from '@inertiajs/react';
 import { useEffect } from 'react';
-import TemplateBenin         from './print-templates/benin';
-import TemplateCameroun      from './print-templates/cameroun';
-import TemplateCongo         from './print-templates/congo';
-import TemplateGabon         from './print-templates/gabon';
+import TemplateBenin from './print-templates/benin';
+import TemplateCameroun from './print-templates/cameroun';
+import TemplateCongo from './print-templates/congo';
+import TemplateGabon from './print-templates/gabon';
 import TemplateGuineeConakry from './print-templates/guinee-conakry';
-import { PRINT_TEMPLATES } from './print-templates/registry';
-import TemplateSenegal       from './print-templates/senegal';
-import TemplateTogo          from './print-templates/togo';
 import type { FieldPosition } from './print-templates/overlay-types';
+import { PRINT_TEMPLATES } from './print-templates/registry';
+import TemplateSenegal from './print-templates/senegal';
+import TemplateTogo from './print-templates/togo';
 import type { CertificateForPrint } from './print-templates/types';
 // ── Ajouter les imports des nouveaux templates ici ──
 
@@ -22,20 +22,32 @@ interface Props {
 }
 
 /* Registre des composants — ajouter ici chaque nouveau template */
-const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<{ certificate: CertificateForPrint; calibrate?: boolean; positionsOverride?: FieldPosition[] | null }>> = {
+const TEMPLATE_COMPONENTS: Record<
+    string,
+    React.ComponentType<{
+        certificate: CertificateForPrint;
+        calibrate?: boolean;
+        positionsOverride?: FieldPosition[] | null;
+    }>
+> = {
     'guinee-conakry': TemplateGuineeConakry,
-    'gabon':          TemplateGabon,
-    'togo':           TemplateTogo,
-    'senegal':        TemplateSenegal,
-    'cameroun':       TemplateCameroun,
-    'congo':          TemplateCongo,
-    'benin':          TemplateBenin,
+    gabon: TemplateGabon,
+    togo: TemplateTogo,
+    senegal: TemplateSenegal,
+    cameroun: TemplateCameroun,
+    congo: TemplateCongo,
+    benin: TemplateBenin,
     // ── Enregistrer ici les nouveaux templates ──
 };
 
-export default function CertificatePrint({ certificate: cert, templateId, calibrate = false, positionsOverride = null }: Props) {
+export default function CertificatePrint({
+    certificate: cert,
+    templateId,
+    calibrate = false,
+    positionsOverride = null,
+}: Props) {
     const TemplateComponent = TEMPLATE_COMPONENTS[templateId];
-    const templateMeta      = PRINT_TEMPLATES.find(t => t.id === templateId);
+    const templateMeta = PRINT_TEMPLATES.find((t) => t.id === templateId);
 
     useEffect(() => {
         // Pas d'impression auto en mode calibration
@@ -50,28 +62,68 @@ export default function CertificatePrint({ certificate: cert, templateId, calibr
 
     return (
         <>
-            <Head title={`Certificat ${cert.certificate_number} — ${templateMeta?.name ?? templateId}`} />
+            <Head
+                title={`Certificat ${cert.certificate_number} — ${templateMeta?.name ?? templateId}`}
+            />
 
             {/* Boutons (masqués à l'impression) */}
-            <div className="no-print" style={{
-                position: 'fixed', top: 12, right: 12, zIndex: 9999,
-                display: 'flex', gap: 8, alignItems: 'center',
-            }}>
+            <div
+                className="no-print"
+                style={{
+                    position: 'fixed',
+                    top: 12,
+                    right: 12,
+                    zIndex: 9999,
+                    display: 'flex',
+                    gap: 8,
+                    alignItems: 'center',
+                }}
+            >
                 {calibrate && (
-                    <span style={{ fontSize: 12, color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '6px 10px', maxWidth: 340 }}>
-                        Mode calibration — grille de repère (mm) affichée. Dans la boîte d'impression, vérifiez « Échelle : 100% / Taille réelle » (PAS « Ajuster à la page ») et « Marges : Aucune », sinon la grille elle-même sera faussée.
+                    <span
+                        style={{
+                            fontSize: 12,
+                            color: '#b45309',
+                            background: '#fffbeb',
+                            border: '1px solid #fde68a',
+                            borderRadius: 6,
+                            padding: '6px 10px',
+                            maxWidth: 340,
+                        }}
+                    >
+                        Mode calibration — grille de repère (mm) affichée. Dans
+                        la boîte d'impression, vérifiez « Échelle : 100% /
+                        Taille réelle » (PAS « Ajuster à la page ») et « Marges
+                        : Aucune », sinon la grille elle-même sera faussée.
                     </span>
                 )}
-                <button onClick={() => window.print()} style={{
-                    padding: '8px 18px', background: '#1e3a5f', color: '#fff',
-                    border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 14,
-                }}>
+                <button
+                    onClick={() => window.print()}
+                    style={{
+                        padding: '8px 18px',
+                        background: '#1e3a5f',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: 14,
+                    }}
+                >
                     Imprimer
                 </button>
-                <button onClick={() => window.history.back()} style={{
-                    padding: '8px 14px', background: '#64748b', color: '#fff',
-                    border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14,
-                }}>
+                <button
+                    onClick={() => window.history.back()}
+                    style={{
+                        padding: '8px 14px',
+                        background: '#64748b',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        fontSize: 14,
+                    }}
+                >
                     ← Retour
                 </button>
             </div>
@@ -152,20 +204,41 @@ export default function CertificatePrint({ certificate: cert, templateId, calibr
                 mention plutôt que le générique BROUILLON. */}
             {cert.status !== 'ISSUED' && (
                 <div className="watermark">
-                    {cert.status === 'REPLACED' ? 'REMPLACÉ' : cert.status === 'CANCELLED' ? 'ANNULÉ' : 'BROUILLON'}
+                    {cert.status === 'REPLACED'
+                        ? 'REMPLACÉ'
+                        : cert.status === 'CANCELLED'
+                          ? 'ANNULÉ'
+                          : 'BROUILLON'}
                 </div>
             )}
 
             {/* Template introuvable */}
             {!TemplateComponent && (
-                <div style={{ padding: 40, textAlign: 'center', color: '#dc2626', fontFamily: 'Arial' }}>
-                    <p style={{ fontSize: 18, fontWeight: 700 }}>Modèle introuvable</p>
-                    <p style={{ marginTop: 8, color: '#64748b' }}>Le modèle « {templateId} » n'existe pas.</p>
+                <div
+                    style={{
+                        padding: 40,
+                        textAlign: 'center',
+                        color: '#dc2626',
+                        fontFamily: 'Arial',
+                    }}
+                >
+                    <p style={{ fontSize: 18, fontWeight: 700 }}>
+                        Modèle introuvable
+                    </p>
+                    <p style={{ marginTop: 8, color: '#64748b' }}>
+                        Le modèle « {templateId} » n'existe pas.
+                    </p>
                 </div>
             )}
 
             {/* Rendu du template sélectionné */}
-            {TemplateComponent && <TemplateComponent certificate={cert} calibrate={calibrate} positionsOverride={positionsOverride}/>}
+            {TemplateComponent && (
+                <TemplateComponent
+                    certificate={cert}
+                    calibrate={calibrate}
+                    positionsOverride={positionsOverride}
+                />
+            )}
         </>
     );
 }

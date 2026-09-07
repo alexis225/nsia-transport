@@ -3,8 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\Certificate;
+use App\Models\ReportExecution;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * US-053 — Politique de rétention et archivage
@@ -21,12 +22,14 @@ class ArchiveCertificates extends Command
 
     public function handle(): int
     {
-        $years  = (int) $this->option('years');
+        $years = (int) $this->option('years');
         $dryRun = (bool) $this->option('dry-run');
         $cutoff = now()->subYears($years);
 
         $this->info("[ARCHIVE] Cutoff : {$cutoff->toDateString()} ({$years} ans)");
-        if ($dryRun) $this->warn('[ARCHIVE] Mode simulation — aucune modification.');
+        if ($dryRun) {
+            $this->warn('[ARCHIVE] Mode simulation — aucune modification.');
+        }
 
         // ── Certificats ISSUED / CANCELLED anciens ────────────────
         $toArchive = Certificate::where('status', 'ISSUED')
@@ -56,21 +59,23 @@ class ArchiveCertificates extends Command
 
         if (! $dryRun && $draftCount > 0) {
             $staleDrafts->chunkById(200, function ($certs) {
-                foreach ($certs as $c) { $c->delete(); }
+                foreach ($certs as $c) {
+                    $c->delete();
+                }
             });
             $this->info("[ARCHIVE] {$draftCount} brouillons supprimés.");
         }
 
         // ── Fichiers d'export expirés ─────────────────────────────
-        $expiredExports = \App\Models\ReportExecution::where('status', 'COMPLETED')
+        $expiredExports = ReportExecution::where('status', 'COMPLETED')
             ->where('expires_at', '<', now())
             ->whereNotNull('file_path');
 
         $exportCount = $expiredExports->count();
         if (! $dryRun && $exportCount > 0) {
             $expiredExports->each(function ($ex) {
-                if (\Illuminate\Support\Facades\Storage::exists($ex->file_path)) {
-                    \Illuminate\Support\Facades\Storage::delete($ex->file_path);
+                if (Storage::exists($ex->file_path)) {
+                    Storage::delete($ex->file_path);
                 }
                 $ex->update(['file_path' => null]);
             });
@@ -78,6 +83,7 @@ class ArchiveCertificates extends Command
         }
 
         $this->info('[ARCHIVE] Terminé.');
+
         return self::SUCCESS;
     }
 }

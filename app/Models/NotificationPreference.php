@@ -30,34 +30,34 @@ class NotificationPreference extends Model
 
     protected $casts = [
         'in_app' => 'boolean',
-        'email'  => 'boolean',
+        'email' => 'boolean',
     ];
 
     // ── Tous les types d'événements configurables ─────────────
     const EVENT_TYPES = [
         // Certificats
-        'CertificateSubmitted'   => 'Certificat soumis',
-        'CertificateIssued'      => 'Certificat émis',
-        'CertificateRejected'    => 'Certificat rejeté',
-        'CertificateCancelled'   => 'Certificat annulé',
+        'CertificateSubmitted' => 'Certificat soumis',
+        'CertificateIssued' => 'Certificat émis',
+        'CertificateRejected' => 'Certificat rejeté',
+        'CertificateCancelled' => 'Certificat annulé',
         // Demandes partenaires
-        'CertificateRequestCreated'  => 'Nouvelle demande de certificat',
+        'CertificateRequestCreated' => 'Nouvelle demande de certificat',
         'CertificateRequestInReview' => 'Demande en cours de traitement',
         'CertificateRequestRejected' => 'Demande de certificat rejetée',
         // Contrats
-        'ContractExpiring'       => 'Contrat expirant bientôt',
-        'ContractLimitReached'   => 'Plafond NN300 atteint',
+        'ContractExpiring' => 'Contrat expirant bientôt',
+        'ContractLimitReached' => 'Plafond NN300 atteint',
         // Escalades
-        'EscaladeNN300'          => 'Escalade NN300',
-        'EscaladeDecision'       => 'Décision escalade',
-        'EscaladeTimeout'        => 'Délai escalade dépassé',
+        'EscaladeNN300' => 'Escalade NN300',
+        'EscaladeDecision' => 'Décision escalade',
+        'EscaladeTimeout' => 'Délai escalade dépassé',
         // Délégations
-        'DelegationGranted'      => 'Délégation reçue',
-        'DelegationCreated'      => 'Délégation créée',
-        'DelegationRevoked'      => 'Délégation révoquée',
-        'DelegationExpired'      => 'Délégation expirée',
+        'DelegationGranted' => 'Délégation reçue',
+        'DelegationCreated' => 'Délégation créée',
+        'DelegationRevoked' => 'Délégation révoquée',
+        'DelegationExpired' => 'Délégation expirée',
         // Système
-        'SystemAlert'            => 'Alertes système',
+        'SystemAlert' => 'Alertes système',
     ];
 
     // ── Relations ─────────────────────────────────────────────
@@ -81,9 +81,9 @@ class NotificationPreference extends Model
         $result = [];
         foreach (static::EVENT_TYPES as $type => $label) {
             $result[$type] = [
-                'label'  => $label,
+                'label' => $label,
                 'in_app' => isset($saved[$type]) ? (bool) $saved[$type]['in_app'] : true,
-                'email'  => isset($saved[$type]) ? (bool) $saved[$type]['email']  : true,
+                'email' => isset($saved[$type]) ? (bool) $saved[$type]['email'] : true,
             ];
         }
 
@@ -102,12 +102,14 @@ class NotificationPreference extends Model
             ->first();
 
         // Par défaut : tout activé si pas de préférence sauvegardée
-        if (! $pref) return true;
+        if (! $pref) {
+            return true;
+        }
 
         return match ($channel) {
             'in_app' => (bool) $pref->in_app,
-            'email'  => (bool) $pref->email,
-            default  => true,
+            'email' => (bool) $pref->email,
+            default => true,
         };
     }
 

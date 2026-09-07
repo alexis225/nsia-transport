@@ -32,14 +32,16 @@ function makeCtrSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
 function makeCtrAdmin(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
@@ -48,41 +50,42 @@ function makeCtrAdmin(?string $tenantId = null): User
 // souscripteur (staff) n'ont l'occasion de manquer (ex: contracts.edit).
 function makeCtrUserWithPermissions(Tenant $tenant, array $permissions): User
 {
-    $roleName = 'ctr_custom_' . Str::random(8);
-    $role     = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+    $roleName = 'ctr_custom_'.Str::random(8);
+    $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
     $role->syncPermissions($permissions);
 
     $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole($roleName);
+
     return $user;
 }
 
 function makeCtrContract(Tenant $tenant, array $overrides = []): InsuranceContract
 {
     return InsuranceContract::create(array_merge([
-        'tenant_id'          => $tenant->id,
-        'contract_number'    => 'CTR-' . Str::random(8),
-        'type'               => 'OPEN_POLICY',
-        'insured_name'       => 'Société Test SA',
-        'currency_code'      => $tenant->currency_code,
+        'tenant_id' => $tenant->id,
+        'contract_number' => 'CTR-'.Str::random(8),
+        'type' => 'OPEN_POLICY',
+        'insured_name' => 'Société Test SA',
+        'currency_code' => $tenant->currency_code,
         'subscription_limit' => 2_000_000_000,
-        'used_limit'         => 0,
-        'status'             => 'DRAFT',
-        'effective_date'     => now()->subDay(),
-        'expiry_date'        => now()->addYear(),
-        'requires_approval'  => false,
+        'used_limit' => 0,
+        'status' => 'DRAFT',
+        'effective_date' => now()->subDay(),
+        'expiry_date' => now()->addYear(),
+        'requires_approval' => false,
     ], $overrides));
 }
 
 function makeCtrContractPayload(Tenant $tenant, array $overrides = []): array
 {
     return array_merge([
-        'tenant_id'      => $tenant->id,
-        'type'           => 'OPEN_POLICY',
-        'insured_name'   => 'Nouvelle Société SA',
-        'currency_code'  => $tenant->currency_code,
+        'tenant_id' => $tenant->id,
+        'type' => 'OPEN_POLICY',
+        'insured_name' => 'Nouvelle Société SA',
+        'currency_code' => $tenant->currency_code,
         'effective_date' => now()->addDay()->toDateString(),
-        'expiry_date'    => now()->addYear()->toDateString(),
+        'expiry_date' => now()->addYear()->toDateString(),
     ], $overrides);
 }
 
@@ -98,7 +101,7 @@ function makeCtrNn300Ceiling(): float
 it('liste uniquement les contrats de sa filiale pour un admin_filiale', function () {
     $tenantA = makeCtrTenant();
     $tenantB = makeCtrTenant();
-    $admin   = makeCtrAdmin($tenantA->id);
+    $admin = makeCtrAdmin($tenantA->id);
     makeCtrContract($tenantA);
     makeCtrContract($tenantB);
 
@@ -113,7 +116,7 @@ it('liste uniquement les contrats de sa filiale pour un admin_filiale', function
 it('super_admin voit les contrats de toutes les filiales', function () {
     $tenantA = makeCtrTenant();
     $tenantB = makeCtrTenant();
-    $sa      = makeCtrSuperAdmin();
+    $sa = makeCtrSuperAdmin();
     makeCtrContract($tenantA);
     makeCtrContract($tenantB);
 
@@ -130,7 +133,7 @@ it('redirige vers /login si non authentifié (index)', function () {
 
 it('admin_filiale peut créer un contrat (nominal)', function () {
     $tenant = makeCtrTenant();
-    $admin  = makeCtrAdmin($tenant->id);
+    $admin = makeCtrAdmin($tenant->id);
 
     $response = $this->actingAs($admin)->post('/admin/contracts', makeCtrContractPayload($tenant));
 
@@ -145,16 +148,16 @@ it('admin_filiale peut créer un contrat (nominal)', function () {
         ->and(str_starts_with($contract->contract_number, strtoupper($tenant->code)))->toBeTrue();
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'contract.created',
+        'user_id' => $admin->id,
+        'action' => 'contract.created',
         'entity_type' => 'InsuranceContract',
-        'entity_id'   => $contract->id,
+        'entity_id' => $contract->id,
     ]);
 });
 
 it('la création échoue sans nom assuré (validation)', function () {
-    $tenant  = makeCtrTenant();
-    $admin   = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $payload = makeCtrContractPayload($tenant);
     unset($payload['insured_name']);
 
@@ -165,8 +168,8 @@ it('la création échoue sans nom assuré (validation)', function () {
 });
 
 it('un contrat requiert une validation DTAG si le plein dépasse le plafond NN300', function () {
-    $tenant  = makeCtrTenant();
-    $admin   = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $payload = makeCtrContractPayload($tenant, ['plein' => makeCtrNn300Ceiling() + 1_000_000]);
 
     $this->actingAs($admin)->post('/admin/contracts', $payload)->assertRedirect();
@@ -188,8 +191,8 @@ it('sans permission contracts.create, la création est refusée (403)', function
 // ── Consultation ──────────────────────────────────────────────────
 
 it('consulte le détail d\'un contrat de sa filiale', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant);
 
     $this->actingAs($admin)->get("/admin/contracts/{$contract->id}")
@@ -201,9 +204,9 @@ it('consulte le détail d\'un contrat de sa filiale', function () {
 });
 
 it('refuse la consultation d\'un contrat d\'une autre filiale (403)', function () {
-    $tenantA  = makeCtrTenant();
-    $tenantB  = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenantA->id);
+    $tenantA = makeCtrTenant();
+    $tenantB = makeCtrTenant();
+    $admin = makeCtrAdmin($tenantA->id);
     $contract = makeCtrContract($tenantB);
 
     $this->actingAs($admin)->get("/admin/contracts/{$contract->id}")->assertStatus(403);
@@ -212,24 +215,24 @@ it('refuse la consultation d\'un contrat d\'une autre filiale (403)', function (
 // ── Édition ───────────────────────────────────────────────────────
 
 it('peut éditer un contrat en brouillon', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT']);
 
     $this->actingAs($admin)->get("/admin/contracts/{$contract->id}/edit")->assertStatus(200);
 });
 
 it('refuse l\'édition (formulaire) d\'un contrat actif (403)', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $this->actingAs($admin)->get("/admin/contracts/{$contract->id}/edit")->assertStatus(403);
 });
 
 it('met à jour un contrat en brouillon', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT', 'insured_name' => 'Ancien Nom']);
 
     $payload = makeCtrContractPayload($tenant, ['insured_name' => 'Nouveau Nom']);
@@ -250,8 +253,8 @@ it('met à jour un contrat en brouillon', function () {
 // reflète le comportement CORRECT attendu (update() devrait refuser au même
 // titre que edit()) — il échoue donc actuellement contre le code existant.
 it('un contrat actif ne devrait pas pouvoir être modifié via update() [BUG]', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $payload = makeCtrContractPayload($tenant);
@@ -263,8 +266,8 @@ it('un contrat actif ne devrait pas pouvoir être modifié via update() [BUG]', 
 // ── Suppression ───────────────────────────────────────────────────
 
 it('super_admin peut supprimer un contrat en brouillon', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT']);
 
     $this->actingAs($sa)->delete("/admin/contracts/{$contract->id}")->assertRedirect();
@@ -273,8 +276,8 @@ it('super_admin peut supprimer un contrat en brouillon', function () {
 });
 
 it('impossible de supprimer un contrat actif', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $this->actingAs($sa)->delete("/admin/contracts/{$contract->id}")->assertStatus(403);
@@ -283,8 +286,8 @@ it('impossible de supprimer un contrat actif', function () {
 });
 
 it('admin_filiale ne peut pas supprimer un contrat (permission manquante)', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT']);
 
     $this->actingAs($admin)->delete("/admin/contracts/{$contract->id}")->assertStatus(403);
@@ -295,8 +298,8 @@ it('admin_filiale ne peut pas supprimer un contrat (permission manquante)', func
 // ── Workflow : submit ─────────────────────────────────────────────
 
 it('la soumission auto-active un contrat qui ne requiert pas d\'approbation', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT', 'requires_approval' => false]);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/submit")->assertRedirect();
@@ -308,8 +311,8 @@ it('la soumission auto-active un contrat qui ne requiert pas d\'approbation', fu
 });
 
 it('la soumission place le contrat en attente d\'approbation si requise', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT', 'requires_approval' => true]);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/submit")->assertRedirect();
@@ -318,37 +321,37 @@ it('la soumission place le contrat en attente d\'approbation si requise', functi
 });
 
 it('impossible de soumettre un contrat qui n\'est pas en brouillon', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/submit")->assertStatus(422);
 });
 
 it('crée un audit_log contract.submitted', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT', 'requires_approval' => false]);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/submit");
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'contract.submitted',
+        'user_id' => $admin->id,
+        'action' => 'contract.submitted',
         'entity_type' => 'InsuranceContract',
-        'entity_id'   => $contract->id,
+        'entity_id' => $contract->id,
     ]);
 });
 
 // ── Workflow : approve / reject ───────────────────────────────────
 
 it('super_admin approuve un contrat en attente et débloque le plafond Traité', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, [
-        'status'             => 'PENDING_APPROVAL',
-        'requires_approval'  => true,
-        'treaty_limit'       => 6_000_000_000,
+        'status' => 'PENDING_APPROVAL',
+        'requires_approval' => true,
+        'treaty_limit' => 6_000_000_000,
     ]);
 
     $this->actingAs($sa)->patch("/admin/contracts/{$contract->id}/approve", ['notes' => 'OK'])
@@ -362,8 +365,8 @@ it('super_admin approuve un contrat en attente et débloque le plafond Traité',
 });
 
 it('peut approuver directement un contrat en brouillon (sans passage par PENDING_APPROVAL)', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT', 'requires_approval' => false]);
 
     $this->actingAs($sa)->patch("/admin/contracts/{$contract->id}/approve")->assertRedirect();
@@ -372,8 +375,8 @@ it('peut approuver directement un contrat en brouillon (sans passage par PENDING
 });
 
 it('admin_filiale ne peut pas approuver un contrat (permission manquante)', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'PENDING_APPROVAL']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/approve")->assertStatus(403);
@@ -382,16 +385,16 @@ it('admin_filiale ne peut pas approuver un contrat (permission manquante)', func
 });
 
 it('impossible d\'approuver un contrat suspendu', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, ['status' => 'SUSPENDED']);
 
     $this->actingAs($sa)->patch("/admin/contracts/{$contract->id}/approve")->assertStatus(422);
 });
 
 it('rejette un contrat en attente et le renvoie en brouillon', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, ['status' => 'PENDING_APPROVAL']);
 
     $this->actingAs($sa)->patch("/admin/contracts/{$contract->id}/reject", ['reason' => 'Dossier incomplet'])
@@ -403,8 +406,8 @@ it('rejette un contrat en attente et le renvoie en brouillon', function () {
 });
 
 it('le motif est obligatoire pour rejeter un contrat', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, ['status' => 'PENDING_APPROVAL']);
 
     $this->actingAs($sa)->patch("/admin/contracts/{$contract->id}/reject", ['reason' => ''])
@@ -416,8 +419,8 @@ it('le motif est obligatoire pour rejeter un contrat', function () {
 // ── Workflow : suspend / reactivate ────────────────────────────────
 
 it('admin_filiale suspend un contrat actif', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/suspend", ['reason' => 'Impayé'])
@@ -430,8 +433,8 @@ it('admin_filiale suspend un contrat actif', function () {
 });
 
 it('impossible de suspendre un contrat déjà suspendu', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'SUSPENDED']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/suspend", ['reason' => 'x'])
@@ -439,8 +442,8 @@ it('impossible de suspendre un contrat déjà suspendu', function () {
 });
 
 it('sans permission contracts.edit, la suspension est refusée (403)', function () {
-    $tenant   = makeCtrTenant();
-    $viewer   = makeCtrUserWithPermissions($tenant, ['contracts.view']);
+    $tenant = makeCtrTenant();
+    $viewer = makeCtrUserWithPermissions($tenant, ['contracts.view']);
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $this->actingAs($viewer)->patch("/admin/contracts/{$contract->id}/suspend", ['reason' => 'x'])
@@ -448,8 +451,8 @@ it('sans permission contracts.edit, la suspension est refusée (403)', function 
 });
 
 it('super_admin réactive un contrat suspendu', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, ['status' => 'SUSPENDED', 'suspended_at' => now()]);
 
     $this->actingAs($sa)->patch("/admin/contracts/{$contract->id}/reactivate")->assertRedirect();
@@ -460,16 +463,16 @@ it('super_admin réactive un contrat suspendu', function () {
 });
 
 it('admin_filiale ne peut pas réactiver un contrat (permission manquante)', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'SUSPENDED']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/reactivate")->assertStatus(403);
 });
 
 it('impossible de réactiver un contrat actif', function () {
-    $tenant   = makeCtrTenant();
-    $sa       = makeCtrSuperAdmin();
+    $tenant = makeCtrTenant();
+    $sa = makeCtrSuperAdmin();
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $this->actingAs($sa)->patch("/admin/contracts/{$contract->id}/reactivate")->assertStatus(422);
@@ -478,8 +481,8 @@ it('impossible de réactiver un contrat actif', function () {
 // ── Workflow : cancel ───────────────────────────────────────────────
 
 it('admin_filiale annule un contrat actif', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/cancel", ['reason' => 'Résiliation client'])
@@ -491,8 +494,8 @@ it('admin_filiale annule un contrat actif', function () {
 });
 
 it('peut annuler un contrat suspendu', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'SUSPENDED']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/cancel", ['reason' => 'x'])
@@ -502,8 +505,8 @@ it('peut annuler un contrat suspendu', function () {
 });
 
 it('impossible d\'annuler un contrat en brouillon', function () {
-    $tenant   = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenant->id);
+    $tenant = makeCtrTenant();
+    $admin = makeCtrAdmin($tenant->id);
     $contract = makeCtrContract($tenant, ['status' => 'DRAFT']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/cancel", ['reason' => 'x'])
@@ -513,9 +516,9 @@ it('impossible d\'annuler un contrat en brouillon', function () {
 // ── Isolation tenant sur le workflow ─────────────────────────────────
 
 it('admin_filiale ne peut pas agir sur un contrat d\'une autre filiale', function () {
-    $tenantA  = makeCtrTenant();
-    $tenantB  = makeCtrTenant();
-    $admin    = makeCtrAdmin($tenantA->id);
+    $tenantA = makeCtrTenant();
+    $tenantB = makeCtrTenant();
+    $admin = makeCtrAdmin($tenantA->id);
     $contract = makeCtrContract($tenantB, ['status' => 'ACTIVE']);
 
     $this->actingAs($admin)->patch("/admin/contracts/{$contract->id}/suspend", ['reason' => 'x'])
@@ -525,7 +528,7 @@ it('admin_filiale ne peut pas agir sur un contrat d\'une autre filiale', functio
 // ── Non authentifié ───────────────────────────────────────────────
 
 it('les actions de workflow redirigent vers /login si non authentifié', function () {
-    $tenant   = makeCtrTenant();
+    $tenant = makeCtrTenant();
     $contract = makeCtrContract($tenant, ['status' => 'ACTIVE']);
 
     $this->patch("/admin/contracts/{$contract->id}/suspend", ['reason' => 'x'])

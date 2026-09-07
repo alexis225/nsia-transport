@@ -24,7 +24,7 @@ class MerchandiseCategory extends Model
     {
         return [
             'risk_level' => 'integer',
-            'is_active'  => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

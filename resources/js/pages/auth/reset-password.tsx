@@ -1,12 +1,12 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
 import { Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import InputError from '@/components/input-error';
 import LanguageSwitcher from '@/components/language-switcher';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Props {
     token: string;
@@ -15,13 +15,13 @@ interface Props {
 
 export default function ResetPassword({ token, email }: Props) {
     const { t } = useTranslation('auth');
-    const [showPw,      setShowPw]      = useState(false);
+    const [showPw, setShowPw] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         token,
         email,
-        password:              '',
+        password: '',
         password_confirmation: '',
     });
 
@@ -33,21 +33,48 @@ export default function ResetPassword({ token, email }: Props) {
     // Indicateur force
     const strength = (() => {
         const pw = data.password;
-        if (!pw) return 0;
+
+        if (!pw) {
+            return 0;
+        }
+
         let s = 0;
-        if (pw.length >= 8)           s++;
-        if (pw.length >= 12)          s++;
-        if (/[A-Z]/.test(pw))         s++;
-        if (/[0-9]/.test(pw))         s++;
-        if (/[^A-Za-z0-9]/.test(pw)) s++;
+
+        if (pw.length >= 8) {
+            s++;
+        }
+
+        if (pw.length >= 12) {
+            s++;
+        }
+
+        if (/[A-Z]/.test(pw)) {
+            s++;
+        }
+
+        if (/[0-9]/.test(pw)) {
+            s++;
+        }
+
+        if (/[^A-Za-z0-9]/.test(pw)) {
+            s++;
+        }
+
         return s;
     })();
-    const strengthColor = ['','#ef4444','#f97316','#eab308','#22c55e','#16a34a'][strength];
+    const strengthColor = [
+        '',
+        '#ef4444',
+        '#f97316',
+        '#eab308',
+        '#22c55e',
+        '#16a34a',
+    ][strength];
     const strengthLabel = strength ? t(`password.strength.${strength}`) : '';
 
     return (
         <>
-            <Head title={`${t('reset.title')} — NSIA Transport`}/>
+            <Head title={`${t('reset.title')} — NSIA Transport`} />
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
                 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -95,11 +122,25 @@ export default function ResetPassword({ token, email }: Props) {
                 {/* Logo */}
                 <div className="rp-logo">
                     <div className="rp-logo-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 2L4 6V12C4 16.4 7.4 20.5 12 22C16.6 20.5 20 16.4 20 12V6L12 2Z"
-                                  stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
-                            <path d="M9 12L11 14L15 10" stroke="white" strokeWidth="1.5"
-                                  strokeLinecap="round" strokeLinejoin="round"/>
+                        <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                        >
+                            <path
+                                d="M12 2L4 6V12C4 16.4 7.4 20.5 12 22C16.6 20.5 20 16.4 20 12V6L12 2Z"
+                                stroke="white"
+                                strokeWidth="1.5"
+                                strokeLinejoin="round"
+                            />
+                            <path
+                                d="M9 12L11 14L15 10"
+                                stroke="white"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
                         </svg>
                     </div>
                     <div>
@@ -112,7 +153,7 @@ export default function ResetPassword({ token, email }: Props) {
                 <div className="rp-card">
                     <div className="rp-card-hdr">
                         <div className="rp-ico">
-                            <Lock size={22} color="#16a34a"/>
+                            <Lock size={22} color="#16a34a" />
                         </div>
                         <h1 className="rp-title">{t('reset.heading')}</h1>
                         <p className="rp-desc">
@@ -120,46 +161,77 @@ export default function ResetPassword({ token, email }: Props) {
                                 t={t}
                                 i18nKey="reset.description"
                                 values={{ email }}
-                                components={{ 1: <span className="rp-email" /> }}
+                                components={{
+                                    1: <span className="rp-email" />,
+                                }}
                             />
                         </p>
                     </div>
 
                     <div className="rp-card-body">
-                        <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
-
+                        <form
+                            onSubmit={submit}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 16,
+                            }}
+                        >
                             {/* Email caché */}
-                            <input type="hidden" value={data.email}/>
-                            <input type="hidden" value={data.token}/>
+                            <input type="hidden" value={data.email} />
+                            <input type="hidden" value={data.token} />
 
                             {/* Nouveau mot de passe */}
                             <div className="grid gap-2">
-                                <Label className="rp-label">{t('reset.newPassword')}</Label>
+                                <Label className="rp-label">
+                                    {t('reset.newPassword')}
+                                </Label>
                                 <div className="pw-wrap">
                                     <Input
                                         type={showPw ? 'text' : 'password'}
                                         className="h-11"
                                         value={data.password}
-                                        onChange={e => setData('password', e.target.value)}
+                                        onChange={(e) =>
+                                            setData('password', e.target.value)
+                                        }
                                         placeholder="••••••••"
                                         autoComplete="new-password"
                                         autoFocus
                                     />
-                                    <button type="button" className="pw-eye" onClick={() => setShowPw(s => !s)}>
-                                        {showPw ? <EyeOff size={15}/> : <Eye size={15}/>}
+                                    <button
+                                        type="button"
+                                        className="pw-eye"
+                                        onClick={() => setShowPw((s) => !s)}
+                                    >
+                                        {showPw ? (
+                                            <EyeOff size={15} />
+                                        ) : (
+                                            <Eye size={15} />
+                                        )}
                                     </button>
                                 </div>
-                                <InputError message={errors.password}/>
+                                <InputError message={errors.password} />
 
                                 {data.password && (
                                     <>
                                         <div className="strength-bars">
-                                            {[1,2,3,4,5].map(i => (
-                                                <div key={i} className="strength-bar"
-                                                     style={{ background: i <= strength ? strengthColor : '#f1f5f9' }}/>
+                                            {[1, 2, 3, 4, 5].map((i) => (
+                                                <div
+                                                    key={i}
+                                                    className="strength-bar"
+                                                    style={{
+                                                        background:
+                                                            i <= strength
+                                                                ? strengthColor
+                                                                : '#f1f5f9',
+                                                    }}
+                                                />
                                             ))}
                                         </div>
-                                        <span className="strength-txt" style={{ color: strengthColor }}>
+                                        <span
+                                            className="strength-txt"
+                                            style={{ color: strengthColor }}
+                                        >
                                             {strengthLabel}
                                         </span>
                                     </>
@@ -169,14 +241,29 @@ export default function ResetPassword({ token, email }: Props) {
                             {/* Règles */}
                             <div className="pw-rules">
                                 {[
-                                    { ok: data.password.length >= 8,          label: t('password.rules.length') },
-                                    { ok: /[A-Z]/.test(data.password),        label: t('password.rules.uppercase') },
-                                    { ok: /[0-9]/.test(data.password),        label: t('password.rules.digit') },
-                                    { ok: /[^A-Za-z0-9]/.test(data.password), label: t('password.rules.special') },
+                                    {
+                                        ok: data.password.length >= 8,
+                                        label: t('password.rules.length'),
+                                    },
+                                    {
+                                        ok: /[A-Z]/.test(data.password),
+                                        label: t('password.rules.uppercase'),
+                                    },
+                                    {
+                                        ok: /[0-9]/.test(data.password),
+                                        label: t('password.rules.digit'),
+                                    },
+                                    {
+                                        ok: /[^A-Za-z0-9]/.test(data.password),
+                                        label: t('password.rules.special'),
+                                    },
                                 ].map(({ ok, label }) => (
-                                    <div key={label} className={`pw-rule ${ok ? 'ok' : ''}`}>
-                                        <span className="rule-dot"/>
-                                        {ok && <Check size={10}/>}
+                                    <div
+                                        key={label}
+                                        className={`pw-rule ${ok ? 'ok' : ''}`}
+                                    >
+                                        <span className="rule-dot" />
+                                        {ok && <Check size={10} />}
                                         {label}
                                     </div>
                                 ))}
@@ -184,42 +271,92 @@ export default function ResetPassword({ token, email }: Props) {
 
                             {/* Confirmation */}
                             <div className="grid gap-2">
-                                <Label className="rp-label">{t('reset.confirmPassword')}</Label>
+                                <Label className="rp-label">
+                                    {t('reset.confirmPassword')}
+                                </Label>
                                 <div className="pw-wrap">
                                     <Input
                                         type={showConfirm ? 'text' : 'password'}
                                         className="h-11"
                                         value={data.password_confirmation}
-                                        onChange={e => setData('password_confirmation', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'password_confirmation',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="••••••••"
                                         autoComplete="new-password"
                                     />
-                                    <button type="button" className="pw-eye" onClick={() => setShowConfirm(s => !s)}>
-                                        {showConfirm ? <EyeOff size={15}/> : <Eye size={15}/>}
+                                    <button
+                                        type="button"
+                                        className="pw-eye"
+                                        onClick={() =>
+                                            setShowConfirm((s) => !s)
+                                        }
+                                    >
+                                        {showConfirm ? (
+                                            <EyeOff size={15} />
+                                        ) : (
+                                            <Eye size={15} />
+                                        )}
                                     </button>
                                 </div>
-                                {data.password_confirmation && data.password !== data.password_confirmation && (
-                                    <p style={{ fontSize:11, color:'#ef4444', display:'flex', alignItems:'center', gap:4 }}>
-                                        {t('reset.mismatch')}
-                                    </p>
-                                )}
-                                {data.password_confirmation && data.password === data.password_confirmation && data.password && (
-                                    <p style={{ fontSize:11, color:'#16a34a', display:'flex', alignItems:'center', gap:4 }}>
-                                        <Check size={11}/> {t('reset.match')}
-                                    </p>
-                                )}
-                                <InputError message={errors.password_confirmation}/>
+                                {data.password_confirmation &&
+                                    data.password !==
+                                        data.password_confirmation && (
+                                        <p
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#ef4444',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 4,
+                                            }}
+                                        >
+                                            {t('reset.mismatch')}
+                                        </p>
+                                    )}
+                                {data.password_confirmation &&
+                                    data.password ===
+                                        data.password_confirmation &&
+                                    data.password && (
+                                        <p
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#16a34a',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 4,
+                                            }}
+                                        >
+                                            <Check size={11} />{' '}
+                                            {t('reset.match')}
+                                        </p>
+                                    )}
+                                <InputError
+                                    message={errors.password_confirmation}
+                                />
                             </div>
 
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-11 w-full"
+                                className="h-11 w-full bg-[#1e3a8a] text-white hover:bg-[#1e40af]"
                             >
-                                {processing
-                                    ? <><Loader2 size={15} className="animate-spin"/> {t('reset.submitting')}</>
-                                    : <><Lock size={15}/> {t('reset.submit')}</>
-                                }
+                                {processing ? (
+                                    <>
+                                        <Loader2
+                                            size={15}
+                                            className="animate-spin"
+                                        />{' '}
+                                        {t('reset.submitting')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock size={15} /> {t('reset.submit')}
+                                    </>
+                                )}
                             </Button>
                         </form>
                     </div>

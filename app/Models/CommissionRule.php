@@ -28,35 +28,40 @@ class CommissionRule extends Model
     protected function casts(): array
     {
         return [
-            'rate_pct'           => 'decimal:2',
+            'rate_pct' => 'decimal:2',
             'custom_base_amount' => 'decimal:2',
-            'effective_date'     => 'date',
-            'end_date'           => 'date',
-            'is_active'          => 'boolean',
-            'created_at'         => 'datetime',
-            'updated_at'         => 'datetime',
+            'effective_date' => 'date',
+            'end_date' => 'date',
+            'is_active' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 
     // ── Constantes ───────────────────────────────────────────
-    const APPLIES_PREMIUM     = 'PREMIUM';
+    const APPLIES_PREMIUM = 'PREMIUM';
+
     const APPLIES_NET_PREMIUM = 'NET_PREMIUM';
-    const BASE_PRIME_TOTAL   = 'prime_total';
+
+    const BASE_PRIME_TOTAL = 'prime_total';
+
     const BASE_INSURED_VALUE = 'insured_value';
+
     const BASE_CUSTOM_AMOUNT = 'custom_amount';
 
     const BASE_TYPE_LABELS = [
-        'prime_total'   => 'Prime brute (prime_total)',
+        'prime_total' => 'Prime brute (prime_total)',
         'insured_value' => 'Valeur assurée (insured_value)',
         'custom_amount' => 'Montant fixe configurable',
     ];
+
     // ── Scopes ───────────────────────────────────────────────
     public function scopeActive($query)
     {
         return $query->where('is_active', true)
-                     ->where('effective_date', '<=', now())
-                     ->where(fn ($q) => $q->whereNull('end_date')
-                                          ->orWhere('end_date', '>=', now()));
+            ->where('effective_date', '<=', now())
+            ->where(fn ($q) => $q->whereNull('end_date')
+                ->orWhere('end_date', '>=', now()));
     }
 
     public function scopeForBroker($query, string $brokerId)
@@ -65,10 +70,25 @@ class CommissionRule extends Model
     }
 
     // ── Relations ────────────────────────────────────────────
-    public function tenant(): BelongsTo      { return $this->belongsTo(Tenant::class); }
-    public function broker(): BelongsTo      { return $this->belongsTo(Broker::class); }
-    public function contract(): BelongsTo    { return $this->belongsTo(InsuranceContract::class, 'contract_id'); }
-    public function createdByUser(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function broker(): BelongsTo
+    {
+        return $this->belongsTo(Broker::class);
+    }
+
+    public function contract(): BelongsTo
+    {
+        return $this->belongsTo(InsuranceContract::class, 'contract_id');
+    }
+
+    public function createdByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     public function transactions(): HasMany
     {
@@ -76,12 +96,12 @@ class CommissionRule extends Model
     }
 
     public static function findApplicable(
-        string  $brokerId,
+        string $brokerId,
         ?string $contractId = null,
         ?string $date = null
     ): ?self {
         $date = $date ?? now()->toDateString();
- 
+
         // 1. Chercher un taux spécifique au contrat
         if ($contractId) {
             $contractRule = static::where('broker_id', $brokerId)
@@ -91,10 +111,12 @@ class CommissionRule extends Model
                 ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $date))
                 ->orderBy('effective_date', 'desc')
                 ->first();
- 
-            if ($contractRule) return $contractRule;
+
+            if ($contractRule) {
+                return $contractRule;
+            }
         }
- 
+
         // 2. Fallback : taux général du broker (sans contrat spécifique)
         return static::where('broker_id', $brokerId)
             ->whereNull('contract_id')
@@ -104,5 +126,4 @@ class CommissionRule extends Model
             ->orderBy('effective_date', 'desc')
             ->first();
     }
-
 }

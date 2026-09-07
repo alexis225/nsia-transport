@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -24,7 +25,7 @@ return new class extends Migration
         });
         // La colonne était un taux (decimal 6,4) — un montant nécessite une
         // échelle monétaire.
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE insurance_contracts ALTER COLUMN accessories_amount TYPE decimal(20,2)');
+        DB::statement('ALTER TABLE insurance_contracts ALTER COLUMN accessories_amount TYPE decimal(20,2)');
 
         Schema::table('certificates', function (Blueprint $table) {
             $table->decimal('rate_divers', 6, 4)->nullable()->after('guarantee_mode');
@@ -38,7 +39,7 @@ return new class extends Migration
             $table->dropColumn(['rate_divers', 'rate_surprime']);
         });
 
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE insurance_contracts ALTER COLUMN accessories_amount TYPE decimal(6,4)');
+        DB::statement('ALTER TABLE insurance_contracts ALTER COLUMN accessories_amount TYPE decimal(6,4)');
         Schema::table('insurance_contracts', function (Blueprint $table) {
             $table->renameColumn('accessories_amount', 'rate_accessories');
         });

@@ -14,6 +14,16 @@ interface Props {
     positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateSenegal({ certificate, calibrate, positionsOverride }: Props) {
-    return <StubOverlay certificate={certificate} positions={positionsOverride ?? SENEGAL_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateSenegal({
+    certificate,
+    calibrate,
+    positionsOverride,
+}: Props) {
+    return (
+        <StubOverlay
+            certificate={certificate}
+            positions={positionsOverride ?? SENEGAL_POSITIONS}
+            calibrate={calibrate}
+        />
+    );
 }

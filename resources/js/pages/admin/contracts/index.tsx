@@ -1,59 +1,110 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
-    Search, Plus, Eye, Edit2, Trash2, X,
-    ChevronLeft, ChevronRight, FileText, Calendar,
+    Search,
+    Plus,
+    Eye,
+    Edit2,
+    Trash2,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Calendar,
     TrendingUp,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
-interface Tenant   { id: string; name: string; code: string; }
-interface Broker   { id: string; name: string; code: string; }
-interface User     { id: string; first_name: string; last_name: string; }
+interface Tenant {
+    id: string;
+    name: string;
+    code: string;
+}
+interface Broker {
+    id: string;
+    name: string;
+    code: string;
+}
+interface User {
+    id: string;
+    first_name: string;
+    last_name: string;
+}
 interface Contract {
-    id: string; contract_number: string; type: string; status: string;
-    insured_name: string; currency_code: string;
-    subscription_limit: string | null; used_limit: string;
-    effective_date: string; expiry_date: string;
-    certificates_count: number; certificates_limit: number | null;
-    coverage_type: string | null; requires_approval: boolean;
+    id: string;
+    contract_number: string;
+    type: string;
+    status: string;
+    insured_name: string;
+    currency_code: string;
+    subscription_limit: string | null;
+    used_limit: string;
+    effective_date: string;
+    expiry_date: string;
+    certificates_count: number;
+    certificates_limit: number | null;
+    coverage_type: string | null;
+    requires_approval: boolean;
     created_at: string;
-    tenant: Tenant | null; broker: Broker | null; created_by: User | null;
+    tenant: Tenant | null;
+    broker: Broker | null;
+    created_by: User | null;
 }
 interface Paginated<T> {
-    data: T[]; current_page: number; last_page: number; total: number;
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
     contracts: Paginated<Contract>;
-    filters:   { search?: string; status?: string; type?: string; tenant_id?: string };
-    isSA:      boolean;
-    tenants:   Tenant[];
-    can:       { create: boolean; edit: boolean; delete: boolean; validate: boolean };
+    filters: {
+        search?: string;
+        status?: string;
+        type?: string;
+        tenant_id?: string;
+    };
+    isSA: boolean;
+    tenants: Tenant[];
+    can: { create: boolean; edit: boolean; delete: boolean; validate: boolean };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string }> = {
-    DRAFT:            { bg:'#f8fafc', color:'#64748b', dot:'#94a3b8' },
-    PENDING_APPROVAL: { bg:'#fffbeb', color:'#92400e', dot:'#f59e0b' },
-    ACTIVE:           { bg:'#f0fdf4', color:'#15803d', dot:'#22c55e' },
-    SUSPENDED:        { bg:'#fff7ed', color:'#c2410c', dot:'#f97316' },
-    EXPIRED:          { bg:'#f8fafc', color:'#475569', dot:'#64748b' },
-    CANCELLED:        { bg:'#fef2f2', color:'#dc2626', dot:'#ef4444' },
+const STATUS_STYLES: Record<
+    string,
+    { bg: string; color: string; dot: string }
+> = {
+    DRAFT: { bg: '#f8fafc', color: '#64748b', dot: '#94a3b8' },
+    PENDING_APPROVAL: { bg: '#fffbeb', color: '#92400e', dot: '#f59e0b' },
+    ACTIVE: { bg: '#f0fdf4', color: '#15803d', dot: '#22c55e' },
+    SUSPENDED: { bg: '#fff7ed', color: '#c2410c', dot: '#f97316' },
+    EXPIRED: { bg: '#f8fafc', color: '#475569', dot: '#64748b' },
+    CANCELLED: { bg: '#fef2f2', color: '#dc2626', dot: '#ef4444' },
 };
 
 const TYPE_STYLES: Record<string, { bg: string; color: string }> = {
-    OPEN_POLICY:    { bg:'#eff6ff', color:'#1d4ed8' },
-    VOYAGE:         { bg:'#fdf4ff', color:'#7c3aed' },
-    ANNUAL_VOYAGE:  { bg:'#f0fdf4', color:'#15803d' },
-    TIERS_CHARGEUR: { bg:'#fff7ed', color:'#c2410c' },
+    OPEN_POLICY: { bg: '#eff6ff', color: '#1d4ed8' },
+    VOYAGE: { bg: '#fdf4ff', color: '#7c3aed' },
+    ANNUAL_VOYAGE: { bg: '#f0fdf4', color: '#15803d' },
+    TIERS_CHARGEUR: { bg: '#fff7ed', color: '#c2410c' },
 };
 
-const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 
-export default function ContractsIndex({ contracts, filters, isSA, tenants, can }: Props) {
+export default function ContractsIndex({
+    contracts,
+    filters,
+    isSA,
+    tenants,
+    can,
+}: Props) {
     const { t } = useTranslation('contracts');
     const [search, setSearch] = useState(filters?.search ?? '');
 
@@ -62,16 +113,21 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
     ];
 
     const applyFilter = (params: Record<string, string>) =>
-        router.get('/admin/contracts', { ...filters, ...params }, { preserveState:true, replace:true });
+        router.get(
+            '/admin/contracts',
+            { ...filters, ...params },
+            { preserveState: true, replace: true },
+        );
 
     const handleDelete = (c: Contract) => {
-        if (confirm(t('index.confirmDelete', { number: c.contract_number })))
+        if (confirm(t('index.confirmDelete', { number: c.contract_number }))) {
             router.delete(route('admin.contracts.destroy', { contract: c.id }));
+        }
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('index.title')}/>
+            <Head title={t('index.title')} />
             <style>{`
                 .cn-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .cn-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -113,43 +169,108 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="cn-page">
-
                     <div className="cn-hdr">
                         <div>
                             <h1 className="cn-title">{t('index.heading')}</h1>
-                            <p className="cn-sub">{t('index.count', { count: contracts.total })}</p>
+                            <p className="cn-sub">
+                                {t('index.count', { count: contracts.total })}
+                            </p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.contracts.create')}>
-                                <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> {t('index.newContract')}
+                                <Button className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]">
+                                    <Plus size={15} /> {t('index.newContract')}
                                 </Button>
                             </Link>
                         )}
                     </div>
 
                     <div className="cn-toolbar">
-                        <form className="cn-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.searchPlaceholder')}/>
-                            <button type="submit"><Search size={14}/></button>
+                        <form
+                            className="cn-search"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                applyFilter({ search, page: '1' });
+                            }}
+                        >
+                            <input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={t('index.searchPlaceholder')}
+                            />
+                            <button type="submit">
+                                <Search size={14} />
+                            </button>
                         </form>
-                        <select className="cn-select" value={filters?.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page:'1' })}>
+                        <select
+                            className="cn-select"
+                            value={filters?.status ?? ''}
+                            onChange={(e) =>
+                                applyFilter({
+                                    status: e.target.value,
+                                    page: '1',
+                                })
+                            }
+                        >
                             <option value="">{t('index.allStatuses')}</option>
-                            {Object.keys(STATUS_STYLES).map(k => <option key={k} value={k}>{t(`statusLabels.${k}`)}</option>)}
+                            {Object.keys(STATUS_STYLES).map((k) => (
+                                <option key={k} value={k}>
+                                    {t(`statusLabels.${k}`)}
+                                </option>
+                            ))}
                         </select>
-                        <select className="cn-select" value={filters?.type ?? ''} onChange={e => applyFilter({ type: e.target.value, page:'1' })}>
+                        <select
+                            className="cn-select"
+                            value={filters?.type ?? ''}
+                            onChange={(e) =>
+                                applyFilter({ type: e.target.value, page: '1' })
+                            }
+                        >
                             <option value="">{t('index.allTypes')}</option>
-                            {Object.keys(TYPE_STYLES).map(k => <option key={k} value={k}>{t(`typeLabels.${k}`)}</option>)}
+                            {Object.keys(TYPE_STYLES).map((k) => (
+                                <option key={k} value={k}>
+                                    {t(`typeLabels.${k}`)}
+                                </option>
+                            ))}
                         </select>
                         {isSA && (
-                            <select className="cn-select" value={filters?.tenant_id ?? ''} onChange={e => applyFilter({ tenant_id: e.target.value, page:'1' })}>
-                                <option value="">{t('index.allTenants')}</option>
-                                {tenants.map(tn => <option key={tn.id} value={tn.id}>{tn.name}</option>)}
+                            <select
+                                className="cn-select"
+                                value={filters?.tenant_id ?? ''}
+                                onChange={(e) =>
+                                    applyFilter({
+                                        tenant_id: e.target.value,
+                                        page: '1',
+                                    })
+                                }
+                            >
+                                <option value="">
+                                    {t('index.allTenants')}
+                                </option>
+                                {tenants.map((tn) => (
+                                    <option key={tn.id} value={tn.id}>
+                                        {tn.name}
+                                    </option>
+                                ))}
                             </select>
                         )}
-                        {Object.values(filters ?? {}).some(v => v) && (
-                            <button onClick={() => router.get('/admin/contracts')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> {t('index.clear')}
+                        {Object.values(filters ?? {}).some((v) => v) && (
+                            <button
+                                onClick={() => router.get('/admin/contracts')}
+                                style={{
+                                    padding: '9px 12px',
+                                    background: 'none',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 8,
+                                    cursor: 'pointer',
+                                    color: '#94a3b8',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    fontSize: 12,
+                                }}
+                            >
+                                <X size={12} /> {t('index.clear')}
                             </button>
                         )}
                     </div>
@@ -163,8 +284,14 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
                                     <thead>
                                         <tr>
                                             <th>{t('index.table.number')}</th>
-                                            <th>{t('index.table.insuredBroker')}</th>
-                                            {isSA && <th>{t('index.table.tenant')}</th>}
+                                            <th>
+                                                {t('index.table.insuredBroker')}
+                                            </th>
+                                            {isSA && (
+                                                <th>
+                                                    {t('index.table.tenant')}
+                                                </th>
+                                            )}
                                             <th>{t('index.table.type')}</th>
                                             <th>{t('index.table.period')}</th>
                                             <th>{t('index.table.usage')}</th>
@@ -173,69 +300,266 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {contracts.data.map(contract => {
-                                            const ss  = STATUS_STYLES[contract.status] ?? STATUS_STYLES.DRAFT;
-                                            const ts  = TYPE_STYLES[contract.type]     ?? TYPE_STYLES.OPEN_POLICY;
-                                            const pct = contract.subscription_limit
-                                                ? Math.min(100, Math.round((parseFloat(contract.used_limit) / parseFloat(contract.subscription_limit)) * 100))
-                                                : 0;
-                                            const barColor = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f97316' : '#22c55e';
+                                        {contracts.data.map((contract) => {
+                                            const ss =
+                                                STATUS_STYLES[
+                                                    contract.status
+                                                ] ?? STATUS_STYLES.DRAFT;
+                                            const ts =
+                                                TYPE_STYLES[contract.type] ??
+                                                TYPE_STYLES.OPEN_POLICY;
+                                            const pct =
+                                                contract.subscription_limit
+                                                    ? Math.min(
+                                                          100,
+                                                          Math.round(
+                                                              (parseFloat(
+                                                                  contract.used_limit,
+                                                              ) /
+                                                                  parseFloat(
+                                                                      contract.subscription_limit,
+                                                                  )) *
+                                                                  100,
+                                                          ),
+                                                      )
+                                                    : 0;
+                                            const barColor =
+                                                pct >= 90
+                                                    ? '#ef4444'
+                                                    : pct >= 70
+                                                      ? '#f97316'
+                                                      : '#22c55e';
 
                                             return (
                                                 <tr key={contract.id}>
                                                     <td>
-                                                        <div className="policy-num">{contract.contract_number}</div>
-                                                        <div style={{ fontSize:10, color:'#94a3b8', marginTop:1 }}>{fmt(contract.created_at)}</div>
-                                                    </td>
-                                                    <td>
-                                                        <div style={{ fontWeight:500, color:'#1e293b' }}>{contract.insured_name}</div>
-                                                        {contract.broker && <div style={{ fontSize:10, color:'#94a3b8' }}>{contract.broker.name}</div>}
-                                                    </td>
-                                                    {isSA && <td style={{ fontSize:11, color:'#64748b' }}>{contract.tenant?.name ?? '—'}</td>}
-                                                    <td>
-                                                        <span className="type-badge" style={{ background: ts.bg, color: ts.color }}>{t(`typeLabels.${contract.type}`)}</span>
-                                                    </td>
-                                                    <td>
-                                                        <div style={{ fontSize:11, color:'#475569', display:'flex', alignItems:'center', gap:3 }}>
-                                                            <Calendar size={10}/>{fmt(contract.effective_date)}
+                                                        <div className="policy-num">
+                                                            {
+                                                                contract.contract_number
+                                                            }
                                                         </div>
-                                                        <div style={{ fontSize:10, color:'#94a3b8' }}>→ {fmt(contract.expiry_date)}</div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#94a3b8',
+                                                                marginTop: 1,
+                                                            }}
+                                                        >
+                                                            {fmt(
+                                                                contract.created_at,
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div
+                                                            style={{
+                                                                fontWeight: 500,
+                                                                color: '#1e293b',
+                                                            }}
+                                                        >
+                                                            {
+                                                                contract.insured_name
+                                                            }
+                                                        </div>
+                                                        {contract.broker && (
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                {
+                                                                    contract
+                                                                        .broker
+                                                                        .name
+                                                                }
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    {isSA && (
+                                                        <td
+                                                            style={{
+                                                                fontSize: 11,
+                                                                color: '#64748b',
+                                                            }}
+                                                        >
+                                                            {contract.tenant
+                                                                ?.name ?? '—'}
+                                                        </td>
+                                                    )}
+                                                    <td>
+                                                        <span
+                                                            className="type-badge"
+                                                            style={{
+                                                                background:
+                                                                    ts.bg,
+                                                                color: ts.color,
+                                                            }}
+                                                        >
+                                                            {t(
+                                                                `typeLabels.${contract.type}`,
+                                                            )}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 11,
+                                                                color: '#475569',
+                                                                display: 'flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 3,
+                                                            }}
+                                                        >
+                                                            <Calendar
+                                                                size={10}
+                                                            />
+                                                            {fmt(
+                                                                contract.effective_date,
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#94a3b8',
+                                                            }}
+                                                        >
+                                                            →{' '}
+                                                            {fmt(
+                                                                contract.expiry_date,
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td>
                                                         {contract.subscription_limit ? (
                                                             <div>
-                                                                <div style={{ fontSize:11, color:'#475569', display:'flex', alignItems:'center', gap:3 }}>
-                                                                    <TrendingUp size={10}/>
+                                                                <div
+                                                                    style={{
+                                                                        fontSize: 11,
+                                                                        color: '#475569',
+                                                                        display:
+                                                                            'flex',
+                                                                        alignItems:
+                                                                            'center',
+                                                                        gap: 3,
+                                                                    }}
+                                                                >
+                                                                    <TrendingUp
+                                                                        size={
+                                                                            10
+                                                                        }
+                                                                    />
                                                                     {pct}%
                                                                 </div>
                                                                 <div className="usage-bar">
-                                                                    <div className="usage-fill" style={{ width:`${pct}%`, background: barColor }}/>
+                                                                    <div
+                                                                        className="usage-fill"
+                                                                        style={{
+                                                                            width: `${pct}%`,
+                                                                            background:
+                                                                                barColor,
+                                                                        }}
+                                                                    />
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <span style={{ fontSize:11, color:'#94a3b8' }}>{t('index.unlimited')}</span>
+                                                            <span
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                {t(
+                                                                    'index.unlimited',
+                                                                )}
+                                                            </span>
                                                         )}
                                                     </td>
                                                     <td>
-                                                        <span className="status-badge" style={{ background: ss.bg, color: ss.color }}>
-                                                            <span className="s-dot" style={{ background: ss.dot }}/>{t(`statusLabels.${contract.status}`)}
+                                                        <span
+                                                            className="status-badge"
+                                                            style={{
+                                                                background:
+                                                                    ss.bg,
+                                                                color: ss.color,
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className="s-dot"
+                                                                style={{
+                                                                    background:
+                                                                        ss.dot,
+                                                                }}
+                                                            />
+                                                            {t(
+                                                                `statusLabels.${contract.status}`,
+                                                            )}
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <div className="actions">
-                                                            <Link href={route('admin.contracts.show', { contract: contract.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> {t('index.view')}
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.contracts.show',
+                                                                    {
+                                                                        contract:
+                                                                            contract.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-act btn-view"
+                                                            >
+                                                                <Eye
+                                                                    size={12}
+                                                                />{' '}
+                                                                {t(
+                                                                    'index.view',
+                                                                )}
                                                             </Link>
-                                                            {can.edit && contract.status === 'DRAFT' && (
-                                                                <Link href={route('admin.contracts.edit', { contract: contract.id })} className="btn-act btn-edit">
-                                                                    <Edit2 size={12}/> {t('index.edit')}
-                                                                </Link>
-                                                            )}
-                                                            {can.delete && contract.status === 'DRAFT' && (
-                                                                <button className="btn-act btn-del" onClick={() => handleDelete(contract)}>
-                                                                    <Trash2 size={12}/> {t('index.delete')}
-                                                                </button>
-                                                            )}
+                                                            {can.edit &&
+                                                                contract.status ===
+                                                                    'DRAFT' && (
+                                                                    <Link
+                                                                        href={route(
+                                                                            'admin.contracts.edit',
+                                                                            {
+                                                                                contract:
+                                                                                    contract.id,
+                                                                            },
+                                                                        )}
+                                                                        className="btn-act btn-edit"
+                                                                    >
+                                                                        <Edit2
+                                                                            size={
+                                                                                12
+                                                                            }
+                                                                        />{' '}
+                                                                        {t(
+                                                                            'index.edit',
+                                                                        )}
+                                                                    </Link>
+                                                                )}
+                                                            {can.delete &&
+                                                                contract.status ===
+                                                                    'DRAFT' && (
+                                                                    <button
+                                                                        className="btn-act btn-del"
+                                                                        onClick={() =>
+                                                                            handleDelete(
+                                                                                contract,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Trash2
+                                                                            size={
+                                                                                12
+                                                                            }
+                                                                        />{' '}
+                                                                        {t(
+                                                                            'index.delete',
+                                                                        )}
+                                                                    </button>
+                                                                )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -246,14 +570,74 @@ export default function ContractsIndex({ contracts, filters, isSA, tenants, can 
 
                                 {contracts.last_page > 1 && (
                                     <div className="cn-pagination">
-                                        <span className="cn-pg-info">{t('index.pageInfo', { current: contracts.current_page, last: contracts.last_page, total: contracts.total })}</span>
-                                        <div className="cn-pg-links">
-                                            <button className="pg-btn" disabled={contracts.current_page === 1} onClick={() => applyFilter({ page: String(contracts.current_page - 1) })}><ChevronLeft size={13}/></button>
-                                            {contracts.links.map((link, i) => {
-                                                if (i === 0 || i === contracts.links.length - 1) return null;
-                                                return <button key={`p-${i}`} className={`pg-btn ${link.active ? 'act' : ''}`} onClick={() => link.url && applyFilter({ page: link.label })} disabled={!link.url} dangerouslySetInnerHTML={{ __html: link.label }}/>;
+                                        <span className="cn-pg-info">
+                                            {t('index.pageInfo', {
+                                                current: contracts.current_page,
+                                                last: contracts.last_page,
+                                                total: contracts.total,
                                             })}
-                                            <button className="pg-btn" disabled={contracts.current_page === contracts.last_page} onClick={() => applyFilter({ page: String(contracts.current_page + 1) })}><ChevronRight size={13}/></button>
+                                        </span>
+                                        <div className="cn-pg-links">
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    contracts.current_page === 1
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            contracts.current_page -
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronLeft size={13} />
+                                            </button>
+                                            {contracts.links.map((link, i) => {
+                                                if (
+                                                    i === 0 ||
+                                                    i ===
+                                                        contracts.links.length -
+                                                            1
+                                                ) {
+                                                    return null;
+                                                }
+
+                                                return (
+                                                    <button
+                                                        key={`p-${i}`}
+                                                        className={`pg-btn ${link.active ? 'act' : ''}`}
+                                                        onClick={() =>
+                                                            link.url &&
+                                                            applyFilter({
+                                                                page: link.label,
+                                                            })
+                                                        }
+                                                        disabled={!link.url}
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: link.label,
+                                                        }}
+                                                    />
+                                                );
+                                            })}
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    contracts.current_page ===
+                                                    contracts.last_page
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            contracts.current_page +
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronRight size={13} />
+                                            </button>
                                         </div>
                                     </div>
                                 )}

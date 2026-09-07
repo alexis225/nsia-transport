@@ -1,34 +1,48 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import {
+    Edit2,
+    ArrowLeft,
+    Shield,
+    Mail,
+    Phone,
+    Calendar,
+    Clock,
+    MapPin,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Edit2, ArrowLeft, Shield, UserX, UserCheck, Mail, Phone, Calendar, Clock, MapPin } from 'lucide-react';
 
 interface User {
-    id: string; first_name: string; last_name: string;
-    email: string; phone: string | null; is_active: boolean;
-    email_verified_at: string | null; blocked_at: string | null;
-    blocked_reason: string | null; last_login_at: string | null;
-    last_login_ip: string | null; created_at: string;
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string | null;
+    is_active: boolean;
+    email_verified_at: string | null;
+    blocked_at: string | null;
+    blocked_reason: string | null;
+    last_login_at: string | null;
+    last_login_ip: string | null;
+    created_at: string;
     avatar_path: string | null;
     roles: { name: string }[];
     tenant: { name: string; code: string } | null;
 }
 interface AuditLog {
-    id: string; action: string; ip_address: string;
-    created_at: string; new_values: any; old_values: any;
+    id: string;
+    action: string;
+    ip_address: string;
+    created_at: string;
+    new_values: any;
+    old_values: any;
 }
-interface Props { user: User; auditLogs: AuditLog[]; }
-
-const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
-    super_admin: { bg:'#EEF2FF', color:'#4338CA' },
-    admin_filiale: { bg:'#ECFDF5', color:'#065F46' },
-    souscripteur: { bg:'#EFF6FF', color:'#1D4ED8' },
-    courtier_local: { bg:'#FFF7ED', color:'#C2410C' },
-    partenaire_etranger: { bg:'#FDF4FF', color:'#7E22CE' },
-    client: { bg:'#F9FAFB', color:'#374151' },
-};
+interface Props {
+    user: User;
+    auditLogs: AuditLog[];
+}
 
 export default function UserShow({ user, auditLogs }: Props) {
     const { t } = useTranslation('users');
@@ -38,14 +52,25 @@ export default function UserShow({ user, auditLogs }: Props) {
         { title: t('show.breadcrumbDetail') },
     ];
 
-    const initials = `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
-    const role     = user.roles?.[0]?.name ?? '';
-    const rc       = ROLE_COLORS[role] ?? { bg:'#f1f5f9', color:'#64748b' };
-    const fmt      = (d: string | null) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+    const initials =
+        `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
+    const role = user.roles?.[0]?.name ?? '';
+    const fmt = (d: string | null) =>
+        d
+            ? new Date(d).toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+              })
+            : '—';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${user.first_name} ${user.last_name} — NSIA Transport`}/>
+            <Head
+                title={`${user.first_name} ${user.last_name} — NSIA Transport`}
+            />
             <style>{`
                 .us-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .us-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -78,27 +103,84 @@ export default function UserShow({ user, auditLogs }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="us-wrap">
-
                     {/* Hero */}
                     <div className="us-hero">
                         <div className="us-avatar">
-                            {user.avatar_path ? <img src={user.avatar_path} alt=""/> : initials}
+                            {user.avatar_path ? (
+                                <img src={user.avatar_path} alt="" />
+                            ) : (
+                                initials
+                            )}
                         </div>
                         <div className="us-hero-info">
-                            <div className="us-hero-name">{user.first_name} {user.last_name}</div>
+                            <div className="us-hero-name">
+                                {user.first_name} {user.last_name}
+                            </div>
                             <div className="us-hero-email">{user.email}</div>
                             <div className="us-hero-badges">
-                                {role && <span className="us-badge" style={{ background:'rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.9)', border:'1px solid rgba(255,255,255,0.2)' }}><Shield size={10}/>{role.replace(/_/g,' ')}</span>}
-                                <span className="us-badge" style={{ background: user.is_active ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)', color: user.is_active ? '#86efac' : '#fca5a5', border:`1px solid ${user.is_active ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
-                                    {user.is_active ? `● ${t('show.status.active')}` : `● ${t('show.status.blocked')}`}
+                                {role && (
+                                    <span
+                                        className="us-badge"
+                                        style={{
+                                            background:
+                                                'rgba(255,255,255,0.15)',
+                                            color: 'rgba(255,255,255,0.9)',
+                                            border: '1px solid rgba(255,255,255,0.2)',
+                                        }}
+                                    >
+                                        <Shield size={10} />
+                                        {role.replace(/_/g, ' ')}
+                                    </span>
+                                )}
+                                <span
+                                    className="us-badge"
+                                    style={{
+                                        background: user.is_active
+                                            ? 'rgba(34,197,94,0.2)'
+                                            : 'rgba(239,68,68,0.2)',
+                                        color: user.is_active
+                                            ? '#86efac'
+                                            : '#fca5a5',
+                                        border: `1px solid ${user.is_active ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                                    }}
+                                >
+                                    {user.is_active
+                                        ? `● ${t('show.status.active')}`
+                                        : `● ${t('show.status.blocked')}`}
                                 </span>
-                                {user.tenant && <span className="us-badge" style={{ background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.7)', border:'1px solid rgba(255,255,255,0.15)' }}><MapPin size={10}/>{user.tenant.name}</span>}
+                                {user.tenant && (
+                                    <span
+                                        className="us-badge"
+                                        style={{
+                                            background: 'rgba(255,255,255,0.1)',
+                                            color: 'rgba(255,255,255,0.7)',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                        }}
+                                    >
+                                        <MapPin size={10} />
+                                        {user.tenant.name}
+                                    </span>
+                                )}
                             </div>
                         </div>
-                        <div style={{ display:'flex', gap:8, position:'relative', zIndex:1 }}>
-                            <Link href={route('admin.users.edit', { user: user.id })}>
-                                <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                    <Edit2 size={13}/> {t('show.edit')}
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: 8,
+                                position: 'relative',
+                                zIndex: 1,
+                            }}
+                        >
+                            <Link
+                                href={route('admin.users.edit', {
+                                    user: user.id,
+                                })}
+                            >
+                                <Button
+                                    className="h-9 border-white/20 bg-white/10 px-4 text-sm text-white hover:bg-white/20"
+                                    variant="outline"
+                                >
+                                    <Edit2 size={13} /> {t('show.edit')}
                                 </Button>
                             </Link>
                         </div>
@@ -107,40 +189,125 @@ export default function UserShow({ user, auditLogs }: Props) {
                     {/* Blocage info */}
                     {!user.is_active && user.blocked_reason && (
                         <div className="blocked-box">
-                            <div className="blocked-title">{t('show.blockedBox.title')}</div>
-                            <div className="blocked-reason">{t('show.blockedBox.reason', { reason: user.blocked_reason })}</div>
-                            {user.blocked_at && <div style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>{t('show.blockedBox.blockedOn', { date: fmt(user.blocked_at) })}</div>}
+                            <div className="blocked-title">
+                                {t('show.blockedBox.title')}
+                            </div>
+                            <div className="blocked-reason">
+                                {t('show.blockedBox.reason', {
+                                    reason: user.blocked_reason,
+                                })}
+                            </div>
+                            {user.blocked_at && (
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: '#94a3b8',
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {t('show.blockedBox.blockedOn', {
+                                        date: fmt(user.blocked_at),
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Informations */}
                     <div className="us-card">
                         <div className="us-card-hdr">
-                            <div className="us-card-ico" style={{ background:'#eff6ff' }}><Mail size={15} color="#3b82f6"/></div>
-                            <span className="us-card-ttl">{t('show.accountInfo.title')}</span>
+                            <div
+                                className="us-card-ico"
+                                style={{ background: '#eff6ff' }}
+                            >
+                                <Mail size={15} color="#3b82f6" />
+                            </div>
+                            <span className="us-card-ttl">
+                                {t('show.accountInfo.title')}
+                            </span>
                         </div>
                         <div className="us-card-body">
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label"><Mail size={10}/>{t('show.accountInfo.email')}</span>
-                                    <span className="info-value">{user.email}</span>
-                                    {user.email_verified_at
-                                        ? <span style={{ fontSize:10, color:'#15803d', background:'#f0fdf4', padding:'1px 6px', borderRadius:8, display:'inline-flex', alignItems:'center', gap:3, width:'fit-content', border:'1px solid #bbf7d0' }}>✓ {t('show.accountInfo.verified')}</span>
-                                        : <span style={{ fontSize:10, color:'#854d0e', background:'#fefce8', padding:'1px 6px', borderRadius:8, display:'inline-flex', alignItems:'center', gap:3, width:'fit-content', border:'1px solid #fde68a' }}>{t('show.accountInfo.unverified')}</span>
-                                    }
+                                    <span className="info-label">
+                                        <Mail size={10} />
+                                        {t('show.accountInfo.email')}
+                                    </span>
+                                    <span className="info-value">
+                                        {user.email}
+                                    </span>
+                                    {user.email_verified_at ? (
+                                        <span
+                                            style={{
+                                                fontSize: 10,
+                                                color: '#15803d',
+                                                background: '#f0fdf4',
+                                                padding: '1px 6px',
+                                                borderRadius: 8,
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: 3,
+                                                width: 'fit-content',
+                                                border: '1px solid #bbf7d0',
+                                            }}
+                                        >
+                                            ✓ {t('show.accountInfo.verified')}
+                                        </span>
+                                    ) : (
+                                        <span
+                                            style={{
+                                                fontSize: 10,
+                                                color: '#854d0e',
+                                                background: '#fefce8',
+                                                padding: '1px 6px',
+                                                borderRadius: 8,
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: 3,
+                                                width: 'fit-content',
+                                                border: '1px solid #fde68a',
+                                            }}
+                                        >
+                                            {t('show.accountInfo.unverified')}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Phone size={10}/>{t('show.accountInfo.phone')}</span>
-                                    <span className="info-value">{user.phone ?? '—'}</span>
+                                    <span className="info-label">
+                                        <Phone size={10} />
+                                        {t('show.accountInfo.phone')}
+                                    </span>
+                                    <span className="info-value">
+                                        {user.phone ?? '—'}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Clock size={10}/>{t('show.accountInfo.lastLogin')}</span>
-                                    <span className="info-value">{fmt(user.last_login_at)}</span>
-                                    {user.last_login_ip && <span style={{ fontSize:11, color:'#94a3b8' }}>{user.last_login_ip}</span>}
+                                    <span className="info-label">
+                                        <Clock size={10} />
+                                        {t('show.accountInfo.lastLogin')}
+                                    </span>
+                                    <span className="info-value">
+                                        {fmt(user.last_login_at)}
+                                    </span>
+                                    {user.last_login_ip && (
+                                        <span
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#94a3b8',
+                                            }}
+                                        >
+                                            {user.last_login_ip}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label"><Calendar size={10}/>{t('show.accountInfo.createdAt')}</span>
-                                    <span className="info-value">{fmt(user.created_at)}</span>
+                                    <span className="info-label">
+                                        <Calendar size={10} />
+                                        {t('show.accountInfo.createdAt')}
+                                    </span>
+                                    <span className="info-value">
+                                        {fmt(user.created_at)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -150,16 +317,33 @@ export default function UserShow({ user, auditLogs }: Props) {
                     {auditLogs.length > 0 && (
                         <div className="us-card">
                             <div className="us-card-hdr">
-                                <div className="us-card-ico" style={{ background:'#f0fdf4' }}><Clock size={15} color="#16a34a"/></div>
-                                <span className="us-card-ttl">{t('show.history.title', { count: auditLogs.length })}</span>
+                                <div
+                                    className="us-card-ico"
+                                    style={{ background: '#f0fdf4' }}
+                                >
+                                    <Clock size={15} color="#16a34a" />
+                                </div>
+                                <span className="us-card-ttl">
+                                    {t('show.history.title', {
+                                        count: auditLogs.length,
+                                    })}
+                                </span>
                             </div>
-                            <div className="us-card-body" style={{ padding:'14px 20px' }}>
-                                {auditLogs.map(log => (
+                            <div
+                                className="us-card-body"
+                                style={{ padding: '14px 20px' }}
+                            >
+                                {auditLogs.map((log) => (
                                     <div key={log.id} className="audit-row">
-                                        <div className="audit-dot"/>
+                                        <div className="audit-dot" />
                                         <div>
-                                            <div className="audit-action">{log.action.replace(/_/g,' ')}</div>
-                                            <div className="audit-meta">{fmt(log.created_at)} · {log.ip_address}</div>
+                                            <div className="audit-action">
+                                                {log.action.replace(/_/g, ' ')}
+                                            </div>
+                                            <div className="audit-meta">
+                                                {fmt(log.created_at)} ·{' '}
+                                                {log.ip_address}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -168,8 +352,18 @@ export default function UserShow({ user, auditLogs }: Props) {
                     )}
 
                     {/* Retour */}
-                    <Link href="/admin/users" style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13, color:'#64748b', textDecoration:'none' }}>
-                        <ArrowLeft size={14}/> {t('show.backToList')}
+                    <Link
+                        href="/admin/users"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            fontSize: 13,
+                            color: '#64748b',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        <ArrowLeft size={14} /> {t('show.backToList')}
                     </Link>
                 </div>
             </div>

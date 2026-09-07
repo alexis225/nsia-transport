@@ -14,7 +14,9 @@ export function useRecaptchaToken(action: string): string | null {
 
         const refresh = () => {
             getRecaptchaToken(action).then((t) => {
-                if (!cancelled) setToken(t);
+                if (!cancelled) {
+                    setToken(t);
+                }
             });
         };
 

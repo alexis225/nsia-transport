@@ -22,9 +22,9 @@ return new class extends Migration
 
             // NULL = template global (toutes filiales)
             $table->foreignUuid('tenant_id')
-                  ->nullable()
-                  ->constrained('tenants')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('tenants')
+                ->nullOnDelete();
 
             /**
              * Événements métier :

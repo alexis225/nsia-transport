@@ -6,7 +6,8 @@ import type { CertificateForPrint } from './types';
 // ⚠️ Reprend les coordonnées par défaut (voir default-positions.ts) —
 // à ajuster ici une fois la souche physique NSIA Guinée calibrée
 // (mode ?calibrate=1). Ce fichier peut diverger librement du défaut.
-export const GUINEE_CONAKRY_POSITIONS: FieldPosition[] = DEFAULT_FIELD_POSITIONS;
+export const GUINEE_CONAKRY_POSITIONS: FieldPosition[] =
+    DEFAULT_FIELD_POSITIONS;
 
 interface Props {
     certificate: CertificateForPrint;
@@ -14,6 +15,16 @@ interface Props {
     positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateGuineeConakry({ certificate, calibrate, positionsOverride }: Props) {
-    return <StubOverlay certificate={certificate} positions={positionsOverride ?? GUINEE_CONAKRY_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateGuineeConakry({
+    certificate,
+    calibrate,
+    positionsOverride,
+}: Props) {
+    return (
+        <StubOverlay
+            certificate={certificate}
+            positions={positionsOverride ?? GUINEE_CONAKRY_POSITIONS}
+            calibrate={calibrate}
+        />
+    );
 }

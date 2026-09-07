@@ -20,11 +20,11 @@ class SetTenantContext
 
         if ($user) {
             $tenantId = $user->tenant_id ?? 'NULL';
-            $userId   = $user->id;
+            $userId = $user->id;
 
             // SET pour la session PostgreSQL courante
-            DB::statement("SET app.current_tenant_id = ?", [$tenantId]);
-            DB::statement("SET app.current_user_id = ?",   [$userId]);
+            DB::statement('SET app.current_tenant_id = ?', [$tenantId]);
+            DB::statement('SET app.current_user_id = ?', [$userId]);
         }
 
         return $next($request);

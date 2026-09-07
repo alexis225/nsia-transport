@@ -1,5 +1,5 @@
-import type { Auth } from '@/types/auth';
 import type { Locale } from '@/lib/i18n';
+import type { Auth } from '@/types/auth';
 
 declare module '@inertiajs/core' {
     export interface InertiaConfig {

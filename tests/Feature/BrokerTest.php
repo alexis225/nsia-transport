@@ -8,7 +8,6 @@
  * ============================================================
  */
 
-use App\Models\AuditLog;
 use App\Models\Broker;
 use App\Models\Tenant;
 use App\Models\User;
@@ -29,8 +28,9 @@ function makeRefBrokerTenant(): Tenant
 function makeRefBrokerAdmin(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
@@ -38,6 +38,7 @@ function makeRefBrokerSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
@@ -46,8 +47,9 @@ function makeRefBrokerSuperAdmin(): User
 function makeRefBrokerSouscripteur(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('souscripteur');
+
     return $user;
 }
 
@@ -56,19 +58,20 @@ function makeRefBrokerSouscripteur(?string $tenantId = null): User
 function makeRefBrokerBareUser(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
+
     return User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
 }
 
 function makeRefBroker(string $tenantId, array $overrides = []): Broker
 {
     return Broker::create(array_merge([
-        'tenant_id'       => $tenantId,
-        'code'            => 'BRK-' . strtoupper(Str::random(6)),
-        'name'            => 'Courtage Test',
-        'type'            => Broker::TYPE_LOCAL,
-        'country_code'    => 'CI',
+        'tenant_id' => $tenantId,
+        'code' => 'BRK-'.strtoupper(Str::random(6)),
+        'name' => 'Courtage Test',
+        'type' => Broker::TYPE_LOCAL,
+        'country_code' => 'CI',
         'commission_rate' => 5.0,
-        'is_active'       => true,
+        'is_active' => true,
     ], $overrides));
 }
 
@@ -95,12 +98,12 @@ it('crée un courtier avec des données valides', function () {
     $admin = makeRefBrokerAdmin();
 
     $payload = [
-        'name'            => 'Courtage Abidjan',
-        'code'            => 'BRK-AB1',
-        'type'            => Broker::TYPE_LOCAL,
-        'email'           => 'contact@courtage-ab.ci',
+        'name' => 'Courtage Abidjan',
+        'code' => 'BRK-AB1',
+        'type' => Broker::TYPE_LOCAL,
+        'email' => 'contact@courtage-ab.ci',
         'commission_rate' => 4.5,
-        'is_active'       => true,
+        'is_active' => true,
     ];
 
     $this->actingAs($admin)
@@ -108,14 +111,14 @@ it('crée un courtier avec des données valides', function () {
         ->assertRedirect(route('admin.brokers.index'));
 
     $this->assertDatabaseHas('brokers', [
-        'name'      => 'Courtage Abidjan',
-        'code'      => 'BRK-AB1',
+        'name' => 'Courtage Abidjan',
+        'code' => 'BRK-AB1',
         'tenant_id' => $admin->tenant_id,
     ]);
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'broker_created',
+        'user_id' => $admin->id,
+        'action' => 'broker_created',
         'entity_type' => 'broker',
     ]);
 });
@@ -174,7 +177,7 @@ it('refuse la création sans la permission brokers.create', function () {
 
 // ── Update ───────────────────────────────────────────────────
 it('modifie un courtier de sa filiale', function () {
-    $admin  = makeRefBrokerAdmin();
+    $admin = makeRefBrokerAdmin();
     $broker = makeRefBroker($admin->tenant_id, ['name' => 'Ancien Nom']);
 
     $this->actingAs($admin)
@@ -188,16 +191,16 @@ it('modifie un courtier de sa filiale', function () {
     expect($broker->fresh()->name)->toBe('Nouveau Nom');
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'broker_updated',
+        'user_id' => $admin->id,
+        'action' => 'broker_updated',
         'entity_type' => 'broker',
-        'entity_id'   => $broker->id,
+        'entity_id' => $broker->id,
     ]);
 });
 
 it('refuse la modification sans la permission brokers.edit', function () {
     $tenant = makeRefBrokerTenant();
-    $user   = makeRefBrokerSouscripteur($tenant->id);
+    $user = makeRefBrokerSouscripteur($tenant->id);
     $broker = makeRefBroker($tenant->id);
 
     $this->actingAs($user)
@@ -213,7 +216,7 @@ it('refuse la modification sans la permission brokers.edit', function () {
 
 // ── Destroy ──────────────────────────────────────────────────
 it('supprime un courtier de sa filiale', function () {
-    $admin  = makeRefBrokerAdmin();
+    $admin = makeRefBrokerAdmin();
     $broker = makeRefBroker($admin->tenant_id);
 
     $this->actingAs($admin)
@@ -223,16 +226,16 @@ it('supprime un courtier de sa filiale', function () {
     $this->assertSoftDeleted('brokers', ['id' => $broker->id]);
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'broker_deleted',
+        'user_id' => $admin->id,
+        'action' => 'broker_deleted',
         'entity_type' => 'broker',
-        'entity_id'   => $broker->id,
+        'entity_id' => $broker->id,
     ]);
 });
 
 it('refuse la suppression sans la permission brokers.delete', function () {
     $tenant = makeRefBrokerTenant();
-    $user   = makeRefBrokerSouscripteur($tenant->id);
+    $user = makeRefBrokerSouscripteur($tenant->id);
     $broker = makeRefBroker($tenant->id);
 
     $this->actingAs($user)
@@ -244,7 +247,7 @@ it('refuse la suppression sans la permission brokers.delete', function () {
 
 // ── Toggle ───────────────────────────────────────────────────
 it('active/désactive un courtier via toggle', function () {
-    $admin  = makeRefBrokerAdmin();
+    $admin = makeRefBrokerAdmin();
     $broker = makeRefBroker($admin->tenant_id, ['is_active' => true]);
 
     $this->actingAs($admin)
@@ -256,7 +259,7 @@ it('active/désactive un courtier via toggle', function () {
 
 it('refuse le toggle sans la permission brokers.edit', function () {
     $tenant = makeRefBrokerTenant();
-    $user   = makeRefBrokerSouscripteur($tenant->id);
+    $user = makeRefBrokerSouscripteur($tenant->id);
     $broker = makeRefBroker($tenant->id, ['is_active' => true]);
 
     $this->actingAs($user)
@@ -270,8 +273,8 @@ it('refuse le toggle sans la permission brokers.edit', function () {
 it('un admin_filiale ne peut pas voir un courtier d\'une autre filiale', function () {
     $tenantA = makeRefBrokerTenant();
     $tenantB = makeRefBrokerTenant();
-    $admin   = makeRefBrokerAdmin($tenantA->id);
-    $broker  = makeRefBroker($tenantB->id);
+    $admin = makeRefBrokerAdmin($tenantA->id);
+    $broker = makeRefBroker($tenantB->id);
 
     $this->actingAs($admin)
         ->get("/admin/brokers/{$broker->id}")
@@ -281,8 +284,8 @@ it('un admin_filiale ne peut pas voir un courtier d\'une autre filiale', functio
 it('un admin_filiale ne peut pas modifier un courtier d\'une autre filiale', function () {
     $tenantA = makeRefBrokerTenant();
     $tenantB = makeRefBrokerTenant();
-    $admin   = makeRefBrokerAdmin($tenantA->id);
-    $broker  = makeRefBroker($tenantB->id, ['name' => 'Intact']);
+    $admin = makeRefBrokerAdmin($tenantA->id);
+    $broker = makeRefBroker($tenantB->id, ['name' => 'Intact']);
 
     $this->actingAs($admin)
         ->put("/admin/brokers/{$broker->id}", [
@@ -298,8 +301,8 @@ it('un admin_filiale ne peut pas modifier un courtier d\'une autre filiale', fun
 it('un admin_filiale ne peut pas supprimer un courtier d\'une autre filiale', function () {
     $tenantA = makeRefBrokerTenant();
     $tenantB = makeRefBrokerTenant();
-    $admin   = makeRefBrokerAdmin($tenantA->id);
-    $broker  = makeRefBroker($tenantB->id);
+    $admin = makeRefBrokerAdmin($tenantA->id);
+    $broker = makeRefBroker($tenantB->id);
 
     $this->actingAs($admin)
         ->delete("/admin/brokers/{$broker->id}")
@@ -309,9 +312,9 @@ it('un admin_filiale ne peut pas supprimer un courtier d\'une autre filiale', fu
 });
 
 it('un super_admin voit les courtiers de toutes les filiales', function () {
-    $tenantA    = makeRefBrokerTenant();
+    $tenantA = makeRefBrokerTenant();
     $superAdmin = makeRefBrokerSuperAdmin();
-    $broker     = makeRefBroker($tenantA->id);
+    $broker = makeRefBroker($tenantA->id);
 
     $this->actingAs($superAdmin)
         ->get("/admin/brokers/{$broker->id}")

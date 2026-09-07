@@ -25,7 +25,7 @@ class RecordFailedLogin
 
             $updates = [
                 'failed_login_attempts' => $attempts,
-                'last_login_ip'         => $ip,
+                'last_login_ip' => $ip,
             ];
 
             // Verrouiller après 5 tentatives (30 min)
@@ -38,7 +38,7 @@ class RecordFailedLogin
 
         // Compteur brut par IP en cache (pour détecter les attaques sans compte valide)
         $cacheKey = "failed_login_ip_{$ip}";
-        $ipCount  = (int) Cache::get($cacheKey, 0) + 1;
+        $ipCount = (int) Cache::get($cacheKey, 0) + 1;
         Cache::put($cacheKey, $ipCount, 3600); // 1 heure
 
         // Invalider le cache de blacklist pour cette IP si elle est maintenant bloquée

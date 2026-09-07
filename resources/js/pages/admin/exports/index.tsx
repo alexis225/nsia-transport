@@ -1,67 +1,140 @@
 import { Head, Link } from '@inertiajs/react';
+import axios from 'axios';
+import {
+    Download,
+    Clock,
+    CheckCircle,
+    XCircle,
+    Loader,
+    Trash2,
+    FileText,
+} from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Download, Clock, CheckCircle, XCircle, Loader, Trash2, FileText } from 'lucide-react';
-import axios from 'axios';
 
 interface Execution {
-    id: string; format: string; status: string;
+    id: string;
+    format: string;
+    status: string;
     parameters: Record<string, any> | null;
-    row_count: number | null; file_size: number | null;
+    row_count: number | null;
+    file_size: number | null;
     error_message: string | null;
-    created_at: string; completed_at: string | null; expires_at: string | null;
-    is_expired: boolean; can_download: boolean;
+    created_at: string;
+    completed_at: string | null;
+    expires_at: string | null;
+    is_expired: boolean;
+    can_download: boolean;
 }
 
-export default function ExportsIndex({ executions: initial }: { executions: Execution[] }) {
+export default function ExportsIndex({
+    executions: initial,
+}: {
+    executions: Execution[];
+}) {
     const { t } = useTranslation('exports');
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('breadcrumbDashboard'), href: route('admin.dashboard') },
         { title: t('breadcrumb') },
     ];
-    const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-        QUEUED:     { label: t('status.queued'),     color: '#d97706', bg: '#fef3c7', icon: Clock },
-        PROCESSING: { label: t('status.processing'), color: '#1d4ed8', bg: '#eff6ff', icon: Loader },
-        COMPLETED:  { label: t('status.completed'),  color: '#15803d', bg: '#f0fdf4', icon: CheckCircle },
-        FAILED:     { label: t('status.failed'),     color: '#dc2626', bg: '#fef2f2', icon: XCircle },
+    const STATUS_META: Record<
+        string,
+        { label: string; color: string; bg: string; icon: any }
+    > = {
+        QUEUED: {
+            label: t('status.queued'),
+            color: '#d97706',
+            bg: '#fef3c7',
+            icon: Clock,
+        },
+        PROCESSING: {
+            label: t('status.processing'),
+            color: '#1d4ed8',
+            bg: '#eff6ff',
+            icon: Loader,
+        },
+        COMPLETED: {
+            label: t('status.completed'),
+            color: '#15803d',
+            bg: '#f0fdf4',
+            icon: CheckCircle,
+        },
+        FAILED: {
+            label: t('status.failed'),
+            color: '#dc2626',
+            bg: '#fef2f2',
+            icon: XCircle,
+        },
     };
     const fmtSize = (bytes: number | null) => {
-        if (!bytes) return '—';
-        if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' ' + t('sizeUnitMo');
+        if (!bytes) {
+            return '—';
+        }
+
+        if (bytes >= 1024 * 1024) {
+            return (bytes / 1024 / 1024).toFixed(1) + ' ' + t('sizeUnitMo');
+        }
+
         return (bytes / 1024).toFixed(0) + ' ' + t('sizeUnitKo');
     };
     const [items, setItems] = useState(initial);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const hasPending = items.some(e => e.status === 'QUEUED' || e.status === 'PROCESSING');
+    const hasPending = items.some(
+        (e) => e.status === 'QUEUED' || e.status === 'PROCESSING',
+    );
 
     // Polling toutes les 5s s'il y a des exports en cours
     useEffect(() => {
-        if (!hasPending) return;
+        if (!hasPending) {
+            return;
+        }
+
         intervalRef.current = setInterval(async () => {
-            for (const item of items.filter(e => e.status === 'QUEUED' || e.status === 'PROCESSING')) {
+            for (const item of items.filter(
+                (e) => e.status === 'QUEUED' || e.status === 'PROCESSING',
+            )) {
                 try {
-                    const { data } = await axios.get(route('admin.exports.status', { execution: item.id }));
+                    const { data } = await axios.get(
+                        route('admin.exports.status', { execution: item.id }),
+                    );
+
                     if (data.status !== item.status) {
-                        setItems(prev => prev.map(e => e.id === item.id
-                            ? { ...e, ...data, can_download: data.can_download } : e));
+                        setItems((prev) =>
+                            prev.map((e) =>
+                                e.id === item.id
+                                    ? {
+                                          ...e,
+                                          ...data,
+                                          can_download: data.can_download,
+                                      }
+                                    : e,
+                            ),
+                        );
                     }
-                } catch {}
+                } catch {
+                    // Erreur réseau ponctuelle : on réessaiera au prochain tick.
+                }
             }
         }, 5000);
-        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
     }, [hasPending, items]);
 
     const deleteExport = async (id: string) => {
         await axios.delete(route('admin.exports.destroy', { execution: id }));
-        setItems(prev => prev.filter(e => e.id !== id));
+        setItems((prev) => prev.filter((e) => e.id !== id));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('title')}/>
+            <Head title={t('title')} />
             <style>{`
                 .exp-page { padding:4px; display:flex; flex-direction:column; gap:14px; }
                 .exp-panel { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
@@ -83,28 +156,67 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="exp-page">
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}
+                    >
                         <div>
-                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b' }}>{t('heading')}</h1>
-                            <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
+                            <h1
+                                style={{
+                                    fontSize: 18,
+                                    fontWeight: 700,
+                                    color: '#1e293b',
+                                }}
+                            >
+                                {t('heading')}
+                            </h1>
+                            <p
+                                style={{
+                                    fontSize: 12,
+                                    color: '#94a3b8',
+                                    marginTop: 3,
+                                }}
+                            >
                                 {t('subtitle')}
                             </p>
                         </div>
-                        <Link href={route('admin.certificates.index')}
-                              style={{ fontSize: 12, color: '#1d4ed8', textDecoration: 'none',
-                                       display: 'flex', alignItems: 'center', gap: 5,
-                                       background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
-                                       border: '1px solid #bfdbfe' }}>
-                            <FileText size={13}/> {t('launchExport')}
+                        <Link
+                            href={route('admin.certificates.index')}
+                            style={{
+                                fontSize: 12,
+                                color: '#1d4ed8',
+                                textDecoration: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 5,
+                                background: '#eff6ff',
+                                padding: '6px 12px',
+                                borderRadius: 8,
+                                border: '1px solid #bfdbfe',
+                            }}
+                        >
+                            <FileText size={13} /> {t('launchExport')}
                         </Link>
                     </div>
 
                     {hasPending && (
-                        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8,
-                                      padding: '10px 14px', fontSize: 12, color: '#1d4ed8',
-                                      display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <Loader size={13} className="spin"/>
+                        <div
+                            style={{
+                                background: '#eff6ff',
+                                border: '1px solid #bfdbfe',
+                                borderRadius: 8,
+                                padding: '10px 14px',
+                                fontSize: 12,
+                                color: '#1d4ed8',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
+                            }}
+                        >
+                            <Loader size={13} className="spin" />
                             {t('pendingBanner')}
                         </div>
                     )}
@@ -115,7 +227,10 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
                         </div>
                         {items.length === 0 ? (
                             <div className="empty">
-                                <FileText size={28} style={{ marginBottom: 8, opacity: .4 }}/>
+                                <FileText
+                                    size={28}
+                                    style={{ marginBottom: 8, opacity: 0.4 }}
+                                />
                                 <div>{t('empty')}</div>
                             </div>
                         ) : (
@@ -134,55 +249,168 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {items.map(e => {
-                                        const m = STATUS_META[e.status] ?? STATUS_META.QUEUED;
+                                    {items.map((e) => {
+                                        const m =
+                                            STATUS_META[e.status] ??
+                                            STATUS_META.QUEUED;
                                         const Icon = m.icon;
+
                                         return (
                                             <tr key={e.id}>
                                                 <td>
-                                                    <div style={{ fontWeight: 600, color: '#1e293b' }}>{t('certificates')}</div>
-                                                    <div style={{ fontSize: 10, color: '#94a3b8' }}>{e.format}</div>
+                                                    <div
+                                                        style={{
+                                                            fontWeight: 600,
+                                                            color: '#1e293b',
+                                                        }}
+                                                    >
+                                                        {t('certificates')}
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            fontSize: 10,
+                                                            color: '#94a3b8',
+                                                        }}
+                                                    >
+                                                        {e.format}
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     {e.parameters ? (
-                                                        <div style={{ fontSize: 10, color: '#64748b' }}>
-                                                            {Object.entries(e.parameters)
-                                                                .filter(([k, v]) => v && !['is_super_admin', 'tenant_id'].includes(k))
-                                                                .map(([k, v]) => `${k}:${v}`)
-                                                                .join(', ') || t('allFilters')}
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#64748b',
+                                                            }}
+                                                        >
+                                                            {Object.entries(
+                                                                e.parameters,
+                                                            )
+                                                                .filter(
+                                                                    ([k, v]) =>
+                                                                        v &&
+                                                                        ![
+                                                                            'is_super_admin',
+                                                                            'tenant_id',
+                                                                        ].includes(
+                                                                            k,
+                                                                        ),
+                                                                )
+                                                                .map(
+                                                                    ([k, v]) =>
+                                                                        `${k}:${v}`,
+                                                                )
+                                                                .join(', ') ||
+                                                                t('allFilters')}
                                                         </div>
-                                                    ) : '—'}
-                                                </td>
-                                                <td style={{ fontWeight: 600 }}>{e.row_count?.toLocaleString('fr-FR') ?? '—'}</td>
-                                                <td>{fmtSize(e.file_size)}</td>
-                                                <td style={{ color: '#64748b', fontSize: 11 }}>{e.created_at}</td>
-                                                <td style={{ color: '#64748b', fontSize: 11 }}>{e.completed_at ?? '—'}</td>
-                                                <td style={{ color: e.is_expired ? '#dc2626' : '#64748b', fontSize: 11 }}>
-                                                    {e.expires_at ?? '—'}
-                                                    {e.is_expired && t('expiredSuffix')}
-                                                </td>
-                                                <td>
-                                                    <span className="badge" style={{ color: m.color, background: m.bg }}>
-                                                        <Icon size={10} className={e.status === 'PROCESSING' ? 'spin' : ''}/>
-                                                        {m.label}
-                                                    </span>
-                                                    {e.status === 'FAILED' && e.error_message && (
-                                                        <div style={{ fontSize: 9, color: '#dc2626', marginTop: 2, maxWidth: 150 }}>
-                                                            {e.error_message.substring(0, 60)}…
-                                                        </div>
+                                                    ) : (
+                                                        '—'
                                                     )}
                                                 </td>
+                                                <td style={{ fontWeight: 600 }}>
+                                                    {e.row_count?.toLocaleString(
+                                                        'fr-FR',
+                                                    ) ?? '—'}
+                                                </td>
+                                                <td>{fmtSize(e.file_size)}</td>
+                                                <td
+                                                    style={{
+                                                        color: '#64748b',
+                                                        fontSize: 11,
+                                                    }}
+                                                >
+                                                    {e.created_at}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        color: '#64748b',
+                                                        fontSize: 11,
+                                                    }}
+                                                >
+                                                    {e.completed_at ?? '—'}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        color: e.is_expired
+                                                            ? '#dc2626'
+                                                            : '#64748b',
+                                                        fontSize: 11,
+                                                    }}
+                                                >
+                                                    {e.expires_at ?? '—'}
+                                                    {e.is_expired &&
+                                                        t('expiredSuffix')}
+                                                </td>
                                                 <td>
-                                                    <div style={{ display: 'flex', gap: 5 }}>
+                                                    <span
+                                                        className="badge"
+                                                        style={{
+                                                            color: m.color,
+                                                            background: m.bg,
+                                                        }}
+                                                    >
+                                                        <Icon
+                                                            size={10}
+                                                            className={
+                                                                e.status ===
+                                                                'PROCESSING'
+                                                                    ? 'spin'
+                                                                    : ''
+                                                            }
+                                                        />
+                                                        {m.label}
+                                                    </span>
+                                                    {e.status === 'FAILED' &&
+                                                        e.error_message && (
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 9,
+                                                                    color: '#dc2626',
+                                                                    marginTop: 2,
+                                                                    maxWidth: 150,
+                                                                }}
+                                                            >
+                                                                {e.error_message.substring(
+                                                                    0,
+                                                                    60,
+                                                                )}
+                                                                …
+                                                            </div>
+                                                        )}
+                                                </td>
+                                                <td>
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            gap: 5,
+                                                        }}
+                                                    >
                                                         {e.can_download && (
-                                                            <a href={route('admin.exports.download', { execution: e.id })}
-                                                               className="btn-dl">
-                                                                <Download size={11}/> CSV
+                                                            <a
+                                                                href={route(
+                                                                    'admin.exports.download',
+                                                                    {
+                                                                        execution:
+                                                                            e.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-dl"
+                                                            >
+                                                                <Download
+                                                                    size={11}
+                                                                />{' '}
+                                                                CSV
                                                             </a>
                                                         )}
-                                                        <button className="btn-del"
-                                                                onClick={() => deleteExport(e.id)}>
-                                                            <Trash2 size={11}/>
+                                                        <button
+                                                            className="btn-del"
+                                                            onClick={() =>
+                                                                deleteExport(
+                                                                    e.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 size={11} />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -193,7 +421,6 @@ export default function ExportsIndex({ executions: initial }: { executions: Exec
                             </table>
                         )}
                     </div>
-
                 </div>
             </div>
         </AppLayout>

@@ -60,6 +60,6 @@ return new class extends Migration
             DB::statement("ALTER TABLE {$table} DISABLE ROW LEVEL SECURITY");
         }
 
-        DB::statement("DROP FUNCTION IF EXISTS current_tenant_id()");
+        DB::statement('DROP FUNCTION IF EXISTS current_tenant_id()');
     }
 };

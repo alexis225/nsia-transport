@@ -47,9 +47,9 @@ return new class extends Migration
         // (impossible dans la migration users car tenants n'existait pas)
         Schema::table('users', function (Blueprint $table) {
             $table->foreign('tenant_id')
-                  ->references('id')
-                  ->on('tenants')
-                  ->nullOnDelete();
+                ->references('id')
+                ->on('tenants')
+                ->nullOnDelete();
         });
     }
 

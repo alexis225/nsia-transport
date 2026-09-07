@@ -25,7 +25,9 @@ use Spatie\Permission\Models\Role;
 class UserRoleGrant extends Model
 {
     use HasUuids;
+
     public $timestamps = false;
+
     protected $fillable = [
         'user_id',
         'tenant_id',
@@ -46,9 +48,9 @@ class UserRoleGrant extends Model
 
     // Rôles déléguables par un admin_filiale
     const DELEGATABLE_ROLES = [
-        'souscripteur'  => 'Souscripteur',
+        'souscripteur' => 'Souscripteur',
         'admin_filiale' => 'Admin Filiale',
-        'courtier_local'=> 'Courtier local',
+        'courtier_local' => 'Courtier local',
     ];
 
     // ── Relations ─────────────────────────────────────────────
@@ -97,8 +99,13 @@ class UserRoleGrant extends Model
 
     public function status(): string
     {
-        if ($this->isRevoked()) return 'REVOKED';
-        if ($this->isExpired()) return 'EXPIRED';
+        if ($this->isRevoked()) {
+            return 'REVOKED';
+        }
+        if ($this->isExpired()) {
+            return 'EXPIRED';
+        }
+
         return 'ACTIVE';
     }
 
@@ -109,11 +116,10 @@ class UserRoleGrant extends Model
     public static function hasGrantedPermission(User $user, string $permission): bool
     {
         $activeGrants = static::where('user_id', $user->id)
-           ->where('tenant_id', $user->tenant_id)
+            ->where('tenant_id', $user->tenant_id)
             ->whereNull('revoked_at')
-            ->where(fn ($q) =>
-                $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>=', now())
+            ->where(fn ($q) => $q->whereNull('expires_at')
+                ->orWhere('expires_at', '>=', now())
             )
             ->pluck('role_name');
 
@@ -135,9 +141,8 @@ class UserRoleGrant extends Model
         return static::where('user_id', $user->id)
             ->where('tenant_id', $user->tenant_id)
             ->whereNull('revoked_at')
-            ->where(fn ($q) =>
-                $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>=', now())
+            ->where(fn ($q) => $q->whereNull('expires_at')
+                ->orWhere('expires_at', '>=', now())
             )
             ->pluck('role_name')
             ->toArray();
@@ -147,9 +152,8 @@ class UserRoleGrant extends Model
     public function scopeActive($query)
     {
         return $query->whereNull('revoked_at')
-            ->where(fn ($q) =>
-                $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>=', now())
+            ->where(fn ($q) => $q->whereNull('expires_at')
+                ->orWhere('expires_at', '>=', now())
             );
     }
 

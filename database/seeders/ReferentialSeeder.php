@@ -269,7 +269,7 @@ class ReferentialSeeder extends Seeder
             Country::updateOrCreate(['code' => $country['code']], $country);
         }
 
-        $this->command->info('✅ ' . count($countries) . ' pays créés/mis à jour.');
+        $this->command->info('✅ '.count($countries).' pays créés/mis à jour.');
     }
 
     // ════════════════════════════════════════════════════════
@@ -304,7 +304,7 @@ class ReferentialSeeder extends Seeder
             Currency::firstOrCreate(['code' => $currency['code']], $currency);
         }
 
-        $this->command->info('✅ ' . count($currencies) . ' devises créées.');
+        $this->command->info('✅ '.count($currencies).' devises créées.');
     }
 
     // ════════════════════════════════════════════════════════
@@ -316,13 +316,13 @@ class ReferentialSeeder extends Seeder
 
         $incoterms = [
             // ── Tous modes ────────────────────────────────────
-            ['code' => 'EXW', 'name' => 'Ex Works',                       'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur met les marchandises à disposition dans ses locaux."],
-            ['code' => 'FCA', 'name' => 'Free Carrier',                   'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur livre les marchandises au transporteur désigné par l'acheteur."],
-            ['code' => 'CPT', 'name' => 'Carriage Paid To',               'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur paie le transport jusqu'au lieu de destination."],
-            ['code' => 'CIP', 'name' => 'Carriage and Insurance Paid To', 'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur paie le transport et l'assurance jusqu'à destination."],
-            ['code' => 'DAP', 'name' => 'Delivered at Place',             'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur livre au lieu de destination convenu, non dédouané."],
-            ['code' => 'DPU', 'name' => 'Delivered at Place Unloaded',    'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur livre et décharge les marchandises à destination."],
-            ['code' => 'DDP', 'name' => 'Delivered Duty Paid',            'compatible_modes' => ['SEA','AIR','ROAD','RAIL','MULTIMODAL'], 'description' => "Le vendeur supporte tous les coûts et risques, y compris les droits."],
+            ['code' => 'EXW', 'name' => 'Ex Works',                       'compatible_modes' => ['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'], 'description' => 'Le vendeur met les marchandises à disposition dans ses locaux.'],
+            ['code' => 'FCA', 'name' => 'Free Carrier',                   'compatible_modes' => ['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'], 'description' => "Le vendeur livre les marchandises au transporteur désigné par l'acheteur."],
+            ['code' => 'CPT', 'name' => 'Carriage Paid To',               'compatible_modes' => ['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'], 'description' => "Le vendeur paie le transport jusqu'au lieu de destination."],
+            ['code' => 'CIP', 'name' => 'Carriage and Insurance Paid To', 'compatible_modes' => ['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'], 'description' => "Le vendeur paie le transport et l'assurance jusqu'à destination."],
+            ['code' => 'DAP', 'name' => 'Delivered at Place',             'compatible_modes' => ['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'], 'description' => 'Le vendeur livre au lieu de destination convenu, non dédouané.'],
+            ['code' => 'DPU', 'name' => 'Delivered at Place Unloaded',    'compatible_modes' => ['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'], 'description' => 'Le vendeur livre et décharge les marchandises à destination.'],
+            ['code' => 'DDP', 'name' => 'Delivered Duty Paid',            'compatible_modes' => ['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'], 'description' => 'Le vendeur supporte tous les coûts et risques, y compris les droits.'],
 
             // ── Maritime / fluvial uniquement ─────────────────
             ['code' => 'FAS', 'name' => 'Free Alongside Ship',            'compatible_modes' => ['SEA'], 'description' => "Le vendeur livre le long du navire au port d'expédition."],
@@ -335,7 +335,7 @@ class ReferentialSeeder extends Seeder
             Incoterm::firstOrCreate(['code' => $incoterm['code']], $incoterm);
         }
 
-        $this->command->info('✅ ' . count($incoterms) . ' incoterms créés.');
+        $this->command->info('✅ '.count($incoterms).' incoterms créés.');
     }
 
     // ════════════════════════════════════════════════════════
@@ -359,7 +359,7 @@ class ReferentialSeeder extends Seeder
             TransportMode::firstOrCreate(['code' => $mode['code']], $mode);
         }
 
-        $this->command->info('✅ ' . count($modes) . ' modes de transport créés.');
+        $this->command->info('✅ '.count($modes).' modes de transport créés.');
     }
 
     // ════════════════════════════════════════════════════════
@@ -394,15 +394,15 @@ class ReferentialSeeder extends Seeder
             ['code' => 'OLEAGI',  'name' => 'Oléagineux & huiles',        'risk_level' => 1, 'parent' => 'AGRI'],
 
             // ── Niveau 2 — Sous-catégories CHIMIE ────────────
-            ['code' => 'CHIMIE_D','name' => 'Produits chimiques dangereux','risk_level' => 3, 'parent' => 'CHIMIE'],
-            ['code' => 'CHIMIE_I','name' => 'Produits chimiques industriels','risk_level' => 2, 'parent' => 'CHIMIE'],
+            ['code' => 'CHIMIE_D', 'name' => 'Produits chimiques dangereux', 'risk_level' => 3, 'parent' => 'CHIMIE'],
+            ['code' => 'CHIMIE_I', 'name' => 'Produits chimiques industriels', 'risk_level' => 2, 'parent' => 'CHIMIE'],
             ['code' => 'ENGRAIS', 'name' => 'Engrais & fertilisants',     'risk_level' => 2, 'parent' => 'CHIMIE'],
 
             // ── Niveau 2 — Sous-catégories ALIM ─────────────
-            ['code' => 'CEREALES','name' => 'Céréales & farines',         'risk_level' => 1, 'parent' => 'ALIM'],
+            ['code' => 'CEREALES', 'name' => 'Céréales & farines',         'risk_level' => 1, 'parent' => 'ALIM'],
             ['code' => 'SUCRE',   'name' => 'Sucre & confiseries',        'risk_level' => 1, 'parent' => 'ALIM'],
             ['code' => 'POISSON', 'name' => 'Poisson & produits de mer',  'risk_level' => 2, 'parent' => 'ALIM'],
-            ['code' => 'BOISSONS','name' => 'Boissons & alcools',         'risk_level' => 1, 'parent' => 'ALIM'],
+            ['code' => 'BOISSONS', 'name' => 'Boissons & alcools',         'risk_level' => 1, 'parent' => 'ALIM'],
         ];
 
         $createdIds = [];
@@ -416,16 +416,16 @@ class ReferentialSeeder extends Seeder
             $category = MerchandiseCategory::firstOrCreate(
                 ['code' => $cat['code'], 'tenant_id' => null],
                 [
-                    'name'       => $cat['name'],
+                    'name' => $cat['name'],
                     'risk_level' => $cat['risk_level'],
-                    'parent_id'  => $parentId,
-                    'is_active'  => true,
+                    'parent_id' => $parentId,
+                    'is_active' => true,
                 ]
             );
 
             $createdIds[$cat['code']] = $category->id;
         }
 
-        $this->command->info('✅ ' . count($categories) . ' catégories de marchandises créées.');
+        $this->command->info('✅ '.count($categories).' catégories de marchandises créées.');
     }
 }

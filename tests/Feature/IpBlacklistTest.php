@@ -16,14 +16,15 @@ use App\Models\User;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 // ── isBlocked() — requête CIDR PostgreSQL ─────────────────────
 
 it('détecte une IP bloquée dans une plage CIDR', function () {
     DB::table('ip_blacklist')->insert([
-        'id'       => (string) \Illuminate\Support\Str::uuid(),
+        'id' => (string) Str::uuid(),
         'ip_range' => '192.168.1.0/24',
-        'reason'   => 'Test',
+        'reason' => 'Test',
     ]);
 
     expect(IpBlacklist::isBlocked('192.168.1.100'))->toBeTrue()
@@ -32,9 +33,9 @@ it('détecte une IP bloquée dans une plage CIDR', function () {
 
 it('détecte une IP exacte bloquée', function () {
     DB::table('ip_blacklist')->insert([
-        'id'       => (string) \Illuminate\Support\Str::uuid(),
+        'id' => (string) Str::uuid(),
         'ip_range' => '10.0.0.5/32',
-        'reason'   => 'Exact',
+        'reason' => 'Exact',
     ]);
 
     expect(IpBlacklist::isBlocked('10.0.0.5'))->toBeTrue()
@@ -43,10 +44,10 @@ it('détecte une IP exacte bloquée', function () {
 
 it('ignore les entrées expirées', function () {
     DB::table('ip_blacklist')->insert([
-        'id'        => (string) \Illuminate\Support\Str::uuid(),
-        'ip_range'  => '172.16.0.0/16',
-        'expires_at'=> now()->subHour()->toDateTimeString(),
-        'reason'    => 'Expired',
+        'id' => (string) Str::uuid(),
+        'ip_range' => '172.16.0.0/16',
+        'expires_at' => now()->subHour()->toDateTimeString(),
+        'reason' => 'Expired',
     ]);
 
     expect(IpBlacklist::isBlocked('172.16.1.1'))->toBeFalse();
@@ -60,13 +61,13 @@ it('retourne false si la table est vide', function () {
 
 it('bloque les requêtes avec IP blacklistée', function () {
     DB::table('ip_blacklist')->insert([
-        'id'      => (string) \Illuminate\Support\Str::uuid(),
-        'ip_range'=> '203.0.113.0/24',
+        'id' => (string) Str::uuid(),
+        'ip_range' => '203.0.113.0/24',
     ]);
     Cache::forget('ip_blocked_203.0.113.42');
 
     $response = $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.42'])
-                     ->get('/');
+        ->get('/');
 
     $response->assertStatus(403);
 });
@@ -75,7 +76,7 @@ it('laisse passer les requêtes avec IP non bloquée', function () {
     Cache::forget('ip_blocked_8.8.8.8');
 
     $response = $this->withServerVariables(['REMOTE_ADDR' => '8.8.8.8'])
-                     ->get('/');
+        ->get('/');
 
     // Redirige vers login (302) — pas bloqué
     $response->assertStatus(302);
@@ -85,10 +86,10 @@ it('laisse passer les requêtes avec IP non bloquée', function () {
 
 it('incrémente failed_login_attempts à chaque échec', function () {
     $tenant = Tenant::factory()->create();
-    $user   = User::factory()->create([
-        'tenant_id'             => $tenant->id,
+    $user = User::factory()->create([
+        'tenant_id' => $tenant->id,
         'failed_login_attempts' => 2,
-        'is_active'             => true,
+        'is_active' => true,
     ]);
 
     $event = new Failed('web', $user, ['email' => $user->email, 'password' => 'wrong']);
@@ -100,10 +101,10 @@ it('incrémente failed_login_attempts à chaque échec', function () {
 
 it('verrouille le compte après 5 tentatives', function () {
     $tenant = Tenant::factory()->create();
-    $user   = User::factory()->create([
-        'tenant_id'             => $tenant->id,
+    $user = User::factory()->create([
+        'tenant_id' => $tenant->id,
         'failed_login_attempts' => 4,
-        'is_active'             => true,
+        'is_active' => true,
     ]);
 
     $event = new Failed('web', $user, ['email' => $user->email, 'password' => 'wrong']);

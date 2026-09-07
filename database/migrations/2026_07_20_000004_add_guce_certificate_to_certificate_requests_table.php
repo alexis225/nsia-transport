@@ -20,7 +20,7 @@ return new class extends Migration
     {
         Schema::table('certificate_requests', function (Blueprint $table) {
             $table->foreignUuid('guce_certificate_id')->nullable()->after('certificate_id')
-                  ->constrained('guce_certificates')->nullOnDelete();
+                ->constrained('guce_certificates')->nullOnDelete();
         });
     }
 

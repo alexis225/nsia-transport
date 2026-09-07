@@ -15,15 +15,16 @@ use App\Models\Expert;
 use App\Models\GuceCertificate;
 use App\Models\InsuranceContract;
 use App\Models\Notification;
-use App\Models\Tenant;
 use App\Models\TaxRule;
+use App\Models\Tenant;
 use App\Models\TransportMode;
 use App\Models\User;
 use App\Models\UserRoleGrant;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Seeder;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * ============================================================
@@ -61,12 +62,12 @@ class DemoDataSeeder extends Seeder
 {
     private array $countries = [
         'Côte d\'Ivoire' => ['Abidjan', 'Bouaké', 'San-Pedro'],
-        'Sénégal'        => ['Dakar', 'Thiès'],
-        'Bénin'          => ['Cotonou', 'Porto-Novo'],
-        'Togo'           => ['Lomé'],
-        'Cameroun'       => ['Douala', 'Yaoundé'],
-        'France'         => ['Le Havre', 'Marseille'],
-        'Chine'          => ['Shanghai', 'Guangzhou'],
+        'Sénégal' => ['Dakar', 'Thiès'],
+        'Bénin' => ['Cotonou', 'Porto-Novo'],
+        'Togo' => ['Lomé'],
+        'Cameroun' => ['Douala', 'Yaoundé'],
+        'France' => ['Le Havre', 'Marseille'],
+        'Chine' => ['Shanghai', 'Guangzhou'],
         'Émirats Arabes Unis' => ['Dubaï'],
     ];
 
@@ -100,12 +101,14 @@ class DemoDataSeeder extends Seeder
     ];
 
     private array $transportTypes = ['SEA', 'AIR', 'ROAD', 'MULTIMODAL', 'RIVER'];
-    private array $voyageModes    = ['CONTAINER', 'GROUPAGE', 'CONVENTIONNEL', 'BOUT_EN_BOUT'];
+
+    private array $voyageModes = ['CONTAINER', 'GROUPAGE', 'CONVENTIONNEL', 'BOUT_EN_BOUT'];
 
     // Noms de navires / codes compagnie aérienne — pour peupler
     // vessel_name (SEA/RIVER) et flight_number (AIR) sur une partie des
     // certificats démo (auparavant toujours NULL, cf. voyage_via ci-dessous).
-    private array $vesselNames  = ['MV NSIA STAR', 'MSC ABIDJAN', 'CMA CGM TOGO', 'MV AFRICA TRADER', 'MAERSK LOMÉ'];
+    private array $vesselNames = ['MV NSIA STAR', 'MSC ABIDJAN', 'CMA CGM TOGO', 'MV AFRICA TRADER', 'MAERSK LOMÉ'];
+
     private array $airlineCodes = ['AF', 'ET', 'RAM', 'KQ', 'TK'];
 
     public function run(): void
@@ -115,6 +118,7 @@ class DemoDataSeeder extends Seeder
         $tenants = Tenant::all();
         if ($tenants->isEmpty()) {
             $this->command->error('Aucune filiale trouvée. Lancez TenantSeeder d\'abord.');
+
             return;
         }
 
@@ -132,9 +136,11 @@ class DemoDataSeeder extends Seeder
     private function seedForTenant(Tenant $tenant): void
     {
         $users = User::where('tenant_id', $tenant->id)->get();
-        if ($users->isEmpty()) return;
+        if ($users->isEmpty()) {
+            return;
+        }
 
-        $admin        = $users->first(fn ($u) => $u->hasRole('admin_filiale')) ?? $users->first();
+        $admin = $users->first(fn ($u) => $u->hasRole('admin_filiale')) ?? $users->first();
         $souscripteur = $users->first(fn ($u) => $u->hasRole('souscripteur')) ?? $users->first();
         $courtierUser = $users->first(fn ($u) => $u->hasRole('courtier_local'));
 
@@ -187,7 +193,7 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     // 1. COURTIERS
     // ════════════════════════════════════════════════════════
-    private function seedBrokers(Tenant $tenant, ?User $courtierUser): \Illuminate\Support\Collection
+    private function seedBrokers(Tenant $tenant, ?User $courtierUser): Collection
     {
         $brokers = Broker::where('tenant_id', $tenant->id)->get();
 
@@ -196,18 +202,20 @@ class DemoDataSeeder extends Seeder
 
             foreach ($names as $i => $name) {
                 $broker = Broker::firstOrCreate(
-                    ['tenant_id' => $tenant->id, 'code' => 'BRK-' . $tenant->code . '-' . ($i + 1)],
+                    ['tenant_id' => $tenant->id, 'code' => 'BRK-'.$tenant->code.'-'.($i + 1)],
                     [
-                        'name'         => $name,
-                        'type'         => $i === 1 ? Broker::TYPE_FOREIGN : Broker::TYPE_LOCAL,
+                        'name' => $name,
+                        'type' => $i === 1 ? Broker::TYPE_FOREIGN : Broker::TYPE_LOCAL,
                         'country_code' => strlen($tenant->code) === 2 ? $tenant->code : 'CI',
-                        'email'        => Str::slug($name) . '@courtage-demo.com',
-                        'phone'        => '+225 07 ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99),
-                        'address'      => 'Abidjan, Plateau',
-                        'is_active'    => true,
+                        'email' => Str::slug($name).'@courtage-demo.com',
+                        'phone' => '+225 07 '.rand(10, 99).' '.rand(10, 99).' '.rand(10, 99).' '.rand(10, 99),
+                        'address' => 'Abidjan, Plateau',
+                        'is_active' => true,
                     ]
                 );
-                if (! $brokers->contains('id', $broker->id)) $brokers->push($broker);
+                if (! $brokers->contains('id', $broker->id)) {
+                    $brokers->push($broker);
+                }
             }
         }
 
@@ -217,7 +225,9 @@ class DemoDataSeeder extends Seeder
         // que le Directeur puisse se connecter et voir ses propres demandes.
         if ($courtierUser && ! $brokers->contains('user_id', $courtierUser->id)) {
             $demoBroker = Broker::where('tenant_id', $tenant->id)->where('user_id', $courtierUser->id)->first();
-            if ($demoBroker) $brokers->push($demoBroker);
+            if ($demoBroker) {
+                $brokers->push($demoBroker);
+            }
         }
 
         return $brokers;
@@ -230,10 +240,12 @@ class DemoDataSeeder extends Seeder
     // coordonnées — AUCUN taux à ce niveau, un même coassureur pouvant
     // intervenir sur plusieurs contrats avec des parts différentes
     // (cf. contract_coinsurers.share_rate dans seedContracts()).
-    private function seedCoinsurers(Tenant $tenant): \Illuminate\Support\Collection
+    private function seedCoinsurers(Tenant $tenant): Collection
     {
         $coinsurers = Coinsurer::where('tenant_id', $tenant->id)->get();
-        if ($coinsurers->count() >= 3) return $coinsurers;
+        if ($coinsurers->count() >= 3) {
+            return $coinsurers;
+        }
 
         $names = ['SUNU ASSURANCES', 'ALLIANZ AFRIQUE', 'SANLAM ASSURANCES'];
 
@@ -242,13 +254,15 @@ class DemoDataSeeder extends Seeder
                 ['tenant_id' => $tenant->id, 'name' => $name],
                 [
                     'country_code' => strlen($tenant->code) === 2 ? $tenant->code : 'CI',
-                    'address'      => 'Abidjan, Plateau',
-                    'email'        => Str::slug($name) . '@coassureur-demo.com',
-                    'phone'        => '+225 07 ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99),
-                    'is_active'    => true,
+                    'address' => 'Abidjan, Plateau',
+                    'email' => Str::slug($name).'@coassureur-demo.com',
+                    'phone' => '+225 07 '.rand(10, 99).' '.rand(10, 99).' '.rand(10, 99).' '.rand(10, 99),
+                    'is_active' => true,
                 ]
             );
-            if (! $coinsurers->contains('id', $coinsurer->id)) $coinsurers->push($coinsurer);
+            if (! $coinsurers->contains('id', $coinsurer->id)) {
+                $coinsurers->push($coinsurer);
+            }
         }
 
         return $coinsurers;
@@ -257,10 +271,12 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     // 3. EXPERTS (référentiel filiale)
     // ════════════════════════════════════════════════════════
-    private function seedExperts(Tenant $tenant): \Illuminate\Support\Collection
+    private function seedExperts(Tenant $tenant): Collection
     {
         $experts = Expert::where('tenant_id', $tenant->id)->get();
-        if ($experts->count() >= 2) return $experts;
+        if ($experts->count() >= 2) {
+            return $experts;
+        }
 
         $names = ['CABINET EXPERTISE MARITIME CI', 'AFRICA CARGO SURVEYORS'];
 
@@ -269,12 +285,14 @@ class DemoDataSeeder extends Seeder
                 ['tenant_id' => $tenant->id, 'name' => $name],
                 [
                     'country_code' => strlen($tenant->code) === 2 ? $tenant->code : 'CI',
-                    'email'        => Str::slug($name) . '@expertise-demo.com',
-                    'phone'        => '+225 05 ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99) . ' ' . rand(10, 99),
-                    'is_active'    => true,
+                    'email' => Str::slug($name).'@expertise-demo.com',
+                    'phone' => '+225 05 '.rand(10, 99).' '.rand(10, 99).' '.rand(10, 99).' '.rand(10, 99),
+                    'is_active' => true,
                 ]
             );
-            if (! $experts->contains('id', $expert->id)) $experts->push($expert);
+            if (! $experts->contains('id', $expert->id)) {
+                $experts->push($expert);
+            }
         }
 
         return $experts;
@@ -283,7 +301,7 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     // 4. CONTRATS
     // ════════════════════════════════════════════════════════
-    private function seedContracts(Tenant $tenant, $brokers, ?User $subscriber, $coinsurers = null, $experts = null): \Illuminate\Support\Collection
+    private function seedContracts(Tenant $tenant, $brokers, ?User $subscriber, $coinsurers = null, $experts = null): Collection
     {
         $existing = InsuranceContract::where('tenant_id', $tenant->id)->count();
         if ($existing >= 12) {
@@ -307,34 +325,34 @@ class DemoDataSeeder extends Seeder
             $startDate = now()->subMonths(rand(1, 6));
 
             $contract = InsuranceContract::create([
-                'tenant_id'              => $tenant->id,
-                'broker_id'              => $brokers->isNotEmpty() ? $brokers->random()->id : null,
-                'subscriber_id'          => $subscriber?->id,
-                'contract_number'        => 'CT-' . $tenant->code . '-' . now()->format('y') . '-' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
-                'insured_name'           => $companyName,
-                'type'                   => match (true) {
+                'tenant_id' => $tenant->id,
+                'broker_id' => $brokers->isNotEmpty() ? $brokers->random()->id : null,
+                'subscriber_id' => $subscriber?->id,
+                'contract_number' => 'CT-'.$tenant->code.'-'.now()->format('y').'-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT),
+                'insured_name' => $companyName,
+                'type' => match (true) {
                     $i % 5 === 0 => InsuranceContract::TYPE_VOYAGE,
-                    $i === 7     => InsuranceContract::TYPE_TIERS_CHARGEUR, // fonctionne comme une police ouverte
+                    $i === 7 => InsuranceContract::TYPE_TIERS_CHARGEUR, // fonctionne comme une police ouverte
                     $i % 3 === 0 => InsuranceContract::TYPE_ANNUAL_VOYAGE,
-                    default      => InsuranceContract::TYPE_OPEN_POLICY,
+                    default => InsuranceContract::TYPE_OPEN_POLICY,
                 },
                 // Devise imposée par la filiale (Renforcement — plus de
                 // choix libre de devise sur le contrat).
-                'currency_code'          => $tenant->currency_code,
-                'plein'                  => $plein,
-                'subscription_limit'     => $plein * 3, // ~3 certificats avant le plafond cumulé
-                'used_limit'             => 0,
-                'certificates_limit'     => $i % 5 === 0 ? 3 : null,
-                'certificates_count'     => 0,
+                'currency_code' => $tenant->currency_code,
+                'plein' => $plein,
+                'subscription_limit' => $plein * 3, // ~3 certificats avant le plafond cumulé
+                'used_limit' => 0,
+                'certificates_limit' => $i % 5 === 0 ? 3 : null,
+                'certificates_count' => 0,
                 'escalade_threshold_pct' => $i % 5 === 0 ? 10.00 : null, // seuil custom sur 1 contrat sur 5
-                'escalade_enabled'       => true,
-                'conditioning_types'     => $conditioningCycle[($i - 1) % count($conditioningCycle)],
-                'status'                 => $i === 10 ? InsuranceContract::STATUS_EXPIRED : InsuranceContract::STATUS_ACTIVE,
-                'effective_date'         => $startDate,
-                'expiry_date'            => $startDate->copy()->addYear(),
-                'created_by'             => $subscriber?->id,
-                'updated_by'             => $subscriber?->id,
-                'created_at'             => $startDate,
+                'escalade_enabled' => true,
+                'conditioning_types' => $conditioningCycle[($i - 1) % count($conditioningCycle)],
+                'status' => $i === 10 ? InsuranceContract::STATUS_EXPIRED : InsuranceContract::STATUS_ACTIVE,
+                'effective_date' => $startDate,
+                'expiry_date' => $startDate->copy()->addYear(),
+                'created_by' => $subscriber?->id,
+                'updated_by' => $subscriber?->id,
+                'created_at' => $startDate,
             ]);
 
             // Coassureurs sur 1 contrat sur 3 — part de coassurance propre à
@@ -360,54 +378,54 @@ class DemoDataSeeder extends Seeder
         // FCFA), en attente de validation Groupe/DTAG (Renforcement
         // escalade NN300). Visible dans /admin/contracts (statut "En
         // attente d'approbation") — seul super_admin peut l'approuver.
-        $nn300Number = 'CT-' . $tenant->code . '-' . now()->format('y') . '-0011';
+        $nn300Number = 'CT-'.$tenant->code.'-'.now()->format('y').'-0011';
         if (InsuranceContract::where('tenant_id', $tenant->id)->where('contract_number', $nn300Number)->doesntExist()) {
             $contracts->push(InsuranceContract::create([
-                'tenant_id'              => $tenant->id,
-                'broker_id'              => $brokers->isNotEmpty() ? $brokers->random()->id : null,
-                'subscriber_id'          => $subscriber?->id,
-                'contract_number'        => $nn300Number,
-                'insured_name'           => 'GROUPE INDUSTRIEL PANAFRICAIN',
-                'type'                   => InsuranceContract::TYPE_OPEN_POLICY,
-                'currency_code'          => $tenant->currency_code,
-                'plein'                  => 800_000_000,
-                'subscription_limit'     => 3_000_000_000, // > 2 Mds standard groupe → validation DTAG requise
-                'treaty_limit'           => 6_000_000_000,
-                'used_limit'             => 0,
-                'requires_approval'      => true,
-                'escalade_enabled'       => true,
-                'status'                 => 'PENDING_APPROVAL',
-                'effective_date'         => now(),
-                'expiry_date'            => now()->addYear(),
-                'created_by'             => $subscriber?->id,
-                'updated_by'             => $subscriber?->id,
+                'tenant_id' => $tenant->id,
+                'broker_id' => $brokers->isNotEmpty() ? $brokers->random()->id : null,
+                'subscriber_id' => $subscriber?->id,
+                'contract_number' => $nn300Number,
+                'insured_name' => 'GROUPE INDUSTRIEL PANAFRICAIN',
+                'type' => InsuranceContract::TYPE_OPEN_POLICY,
+                'currency_code' => $tenant->currency_code,
+                'plein' => 800_000_000,
+                'subscription_limit' => 3_000_000_000, // > 2 Mds standard groupe → validation DTAG requise
+                'treaty_limit' => 6_000_000_000,
+                'used_limit' => 0,
+                'requires_approval' => true,
+                'escalade_enabled' => true,
+                'status' => 'PENDING_APPROVAL',
+                'effective_date' => now(),
+                'expiry_date' => now()->addYear(),
+                'created_by' => $subscriber?->id,
+                'updated_by' => $subscriber?->id,
             ]));
         }
 
         // ── Contrat 12 — Contrat Abonnement (police ouverte) arrivant à
         // échéance dans 2 mois — démontre l'alerte 3 mois + rappel
         // mensuel (nsia:check-contracts).
-        $abonnementNumber = 'CT-' . $tenant->code . '-' . now()->format('y') . '-0012';
+        $abonnementNumber = 'CT-'.$tenant->code.'-'.now()->format('y').'-0012';
         if (InsuranceContract::where('tenant_id', $tenant->id)->where('contract_number', $abonnementNumber)->doesntExist()) {
             $contracts->push(InsuranceContract::create([
-                'tenant_id'              => $tenant->id,
-                'broker_id'              => $brokers->isNotEmpty() ? $brokers->random()->id : null,
-                'subscriber_id'          => $subscriber?->id,
-                'contract_number'        => $abonnementNumber,
-                'insured_name'           => 'COMPTOIR COMMERCIAL ABIDJAN',
-                'type'                   => InsuranceContract::TYPE_OPEN_POLICY,
-                'currency_code'          => $tenant->currency_code,
-                'plein'                  => 50_000_000,
-                'subscription_limit'     => 2_000_000_000,
-                'treaty_limit'           => 6_000_000_000,
-                'used_limit'             => 0,
-                'escalade_enabled'       => true,
-                'status'                 => InsuranceContract::STATUS_ACTIVE,
-                'effective_date'         => now()->subMonths(10),
-                'expiry_date'            => now()->addMonths(2), // dans la fenêtre d'alerte 3 mois
-                'notice_period_days'     => 60,
-                'created_by'             => $subscriber?->id,
-                'updated_by'             => $subscriber?->id,
+                'tenant_id' => $tenant->id,
+                'broker_id' => $brokers->isNotEmpty() ? $brokers->random()->id : null,
+                'subscriber_id' => $subscriber?->id,
+                'contract_number' => $abonnementNumber,
+                'insured_name' => 'COMPTOIR COMMERCIAL ABIDJAN',
+                'type' => InsuranceContract::TYPE_OPEN_POLICY,
+                'currency_code' => $tenant->currency_code,
+                'plein' => 50_000_000,
+                'subscription_limit' => 2_000_000_000,
+                'treaty_limit' => 6_000_000_000,
+                'used_limit' => 0,
+                'escalade_enabled' => true,
+                'status' => InsuranceContract::STATUS_ACTIVE,
+                'effective_date' => now()->subMonths(10),
+                'expiry_date' => now()->addMonths(2), // dans la fenêtre d'alerte 3 mois
+                'notice_period_days' => 60,
+                'created_by' => $subscriber?->id,
+                'updated_by' => $subscriber?->id,
             ]));
         }
 
@@ -419,35 +437,39 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     private function seedAmendments($contracts, ?User $creator): void
     {
-        if (! class_exists(ContractAmendment::class)) return;
+        if (! class_exists(ContractAmendment::class)) {
+            return;
+        }
 
         $eligible = $contracts->where('status', 'ACTIVE')->take(3);
 
         foreach ($eligible as $i => $contract) {
             $existing = ContractAmendment::where('contract_id', $contract->id)->exists();
-            if ($existing) continue;
+            if ($existing) {
+                continue;
+            }
 
             $oldPlein = (float) $contract->plein;
             $newPlein = round($oldPlein * 1.20, 2); // +20%
 
             ContractAmendment::create([
-                'tenant_id'        => $contract->tenant_id,
-                'contract_id'      => $contract->id,
-                'amendment_number' => 'AV-' . $contract->contract_number . '-' . str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
-                'sequence'         => 1,
-                'reason'           => 'Augmentation de la valeur assurée',
-                'description'      => 'Augmentation du plein du contrat suite à extension du contrat commercial.',
-                'changes'          => [
+                'tenant_id' => $contract->tenant_id,
+                'contract_id' => $contract->id,
+                'amendment_number' => 'AV-'.$contract->contract_number.'-'.str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
+                'sequence' => 1,
+                'reason' => 'Augmentation de la valeur assurée',
+                'description' => 'Augmentation du plein du contrat suite à extension du contrat commercial.',
+                'changes' => [
                     'plein' => ['before' => $oldPlein, 'after' => $newPlein],
                 ],
-                'status'       => 'APPROVED',
+                'status' => 'APPROVED',
                 'submitted_by' => $creator?->id,
                 'submitted_at' => now()->subDays(rand(21, 40)),
-                'reviewed_by'  => $creator?->id,
-                'reviewed_at'  => now()->subDays(rand(1, 20)),
-                'applied_at'   => now()->subDays(rand(1, 20)),
-                'created_by'   => $creator?->id,
-                'created_at'   => now()->subDays(rand(21, 40)),
+                'reviewed_by' => $creator?->id,
+                'reviewed_at' => now()->subDays(rand(1, 20)),
+                'applied_at' => now()->subDays(rand(1, 20)),
+                'created_by' => $creator?->id,
+                'created_at' => now()->subDays(rand(21, 40)),
             ]);
         }
     }
@@ -455,7 +477,7 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     // 4. CERTIFICATS
     // ════════════════════════════════════════════════════════
-    private function seedCertificates(Tenant $tenant, $contracts, ?User $creator): \Illuminate\Support\Collection
+    private function seedCertificates(Tenant $tenant, $contracts, ?User $creator): Collection
     {
         $existing = Certificate::where('tenant_id', $tenant->id)->count();
         if ($existing >= 15) {
@@ -464,7 +486,9 @@ class DemoDataSeeder extends Seeder
 
         $certificates = collect();
         $activeContracts = $contracts->where('status', 'ACTIVE');
-        if ($activeContracts->isEmpty()) return $certificates;
+        if ($activeContracts->isEmpty()) {
+            return $certificates;
+        }
 
         $countriesKeys = array_keys($this->countries);
         $statuses = [
@@ -480,15 +504,15 @@ class DemoDataSeeder extends Seeder
 
         foreach ($statuses as $idx => $status) {
             $contract = $activeContracts->random();
-            $merch    = $this->merchandises[array_rand($this->merchandises)];
+            $merch = $this->merchandises[array_rand($this->merchandises)];
 
             $fromCountry = $countriesKeys[array_rand($countriesKeys)];
-            $toCountry   = $countriesKeys[array_rand($countriesKeys)];
+            $toCountry = $countriesKeys[array_rand($countriesKeys)];
             while ($toCountry === $fromCountry) {
                 $toCountry = $countriesKeys[array_rand($countriesKeys)];
             }
             $fromCity = $this->countries[$fromCountry][array_rand($this->countries[$fromCountry])];
-            $toCity   = $this->countries[$toCountry][array_rand($this->countries[$toCountry])];
+            $toCity = $this->countries[$toCountry][array_rand($this->countries[$toCountry])];
 
             // ~35% des certificats ont un point de transit ; le pays de
             // transit est distinct des pays de départ/arrivée.
@@ -505,25 +529,25 @@ class DemoDataSeeder extends Seeder
             // Navire renseigné ~70% du temps pour SEA/RIVER, vol ~70% du
             // temps pour AIR — le reste volontairement vide (données réelles
             // parfois incomplètes).
-            $vesselName   = in_array($transportType, ['SEA', 'RIVER'], true) && rand(1, 100) <= 70
+            $vesselName = in_array($transportType, ['SEA', 'RIVER'], true) && rand(1, 100) <= 70
                 ? $this->vesselNames[array_rand($this->vesselNames)] : null;
             $flightNumber = $transportType === 'AIR' && rand(1, 100) <= 70
-                ? $this->airlineCodes[array_rand($this->airlineCodes)] . ' ' . rand(100, 999) : null;
+                ? $this->airlineCodes[array_rand($this->airlineCodes)].' '.rand(100, 999) : null;
 
             // Valeur du certificat calée sur le "plein" (plafond par
             // certificat) du contrat — certains proches/dépassant le seuil
             // d'escalade configuré.
-            $plein        = (float) ($contract->plein ?: 10_000_000);
+            $plein = (float) ($contract->plein ?: 10_000_000);
             $thresholdPct = (float) ($contract->escalade_threshold_pct ?? 15);
 
             $valueRatio = match (true) {
                 $idx === 2 => ($thresholdPct / 100) * 1.5,  // dépasse le seuil → escalade
                 $idx === 5 => ($thresholdPct / 100) * 0.95, // juste sous le seuil
-                default    => rand(2, 12) / 100,             // valeur normale
+                default => rand(2, 12) / 100,             // valeur normale
             };
 
             $insuredValue = round($plein * $valueRatio, 2);
-            $voyageDate   = now()->subDays(rand(0, 60));
+            $voyageDate = now()->subDays(rand(0, 60));
             $certNumber++;
 
             $primeBreakdown = $this->buildDemoPrimeBreakdown($contract, $insuredValue);
@@ -532,44 +556,44 @@ class DemoDataSeeder extends Seeder
             $primeNette = $primeBreakdownByKey->get('prime_nette')['amount'] ?? 0;
 
             $cert = Certificate::create([
-                'tenant_id'        => $tenant->id,
-                'contract_id'      => $contract->id,
-                'document_type'    => Certificate::DOC_TYPE_ORIGINAL,
-                'certificate_number' => 'N°' . $tenant->code . '-' . str_pad((string) $certNumber, 6, '0', STR_PAD_LEFT),
-                'policy_number'    => $contract->contract_number,
-                'insured_name'     => $contract->insured_name,
-                'insured_ref'      => 'RC-' . rand(100000, 999999) . ' / ' . $tenant->code,
-                'voyage_date'      => $voyageDate,
-                'voyage_from'      => "{$fromCity}, {$fromCountry}",
-                'voyage_to'        => "{$toCity}, {$toCountry}",
-                'voyage_via'       => $viaCity ? "{$viaCity}, {$viaCountry}" : null,
-                'origin_country_code'      => $this->countryIsoCodes[$fromCountry] ?? null,
+                'tenant_id' => $tenant->id,
+                'contract_id' => $contract->id,
+                'document_type' => Certificate::DOC_TYPE_ORIGINAL,
+                'certificate_number' => 'N°'.$tenant->code.'-'.str_pad((string) $certNumber, 6, '0', STR_PAD_LEFT),
+                'policy_number' => $contract->contract_number,
+                'insured_name' => $contract->insured_name,
+                'insured_ref' => 'RC-'.rand(100000, 999999).' / '.$tenant->code,
+                'voyage_date' => $voyageDate,
+                'voyage_from' => "{$fromCity}, {$fromCountry}",
+                'voyage_to' => "{$toCity}, {$toCountry}",
+                'voyage_via' => $viaCity ? "{$viaCity}, {$viaCountry}" : null,
+                'origin_country_code' => $this->countryIsoCodes[$fromCountry] ?? null,
                 'destination_country_code' => $this->countryIsoCodes[$toCountry] ?? null,
-                'transport_type'   => $transportType,
-                'vessel_name'      => $vesselName,
-                'flight_number'    => $flightNumber,
-                'voyage_mode'      => $this->voyageModes[array_rand($this->voyageModes)],
+                'transport_type' => $transportType,
+                'vessel_name' => $vesselName,
+                'flight_number' => $flightNumber,
+                'voyage_mode' => $this->voyageModes[array_rand($this->voyageModes)],
                 'expedition_items' => [[
-                    'marks'          => 'NSIA-' . rand(100, 999),
-                    'package_numbers'=> '1 à ' . rand(5, 50),
-                    'package_count'  => rand(5, 50),
-                    'weight'         => rand(500, 25000) . ' kg',
-                    'nature'         => $merch['nature'],
-                    'packaging'      => $merch['packaging'],
-                    'insured_value'  => $insuredValue,
+                    'marks' => 'NSIA-'.rand(100, 999),
+                    'package_numbers' => '1 à '.rand(5, 50),
+                    'package_count' => rand(5, 50),
+                    'weight' => rand(500, 25000).' kg',
+                    'nature' => $merch['nature'],
+                    'packaging' => $merch['packaging'],
+                    'insured_value' => $insuredValue,
                 ]],
-                'currency_code'        => $contract->currency_code,
-                'insured_value'        => $insuredValue,
-                'insured_value_letters'=> $this->numberToFrenchWords($insuredValue) . ' ' . $contract->currency_code,
-                'guarantee_mode'       => 'Tous risques',
-                'rate_divers'          => 0.05,
-                'rate_surprime'        => 0.02,
-                'prime_breakdown'      => $primeBreakdown,
-                'prime_total'          => $primeTotal,
-                'prime_nette'          => $primeNette,
-                'status'      => $status,
-                'created_by'  => $creator?->id,
-                'created_at'  => $voyageDate->copy()->subDays(rand(1, 5)),
+                'currency_code' => $contract->currency_code,
+                'insured_value' => $insuredValue,
+                'insured_value_letters' => $this->numberToFrenchWords($insuredValue).' '.$contract->currency_code,
+                'guarantee_mode' => 'Tous risques',
+                'rate_divers' => 0.05,
+                'rate_surprime' => 0.02,
+                'prime_breakdown' => $primeBreakdown,
+                'prime_total' => $primeTotal,
+                'prime_nette' => $primeNette,
+                'status' => $status,
+                'created_by' => $creator?->id,
+                'created_at' => $voyageDate->copy()->subDays(rand(1, 5)),
             ]);
 
             // Compléter selon le statut
@@ -580,10 +604,10 @@ class DemoDataSeeder extends Seeder
             if ($status === 'ISSUED') {
                 $cert->issued_at = $cert->submitted_at->copy()->addHours(rand(1, 24));
                 $cert->issued_by = $creator?->id;
-                $cert->qr_token  = Str::random(48);
+                $cert->qr_token = Str::random(48);
             }
             if ($status === 'CANCELLED') {
-                $cert->cancelled_at        = now()->subDays(rand(1, 10));
+                $cert->cancelled_at = now()->subDays(rand(1, 10));
                 $cert->cancellation_reason = 'Annulation à la demande du client — voyage reporté.';
             }
             $cert->save();
@@ -595,15 +619,15 @@ class DemoDataSeeder extends Seeder
         $originalIssued = $certificates->first(fn ($c) => $c->status === 'ISSUED');
         if ($originalIssued && ! $originalIssued->duplicate_count) {
             $duplicate = $originalIssued->replicate();
-            $duplicate->id                  = (string) Str::uuid();
-            $duplicate->parent_id           = $originalIssued->id;
-            $duplicate->document_type       = Certificate::DOC_TYPE_DUPLICATA;
-            $duplicate->certificate_number  = $originalIssued->certificate_number . '-D1';
-            $duplicate->reissued_at         = now();
-            $duplicate->reissued_by         = $creator?->id;
-            $duplicate->reissue_reason      = 'Document original perdu par le client.';
-            $duplicate->qr_token            = Str::random(48);
-            $duplicate->created_at          = now();
+            $duplicate->id = (string) Str::uuid();
+            $duplicate->parent_id = $originalIssued->id;
+            $duplicate->document_type = Certificate::DOC_TYPE_DUPLICATA;
+            $duplicate->certificate_number = $originalIssued->certificate_number.'-D1';
+            $duplicate->reissued_at = now();
+            $duplicate->reissued_by = $creator?->id;
+            $duplicate->reissue_reason = 'Document original perdu par le client.';
+            $duplicate->qr_token = Str::random(48);
+            $duplicate->created_at = now();
             $duplicate->save();
 
             $originalIssued->update(['duplicate_count' => 1]);
@@ -625,58 +649,63 @@ class DemoDataSeeder extends Seeder
         // garde-fou au niveau filiale, chaque nouveau passage du seeder
         // choisirait un autre certificat ISSUED encore éligible parmi les
         // 8 générés par seedCertificates() et en ajouterait un de plus.
-        if (Certificate::where('tenant_id', $tenant->id)->where('status', 'REPLACED')->exists()) return;
+        if (Certificate::where('tenant_id', $tenant->id)->where('status', 'REPLACED')->exists()) {
+            return;
+        }
 
-        $old = $certificates->first(fn ($c) =>
-            $c->status === 'ISSUED'
+        $old = $certificates->first(fn ($c) => $c->status === 'ISSUED'
             && $c->document_type === Certificate::DOC_TYPE_ORIGINAL
             && ! $c->duplicate_count
         );
-        if (! $old) return;
+        if (! $old) {
+            return;
+        }
 
-        $newNumber = $old->certificate_number . '-R1';
-        if (Certificate::where('certificate_number', $newNumber)->exists()) return;
+        $newNumber = $old->certificate_number.'-R1';
+        if (Certificate::where('certificate_number', $newNumber)->exists()) {
+            return;
+        }
 
         $new = Certificate::create([
-            'tenant_id'                 => $tenant->id,
-            'contract_id'               => $old->contract_id,
-            'document_type'             => Certificate::DOC_TYPE_ORIGINAL,
-            'certificate_number'        => $newNumber,
-            'policy_number'             => $old->policy_number,
-            'insured_name'              => $old->insured_name,
-            'insured_ref'               => $old->insured_ref,
-            'voyage_date'               => $old->voyage_date,
-            'voyage_from'               => $old->voyage_from,
-            'voyage_to'                 => $old->voyage_to,
-            'voyage_via'                => $old->voyage_via,
-            'origin_country_code'       => $old->origin_country_code,
-            'destination_country_code'  => $old->destination_country_code,
-            'transport_type'            => $old->transport_type,
-            'vessel_name'               => $old->vessel_name,
-            'flight_number'             => $old->flight_number,
-            'voyage_mode'               => $old->voyage_mode,
-            'expedition_items'          => $old->expedition_items,
-            'currency_code'             => $old->currency_code,
-            'insured_value'             => $old->insured_value,
-            'insured_value_letters'     => $old->insured_value_letters,
-            'guarantee_mode'            => $old->guarantee_mode,
-            'rate_divers'               => $old->rate_divers,
-            'rate_surprime'             => $old->rate_surprime,
-            'prime_breakdown'           => $old->prime_breakdown,
-            'prime_total'               => $old->prime_total,
-            'prime_nette'               => $old->prime_nette,
-            'status'                    => Certificate::STATUS_ISSUED,
-            'created_by'                => $creator?->id,
-            'submitted_at'              => now(),
-            'submitted_by'              => $creator?->id,
-            'issued_at'                 => now(),
-            'issued_by'                 => $creator?->id,
-            'qr_token'                  => Str::random(48),
+            'tenant_id' => $tenant->id,
+            'contract_id' => $old->contract_id,
+            'document_type' => Certificate::DOC_TYPE_ORIGINAL,
+            'certificate_number' => $newNumber,
+            'policy_number' => $old->policy_number,
+            'insured_name' => $old->insured_name,
+            'insured_ref' => $old->insured_ref,
+            'voyage_date' => $old->voyage_date,
+            'voyage_from' => $old->voyage_from,
+            'voyage_to' => $old->voyage_to,
+            'voyage_via' => $old->voyage_via,
+            'origin_country_code' => $old->origin_country_code,
+            'destination_country_code' => $old->destination_country_code,
+            'transport_type' => $old->transport_type,
+            'vessel_name' => $old->vessel_name,
+            'flight_number' => $old->flight_number,
+            'voyage_mode' => $old->voyage_mode,
+            'expedition_items' => $old->expedition_items,
+            'currency_code' => $old->currency_code,
+            'insured_value' => $old->insured_value,
+            'insured_value_letters' => $old->insured_value_letters,
+            'guarantee_mode' => $old->guarantee_mode,
+            'rate_divers' => $old->rate_divers,
+            'rate_surprime' => $old->rate_surprime,
+            'prime_breakdown' => $old->prime_breakdown,
+            'prime_total' => $old->prime_total,
+            'prime_nette' => $old->prime_nette,
+            'status' => Certificate::STATUS_ISSUED,
+            'created_by' => $creator?->id,
+            'submitted_at' => now(),
+            'submitted_by' => $creator?->id,
+            'issued_at' => now(),
+            'issued_by' => $creator?->id,
+            'qr_token' => Str::random(48),
         ]);
 
         $old->update([
-            'status'                     => Certificate::STATUS_REPLACED,
-            'replaced_at'                => now(),
+            'status' => Certificate::STATUS_REPLACED,
+            'replaced_at' => now(),
             'replaced_by_certificate_id' => $new->id,
         ]);
 
@@ -693,8 +722,8 @@ class DemoDataSeeder extends Seeder
     {
         $lineAmount = fn (float $rate): float => $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
 
-        $rateRo     = (float) ($contract->rate_ro ?: 0.35);
-        $rateRg     = (float) ($contract->rate_rg ?: 0.10);
+        $rateRo = (float) ($contract->rate_ro ?: 0.35);
+        $rateRg = (float) ($contract->rate_rg ?: 0.10);
         $taxRatePct = 5.00; // taux indicatif de démo — le référentiel réel passe par TaxRule
 
         $ro = $lineAmount($rateRo);
@@ -705,7 +734,7 @@ class DemoDataSeeder extends Seeder
 
         // Accessoires : montant fixe porté par le contrat (pas un taux).
         $accessoires = (float) ($contract->accessories_amount ?: 0);
-        $taxe        = round(($primeNette + $accessoires) * $taxRatePct / 100, 2);
+        $taxe = round(($primeNette + $accessoires) * $taxRatePct / 100, 2);
         $primeTotale = round($primeNette + $accessoires + $taxe, 2);
 
         $lines = [
@@ -727,13 +756,17 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     private function seedEscalades(Tenant $tenant, $certificates, $contracts, ?User $creator, ?User $admin): void
     {
-        if (! class_exists(ApprovalRequest::class) || ! class_exists(ApprovalWorkflowConfig::class)) return;
+        if (! class_exists(ApprovalRequest::class) || ! class_exists(ApprovalWorkflowConfig::class)) {
+            return;
+        }
 
         $configs = ApprovalWorkflowConfig::where('tenant_id', $tenant->id)
             ->where('entity_type', 'CERTIFICATE')
             ->where('is_active', true)
             ->get();
-        if ($configs->isEmpty()) return;
+        if ($configs->isEmpty()) {
+            return;
+        }
 
         // Tri déterministe (numéro de contrat) — sinon get(1)/get(2) ci-dessous
         // pointeraient vers un contrat différent à chaque passage du seeder
@@ -742,7 +775,9 @@ class DemoDataSeeder extends Seeder
         // quickDemoCertificate() générerait un nouveau certificat déterministe
         // pour CE contrat-là — donc plus de certificats à chaque relance.
         $activeContracts = $contracts->where('status', 'ACTIVE')->sortBy('contract_number')->values();
-        if ($activeContracts->isEmpty()) return;
+        if ($activeContracts->isEmpty()) {
+            return;
+        }
 
         // A. Dépassement du "plein" (%) — sur le certificat SUBMITTED déjà généré
         $pctConfig = $configs->first(fn ($c) => isset($c->trigger_condition['insured_value_pct_of_contract']));
@@ -788,56 +823,58 @@ class DemoDataSeeder extends Seeder
     private function quickDemoCertificate(Tenant $tenant, InsuranceContract $contract, ?User $creator, float $insuredValue, string $suffix): Certificate
     {
         $now = now();
-        $number = 'N°ESC-' . $contract->contract_number . '-' . $suffix;
+        $number = 'N°ESC-'.$contract->contract_number.'-'.$suffix;
 
         return Certificate::firstOrCreate(
             ['certificate_number' => $number],
             [
-                'tenant_id'          => $tenant->id,
-                'contract_id'        => $contract->id,
-                'document_type'      => Certificate::DOC_TYPE_ORIGINAL,
-                'policy_number'      => $contract->contract_number,
-                'insured_name'       => $contract->insured_name,
-                'voyage_date'        => $now->copy()->subDays(2),
-                'voyage_from'        => 'Abidjan, Côte d\'Ivoire',
-                'voyage_to'          => 'Le Havre, France',
-                'origin_country_code'      => 'CI',
+                'tenant_id' => $tenant->id,
+                'contract_id' => $contract->id,
+                'document_type' => Certificate::DOC_TYPE_ORIGINAL,
+                'policy_number' => $contract->contract_number,
+                'insured_name' => $contract->insured_name,
+                'voyage_date' => $now->copy()->subDays(2),
+                'voyage_from' => 'Abidjan, Côte d\'Ivoire',
+                'voyage_to' => 'Le Havre, France',
+                'origin_country_code' => 'CI',
                 'destination_country_code' => 'FR',
-                'transport_type'     => 'SEA',
-                'voyage_mode'        => 'CONTAINER',
-                'expedition_items'   => [[
+                'transport_type' => 'SEA',
+                'voyage_mode' => 'CONTAINER',
+                'expedition_items' => [[
                     'marks' => 'NSIA-DEMO', 'package_count' => 10, 'weight' => '5000 kg',
                     'nature' => 'Marchandises diverses', 'packaging' => 'Conteneurs',
                 ]],
-                'currency_code'         => $contract->currency_code,
-                'insured_value'         => $insuredValue,
-                'insured_value_letters' => $this->numberToFrenchWords($insuredValue) . ' ' . $contract->currency_code,
-                'guarantee_mode'        => 'Tous risques',
-                'prime_total'           => round($insuredValue * 0.005, 2),
-                'prime_nette'           => round($insuredValue * 0.005, 2),
-                'status'                => 'SUBMITTED',
-                'created_by'            => $creator?->id,
-                'submitted_at'          => $now,
-                'submitted_by'          => $creator?->id,
+                'currency_code' => $contract->currency_code,
+                'insured_value' => $insuredValue,
+                'insured_value_letters' => $this->numberToFrenchWords($insuredValue).' '.$contract->currency_code,
+                'guarantee_mode' => 'Tous risques',
+                'prime_total' => round($insuredValue * 0.005, 2),
+                'prime_nette' => round($insuredValue * 0.005, 2),
+                'status' => 'SUBMITTED',
+                'created_by' => $creator?->id,
+                'submitted_at' => $now,
+                'submitted_by' => $creator?->id,
             ]
         );
     }
 
     private function createEscaladeRequest(Tenant $tenant, Certificate $cert, ApprovalWorkflowConfig $config, ?User $creator, ?User $admin, string $note): void
     {
-        if (ApprovalRequest::where('entity_id', $cert->id)->exists()) return;
+        if (ApprovalRequest::where('entity_id', $cert->id)->exists()) {
+            return;
+        }
 
         ApprovalRequest::create([
-            'tenant_id'    => $tenant->id,
-            'entity_type'  => 'CERTIFICATE',
-            'entity_id'    => $cert->id,
-            'workflow_id'  => $config->id,
+            'tenant_id' => $tenant->id,
+            'entity_type' => 'CERTIFICATE',
+            'entity_id' => $cert->id,
+            'workflow_id' => $config->id,
             'current_step' => 1,
-            'total_steps'  => count($config->steps_config ?? []),
-            'status'       => 'PENDING',
+            'total_steps' => count($config->steps_config ?? []),
+            'status' => 'PENDING',
             'requested_by' => $creator?->id,
-            'due_date'     => now()->addHours(36), // dans le délai
-            'notes'        => $note,
+            'due_date' => now()->addHours(36), // dans le délai
+            'notes' => $note,
         ]);
 
         if ($admin) {
@@ -856,24 +893,28 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     private function seedCommissionRules(Tenant $tenant, $brokers, $contracts, ?User $creator): void
     {
-        if (! class_exists(CommissionRule::class) || $brokers->isEmpty()) return;
+        if (! class_exists(CommissionRule::class) || $brokers->isEmpty()) {
+            return;
+        }
 
         foreach ($brokers as $idx => $broker) {
             $exists = CommissionRule::where('broker_id', $broker->id)
                 ->whereNull('contract_id')
                 ->exists();
-            if ($exists) continue;
+            if ($exists) {
+                continue;
+            }
 
             CommissionRule::create([
-                'tenant_id'      => $tenant->id,
-                'broker_id'      => $broker->id,
-                'contract_id'    => null,
-                'rate_pct'       => [10.00, 12.50, 8.00][$idx % 3],
-                'base_type'      => CommissionRule::BASE_PRIME_TOTAL,
+                'tenant_id' => $tenant->id,
+                'broker_id' => $broker->id,
+                'contract_id' => null,
+                'rate_pct' => [10.00, 12.50, 8.00][$idx % 3],
+                'base_type' => CommissionRule::BASE_PRIME_TOTAL,
                 'effective_date' => now()->subMonths(3),
-                'is_active'      => true,
-                'notes'          => 'Taux général négocié pour ' . now()->format('Y'),
-                'created_by'     => $creator?->id,
+                'is_active' => true,
+                'notes' => 'Taux général négocié pour '.now()->format('Y'),
+                'created_by' => $creator?->id,
             ]);
         }
 
@@ -884,15 +925,15 @@ class DemoDataSeeder extends Seeder
             $exists = CommissionRule::where('contract_id', $bigContract->id)->exists();
             if (! $exists) {
                 CommissionRule::create([
-                    'tenant_id'      => $tenant->id,
-                    'broker_id'      => $brokers->first()->id,
-                    'contract_id'    => $bigContract->id,
-                    'rate_pct'       => 15.00,
-                    'base_type'      => CommissionRule::BASE_PRIME_TOTAL,
+                    'tenant_id' => $tenant->id,
+                    'broker_id' => $brokers->first()->id,
+                    'contract_id' => $bigContract->id,
+                    'rate_pct' => 15.00,
+                    'base_type' => CommissionRule::BASE_PRIME_TOTAL,
                     'effective_date' => now()->subMonth(),
-                    'is_active'      => true,
-                    'notes'          => 'Taux préférentiel — gros volume (override contrat)',
-                    'created_by'     => $creator?->id,
+                    'is_active' => true,
+                    'notes' => 'Taux préférentiel — gros volume (override contrat)',
+                    'created_by' => $creator?->id,
                 ]);
             }
         }
@@ -904,32 +945,38 @@ class DemoDataSeeder extends Seeder
             ->get();
 
         foreach ($issuedCerts as $cert) {
-            if (! $cert->contract || ! $cert->contract->broker_id) continue;
+            if (! $cert->contract || ! $cert->contract->broker_id) {
+                continue;
+            }
 
             $exists = CommissionTransaction::where('certificate_id', $cert->id)->exists();
-            if ($exists) continue;
+            if ($exists) {
+                continue;
+            }
 
             $rule = CommissionRule::findApplicable($cert->contract->broker_id, $cert->contract_id, $cert->issued_at?->toDateString());
-            if (! $rule) continue;
+            if (! $rule) {
+                continue;
+            }
 
             $primeBrute = (float) $cert->prime_total;
             $commission = round($primeBrute * (float) $rule->rate_pct / 100, 2);
 
             CommissionTransaction::create([
-                'tenant_id'          => $tenant->id,
-                'certificate_id'     => $cert->id,
-                'contract_id'        => $cert->contract_id,
-                'broker_id'          => $cert->contract->broker_id,
+                'tenant_id' => $tenant->id,
+                'certificate_id' => $cert->id,
+                'contract_id' => $cert->contract_id,
+                'broker_id' => $cert->contract->broker_id,
                 'commission_rule_id' => $rule->id,
-                'currency_code'      => $cert->currency_code,
-                'prime_brute'        => $primeBrute,
-                'rate_pct'           => $rule->rate_pct,
-                'commission'         => $commission,
-                'prime_nette'        => $primeBrute - $commission,
-                'period_month'       => $cert->issued_at->format('Y-m'),
-                'status'             => rand(0, 1) ? 'PAID' : 'PENDING',
-                'paid_at'            => rand(0, 1) ? now()->subDays(rand(1, 15)) : null,
-                'created_at'         => $cert->issued_at,
+                'currency_code' => $cert->currency_code,
+                'prime_brute' => $primeBrute,
+                'rate_pct' => $rule->rate_pct,
+                'commission' => $commission,
+                'prime_nette' => $primeBrute - $commission,
+                'period_month' => $cert->issued_at->format('Y-m'),
+                'status' => rand(0, 1) ? 'PAID' : 'PENDING',
+                'paid_at' => rand(0, 1) ? now()->subDays(rand(1, 15)) : null,
+                'created_at' => $cert->issued_at,
             ]);
         }
     }
@@ -939,10 +986,14 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     private function seedTaxRules(Tenant $tenant, ?User $admin): void
     {
-        if (! class_exists(TaxRule::class)) return;
+        if (! class_exists(TaxRule::class)) {
+            return;
+        }
 
         $existing = TaxRule::where('tenant_id', $tenant->id)->count();
-        if ($existing >= 3) return;
+        if ($existing >= 3) {
+            return;
+        }
 
         $modes = TransportMode::whereIn('code', ['SEA', 'AIR', 'ROAD'])->get()->keyBy('code');
 
@@ -955,16 +1006,18 @@ class DemoDataSeeder extends Seeder
 
         foreach ($combos as [$modeCode, $countryCode, $rate]) {
             $mode = $modes->get($modeCode);
-            if (! $mode) continue;
+            if (! $mode) {
+                continue;
+            }
 
             TaxRule::firstOrCreate(
                 ['tenant_id' => $tenant->id, 'transport_mode_id' => $mode->id, 'country_code' => $countryCode],
                 [
-                    'rate_pct'       => $rate,
+                    'rate_pct' => $rate,
                     'effective_date' => now()->subMonths(6),
-                    'is_active'      => true,
-                    'notes'          => 'Taux de démonstration',
-                    'created_by'     => $admin?->id,
+                    'is_active' => true,
+                    'notes' => 'Taux de démonstration',
+                    'created_by' => $admin?->id,
                 ]
             );
         }
@@ -975,65 +1028,71 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     private function seedCertificateRequests(Tenant $tenant, ?Broker $broker, ?User $courtierUser, ?User $admin, $certificates): void
     {
-        if (! class_exists(CertificateRequest::class) || ! $broker || ! $courtierUser) return;
+        if (! class_exists(CertificateRequest::class) || ! $broker || ! $courtierUser) {
+            return;
+        }
 
         $existing = CertificateRequest::where('tenant_id', $tenant->id)->count();
-        if ($existing >= 4) return;
+        if ($existing >= 4) {
+            return;
+        }
 
         $issuedCert = $certificates->first(fn ($c) => $c->status === 'ISSUED' && $c->document_type === Certificate::DOC_TYPE_ORIGINAL);
 
         $scenarios = [
             [
-                'status'       => CertificateRequest::STATUS_PENDING,
+                'status' => CertificateRequest::STATUS_PENDING,
                 'insured_name' => 'DOUALA FREIGHT EXPRESS',
-                'notes'        => 'Nouvelle demande — en attente de prise en charge.',
+                'notes' => 'Nouvelle demande — en attente de prise en charge.',
             ],
             [
-                'status'       => CertificateRequest::STATUS_IN_REVIEW,
+                'status' => CertificateRequest::STATUS_IN_REVIEW,
                 'insured_name' => 'SAHEL IMPORT SARL',
-                'notes'        => 'Demande en cours de traitement par la filiale.',
-                'assigned'     => true,
+                'notes' => 'Demande en cours de traitement par la filiale.',
+                'assigned' => true,
             ],
             [
-                'status'        => CertificateRequest::STATUS_REJECTED,
-                'insured_name'  => 'ATLANTIC CARGO LTD',
-                'notes'         => 'Dossier incomplet.',
-                'review_notes'  => 'Pièces justificatives manquantes — merci de renvoyer la facture commerciale.',
+                'status' => CertificateRequest::STATUS_REJECTED,
+                'insured_name' => 'ATLANTIC CARGO LTD',
+                'notes' => 'Dossier incomplet.',
+                'review_notes' => 'Pièces justificatives manquantes — merci de renvoyer la facture commerciale.',
             ],
             [
-                'status'            => CertificateRequest::STATUS_APPROVED,
-                'insured_name'      => 'WEST AFRICA TRADING',
-                'notes'             => 'Certificat mis à disposition.',
-                'review_notes'      => 'Dossier conforme — approuvé.',
-                'link_certificate'  => true,
+                'status' => CertificateRequest::STATUS_APPROVED,
+                'insured_name' => 'WEST AFRICA TRADING',
+                'notes' => 'Certificat mis à disposition.',
+                'review_notes' => 'Dossier conforme — approuvé.',
+                'link_certificate' => true,
             ],
         ];
 
         foreach ($scenarios as $i => $s) {
             $exists = CertificateRequest::where('tenant_id', $tenant->id)
                 ->where('insured_name', $s['insured_name'])->exists();
-            if ($exists) continue;
+            if ($exists) {
+                continue;
+            }
 
             $createdAt = now()->subDays(10 - $i * 2);
 
             $req = CertificateRequest::create([
-                'tenant_id'         => $tenant->id,
-                'broker_id'         => $broker->id,
-                'created_by'        => $courtierUser->id,
-                'country_code'      => 'CI',
-                'insured_name'      => $s['insured_name'],
-                'voyage_from'       => 'Abidjan, Côte d\'Ivoire',
-                'voyage_to'         => 'Le Havre, France',
-                'voyage_date'       => now()->addDays(rand(5, 20)),
-                'transport_type'    => 'SEA',
+                'tenant_id' => $tenant->id,
+                'broker_id' => $broker->id,
+                'created_by' => $courtierUser->id,
+                'country_code' => 'CI',
+                'insured_name' => $s['insured_name'],
+                'voyage_from' => 'Abidjan, Côte d\'Ivoire',
+                'voyage_to' => 'Le Havre, France',
+                'voyage_date' => now()->addDays(rand(5, 20)),
+                'transport_type' => 'SEA',
                 'cargo_description' => 'Marchandises diverses',
-                'estimated_value'   => rand(5, 50) * 1_000_000,
-                'currency_code'     => 'XOF',
-                'notes'             => $s['notes'],
-                'status'            => $s['status'],
-                'reference'         => CertificateRequest::nextReference(),
-                'submitted_at'      => $createdAt,
-                'created_at'        => $createdAt,
+                'estimated_value' => rand(5, 50) * 1_000_000,
+                'currency_code' => 'XOF',
+                'notes' => $s['notes'],
+                'status' => $s['status'],
+                'reference' => CertificateRequest::nextReference(),
+                'submitted_at' => $createdAt,
+                'created_at' => $createdAt,
             ]);
 
             if (! empty($s['assigned']) || in_array($s['status'], [CertificateRequest::STATUS_REJECTED, CertificateRequest::STATUS_APPROVED], true)) {
@@ -1041,8 +1100,8 @@ class DemoDataSeeder extends Seeder
                 $req->assigned_at = $createdAt->copy()->addHours(3);
             }
             if (in_array($s['status'], [CertificateRequest::STATUS_REJECTED, CertificateRequest::STATUS_APPROVED], true)) {
-                $req->reviewed_by  = $admin?->id;
-                $req->reviewed_at  = $createdAt->copy()->addDay();
+                $req->reviewed_by = $admin?->id;
+                $req->reviewed_at = $createdAt->copy()->addDay();
                 $req->review_notes = $s['review_notes'];
             }
             if (! empty($s['link_certificate']) && $issuedCert) {
@@ -1057,38 +1116,42 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     private function seedGuceCertificates(Tenant $tenant, ?User $admin): void
     {
-        if (! class_exists(GuceCertificate::class) || ! $admin) return;
+        if (! class_exists(GuceCertificate::class) || ! $admin) {
+            return;
+        }
 
         $existing = GuceCertificate::where('tenant_id', $tenant->id)->count();
-        if ($existing >= 2) return;
+        if ($existing >= 2) {
+            return;
+        }
 
         $samples = [
-            ['ref' => 'INS' . now()->format('Y') . '-' . strtoupper($tenant->code) . '-01', 'name' => 'IVOIRE LOGISTIQUE', 'value' => 45_000_000],
-            ['ref' => 'INS' . now()->format('Y') . '-' . strtoupper($tenant->code) . '-02', 'name' => 'TROPICAL GOODS SA',  'value' => 22_500_000],
+            ['ref' => 'INS'.now()->format('Y').'-'.strtoupper($tenant->code).'-01', 'name' => 'IVOIRE LOGISTIQUE', 'value' => 45_000_000],
+            ['ref' => 'INS'.now()->format('Y').'-'.strtoupper($tenant->code).'-02', 'name' => 'TROPICAL GOODS SA',  'value' => 22_500_000],
         ];
 
         foreach ($samples as $s) {
-            $path = 'guce-certificates/demo/' . Str::uuid() . '.pdf';
+            $path = 'guce-certificates/demo/'.Str::uuid().'.pdf';
 
             GuceCertificate::firstOrCreate(
                 ['guce_reference' => $s['ref']],
                 [
-                    'tenant_id'          => $tenant->id,
-                    'imported_by'        => $admin->id,
+                    'tenant_id' => $tenant->id,
+                    'imported_by' => $admin->id,
                     'certificate_number' => (string) rand(10000000000000, 99999999999999),
-                    'insured_name'       => $s['name'],
-                    'cargo_description'  => 'Marchandises diverses import/export',
-                    'origin'             => 'Shanghai, Chine',
-                    'destination'        => 'Abidjan, Côte d\'Ivoire',
-                    'transit_date'       => now()->subDays(rand(5, 30)),
-                    'insured_value'      => $s['value'],
-                    'currency'           => 'XOF',
-                    'net_premium'        => round($s['value'] * 0.004, 2),
-                    'total_premium'      => round($s['value'] * 0.005, 2),
-                    'file_path'          => $path,
+                    'insured_name' => $s['name'],
+                    'cargo_description' => 'Marchandises diverses import/export',
+                    'origin' => 'Shanghai, Chine',
+                    'destination' => 'Abidjan, Côte d\'Ivoire',
+                    'transit_date' => now()->subDays(rand(5, 30)),
+                    'insured_value' => $s['value'],
+                    'currency' => 'XOF',
+                    'net_premium' => round($s['value'] * 0.004, 2),
+                    'total_premium' => round($s['value'] * 0.005, 2),
+                    'file_path' => $path,
                     'file_original_name' => 'certificat-guce-demo.pdf',
-                    'file_mime_type'     => 'application/pdf',
-                    'notes'              => 'Certificat de démonstration — import GUCE.',
+                    'file_mime_type' => 'application/pdf',
+                    'notes' => 'Certificat de démonstration — import GUCE.',
                 ]
             );
 
@@ -1098,9 +1161,9 @@ class DemoDataSeeder extends Seeder
             // téléchargement échoue systématiquement (404).
             if (! Storage::disk('private')->exists($path)) {
                 $placeholder = Pdf::loadHTML(
-                    '<h2>Certificat GUCE — ' . e($s['ref']) . '</h2>'
-                    . '<p>Document de démonstration généré automatiquement — aucun certificat officiel réel.</p>'
-                    . '<p>Assuré : ' . e($s['name']) . '</p>'
+                    '<h2>Certificat GUCE — '.e($s['ref']).'</h2>'
+                    .'<p>Document de démonstration généré automatiquement — aucun certificat officiel réel.</p>'
+                    .'<p>Assuré : '.e($s['name']).'</p>'
                 )->output();
 
                 Storage::disk('private')->put($path, $placeholder);
@@ -1113,54 +1176,58 @@ class DemoDataSeeder extends Seeder
     // ════════════════════════════════════════════════════════
     private function seedDelegations(Tenant $tenant, $users, ?User $admin): void
     {
-        if (! class_exists(UserRoleGrant::class) || ! $admin) return;
+        if (! class_exists(UserRoleGrant::class) || ! $admin) {
+            return;
+        }
 
         // UserSeeder ne crée qu'UN seul utilisateur par rôle par filiale — on
         // ne peut donc pas s'appuyer sur 2 souscripteurs distincts. On utilise
         // à la place le souscripteur et le courtier de la filiale comme les
         // deux bénéficiaires distincts nécessaires aux 3 scénarios.
         $souscripteur = $users->first(fn ($u) => $u->hasRole('souscripteur'));
-        $courtier     = $users->first(fn ($u) => $u->hasRole('courtier_local'));
-        if (! $souscripteur) return;
+        $courtier = $users->first(fn ($u) => $u->hasRole('courtier_local'));
+        if (! $souscripteur) {
+            return;
+        }
 
         // 1. Délégation ACTIVE — le souscripteur reçoit temporairement le rôle admin_filiale
         if (! UserRoleGrant::where('user_id', $souscripteur->id)->where('granted_by', $admin->id)->where('role_name', 'admin_filiale')->exists()) {
             UserRoleGrant::create([
-                'user_id'    => $souscripteur->id,
-                'tenant_id'  => $tenant->id,
-                'role_name'  => 'admin_filiale',
+                'user_id' => $souscripteur->id,
+                'tenant_id' => $tenant->id,
+                'role_name' => 'admin_filiale',
                 'granted_by' => $admin->id,
                 'granted_at' => now()->subDays(2),
                 'expires_at' => now()->addDays(5),
-                'reason'     => 'Remplacement pendant congés annuels',
+                'reason' => 'Remplacement pendant congés annuels',
             ]);
         }
 
         // 2. Délégation EXPIRÉE — le courtier avait reçu temporairement le rôle souscripteur
         if ($courtier && ! UserRoleGrant::where('user_id', $courtier->id)->where('granted_by', $admin->id)->where('expires_at', '<', now())->exists()) {
             UserRoleGrant::create([
-                'user_id'    => $courtier->id,
-                'tenant_id'  => $tenant->id,
-                'role_name'  => 'souscripteur',
+                'user_id' => $courtier->id,
+                'tenant_id' => $tenant->id,
+                'role_name' => 'souscripteur',
                 'granted_by' => $admin->id,
                 'granted_at' => now()->subDays(30),
                 'expires_at' => now()->subDays(5),
-                'reason'     => 'Mission temporaire',
+                'reason' => 'Mission temporaire',
             ]);
         }
 
         // 3. Délégation RÉVOQUÉE — le souscripteur avait reçu délégation courtier_local
         if (! UserRoleGrant::where('user_id', $souscripteur->id)->whereNotNull('revoked_at')->exists()) {
             UserRoleGrant::create([
-                'user_id'    => $souscripteur->id,
-                'tenant_id'  => $tenant->id,
-                'role_name'  => 'courtier_local',
+                'user_id' => $souscripteur->id,
+                'tenant_id' => $tenant->id,
+                'role_name' => 'courtier_local',
                 'granted_by' => $admin->id,
                 'granted_at' => now()->subDays(15),
                 'expires_at' => now()->addDays(10),
                 'revoked_by' => $admin->id,
                 'revoked_at' => now()->subDays(3),
-                'reason'     => 'Délégation de validation courtier | Révocation : Retour anticipé de congés',
+                'reason' => 'Délégation de validation courtier | Révocation : Retour anticipé de congés',
             ]);
         }
     }
@@ -1171,15 +1238,19 @@ class DemoDataSeeder extends Seeder
     private function seedNotifications($users): void
     {
         $admin = $users->first(fn ($u) => $u->hasRole('admin_filiale')) ?? $users->first();
-        if (! $admin) return;
+        if (! $admin) {
+            return;
+        }
 
         $existing = Notification::forUser($admin->id)->count();
-        if ($existing >= 5) return;
+        if ($existing >= 5) {
+            return;
+        }
 
         $samples = [
             ['type' => 'CertificateIssued',        'title' => 'Certificat émis',              'body' => 'N° 100123 émis avec succès', 'icon' => 'check-circle', 'color' => 'success', 'read' => true],
             ['type' => 'CertificateSubmitted',     'title' => 'Certificat en attente',        'body' => 'N° 100125 — SOTRACI en attente de validation', 'icon' => 'clock', 'color' => 'warning', 'read' => false],
-            ['type' => 'CertificateRequestCreated','title' => 'Nouvelle demande de certificat','body' => 'Nouvelle demande partenaire à traiter', 'icon' => 'inbox', 'color' => 'info', 'read' => false],
+            ['type' => 'CertificateRequestCreated', 'title' => 'Nouvelle demande de certificat', 'body' => 'Nouvelle demande partenaire à traiter', 'icon' => 'inbox', 'color' => 'info', 'read' => false],
             ['type' => 'ContractExpiring',         'title' => 'Contrat expirant bientôt',     'body' => 'CT-2025-0010 expire dans 15 jours', 'icon' => 'alert-triangle', 'color' => 'warning', 'read' => false],
             ['type' => 'EscaladeNN300',            'title' => 'Escalade NN300 — Niveau 1',    'body' => 'Un certificat dépasse le seuil configuré', 'icon' => 'trending-up', 'color' => 'danger', 'read' => false],
             ['type' => 'DelegationGranted',        'title' => 'Délégation reçue',             'body' => 'Vous avez reçu une délégation temporaire', 'icon' => 'user-check', 'color' => 'info', 'read' => true],
@@ -1188,9 +1259,9 @@ class DemoDataSeeder extends Seeder
 
         foreach ($samples as $i => $s) {
             $notif = Notification::send($admin, $s['type'], $s['title'], $s['body'], [
-                'icon'  => $s['icon'],
+                'icon' => $s['icon'],
                 'color' => $s['color'],
-                'url'   => '/admin/dashboard',
+                'url' => '/admin/dashboard',
             ]);
             if ($s['read']) {
                 $notif->update(['read_at' => now()->subHours(rand(1, 48))]);
@@ -1206,7 +1277,9 @@ class DemoDataSeeder extends Seeder
     private function numberToFrenchWords(float $number): string
     {
         $number = (int) $number;
-        if ($number === 0) return 'zéro';
+        if ($number === 0) {
+            return 'zéro';
+        }
 
         $units = ['', 'mille', 'million', 'milliard'];
         $groups = [];
@@ -1217,8 +1290,10 @@ class DemoDataSeeder extends Seeder
 
         $result = [];
         foreach (array_reverse($groups, true) as $i => $group) {
-            if ($group === 0) continue;
-            $result[] = number_format($group, 0, '', ' ') . ($units[$i] ? ' ' . $units[$i] : '');
+            if ($group === 0) {
+                continue;
+            }
+            $result[] = number_format($group, 0, '', ' ').($units[$i] ? ' '.$units[$i] : '');
         }
 
         return implode(' ', $result);

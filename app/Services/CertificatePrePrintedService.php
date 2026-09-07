@@ -69,10 +69,10 @@ class CertificatePrePrintedService
             }
 
             $fontSize = $pos['fontSize'] ?? 9;
-            $align    = match ($pos['align'] ?? 'L') {
+            $align = match ($pos['align'] ?? 'L') {
                 'center', 'C' => 'C',
-                'right', 'R'  => 'R',
-                default       => 'L',
+                'right', 'R' => 'R',
+                default => 'L',
             };
 
             $pdf->SetFont('Arial', ! empty($pos['bold']) ? 'B' : '', $fontSize);
@@ -116,7 +116,7 @@ class CertificatePrePrintedService
     {
         foreach ($layout as $key => $pos) {
             $layout[$key]['left'] = ($pos['left'] ?? 0) + $offsetX;
-            $layout[$key]['top']  = ($pos['top'] ?? 0) + $offsetY;
+            $layout[$key]['top'] = ($pos['top'] ?? 0) + $offsetY;
         }
 
         return $layout;
@@ -136,12 +136,12 @@ class CertificatePrePrintedService
             }
 
             $layout[$pos['key']] = [
-                'top'      => (float) ($pos['top'] ?? 0),
-                'left'     => (float) ($pos['left'] ?? 0),
-                'width'    => isset($pos['width']) ? (float) $pos['width'] : null,
+                'top' => (float) ($pos['top'] ?? 0),
+                'left' => (float) ($pos['left'] ?? 0),
+                'width' => isset($pos['width']) ? (float) $pos['width'] : null,
                 'fontSize' => isset($pos['fontSize']) ? (float) $pos['fontSize'] : null,
-                'align'    => $pos['align'] ?? 'left',
-                'bold'     => ! empty($pos['bold']),
+                'align' => $pos['align'] ?? 'left',
+                'bold' => ! empty($pos['bold']),
             ];
         }
 
@@ -196,10 +196,10 @@ class CertificatePrePrintedService
             }
 
             $fontSize = $pos['fontSize'] ?? 9;
-            $align    = match ($pos['align'] ?? 'L') {
+            $align = match ($pos['align'] ?? 'L') {
                 'center', 'C' => 'C',
-                'right', 'R'  => 'R',
-                default       => 'L',
+                'right', 'R' => 'R',
+                default => 'L',
             };
 
             $pdf->SetFont('helvetica', ! empty($pos['bold']) ? 'B' : '', $fontSize);
@@ -212,7 +212,7 @@ class CertificatePrePrintedService
 
     private function drawCalibrationGrid(FPDF $pdf, array $layout): void
     {
-        $width  = 210;
+        $width = 210;
         $height = 297;
 
         $pdf->SetDrawColor(29, 78, 216);
@@ -244,7 +244,7 @@ class CertificatePrePrintedService
 
         foreach ($layout as $key => $pos) {
             $fontSize = $pos['fontSize'] ?? 9;
-            $h        = max(3, $fontSize / 2.5);
+            $h = max(3, $fontSize / 2.5);
             $pdf->Rect($pos['left'], $pos['top'], $pos['width'] ?? 15, $h);
             $pdf->SetXY($pos['left'], $pos['top'] - 3);
             $pdf->Cell($pos['width'] ?? 15, 3, $key);
@@ -284,58 +284,58 @@ class CertificatePrePrintedService
 
     private function buildFieldValues(Certificate $cert): array
     {
-        $contract      = $cert->contract;
-        $settings      = $cert->tenant?->settings ?? [];
-        $primes        = collect($cert->prime_breakdown ?? []);
-        $item          = collect($cert->expedition_items ?? [])->first() ?? collect();
+        $contract = $cert->contract;
+        $settings = $cert->tenant?->settings ?? [];
+        $primes = collect($cert->prime_breakdown ?? []);
+        $item = collect($cert->expedition_items ?? [])->first() ?? collect();
         $transportType = $cert->transport_type ?? '';
 
         $row = function (string $key) use ($primes, $cert) {
             $line = $primes->firstWhere('key', $key);
 
             return [
-                'rate'   => $line ? $this->fmtRate((float) ($line['rate'] ?? 0)) : '',
+                'rate' => $line ? $this->fmtRate((float) ($line['rate'] ?? 0)) : '',
                 'amount' => $line ? $this->fmt($line['amount'] ?? null, $cert->currency_code) : '',
             ];
         };
 
-        $ro          = $row('ro');
-        $rg          = $row('rg');
-        $surprime    = $row('surprime');
-        $divers      = $row('divers');
+        $ro = $row('ro');
+        $rg = $row('rg');
+        $surprime = $row('surprime');
+        $divers = $row('divers');
         $accessoires = $row('accessoires');
-        $taxe        = $row('taxe');
+        $taxe = $row('taxe');
 
         return [
-            'certificate_number'       => $cert->certificate_number ?? '',
-            'policy_number'            => $cert->policy_number ?? '',
-            'issue_place'              => $settings['city'] ?? '',
-            'issue_date'               => $this->fmtDate($cert->issued_at ?? $cert->created_at),
-            'insured_name'             => $cert->insured_name ?? '',
-            'insured_address'          => $contract?->insured_address ?? '',
+            'certificate_number' => $cert->certificate_number ?? '',
+            'policy_number' => $cert->policy_number ?? '',
+            'issue_place' => $settings['city'] ?? '',
+            'issue_date' => $this->fmtDate($cert->issued_at ?? $cert->created_at),
+            'insured_name' => $cert->insured_name ?? '',
+            'insured_address' => $contract?->insured_address ?? '',
             // Combiné pour les souches à une seule ligne libre sous
             // ASSURE (ex. Togo) — cf. build-field-values.ts.
             'insured_name_and_address' => collect([$cert->insured_name, $contract?->insured_address])->filter()->implode(' — '),
-            'insured_ref'              => $cert->insured_ref ?? '',
-            'voyage_date'              => $this->fmtDate($cert->voyage_date),
-            'voyage_from'              => $cert->voyage_from ?? '',
-            'voyage_to'                => $cert->voyage_to ?? '',
-            'voyage_via'               => $cert->voyage_via ?? '',
-            'transport_air'            => $transportType === 'AIR' ? 'X' : '',
-            'flight_number'            => $cert->flight_number ?? '',
-            'transport_sea'            => $transportType === 'SEA' ? 'X' : '',
-            'vessel_name'              => $cert->vessel_name ?? '',
-            'transport_road'           => $transportType === 'ROAD' ? 'X' : '',
-            'voyage_mode'              => $cert->voyage_mode ?? '',
-            'marks'                    => $item['marks'] ?? '',
-            'package_numbers'          => $item['package_numbers'] ?? '',
-            'package_count'            => isset($item['package_count']) ? (string) $item['package_count'] : '',
-            'weight'                   => $item['weight'] ?? '',
-            'nature'                   => $item['nature'] ?? '',
-            'packaging'                => $item['packaging'] ?? '',
-            'insured_value'            => $this->fmt($cert->insured_value, $cert->currency_code),
-            'insured_value_letters'    => $cert->insured_value_letters ?? '',
-            'guarantee_mode'           => $cert->guarantee_mode ?? $contract?->coverage_type ?? '',
+            'insured_ref' => $cert->insured_ref ?? '',
+            'voyage_date' => $this->fmtDate($cert->voyage_date),
+            'voyage_from' => $cert->voyage_from ?? '',
+            'voyage_to' => $cert->voyage_to ?? '',
+            'voyage_via' => $cert->voyage_via ?? '',
+            'transport_air' => $transportType === 'AIR' ? 'X' : '',
+            'flight_number' => $cert->flight_number ?? '',
+            'transport_sea' => $transportType === 'SEA' ? 'X' : '',
+            'vessel_name' => $cert->vessel_name ?? '',
+            'transport_road' => $transportType === 'ROAD' ? 'X' : '',
+            'voyage_mode' => $cert->voyage_mode ?? '',
+            'marks' => $item['marks'] ?? '',
+            'package_numbers' => $item['package_numbers'] ?? '',
+            'package_count' => isset($item['package_count']) ? (string) $item['package_count'] : '',
+            'weight' => $item['weight'] ?? '',
+            'nature' => $item['nature'] ?? '',
+            'packaging' => $item['packaging'] ?? '',
+            'insured_value' => $this->fmt($cert->insured_value, $cert->currency_code),
+            'insured_value_letters' => $cert->insured_value_letters ?? '',
+            'guarantee_mode' => $cert->guarantee_mode ?? $contract?->coverage_type ?? '',
             'rate_ro' => $ro['rate'], 'amount_ro' => $ro['amount'],
             'rate_rg' => $rg['rate'], 'amount_rg' => $rg['amount'],
             'rate_surprime' => $surprime['rate'], 'amount_surprime' => $surprime['amount'],
@@ -345,11 +345,11 @@ class CertificatePrePrintedService
             // prime_nette est une colonne propre du certificat (somme
             // RO+RG+Divers+Surprime déjà calculée), PAS une ligne de
             // prime_breakdown — contrairement aux autres montants ci-dessus.
-            'rate_prime_nette'         => '',
-            'amount_prime_nette'       => $this->fmt($cert->prime_nette, $cert->currency_code),
-            'prime_total'              => $this->fmt($cert->prime_total, $cert->currency_code),
-            'currency_code'            => $cert->currency_code ?? '',
-            'issued_by'                => $cert->issuedBy ? trim($cert->issuedBy->first_name.' '.$cert->issuedBy->last_name) : '',
+            'rate_prime_nette' => '',
+            'amount_prime_nette' => $this->fmt($cert->prime_nette, $cert->currency_code),
+            'prime_total' => $this->fmt($cert->prime_total, $cert->currency_code),
+            'currency_code' => $cert->currency_code ?? '',
+            'issued_by' => $cert->issuedBy ? trim($cert->issuedBy->first_name.' '.$cert->issuedBy->last_name) : '',
         ];
     }
 

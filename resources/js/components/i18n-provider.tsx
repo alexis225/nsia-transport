@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
-import { type i18n as I18nInstance } from 'i18next';
-import { type ReactNode, useEffect } from 'react';
+import type { i18n as I18nInstance } from 'i18next';
+import { useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { changeLocale, isSupportedLocale } from '@/lib/i18n';
 

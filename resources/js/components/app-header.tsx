@@ -34,7 +34,6 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import type { BreadcrumbItem, NavItem } from '@/types';
-import NotificationBell from './notification-bell';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
@@ -69,6 +68,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const { auth } = page.props;
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -224,10 +224,10 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                     <Avatar className="size-8 overflow-hidden rounded-full">
                                         <AvatarImage
                                             src={auth.user.avatar}
-                                            alt={auth.user.name}
+                                            alt={auth.user.first_name}
                                         />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
+                                            {getInitials(auth.user.first_name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>

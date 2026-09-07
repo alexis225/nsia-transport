@@ -24,29 +24,71 @@ import type { CertificateForPrint } from './types';
 //   - Pas de cases à cocher AVION/NAVIRE/ROUTIER ni CONTAINER/VRAC.
 export const BENIN_POSITIONS: FieldPosition[] = [
     // ── En-tête ──
-    { key: 'certificate_number',    top: 60.7,  left: 126.74, width: 67.47, fontSize: 13 },
-    { key: 'policy_number',         top: 83.62, left: 140.89, width: 28.57, fontSize: 13 },
-    { key: 'voyage_date',           top: 88.55, left: 172.9,  width: 21.17, fontSize: 13 },
+    {
+        key: 'certificate_number',
+        top: 60.7,
+        left: 126.74,
+        width: 67.47,
+        fontSize: 13,
+    },
+    {
+        key: 'policy_number',
+        top: 83.62,
+        left: 140.89,
+        width: 28.57,
+        fontSize: 13,
+    },
+    { key: 'voyage_date', top: 88.55, left: 172.9, width: 21.17, fontSize: 13 },
 
     // ── ASSURE ──
-    { key: 'insured_name',          top: 89.86, left: 35.98,  width: 62.71, fontSize: 13 },
+    {
+        key: 'insured_name',
+        top: 89.86,
+        left: 35.98,
+        width: 62.71,
+        fontSize: 13,
+    },
 
     // ── MARCHANDISE / POIDS / MARQUES ──
-    { key: 'nature',                top: 111.03, left: 16.67,  width: 43.92, fontSize: 13 },
-    { key: 'package_count',         top: 110.69, left: 61.91,  width: 37.57, fontSize: 13 },
-    { key: 'weight',                top: 101.16, left: 123.82, width: 28.84, fontSize: 13 },
-    { key: 'marks',                 top: 113.94, left: 117.21, width: 75.94, fontSize: 13 },
+    { key: 'nature', top: 111.03, left: 16.67, width: 43.92, fontSize: 13 },
+    {
+        key: 'package_count',
+        top: 110.69,
+        left: 61.91,
+        width: 37.57,
+        fontSize: 13,
+    },
+    { key: 'weight', top: 101.16, left: 123.82, width: 28.84, fontSize: 13 },
+    { key: 'marks', top: 113.94, left: 117.21, width: 75.94, fontSize: 13 },
 
     // ── NAVIRE / VOYAGE ──
-    { key: 'vessel_name',           top: 134.7, left: 17.06,  width: 81.76, fontSize: 13 },
-    { key: 'voyage_via',            top: 127.44, left: 117.6,  width: 75.41, fontSize: 13 },
+    { key: 'vessel_name', top: 134.7, left: 17.06, width: 81.76, fontSize: 13 },
+    { key: 'voyage_via', top: 127.44, left: 117.6, width: 75.41, fontSize: 13 },
 
     // ── VALEUR D'ASSURANCE ──
-    { key: 'insured_value',         top: 182.91, left: 16.65,  width: 82.81, fontSize: 13 },
-    { key: 'insured_value_letters', top: 179.3, left: 105.84, width: 88.64, fontSize: 13 },
+    {
+        key: 'insured_value',
+        top: 182.91,
+        left: 16.65,
+        width: 82.81,
+        fontSize: 13,
+    },
+    {
+        key: 'insured_value_letters',
+        top: 179.3,
+        left: 105.84,
+        width: 88.64,
+        fontSize: 13,
+    },
 
     // ── Pied de page (Cotonou, le …) ──
-    { key: 'issue_date',            top: 234.67, left: 134.22, width: 43.39, fontSize: 13 },
+    {
+        key: 'issue_date',
+        top: 234.67,
+        left: 134.22,
+        width: 43.39,
+        fontSize: 13,
+    },
 ];
 
 interface Props {
@@ -55,6 +97,16 @@ interface Props {
     positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateBenin({ certificate, calibrate, positionsOverride }: Props) {
-    return <StubOverlay certificate={certificate} positions={positionsOverride ?? BENIN_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateBenin({
+    certificate,
+    calibrate,
+    positionsOverride,
+}: Props) {
+    return (
+        <StubOverlay
+            certificate={certificate}
+            positions={positionsOverride ?? BENIN_POSITIONS}
+            calibrate={calibrate}
+        />
+    );
 }

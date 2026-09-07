@@ -21,14 +21,15 @@ beforeEach(function () {
 function makeUser(array $overrides = []): User
 {
     $tenant = Tenant::factory()->create();
+
     return User::factory()->create(array_merge([
-        'tenant_id'             => $tenant->id,
-        'email'                 => 'test@nsia-ci.com',
-        'password'              => Hash::make('Password@123'),
-        'is_active'             => true,
+        'tenant_id' => $tenant->id,
+        'email' => 'test@nsia-ci.com',
+        'password' => Hash::make('Password@123'),
+        'is_active' => true,
         'failed_login_attempts' => 0,
-        'locked_until'          => null,
-        'mfa_enabled'           => false,
+        'locked_until' => null,
+        'mfa_enabled' => false,
     ], $overrides));
 }
 
@@ -37,7 +38,7 @@ it('redirige vers /dashboard sur login réussi', function () {
     makeUser();
 
     $this->post('/login', [
-        'email'    => 'test@nsia-ci.com',
+        'email' => 'test@nsia-ci.com',
         'password' => 'Password@123',
     ])->assertRedirect('/dashboard');
 
@@ -49,7 +50,7 @@ it('retourne une erreur sur mot de passe incorrect', function () {
     makeUser();
 
     $this->post('/login', [
-        'email'    => 'test@nsia-ci.com',
+        'email' => 'test@nsia-ci.com',
         'password' => 'mauvais',
     ])->assertSessionHasErrors();
 
@@ -59,7 +60,7 @@ it('retourne une erreur sur mot de passe incorrect', function () {
 // ── Test 3 : Email inexistant ────────────────────────────────
 it('retourne une erreur sur email inexistant', function () {
     $this->post('/login', [
-        'email'    => 'inconnu@nsia.com',
+        'email' => 'inconnu@nsia.com',
         'password' => 'Password@123',
     ])->assertSessionHasErrors();
 });
@@ -74,7 +75,7 @@ it('bloque après 5 tentatives échouées', function () {
 
     // 6ème tentative → rate limiter → 429
     $this->post('/login', [
-        'email'    => 'test@nsia-ci.com',
+        'email' => 'test@nsia-ci.com',
         'password' => 'Password@123',
     ])->assertStatus(429);
 });
@@ -84,7 +85,7 @@ it('refuse la connexion si is_active = false', function () {
     makeUser(['is_active' => false]);
 
     $this->post('/login', [
-        'email'    => 'test@nsia-ci.com',
+        'email' => 'test@nsia-ci.com',
         'password' => 'Password@123',
     ])->assertSessionHasErrors();
 
@@ -96,7 +97,7 @@ it('refuse la connexion si locked_until est dans le futur', function () {
     makeUser(['locked_until' => now()->addMinutes(5)]);
 
     $this->post('/login', [
-        'email'    => 'test@nsia-ci.com',
+        'email' => 'test@nsia-ci.com',
         'password' => 'Password@123',
     ])->assertSessionHasErrors();
 
@@ -133,7 +134,7 @@ it('met à jour last_login_at après connexion réussie', function () {
     $user = makeUser();
 
     $this->post('/login', [
-        'email'    => 'test@nsia-ci.com',
+        'email' => 'test@nsia-ci.com',
         'password' => 'Password@123',
     ]);
 
@@ -146,13 +147,13 @@ it('crée un audit_log login_success', function () {
     $user = makeUser();
 
     $this->post('/login', [
-        'email'    => 'test@nsia-ci.com',
+        'email' => 'test@nsia-ci.com',
         'password' => 'Password@123',
     ]);
 
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $user->id,
-        'action'  => 'login_success',
+        'action' => 'login_success',
     ]);
 });
 
@@ -161,12 +162,12 @@ it('crée un audit_log login_failed sur mauvais mot de passe', function () {
     $user = makeUser();
 
     $this->post('/login', [
-        'email'    => 'test@nsia-ci.com',
+        'email' => 'test@nsia-ci.com',
         'password' => 'mauvais',
     ]);
 
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $user->id,
-        'action'  => 'login_failed',
+        'action' => 'login_failed',
     ]);
 });

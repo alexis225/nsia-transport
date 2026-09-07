@@ -3,10 +3,11 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserRoleGrant;
 use Illuminate\Support\Facades\DB;
-use App\Models\Notification;
+
 /**
  * ============================================================
  * DelegationService — US-036
@@ -23,22 +24,22 @@ class DelegationService
     // ══════════════════════════════════════════════════════════
 
     public function create(
-        User    $grantor,
-        User    $grantee,
-        string  $roleName,
-        string  $expiresAt,
+        User $grantor,
+        User $grantee,
+        string $roleName,
+        string $expiresAt,
         ?string $reason = null
     ): UserRoleGrant {
         return DB::transaction(function () use ($grantor, $grantee, $roleName, $expiresAt, $reason) {
 
             $grant = UserRoleGrant::create([
-                'user_id'    => $grantee->id,
-                'tenant_id'  => $grantor->tenant_id,
-                'role_name'  => $roleName,
+                'user_id' => $grantee->id,
+                'tenant_id' => $grantor->tenant_id,
+                'role_name' => $roleName,
                 'granted_by' => $grantor->id,
                 'granted_at' => now(),
                 'expires_at' => $expiresAt,
-                'reason'     => $reason,
+                'reason' => $reason,
             ]);
 
             $roleLabel = UserRoleGrant::DELEGATABLE_ROLES[$roleName] ?? $roleName;
@@ -50,13 +51,13 @@ class DelegationService
                 "Rôle délégué : {$roleLabel}",
                 "{$grantor->first_name} {$grantor->last_name} vous a délégué le rôle {$roleLabel}",
                 [
-                    'icon'       => 'user-check',
-                    'color'      => 'info',
-                    'url'        => route('admin.delegations.index'),
-                    'entity_id'  => $grant->id,
-                    'role_name'  => $roleName,
+                    'icon' => 'user-check',
+                    'color' => 'info',
+                    'url' => route('admin.delegations.index'),
+                    'entity_id' => $grant->id,
+                    'role_name' => $roleName,
                     'role_label' => $roleLabel,
-                    'grantor'    => $grantor->first_name . ' ' . $grantor->last_name,
+                    'grantor' => $grantor->first_name.' '.$grantor->last_name,
                     'expires_at' => $expiresAt,
                 ]
             );
@@ -65,31 +66,31 @@ class DelegationService
             Notification::send(
                 $grantor,
                 'DelegationCreated',
-                "Délégation créée",
+                'Délégation créée',
                 "Vous avez délégué le rôle {$roleLabel} à {$grantee->first_name} {$grantee->last_name}",
                 [
-                    'icon'      => 'user-check',
-                    'color'     => 'success',
-                    'url'       => route('admin.delegations.index'),
+                    'icon' => 'user-check',
+                    'color' => 'success',
+                    'url' => route('admin.delegations.index'),
                     'entity_id' => $grant->id,
                 ]
             );
 
             // ── Audit log ─────────────────────────────────────
             AuditLog::create([
-                'tenant_id'   => $grantor->tenant_id,
-                'user_id'     => $grantor->id,
-                'action'      => 'delegation.created',
+                'tenant_id' => $grantor->tenant_id,
+                'user_id' => $grantor->id,
+                'action' => 'delegation.created',
                 'entity_type' => 'UserRoleGrant',
-                'entity_id'   => $grant->id,
-                'severity'    => 'WARNING',
-                'ip_address'  => request()->ip(),
-                'user_agent'  => request()->userAgent(),
-                'new_values'  => [
-                    'grantee'    => $grantee->email,
-                    'role'       => $roleName,
+                'entity_id' => $grant->id,
+                'severity' => 'WARNING',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'new_values' => [
+                    'grantee' => $grantee->email,
+                    'role' => $roleName,
                     'expires_at' => $expiresAt,
-                    'reason'     => $reason,
+                    'reason' => $reason,
                 ],
             ]);
 
@@ -108,40 +109,40 @@ class DelegationService
             $grant->update([
                 'revoked_by' => $revokedBy->id,
                 'revoked_at' => now(),
-                'reason'     => $reason
+                'reason' => $reason
                     ? ($grant->reason
-                        ? $grant->reason . ' | Révocation : ' . $reason
-                        : 'Révocation : ' . $reason)
+                        ? $grant->reason.' | Révocation : '.$reason
+                        : 'Révocation : '.$reason)
                     : $grant->reason,
             ]);
 
             $roleLabel = UserRoleGrant::DELEGATABLE_ROLES[$grant->role_name] ?? $grant->role_name;
-            $grantee   = $grant->grantee;
+            $grantee = $grant->grantee;
 
             if ($grantee) {
                 Notification::send(
                     $grantee,
                     'DelegationRevoked',
                     "Délégation révoquée : {$roleLabel}",
-                    "Votre délégation du rôle {$roleLabel} a été révoquée" . ($reason ? " : {$reason}" : ''),
+                    "Votre délégation du rôle {$roleLabel} a été révoquée".($reason ? " : {$reason}" : ''),
                     [
-                        'icon'  => 'user-x',
+                        'icon' => 'user-x',
                         'color' => 'warning',
-                        'url'   => route('admin.delegations.index'),
+                        'url' => route('admin.delegations.index'),
                     ]
                 );
             }
 
             AuditLog::create([
-                'tenant_id'   => $grant->tenant_id,
-                'user_id'     => $revokedBy->id,
-                'action'      => 'delegation.revoked',
+                'tenant_id' => $grant->tenant_id,
+                'user_id' => $revokedBy->id,
+                'action' => 'delegation.revoked',
                 'entity_type' => 'UserRoleGrant',
-                'entity_id'   => $grant->id,
-                'severity'    => 'WARNING',
-                'ip_address'  => request()->ip(),
-                'user_agent'  => request()->userAgent(),
-                'new_values'  => ['reason' => $reason],
+                'entity_id' => $grant->id,
+                'severity' => 'WARNING',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'new_values' => ['reason' => $reason],
             ]);
         });
     }
@@ -178,9 +179,9 @@ class DelegationService
                     "Délégation expirée : {$roleLabel}",
                     "Votre délégation du rôle {$roleLabel} a expiré automatiquement.",
                     [
-                        'icon'      => 'clock',
-                        'color'     => 'warning',
-                        'url'       => route('admin.delegations.index'),
+                        'icon' => 'clock',
+                        'color' => 'warning',
+                        'url' => route('admin.delegations.index'),
                         'entity_id' => $grant->id,
                     ]
                 );
@@ -190,13 +191,13 @@ class DelegationService
                 Notification::send(
                     $grant->grantor,
                     'DelegationExpiredGrantor',
-                    "Délégation expirée",
+                    'Délégation expirée',
                     "La délégation du rôle {$roleLabel} accordée à "
-                        . "{$grant->grantee?->first_name} {$grant->grantee?->last_name} a expiré.",
+                        ."{$grant->grantee?->first_name} {$grant->grantee?->last_name} a expiré.",
                     [
-                        'icon'      => 'clock',
-                        'color'     => 'info',
-                        'url'       => route('admin.delegations.index'),
+                        'icon' => 'clock',
+                        'color' => 'info',
+                        'url' => route('admin.delegations.index'),
                         'entity_id' => $grant->id,
                     ]
                 );

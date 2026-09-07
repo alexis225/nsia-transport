@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,32 +20,32 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        $notifications = \App\Models\Notification::forUser($user->id)
+        $notifications = Notification::forUser($user->id)
             ->inApp()
             ->latest()
             ->limit(20)
             ->get()
-            ->map(fn (\App\Models\Notification $n) => [
-                'id'         => $n->id,
-                'type'       => $n->type,
-                'icon'       => $n->data['icon']  ?? 'bell',
-                'color'      => $n->data['color'] ?? 'info',
-                'title'      => $n->data['title'] ?? 'Notification',
-                'body'       => $n->data['body']  ?? '',
-                'url'        => $n->data['url']   ?? null,
-                'read'       => $n->isRead(),
+            ->map(fn (Notification $n) => [
+                'id' => $n->id,
+                'type' => $n->type,
+                'icon' => $n->data['icon'] ?? 'bell',
+                'color' => $n->data['color'] ?? 'info',
+                'title' => $n->data['title'] ?? 'Notification',
+                'body' => $n->data['body'] ?? '',
+                'url' => $n->data['url'] ?? null,
+                'read' => $n->isRead(),
                 'created_at' => $n->created_at?->diffForHumans() ?? 'À l\'instant',
-                'created_ts' => $n->created_at?->toISOString()   ?? now()->toISOString(),
+                'created_ts' => $n->created_at?->toISOString() ?? now()->toISOString(),
             ]);
 
-        $unreadCount = \App\Models\Notification::forUser($user->id)
+        $unreadCount = Notification::forUser($user->id)
             ->inApp()
             ->unread()
             ->count();
 
         return response()->json([
             'notifications' => $notifications,
-            'unread_count'  => $unreadCount,
+            'unread_count' => $unreadCount,
         ]);
     }
 
@@ -52,11 +53,12 @@ class NotificationController extends Controller
     // DB::table évite tout problème de scope, cast UUID ou markAsRead()
     public function markRead(Request $request, string $id): JsonResponse
     {
-       DB::table('notifications')
-        ->whereRaw('id::text = ?', [$id])
-        ->whereRaw('notifiable_id::text = ?', [(string) $request->user()->id])
-        ->whereNull('read_at')
-        ->update(['read_at' => now()]);
+        DB::table('notifications')
+            ->whereRaw('id::text = ?', [$id])
+            ->whereRaw('notifiable_id::text = ?', [(string) $request->user()->id])
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
         return response()->json(['ok' => true]);
     }
 

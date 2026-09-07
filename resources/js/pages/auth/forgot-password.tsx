@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Loader2, AlertCircle, ArrowLeft, Mail } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/language-switcher';
 import { useRecaptchaToken } from '@/hooks/use-recaptcha-token';
@@ -12,6 +12,7 @@ interface ForgotPasswordProps {
 export default function ForgotPassword({ status }: ForgotPasswordProps) {
     const { t } = useTranslation('auth');
     const [mounted, setMounted] = useState(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- declenche la transition CSS d'entree apres le montage
     useEffect(() => setMounted(true), []);
     const recaptchaToken = useRecaptchaToken('forgot_password');
 
@@ -21,7 +22,9 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
     });
 
     useEffect(() => {
-        if (recaptchaToken) setData('g-recaptcha-response', recaptchaToken);
+        if (recaptchaToken) {
+            setData('g-recaptcha-response', recaptchaToken);
+        }
     }, [recaptchaToken, setData]);
 
     const submit = (e: React.FormEvent) => {
@@ -208,81 +211,173 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
             `}</style>
 
             <div className="root">
-
                 {/* ── Panneau gauche (identique au login) ── */}
                 <div className="left">
                     <div className="deco-circle-1" />
                     <div className="deco-circle-2" />
 
                     <div className="left-brand">
-                        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                            <rect width="36" height="36" rx="8" fill="rgba(255,255,255,0.12)"/>
-                            <path d="M18 8L10 13V20C10 24.4 13.4 28.5 18 30C22.6 28.5 26 24.4 26 20V13L18 8Z"
-                                  stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
-                            <path d="M14 20L17 23L22 17" stroke="white" strokeWidth="1.5"
-                                  strokeLinecap="round" strokeLinejoin="round"/>
+                        <svg
+                            width="36"
+                            height="36"
+                            viewBox="0 0 36 36"
+                            fill="none"
+                        >
+                            <rect
+                                width="36"
+                                height="36"
+                                rx="8"
+                                fill="rgba(255,255,255,0.12)"
+                            />
+                            <path
+                                d="M18 8L10 13V20C10 24.4 13.4 28.5 18 30C22.6 28.5 26 24.4 26 20V13L18 8Z"
+                                stroke="white"
+                                strokeWidth="1.5"
+                                strokeLinejoin="round"
+                            />
+                            <path
+                                d="M14 20L17 23L22 17"
+                                stroke="white"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
                         </svg>
-                        <span className="brand-name">NSIA <span>Transport</span></span>
+                        <span className="brand-name">
+                            NSIA <span>Transport</span>
+                        </span>
                     </div>
 
                     {/* Illustration — clé / cadenas */}
                     <div className="illustration">
-                        <svg width="300" height="260" viewBox="0 0 300 260" fill="none">
+                        <svg
+                            width="300"
+                            height="260"
+                            viewBox="0 0 300 260"
+                            fill="none"
+                        >
                             {/* Cadenas corps */}
-                            <rect x="85" y="120" width="130" height="100" rx="16"
-                                  fill="rgba(255,255,255,0.18)"/>
-                            <rect x="95" y="130" width="110" height="80" rx="10"
-                                  fill="rgba(255,255,255,0.1)"/>
+                            <rect
+                                x="85"
+                                y="120"
+                                width="130"
+                                height="100"
+                                rx="16"
+                                fill="rgba(255,255,255,0.18)"
+                            />
+                            <rect
+                                x="95"
+                                y="130"
+                                width="110"
+                                height="80"
+                                rx="10"
+                                fill="rgba(255,255,255,0.1)"
+                            />
 
                             {/* Cadenas anse */}
-                            <path d="M110 120 V90 Q110 60 150 60 Q190 60 190 90 V120"
-                                  stroke="rgba(255,255,255,0.3)" strokeWidth="16"
-                                  strokeLinecap="round" fill="none"/>
+                            <path
+                                d="M110 120 V90 Q110 60 150 60 Q190 60 190 90 V120"
+                                stroke="rgba(255,255,255,0.3)"
+                                strokeWidth="16"
+                                strokeLinecap="round"
+                                fill="none"
+                            />
 
                             {/* Trou clé */}
-                            <circle cx="150" cy="168" r="14"
-                                    fill="rgba(255,255,255,0.25)"/>
-                            <rect x="146" y="168" width="8" height="22" rx="4"
-                                  fill="rgba(255,255,255,0.25)"/>
+                            <circle
+                                cx="150"
+                                cy="168"
+                                r="14"
+                                fill="rgba(255,255,255,0.25)"
+                            />
+                            <rect
+                                x="146"
+                                y="168"
+                                width="8"
+                                height="22"
+                                rx="4"
+                                fill="rgba(255,255,255,0.25)"
+                            />
 
                             {/* Étoiles / points déco */}
-                            <circle cx="60"  cy="80"  r="4" fill="rgba(255,255,255,0.2)"/>
-                            <circle cx="250" cy="100" r="3" fill="rgba(255,255,255,0.15)"/>
-                            <circle cx="240" cy="180" r="5" fill="rgba(255,255,255,0.1)"/>
-                            <circle cx="55"  cy="160" r="3" fill="rgba(255,255,255,0.12)"/>
+                            <circle
+                                cx="60"
+                                cy="80"
+                                r="4"
+                                fill="rgba(255,255,255,0.2)"
+                            />
+                            <circle
+                                cx="250"
+                                cy="100"
+                                r="3"
+                                fill="rgba(255,255,255,0.15)"
+                            />
+                            <circle
+                                cx="240"
+                                cy="180"
+                                r="5"
+                                fill="rgba(255,255,255,0.1)"
+                            />
+                            <circle
+                                cx="55"
+                                cy="160"
+                                r="3"
+                                fill="rgba(255,255,255,0.12)"
+                            />
 
                             {/* Lignes décoratives */}
-                            <line x1="40"  y1="110" x2="70"  y2="110"
-                                  stroke="rgba(255,255,255,0.1)" strokeWidth="2" strokeLinecap="round"/>
-                            <line x1="230" y1="140" x2="260" y2="140"
-                                  stroke="rgba(255,255,255,0.1)" strokeWidth="2" strokeLinecap="round"/>
-                            <line x1="40"  y1="120" x2="60"  y2="120"
-                                  stroke="rgba(255,255,255,0.07)" strokeWidth="2" strokeLinecap="round"/>
+                            <line
+                                x1="40"
+                                y1="110"
+                                x2="70"
+                                y2="110"
+                                stroke="rgba(255,255,255,0.1)"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                            />
+                            <line
+                                x1="230"
+                                y1="140"
+                                x2="260"
+                                y2="140"
+                                stroke="rgba(255,255,255,0.1)"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                            />
+                            <line
+                                x1="40"
+                                y1="120"
+                                x2="60"
+                                y2="120"
+                                stroke="rgba(255,255,255,0.07)"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                            />
                         </svg>
                     </div>
 
                     <div className="left-text">
-                        <h2 className="left-title">
-                            {t('forgot.asideTitle')}
-                        </h2>
-                        <p className="left-sub">
-                            {t('forgot.asideText')}
-                        </p>
+                        <h2 className="left-title">{t('forgot.asideTitle')}</h2>
+                        <p className="left-sub">{t('forgot.asideText')}</p>
                     </div>
                 </div>
 
                 {/* ── Panneau droit ── */}
                 <div className="right">
                     <div className={`form-box ${mounted ? 'visible' : ''}`}>
-
                         <div className="switcher-row">
                             <LanguageSwitcher />
                         </div>
 
                         <h1 className="form-title">{t('forgot.heading')}</h1>
                         <p className="form-desc">
-                            {t('forgot.description')}<br />
-                            <Trans t={t} i18nKey="forgot.validity" components={{ 1: <strong /> }} />
+                            {t('forgot.description')}
+                            <br />
+                            <Trans
+                                t={t}
+                                i18nKey="forgot.validity"
+                                components={{ 1: <strong /> }}
+                            />
                         </p>
 
                         {/* Succès */}
@@ -292,7 +387,14 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                                     <Mail size={16} color="#15803d" />
                                 </div>
                                 <div>
-                                    <p style={{ fontWeight: 500, marginBottom: 2 }}>{t('forgot.sent')}</p>
+                                    <p
+                                        style={{
+                                            fontWeight: 500,
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        {t('forgot.sent')}
+                                    </p>
                                     <p style={{ opacity: 0.85 }}>{status}</p>
                                 </div>
                             </div>
@@ -303,12 +405,14 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                                 <input
                                     type="email"
                                     value={data.email}
-                                    onChange={e => setData('email', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('email', e.target.value)
+                                    }
                                     autoComplete="email"
                                     autoFocus
                                     placeholder={t('login.email')}
                                     disabled={processing}
-                                    className={`field-input${errors.email ? ' has-error' : ''}`}
+                                    className={`field-input${errors.email ? 'has-error' : ''}`}
                                 />
                                 {errors.email && (
                                     <p className="field-error">
@@ -318,15 +422,29 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                             </div>
 
                             {errors['g-recaptcha-response'] && (
-                                <p className="field-error" style={{ marginBottom: 14 }}>
-                                    <AlertCircle size={12} /> {errors['g-recaptcha-response']}
+                                <p
+                                    className="field-error"
+                                    style={{ marginBottom: 14 }}
+                                >
+                                    <AlertCircle size={12} />{' '}
+                                    {errors['g-recaptcha-response']}
                                 </p>
                             )}
 
-                            <button type="submit" disabled={processing} className="btn-send">
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="btn-send"
+                            >
                                 {processing ? (
                                     <>
-                                        <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                                        <Loader2
+                                            size={16}
+                                            style={{
+                                                animation:
+                                                    'spin 1s linear infinite',
+                                            }}
+                                        />
                                         {t('forgot.submitting')}
                                     </>
                                 ) : (
@@ -341,7 +459,9 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                         </Link>
 
                         <div className="form-footer">
-                            {t('brand.copyright', { year: new Date().getFullYear() })}
+                            {t('brand.copyright', {
+                                year: new Date().getFullYear(),
+                            })}
                         </div>
                     </div>
                 </div>

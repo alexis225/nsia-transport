@@ -23,7 +23,7 @@ class SettingsController extends Controller
     {
         return Inertia::render('admin/settings/index', [
             'nn300Ceiling' => (float) Setting::get(Setting::KEY_NN300_CEILING, 2_000_000_000),
-            'treatyLimit'  => (float) Setting::get(Setting::KEY_TREATY_LIMIT, 6_000_000_000),
+            'treatyLimit' => (float) Setting::get(Setting::KEY_TREATY_LIMIT, 6_000_000_000),
         ]);
     }
 
@@ -31,7 +31,7 @@ class SettingsController extends Controller
     {
         $validated = $request->validate([
             'nn300_ceiling' => ['required', 'numeric', 'min:1'],
-            'treaty_limit'  => ['required', 'numeric', 'min:1', 'gte:nn300_ceiling'],
+            'treaty_limit' => ['required', 'numeric', 'min:1', 'gte:nn300_ceiling'],
         ], [
             'treaty_limit.gte' => 'Le Plafond Traité doit être supérieur ou égal au plafond NN300.',
         ]);

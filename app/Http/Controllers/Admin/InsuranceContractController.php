@@ -35,20 +35,18 @@ class InsuranceContractController extends Controller
         $isSA = $user->hasRole('super_admin');
 
         $contracts = InsuranceContract::with([
-                'tenant:id,name,code',
-                'broker:id,name,code',
-                'createdBy:id,first_name,last_name',
-            ])
+            'tenant:id,name,code',
+            'broker:id,name,code',
+            'createdBy:id,first_name,last_name',
+        ])
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-            ->when($request->search, fn ($q) =>
-                $q->where(fn ($q) =>
-                    $q->where('contract_number', 'ilike', "%{$request->search}%")
-                      ->orWhere('insured_name',   'ilike', "%{$request->search}%")
-                      ->orWhereHas('broker', fn ($q) => $q->where('name', 'ilike', "%{$request->search}%"))
-                )
+            ->when($request->search, fn ($q) => $q->where(fn ($q) => $q->where('contract_number', 'ilike', "%{$request->search}%")
+                ->orWhere('insured_name', 'ilike', "%{$request->search}%")
+                ->orWhereHas('broker', fn ($q) => $q->where('name', 'ilike', "%{$request->search}%"))
+            )
             )
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
-            ->when($request->type,   fn ($q) => $q->where('type', $request->type))
+            ->when($request->type, fn ($q) => $q->where('type', $request->type))
             ->when($request->tenant_id && $isSA, fn ($q) => $q->where('tenant_id', $request->tenant_id))
             ->orderBy('created_at', 'desc')
             ->paginate(20)
@@ -56,13 +54,13 @@ class InsuranceContractController extends Controller
 
         return Inertia::render('admin/contracts/index', [
             'contracts' => $contracts,
-            'filters'   => $request->only(['search', 'status', 'type', 'tenant_id']),
-            'isSA'      => $isSA,
-            'tenants'   => $isSA ? Tenant::orderBy('name')->get(['id', 'name', 'code']) : collect(),
+            'filters' => $request->only(['search', 'status', 'type', 'tenant_id']),
+            'isSA' => $isSA,
+            'tenants' => $isSA ? Tenant::orderBy('name')->get(['id', 'name', 'code']) : collect(),
             'can' => [
-                'create'   => $user->can('contracts.create'),
-                'edit'     => $user->can('contracts.edit'),
-                'delete'   => $user->can('contracts.delete'),
+                'create' => $user->can('contracts.create'),
+                'edit' => $user->can('contracts.edit'),
+                'delete' => $user->can('contracts.delete'),
                 'validate' => $user->can('contracts.validate'),
             ],
         ]);
@@ -75,17 +73,17 @@ class InsuranceContractController extends Controller
         $isSA = $user->hasRole('super_admin');
 
         return Inertia::render('admin/contracts/create', [
-            'tenants'         => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'currency_code']) : collect(),
-            'brokers'         => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                                       ->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'type', 'commission_rate']),
-            'coinsurers'      => Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                                       ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-            'experts'         => Expert::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                                       ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-            'subscribers'     => $this->subscribers($user, $isSA),
-            'incoterms'       => Incoterm::orderBy('code')->get(['code', 'name']),
-            'transportModes'  => TransportMode::orderBy('name_fr')->get(['id', 'code', 'name_fr']),
-            'currencies'      => ['XOF', 'XAF', 'GNF', 'MGA', 'NGN', 'EUR', 'USD'],
+            'tenants' => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'currency_code']) : collect(),
+            'brokers' => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                ->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'type', 'commission_rate']),
+            'coinsurers' => Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'experts' => Expert::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'subscribers' => $this->subscribers($user, $isSA),
+            'incoterms' => Incoterm::orderBy('code')->get(['code', 'name']),
+            'transportModes' => TransportMode::orderBy('name_fr')->get(['id', 'code', 'name_fr']),
+            'currencies' => ['XOF', 'XAF', 'GNF', 'MGA', 'NGN', 'EUR', 'USD'],
             'defaultTenantId' => $user->tenant_id,
         ]);
     }
@@ -110,14 +108,14 @@ class InsuranceContractController extends Controller
         $expertIds = $validated['expert_ids'] ?? [];
         unset($validated['expert_ids']);
 
-        $tenant  = Tenant::find($validated['tenant_id']);
+        $tenant = Tenant::find($validated['tenant_id']);
         $validated['contract_number'] = InsuranceContract::generateContractNumber(
             $tenant->code, $validated['type']
         );
         // Devise imposée par la filiale — tous les montants du contrat et
         // de ses certificats doivent être exprimés dans cette monnaie.
         $validated['currency_code'] = $tenant->currency_code;
-        $validated['status']     = InsuranceContract::STATUS_DRAFT;
+        $validated['status'] = InsuranceContract::STATUS_DRAFT;
         $validated['created_by'] = $request->user()->id;
         $validated['updated_by'] = $request->user()->id;
 
@@ -130,21 +128,21 @@ class InsuranceContractController extends Controller
         $contract->experts()->sync($expertIds);
 
         AuditLog::create([
-            'tenant_id'   => $contract->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'contract.created',
+            'tenant_id' => $contract->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'contract.created',
             'entity_type' => 'InsuranceContract',
-            'entity_id'   => $contract->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => ['contract_number' => $contract->contract_number, 'type' => $contract->type],
+            'entity_id' => $contract->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => ['contract_number' => $contract->contract_number, 'type' => $contract->type],
         ]);
 
         $status = "Contrat {$contract->contract_number} créé.";
         if ($exceedsNn300) {
             $status .= ' Le Plein d\'Assurance de ce contrat dépasse le plafond NN300 ('
-                . number_format((float) Setting::get(Setting::KEY_NN300_CEILING, 2_000_000_000), 0, ',', ' ') . ' ' . $contract->currency_code
-                . ') — une validation du Groupe (DTAG) sera requise avant activation.';
+                .number_format((float) Setting::get(Setting::KEY_NN300_CEILING, 2_000_000_000), 0, ',', ' ').' '.$contract->currency_code
+                .') — une validation du Groupe (DTAG) sera requise avant activation.';
         }
 
         return redirect()->route('admin.contracts.show', $contract)
@@ -164,10 +162,10 @@ class InsuranceContractController extends Controller
     private function applyNn300Defaults(array &$validated): bool
     {
         $nn300Ceiling = (float) Setting::get(Setting::KEY_NN300_CEILING, 2_000_000_000);
-        $treatyLimit  = (float) Setting::get(Setting::KEY_TREATY_LIMIT, 6_000_000_000);
+        $treatyLimit = (float) Setting::get(Setting::KEY_TREATY_LIMIT, 6_000_000_000);
 
         $validated['subscription_limit'] = $nn300Ceiling;
-        $validated['treaty_limit']       = $treatyLimit;
+        $validated['treaty_limit'] = $treatyLimit;
 
         $plein = (float) ($validated['plein'] ?? 0);
         $exceedsNn300 = $plein > $nn300Ceiling;
@@ -201,8 +199,8 @@ class InsuranceContractController extends Controller
         return Inertia::render('admin/contracts/show', [
             'contract' => $contract,
             'can' => [
-                'edit'      => auth()->user()->can('contracts.edit'),
-                'validate'  => auth()->user()->can('contracts.validate'),
+                'edit' => auth()->user()->can('contracts.edit'),
+                'validate' => auth()->user()->can('contracts.validate'),
                 'terminate' => auth()->user()->can('contracts.edit'),
             ],
         ]);
@@ -219,18 +217,18 @@ class InsuranceContractController extends Controller
         $isSA = $user->hasRole('super_admin');
 
         return Inertia::render('admin/contracts/edit', [
-            'contract'       => $contract,
-            'tenants'        => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id','name','code','currency_code']) : collect(),
-            'brokers'        => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                                      ->where('is_active', true)->orderBy('name')->get(['id','name','code','type','commission_rate']),
-            'coinsurers'     => Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                                      ->where('is_active', true)->orderBy('name')->get(['id','name']),
-            'experts'        => Expert::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                                      ->where('is_active', true)->orderBy('name')->get(['id','name']),
-            'subscribers'    => $this->subscribers($user, $isSA),
-            'incoterms'      => Incoterm::orderBy('code')->get(['code','name']),
-            'transportModes' => TransportMode::orderBy('name_fr')->get(['id','code','name_fr']),
-            'currencies'     => ['XOF','XAF','GNF','MGA','NGN','EUR','USD'],
+            'contract' => $contract,
+            'tenants' => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'currency_code']) : collect(),
+            'brokers' => Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                ->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'type', 'commission_rate']),
+            'coinsurers' => Coinsurer::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'experts' => Expert::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
+                ->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'subscribers' => $this->subscribers($user, $isSA),
+            'incoterms' => Incoterm::orderBy('code')->get(['code', 'name']),
+            'transportModes' => TransportMode::orderBy('name_fr')->get(['id', 'code', 'name_fr']),
+            'currencies' => ['XOF', 'XAF', 'GNF', 'MGA', 'NGN', 'EUR', 'USD'],
             'commissionRate' => CommissionRule::where('contract_id', $contract->id)
                 ->where('is_active', true)
                 ->orderBy('effective_date', 'desc')
@@ -279,7 +277,9 @@ class InsuranceContractController extends Controller
     // courtier via CommissionRule::findApplicable() (déjà en place).
     private function syncCommissionRate(InsuranceContract $contract, ?float $rate, User $user): void
     {
-        if (! $contract->broker_id) return;
+        if (! $contract->broker_id) {
+            return;
+        }
 
         $existing = CommissionRule::where('contract_id', $contract->id)
             ->where('broker_id', $contract->broker_id)
@@ -288,24 +288,26 @@ class InsuranceContractController extends Controller
 
         if ($rate === null) {
             $existing?->update(['is_active' => false]);
+
             return;
         }
 
         if ($existing) {
             $existing->update(['rate_pct' => $rate, 'is_active' => true]);
+
             return;
         }
 
         CommissionRule::create([
-            'tenant_id'       => $contract->tenant_id,
-            'broker_id'       => $contract->broker_id,
-            'contract_id'     => $contract->id,
-            'rate_pct'        => $rate,
-            'base_type'       => CommissionRule::BASE_PRIME_TOTAL,
-            'effective_date'  => $contract->effective_date ?? now(),
-            'is_active'       => true,
-            'notes'           => 'Taux défini depuis le formulaire du contrat.',
-            'created_by'      => $user->id,
+            'tenant_id' => $contract->tenant_id,
+            'broker_id' => $contract->broker_id,
+            'contract_id' => $contract->id,
+            'rate_pct' => $rate,
+            'base_type' => CommissionRule::BASE_PRIME_TOTAL,
+            'effective_date' => $contract->effective_date ?? now(),
+            'is_active' => true,
+            'notes' => 'Taux défini depuis le formulaire du contrat.',
+            'created_by' => $user->id,
         ]);
     }
 
@@ -352,7 +354,7 @@ class InsuranceContractController extends Controller
         } else {
             // Auto-activation si pas d'approbation requise
             $contract->update([
-                'status'      => InsuranceContract::STATUS_ACTIVE,
+                'status' => InsuranceContract::STATUS_ACTIVE,
                 'approved_by' => $request->user()->id,
                 'approved_at' => now(),
             ]);
@@ -382,10 +384,10 @@ class InsuranceContractController extends Controller
         $unlocksNn300 = $contract->requires_approval;
 
         $contract->update([
-            'status'            => InsuranceContract::STATUS_ACTIVE,
-            'approved_by'       => $request->user()->id,
-            'approved_at'       => now(),
-            'validation_notes'  => $request->notes,
+            'status' => InsuranceContract::STATUS_ACTIVE,
+            'approved_by' => $request->user()->id,
+            'approved_at' => now(),
+            'validation_notes' => $request->notes,
             ...($unlocksNn300 ? ['nn300_unlocked_at' => now()] : []),
         ]);
 
@@ -405,8 +407,8 @@ class InsuranceContractController extends Controller
         $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
         $contract->update([
-            'status'           => InsuranceContract::STATUS_DRAFT,
-            'validation_notes' => 'REJETÉ : ' . $request->reason,
+            'status' => InsuranceContract::STATUS_DRAFT,
+            'validation_notes' => 'REJETÉ : '.$request->reason,
         ]);
 
         $this->log($contract, $request, 'contract.rejected', ['reason' => $request->reason], 'WARNING');
@@ -423,9 +425,9 @@ class InsuranceContractController extends Controller
         $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
         $contract->update([
-            'status'           => InsuranceContract::STATUS_SUSPENDED,
-            'suspended_at'     => now(),
-            'suspension_reason'=> $request->reason,
+            'status' => InsuranceContract::STATUS_SUSPENDED,
+            'suspended_at' => now(),
+            'suspension_reason' => $request->reason,
         ]);
 
         $this->log($contract, $request, 'contract.suspended', ['reason' => $request->reason], 'WARNING');
@@ -440,7 +442,7 @@ class InsuranceContractController extends Controller
         abort_if($contract->status !== InsuranceContract::STATUS_SUSPENDED, 422);
 
         $contract->update([
-            'status'       => InsuranceContract::STATUS_ACTIVE,
+            'status' => InsuranceContract::STATUS_ACTIVE,
             'suspended_at' => null,
         ]);
 
@@ -461,8 +463,8 @@ class InsuranceContractController extends Controller
         $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
         $contract->update([
-            'status'           => InsuranceContract::STATUS_CANCELLED,
-            'validation_notes' => 'ANNULÉ : ' . $request->reason,
+            'status' => InsuranceContract::STATUS_CANCELLED,
+            'validation_notes' => 'ANNULÉ : '.$request->reason,
         ]);
 
         $this->log($contract, $request, 'contract.cancelled', ['reason' => $request->reason], 'WARNING');
@@ -474,68 +476,72 @@ class InsuranceContractController extends Controller
     private function validateContract(Request $request): array
     {
         $validator = Validator::make($request->all(), [
-            'tenant_id'            => ['required', 'uuid', 'exists:tenants,id'],
-            'broker_id'            => ['nullable', 'uuid', 'exists:brokers,id'],
-            'commission_rate'      => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'coinsurers'                    => ['nullable', 'array'],
-            'coinsurers.*.coinsurer_id'     => ['required', 'uuid', 'exists:coinsurers,id', 'distinct'],
-            'coinsurers.*.share_rate'       => ['required', 'numeric', 'min:0.01', 'max:100'],
-            'expert_ids'                    => ['nullable', 'array'],
-            'expert_ids.*'                  => ['uuid', 'exists:experts,id', 'distinct'],
-            'subscriber_id'        => ['nullable', 'uuid', 'exists:users,id'],
+            'tenant_id' => ['required', 'uuid', 'exists:tenants,id'],
+            'broker_id' => ['nullable', 'uuid', 'exists:brokers,id'],
+            'commission_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'coinsurers' => ['nullable', 'array'],
+            'coinsurers.*.coinsurer_id' => ['required', 'uuid', 'exists:coinsurers,id', 'distinct'],
+            'coinsurers.*.share_rate' => ['required', 'numeric', 'min:0.01', 'max:100'],
+            'expert_ids' => ['nullable', 'array'],
+            'expert_ids.*' => ['uuid', 'exists:experts,id', 'distinct'],
+            'subscriber_id' => ['nullable', 'uuid', 'exists:users,id'],
             // Souscripteur (contractant) — le payeur des primes, identifié
             // au même titre que l'Assuré. Distinct de subscriber_id
             // (utilisateur NSIA en charge du dossier).
-            'subscriber_name'      => ['nullable', 'string', 'max:200'],
-            'subscriber_address'   => ['nullable', 'string'],
-            'subscriber_email'     => ['nullable', 'email'],
-            'subscriber_phone'     => ['nullable', 'string', 'max:30'],
-            'type'                 => ['required', 'in:OPEN_POLICY,VOYAGE,ANNUAL_VOYAGE,TIERS_CHARGEUR'],
-            'insured_name'         => ['required', 'string', 'max:200'],
-            'insured_address'      => ['nullable', 'string'],
-            'insured_email'        => ['nullable', 'email'],
-            'insured_phone'        => ['nullable', 'string', 'max:30'],
-            'currency_code'        => ['required', 'size:3'],
+            'subscriber_name' => ['nullable', 'string', 'max:200'],
+            'subscriber_address' => ['nullable', 'string'],
+            'subscriber_email' => ['nullable', 'email'],
+            'subscriber_phone' => ['nullable', 'string', 'max:30'],
+            'type' => ['required', 'in:OPEN_POLICY,VOYAGE,ANNUAL_VOYAGE,TIERS_CHARGEUR'],
+            'insured_name' => ['required', 'string', 'max:200'],
+            'insured_address' => ['nullable', 'string'],
+            'insured_email' => ['nullable', 'email'],
+            'insured_phone' => ['nullable', 'string', 'max:30'],
+            'currency_code' => ['required', 'size:3'],
             // Plafonds NN300 / Traité : paramètres généraux de l'application
             // (/admin/settings) — plus saisis par contrat, cf. applyNn300Defaults().
-            'plein'                => ['nullable', 'numeric', 'min:0'],
-            'escalade_enabled'     => ['boolean'],
+            'plein' => ['nullable', 'numeric', 'min:0'],
+            'escalade_enabled' => ['boolean'],
             'escalade_threshold_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'deductible'           => ['nullable', 'numeric', 'min:0'],
+            'deductible' => ['nullable', 'numeric', 'min:0'],
             // Seuls R.O. et R.G. se saisissent au niveau du contrat — Divers
             // et Surprime se précisent à l'établissement du certificat.
-            'rate_ro'              => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'rate_rg'              => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'rate_ro' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'rate_rg' => ['nullable', 'numeric', 'min:0', 'max:100'],
             // Accessoires n'est plus un taux mais un montant fixe (à partir
             // de 500 FCFA).
-            'accessories_amount'   => ['nullable', 'numeric', 'min:500'],
-            'rate_tax'             => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'coverage_type'        => ['nullable', 'in:TOUS_RISQUES,FAP_SAUF,FAP_ABSOLUE'],
-            'clauses'              => ['nullable', 'array'],
-            'exclusions'           => ['nullable', 'array'],
-            'incoterm_code'        => ['nullable', 'string', 'exists:incoterms,code'],
-            'transport_mode_id'    => ['nullable', 'exists:transport_modes,id'],
-            'conditioning_types'   => ['nullable', 'array'],
+            'accessories_amount' => ['nullable', 'numeric', 'min:500'],
+            'rate_tax' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'coverage_type' => ['nullable', 'in:TOUS_RISQUES,FAP_SAUF,FAP_ABSOLUE'],
+            'clauses' => ['nullable', 'array'],
+            'exclusions' => ['nullable', 'array'],
+            'incoterm_code' => ['nullable', 'string', 'exists:incoterms,code'],
+            'transport_mode_id' => ['nullable', 'exists:transport_modes,id'],
+            'conditioning_types' => ['nullable', 'array'],
             'conditioning_types.*' => ['string', 'in:CONTAINER,GROUPAGE,CONVENTIONNEL,BOUT_EN_BOUT,VRAC'],
-            'covered_countries'    => ['nullable', 'array'],
-            'effective_date'       => ['required', 'date'],
-            'expiry_date'          => ['required', 'date', 'after:effective_date'],
-            'notice_period_days'   => ['integer', 'min:0', 'max:365'],
-            'requires_approval'    => ['boolean'],
-            'certificates_limit'   => ['nullable', 'integer', 'min:1'],
-            'notes'                => ['nullable', 'string'],
+            'covered_countries' => ['nullable', 'array'],
+            'effective_date' => ['required', 'date'],
+            'expiry_date' => ['required', 'date', 'after:effective_date'],
+            'notice_period_days' => ['integer', 'min:0', 'max:365'],
+            'requires_approval' => ['boolean'],
+            'certificates_limit' => ['nullable', 'integer', 'min:1'],
+            'notes' => ['nullable', 'string'],
         ]);
 
         // Tarifs minimum réglementaires par filiale × garantie (taux, mais
         // aussi accessoires — cf. TenantGuaranteeRate) : opposables dès la
         // saisie du contrat, blocage strict en dessous du plancher.
         $validator->after(function ($validator) use ($request) {
-            $tenantId     = $request->input('tenant_id');
+            $tenantId = $request->input('tenant_id');
             $coverageType = $request->input('coverage_type');
-            if (! $tenantId || ! $coverageType) return;
+            if (! $tenantId || ! $coverageType) {
+                return;
+            }
 
             $minimums = TenantGuaranteeRate::minimumsFor($tenantId, $coverageType);
-            if (! $minimums) return;
+            if (! $minimums) {
+                return;
+            }
 
             $premiumRate = (float) $request->input('rate_ro', 0) + (float) $request->input('rate_rg', 0);
             if ($premiumRate < (float) $minimums->min_rate_pct) {
@@ -564,15 +570,15 @@ class InsuranceContractController extends Controller
     private function log(InsuranceContract $contract, Request $request, string $action, array $newValues = [], string $severity = 'INFO'): void
     {
         AuditLog::create([
-            'tenant_id'   => $contract->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => $action,
+            'tenant_id' => $contract->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => $action,
             'entity_type' => 'InsuranceContract',
-            'entity_id'   => $contract->id,
-            'severity'    => $severity,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => $newValues ?: null,
+            'entity_id' => $contract->id,
+            'severity' => $severity,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => $newValues ?: null,
         ]);
     }
 
@@ -580,7 +586,11 @@ class InsuranceContractController extends Controller
     private function authorizeTenant(InsuranceContract $contract): void
     {
         $user = auth()->user();
-        if ($user->hasRole('super_admin')) return;
-        if ((string) $user->tenant_id !== (string) $contract->tenant_id) abort(403);
+        if ($user->hasRole('super_admin')) {
+            return;
+        }
+        if ((string) $user->tenant_id !== (string) $contract->tenant_id) {
+            abort(403);
+        }
     }
 }

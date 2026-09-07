@@ -13,8 +13,8 @@ return new class extends Migration
             // (référentiel tax_rules, cf. filiale × mode de transport × pays).
             $table->char('destination_country_code', 2)->nullable()->after('voyage_to');
             $table->foreign('destination_country_code')
-                  ->references('code')->on('countries')
-                  ->nullOnDelete();
+                ->references('code')->on('countries')
+                ->nullOnDelete();
 
             // Prime nette = prime_total (TTC) - taxe. Conservée pour
             // affichage/rapports, distincte de prime_total (Prime TTC).

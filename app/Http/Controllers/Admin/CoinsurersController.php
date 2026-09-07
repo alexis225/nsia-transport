@@ -8,7 +8,6 @@ use App\Models\Coinsurer;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,11 +25,9 @@ class CoinsurersController extends Controller
 
         $coinsurers = Coinsurer::with('tenant')
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-            ->when($request->search, fn ($q) =>
-                $q->where('name', 'ilike', "%{$request->search}%")
+            ->when($request->search, fn ($q) => $q->where('name', 'ilike', "%{$request->search}%")
             )
-            ->when($request->status !== null && $request->status !== '', fn ($q) =>
-                $q->where('is_active', $request->status === 'active')
+            ->when($request->status !== null && $request->status !== '', fn ($q) => $q->where('is_active', $request->status === 'active')
             )
             ->orderBy('name')
             ->paginate(20)
@@ -38,11 +35,11 @@ class CoinsurersController extends Controller
 
         return Inertia::render('admin/coinsurers/index', [
             'coinsurers' => $coinsurers,
-            'filters'    => $request->only(['search', 'status']),
-            'isSA'       => $isSA,
-            'can'        => [
+            'filters' => $request->only(['search', 'status']),
+            'isSA' => $isSA,
+            'can' => [
                 'create' => $request->user()->can('coinsurers.create'),
-                'edit'   => $request->user()->can('coinsurers.edit'),
+                'edit' => $request->user()->can('coinsurers.edit'),
                 'delete' => $request->user()->can('coinsurers.delete'),
             ],
         ]);
@@ -52,7 +49,7 @@ class CoinsurersController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('admin/coinsurers/create', [
-            'tenants'         => $request->user()->hasRole('super_admin')
+            'tenants' => $request->user()->hasRole('super_admin')
                 ? Tenant::active()->orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
             'defaultTenantId' => $request->user()->tenant_id,
@@ -63,13 +60,13 @@ class CoinsurersController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'         => ['required', 'string', 'max:200'],
+            'name' => ['required', 'string', 'max:200'],
             'country_code' => ['nullable', 'string', 'size:2'],
-            'address'      => ['nullable', 'string', 'max:255'],
-            'email'        => ['nullable', 'email', 'max:150'],
-            'phone'        => ['nullable', 'string', 'max:50'],
-            'is_active'    => ['boolean'],
-            'tenant_id'    => ['nullable', 'uuid', 'exists:tenants,id'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'is_active' => ['boolean'],
+            'tenant_id' => ['nullable', 'uuid', 'exists:tenants,id'],
         ]);
 
         $coinsurer = Coinsurer::create([
@@ -79,14 +76,14 @@ class CoinsurersController extends Controller
         ]);
 
         AuditLog::create([
-            'tenant_id'   => $coinsurer->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'coinsurer_created',
+            'tenant_id' => $coinsurer->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'coinsurer_created',
             'entity_type' => 'coinsurer',
-            'entity_id'   => $coinsurer->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => ['name' => $coinsurer->name],
+            'entity_id' => $coinsurer->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => ['name' => $coinsurer->name],
         ]);
 
         return redirect()->route('admin.coinsurers.index')
@@ -112,7 +109,7 @@ class CoinsurersController extends Controller
 
         return Inertia::render('admin/coinsurers/edit', [
             'coinsurer' => $coinsurer,
-            'tenants'   => $request->user()->hasRole('super_admin')
+            'tenants' => $request->user()->hasRole('super_admin')
                 ? Tenant::active()->orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
         ]);
@@ -124,27 +121,27 @@ class CoinsurersController extends Controller
         $this->authorizeTenant($coinsurer);
 
         $validated = $request->validate([
-            'name'         => ['required', 'string', 'max:200'],
+            'name' => ['required', 'string', 'max:200'],
             'country_code' => ['nullable', 'string', 'size:2'],
-            'address'      => ['nullable', 'string', 'max:255'],
-            'email'        => ['nullable', 'email', 'max:150'],
-            'phone'        => ['nullable', 'string', 'max:50'],
-            'is_active'    => ['boolean'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'is_active' => ['boolean'],
         ]);
 
         $oldValues = $coinsurer->only(['name', 'is_active']);
         $coinsurer->update($validated);
 
         AuditLog::create([
-            'tenant_id'   => $coinsurer->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'coinsurer_updated',
+            'tenant_id' => $coinsurer->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'coinsurer_updated',
             'entity_type' => 'coinsurer',
-            'entity_id'   => $coinsurer->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'old_values'  => $oldValues,
-            'new_values'  => $coinsurer->only(['name', 'is_active']),
+            'entity_id' => $coinsurer->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'old_values' => $oldValues,
+            'new_values' => $coinsurer->only(['name', 'is_active']),
         ]);
 
         return redirect()->route('admin.coinsurers.index')
@@ -159,13 +156,13 @@ class CoinsurersController extends Controller
         $coinsurer->delete();
 
         AuditLog::create([
-            'tenant_id'   => $coinsurer->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => 'coinsurer_deleted',
+            'tenant_id' => $coinsurer->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'coinsurer_deleted',
             'entity_type' => 'coinsurer',
-            'entity_id'   => $coinsurer->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'entity_id' => $coinsurer->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()->route('admin.coinsurers.index')
@@ -178,14 +175,18 @@ class CoinsurersController extends Controller
         $this->authorizeTenant($coinsurer);
         $coinsurer->update(['is_active' => ! $coinsurer->is_active]);
 
-        return back()->with('status', "Coassureur {$coinsurer->name} " . ($coinsurer->is_active ? 'activé' : 'désactivé') . ".");
+        return back()->with('status', "Coassureur {$coinsurer->name} ".($coinsurer->is_active ? 'activé' : 'désactivé').'.');
     }
 
     // ── Isolation tenant ─────────────────────────────────────
     private function authorizeTenant(Coinsurer $coinsurer): void
     {
         $user = auth()->user();
-        if ($user->hasRole('super_admin')) return;
-        if ((string) $user->tenant_id !== (string) $coinsurer->tenant_id) abort(403);
+        if ($user->hasRole('super_admin')) {
+            return;
+        }
+        if ((string) $user->tenant_id !== (string) $coinsurer->tenant_id) {
+            abort(403);
+        }
     }
 }

@@ -8,9 +8,26 @@
 // ============================================================
 
 const UNITS = [
-    'zéro', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf',
-    'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize',
-    'dix-sept', 'dix-huit', 'dix-neuf',
+    'zéro',
+    'un',
+    'deux',
+    'trois',
+    'quatre',
+    'cinq',
+    'six',
+    'sept',
+    'huit',
+    'neuf',
+    'dix',
+    'onze',
+    'douze',
+    'treize',
+    'quatorze',
+    'quinze',
+    'seize',
+    'dix-sept',
+    'dix-huit',
+    'dix-neuf',
 ];
 
 const TENS = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante'];
@@ -37,7 +54,9 @@ function twoDigits(n: number, allowFinalS: boolean): string {
     }
 
     if (tens === 8) {
-        return unit === 0 ? `quatre-vingt${allowFinalS ? 's' : ''}` : `quatre-vingt-${UNITS[unit]}`;
+        return unit === 0
+            ? `quatre-vingt${allowFinalS ? 's' : ''}`
+            : `quatre-vingt-${UNITS[unit]}`;
     }
 
     if (unit === 0) {
@@ -103,9 +122,15 @@ export function numberToFrenchWords(value: number): string {
         }
 
         if (scale === 1_000) {
-            parts.push(count === 1 ? 'mille' : `${threeDigits(count, false)} mille`);
+            parts.push(
+                count === 1 ? 'mille' : `${threeDigits(count, false)} mille`,
+            );
         } else {
-            parts.push(count === 1 ? `un ${singular}` : `${threeDigits(count, false)} ${plural}`);
+            parts.push(
+                count === 1
+                    ? `un ${singular}`
+                    : `${threeDigits(count, false)} ${plural}`,
+            );
         }
     }
 
@@ -139,16 +164,21 @@ const CURRENCY_WORDS_FR: Record<string, string> = {
     SGD: 'dollars de Singapour',
 };
 
-export function amountInWords(value: number, currencyCode: string | null | undefined): string {
-    const words    = numberToFrenchWords(value);
-    const currency = (currencyCode && CURRENCY_WORDS_FR[currencyCode]) || currencyCode || '';
-    const rounded  = Math.round(Math.abs(value));
+export function amountInWords(
+    value: number,
+    currencyCode: string | null | undefined,
+): string {
+    const words = numberToFrenchWords(value);
+    const currency =
+        (currencyCode && CURRENCY_WORDS_FR[currencyCode]) || currencyCode || '';
+    const rounded = Math.round(Math.abs(value));
 
     // "de" est requis devant la devise seulement quand le nombre
     // se termine exactement sur "million(s)"/"milliard(s)" (rien
     // après) — ex. "deux millions de francs" mais "deux millions
     // cinq cent mille francs" (sans "de").
-    const liaison = rounded >= 1_000_000 && rounded % 1_000_000 === 0 ? 'de ' : '';
+    const liaison =
+        rounded >= 1_000_000 && rounded % 1_000_000 === 0 ? 'de ' : '';
 
     const sentence = currency ? `${words} ${liaison}${currency}` : words;
 

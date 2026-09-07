@@ -18,7 +18,8 @@ use Illuminate\Console\Command;
  */
 class ContractExpiryCheck extends Command
 {
-    protected $signature   = 'nsia:check-contracts';
+    protected $signature = 'nsia:check-contracts';
+
     protected $description = 'Envoie les alertes expiration contrats et plafond NN300';
 
     public function handle(): void
@@ -43,8 +44,7 @@ class ContractExpiryCheck extends Command
             foreach ($contracts as $contract) {
                 // Notifier les admins et souscripteurs de la filiale
                 $users = User::where('tenant_id', $contract->tenant_id)
-                    ->whereHas('roles', fn ($q) =>
-                        $q->whereIn('name', ['admin_filiale', 'souscripteur', 'super_admin'])
+                    ->whereHas('roles', fn ($q) => $q->whereIn('name', ['admin_filiale', 'souscripteur', 'super_admin'])
                     )
                     ->get();
 
@@ -73,8 +73,7 @@ class ContractExpiryCheck extends Command
             $daysLeft = (int) now()->startOfDay()->diffInDays($contract->expiry_date, false);
 
             $users = User::where('tenant_id', $contract->tenant_id)
-                ->whereHas('roles', fn ($q) =>
-                    $q->whereIn('name', ['admin_filiale', 'souscripteur', 'super_admin'])
+                ->whereHas('roles', fn ($q) => $q->whereIn('name', ['admin_filiale', 'souscripteur', 'super_admin'])
                 )
                 ->get();
 
@@ -106,11 +105,10 @@ class ContractExpiryCheck extends Command
             ->whereNotNull('subscription_limit')
             ->whereRaw('used_limit / subscription_limit >= 0.90')
             ->each(function (InsuranceContract $contract) {
-                $pct = round(((float)$contract->used_limit / (float)$contract->subscription_limit) * 100, 1);
+                $pct = round(((float) $contract->used_limit / (float) $contract->subscription_limit) * 100, 1);
 
                 $users = User::where('tenant_id', $contract->tenant_id)
-                    ->whereHas('roles', fn ($q) =>
-                        $q->whereIn('name', ['admin_filiale', 'souscripteur'])
+                    ->whereHas('roles', fn ($q) => $q->whereIn('name', ['admin_filiale', 'souscripteur'])
                     )
                     ->get();
 

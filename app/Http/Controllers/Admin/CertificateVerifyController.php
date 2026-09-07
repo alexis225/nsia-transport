@@ -37,7 +37,7 @@ class CertificateVerifyController extends Controller
 
         if (! $certificate) {
             return Inertia::render('public/verify', [
-                'status'      => 'not_found',
+                'status' => 'not_found',
                 'certificate' => null,
             ]);
         }
@@ -48,41 +48,41 @@ class CertificateVerifyController extends Controller
         // Données publiques limitées (pas de données financières)
         $publicData = [
             'certificate_number' => $certificate->certificate_number,
-            'policy_number'      => $certificate->policy_number,
-            'insured_name'       => $certificate->insured_name,
-            'voyage_date'        => $certificate->voyage_date?->format('d/m/Y'),
-            'voyage_from'        => $certificate->voyage_from,
-            'voyage_to'          => $certificate->voyage_to,
-            'transport_type'     => $certificate->transport_type,
-            'status'             => $certificate->status,
-            'issued_at'          => $certificate->issued_at?->format('d/m/Y à H:i'),
-            'currency_code'      => $certificate->currency_code,
-            'tenant'             => [
+            'policy_number' => $certificate->policy_number,
+            'insured_name' => $certificate->insured_name,
+            'voyage_date' => $certificate->voyage_date?->format('d/m/Y'),
+            'voyage_from' => $certificate->voyage_from,
+            'voyage_to' => $certificate->voyage_to,
+            'transport_type' => $certificate->transport_type,
+            'status' => $certificate->status,
+            'issued_at' => $certificate->issued_at?->format('d/m/Y à H:i'),
+            'currency_code' => $certificate->currency_code,
+            'tenant' => [
                 'name' => $certificate->tenant?->name,
                 'code' => $certificate->tenant?->code,
             ],
-            'issuer'             => $certificate->issuedBy
-                ? $certificate->issuedBy->first_name . ' ' . $certificate->issuedBy->last_name
+            'issuer' => $certificate->issuedBy
+                ? $certificate->issuedBy->first_name.' '.$certificate->issuedBy->last_name
                 : null,
-            'template_company'   => $certificate->template?->company_name,
-            'template_logo'      => $certificate->template?->logo_path
-                ? asset('storage/' . $certificate->template->logo_path)
+            'template_company' => $certificate->template?->company_name,
+            'template_logo' => $certificate->template?->logo_path
+                ? asset('storage/'.$certificate->template->logo_path)
                 : null,
             'verification_count' => $certificate->verification_count,
-            'replaced_by'         => $certificate->replacement?->certificate_number,
+            'replaced_by' => $certificate->replacement?->certificate_number,
         ];
 
         $derivedStatus = match (true) {
-            $certificate->status === Certificate::STATUS_ISSUED    => 'valid',
+            $certificate->status === Certificate::STATUS_ISSUED => 'valid',
             $certificate->status === Certificate::STATUS_CANCELLED => 'cancelled',
-            $certificate->status === Certificate::STATUS_REPLACED  => 'replaced',
+            $certificate->status === Certificate::STATUS_REPLACED => 'replaced',
             default => 'invalid',
         };
 
         return Inertia::render('public/verify', [
-            'status'      => $derivedStatus,
+            'status' => $derivedStatus,
             'certificate' => $publicData,
-            'verifiedAt'  => now()->format('d/m/Y à H:i'),
+            'verifiedAt' => now()->format('d/m/Y à H:i'),
         ]);
     }
 }

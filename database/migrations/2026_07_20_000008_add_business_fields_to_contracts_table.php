@@ -26,7 +26,7 @@ return new class extends Migration
     {
         Schema::table('insurance_contracts', function (Blueprint $table) {
             $table->foreignUuid('subscriber_id')->nullable()->after('broker_id')
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->decimal('plein', 20, 2)->nullable()->after('subscription_limit');
             $table->boolean('escalade_enabled')->default(true)->after('plein');
             $table->decimal('escalade_threshold_pct', 5, 2)->nullable()->after('escalade_enabled');

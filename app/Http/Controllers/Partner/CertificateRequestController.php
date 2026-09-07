@@ -29,8 +29,8 @@ class CertificateRequestController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('insured_name', 'ilike', "%{$search}%")
-                  ->orWhere('voyage_from', 'ilike', "%{$search}%")
-                  ->orWhere('voyage_to', 'ilike', "%{$search}%");
+                    ->orWhere('voyage_from', 'ilike', "%{$search}%")
+                    ->orWhere('voyage_to', 'ilike', "%{$search}%");
             });
         }
 
@@ -42,7 +42,7 @@ class CertificateRequestController extends Controller
 
         return Inertia::render('partner/certificate-requests/index', [
             'certificateRequests' => $certificateRequests,
-            'filters'             => $request->only(['search', 'status']),
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
@@ -61,8 +61,8 @@ class CertificateRequestController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('insured_name', 'ilike', "%{$search}%")
-                  ->orWhereHas('certificate', fn ($c) => $c->where('certificate_number', 'ilike', "%{$search}%"))
-                  ->orWhereHas('guceCertificate', fn ($c) => $c->where('certificate_number', 'ilike', "%{$search}%"));
+                    ->orWhereHas('certificate', fn ($c) => $c->where('certificate_number', 'ilike', "%{$search}%"))
+                    ->orWhereHas('guceCertificate', fn ($c) => $c->where('certificate_number', 'ilike', "%{$search}%"));
             });
         }
 
@@ -70,7 +70,7 @@ class CertificateRequestController extends Controller
 
         return Inertia::render('partner/certificates/index', [
             'certificateRequests' => $certificateRequests,
-            'filters'             => $request->only('search'),
+            'filters' => $request->only('search'),
         ]);
     }
 
@@ -81,9 +81,9 @@ class CertificateRequestController extends Controller
 
         return Inertia::render('partner/certificate-requests/create', [
             'countries' => Country::orderBy('name_fr')->get(['code', 'name_fr']),
-            'tenant'    => $broker->tenant?->only(['id', 'name', 'code']),
+            'tenant' => $broker->tenant?->only(['id', 'name', 'code']),
             // Sélecteur affiché uniquement si le courtier opère dans plusieurs filiales.
-            'tenants'   => $tenants->count() > 1 ? $tenants : [],
+            'tenants' => $tenants->count() > 1 ? $tenants : [],
         ]);
     }
 
@@ -93,49 +93,49 @@ class CertificateRequestController extends Controller
         $isDraft = $request->input('save_as') === 'draft';
 
         $validated = $request->validate([
-            'tenant_id'          => ['nullable', 'uuid', Rule::in($broker->tenants()->pluck('tenants.id'))],
-            'country_code'       => ['nullable', 'string', 'size:2', 'exists:countries,code'],
-            'insured_name'       => ['nullable', 'string', 'max:200'],
-            'voyage_from'        => ['nullable', 'string', 'max:150'],
-            'voyage_to'          => ['nullable', 'string', 'max:150'],
-            'voyage_date'        => ['nullable', 'date'],
-            'transport_type'     => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL'],
-            'cargo_description'  => ['nullable', 'string', 'max:1000'],
-            'estimated_value'    => ['nullable', 'numeric', 'min:0'],
-            'currency_code'      => ['nullable', 'string', 'size:3'],
-            'notes'              => ['nullable', 'string', 'max:2000'],
-            'documents'          => [$isDraft ? 'nullable' : 'required', 'array', $isDraft ? 'sometimes' : 'min:1'],
-            'documents.*'        => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
-            'document_types'     => [$isDraft ? 'nullable' : 'required', 'array', 'size:' . count($request->file('documents', []))],
-            'document_types.*'   => ['required', 'string', 'in:' . implode(',', CertificateRequestDocument::TYPES)],
+            'tenant_id' => ['nullable', 'uuid', Rule::in($broker->tenants()->pluck('tenants.id'))],
+            'country_code' => ['nullable', 'string', 'size:2', 'exists:countries,code'],
+            'insured_name' => ['nullable', 'string', 'max:200'],
+            'voyage_from' => ['nullable', 'string', 'max:150'],
+            'voyage_to' => ['nullable', 'string', 'max:150'],
+            'voyage_date' => ['nullable', 'date'],
+            'transport_type' => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL'],
+            'cargo_description' => ['nullable', 'string', 'max:1000'],
+            'estimated_value' => ['nullable', 'numeric', 'min:0'],
+            'currency_code' => ['nullable', 'string', 'size:3'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+            'documents' => [$isDraft ? 'nullable' : 'required', 'array', $isDraft ? 'sometimes' : 'min:1'],
+            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
+            'document_types' => [$isDraft ? 'nullable' : 'required', 'array', 'size:'.count($request->file('documents', []))],
+            'document_types.*' => ['required', 'string', 'in:'.implode(',', CertificateRequestDocument::TYPES)],
         ], [
-            'documents.required'      => 'Au moins une pièce justificative est requise.',
-            'documents.*.mimes'       => 'Chaque document doit être au format PDF, JPG, PNG, DOC ou DOCX.',
-            'documents.*.max'         => 'Chaque fichier ne doit pas dépasser 10 Mo.',
+            'documents.required' => 'Au moins une pièce justificative est requise.',
+            'documents.*.mimes' => 'Chaque document doit être au format PDF, JPG, PNG, DOC ou DOCX.',
+            'documents.*.max' => 'Chaque fichier ne doit pas dépasser 10 Mo.',
             'document_types.required' => 'Le type de chaque pièce jointe est requis.',
         ]);
 
         $certificateRequest = CertificateRequest::create([
             ...collect($validated)->except(['documents', 'document_types', 'tenant_id'])->toArray(),
-            'tenant_id'  => $validated['tenant_id'] ?? $broker->tenant_id,
-            'broker_id'  => $broker->id,
+            'tenant_id' => $validated['tenant_id'] ?? $broker->tenant_id,
+            'broker_id' => $broker->id,
             'created_by' => Auth::id(),
-            'status'     => $isDraft ? CertificateRequest::STATUS_DRAFT : CertificateRequest::STATUS_PENDING,
+            'status' => $isDraft ? CertificateRequest::STATUS_DRAFT : CertificateRequest::STATUS_PENDING,
             ...($isDraft ? [] : ['submitted_at' => now()]),
         ]);
 
         foreach ($request->file('documents', []) as $i => $file) {
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs("certificate-requests/{$certificateRequest->id}", $filename, 'local');
 
             CertificateRequestDocument::create([
                 'certificate_request_id' => $certificateRequest->id,
-                'file_path'              => $path,
-                'file_original_name'     => $file->getClientOriginalName(),
-                'file_mime_type'         => $file->getMimeType(),
-                'file_size'              => $file->getSize(),
-                'document_type'          => $validated['document_types'][$i] ?? null,
-                'uploaded_by'            => Auth::id(),
+                'file_path' => $path,
+                'file_original_name' => $file->getClientOriginalName(),
+                'file_mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'document_type' => $validated['document_types'][$i] ?? null,
+                'uploaded_by' => Auth::id(),
             ]);
         }
 
@@ -162,36 +162,36 @@ class CertificateRequestController extends Controller
         $broker = $this->currentBroker($request);
 
         $validated = $request->validate([
-            'country_code'       => ['nullable', 'string', 'size:2', 'exists:countries,code'],
-            'insured_name'       => ['nullable', 'string', 'max:200'],
-            'voyage_from'        => ['nullable', 'string', 'max:150'],
-            'voyage_to'          => ['nullable', 'string', 'max:150'],
-            'voyage_date'        => ['nullable', 'date'],
-            'transport_type'     => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL'],
-            'cargo_description'  => ['nullable', 'string', 'max:1000'],
-            'estimated_value'    => ['nullable', 'numeric', 'min:0'],
-            'currency_code'      => ['nullable', 'string', 'size:3'],
-            'notes'              => ['nullable', 'string', 'max:2000'],
-            'documents'          => ['nullable', 'array'],
-            'documents.*'        => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
-            'document_types'     => ['nullable', 'array', 'size:' . count($request->file('documents', []))],
-            'document_types.*'   => ['required', 'string', 'in:' . implode(',', CertificateRequestDocument::TYPES)],
+            'country_code' => ['nullable', 'string', 'size:2', 'exists:countries,code'],
+            'insured_name' => ['nullable', 'string', 'max:200'],
+            'voyage_from' => ['nullable', 'string', 'max:150'],
+            'voyage_to' => ['nullable', 'string', 'max:150'],
+            'voyage_date' => ['nullable', 'date'],
+            'transport_type' => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL'],
+            'cargo_description' => ['nullable', 'string', 'max:1000'],
+            'estimated_value' => ['nullable', 'numeric', 'min:0'],
+            'currency_code' => ['nullable', 'string', 'size:3'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+            'documents' => ['nullable', 'array'],
+            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
+            'document_types' => ['nullable', 'array', 'size:'.count($request->file('documents', []))],
+            'document_types.*' => ['required', 'string', 'in:'.implode(',', CertificateRequestDocument::TYPES)],
         ]);
 
         $certificateRequest->update(collect($validated)->except(['documents', 'document_types'])->toArray());
 
         foreach ($request->file('documents', []) as $i => $file) {
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs("certificate-requests/{$certificateRequest->id}", $filename, 'local');
 
             CertificateRequestDocument::create([
                 'certificate_request_id' => $certificateRequest->id,
-                'file_path'              => $path,
-                'file_original_name'     => $file->getClientOriginalName(),
-                'file_mime_type'         => $file->getMimeType(),
-                'file_size'              => $file->getSize(),
-                'document_type'          => $validated['document_types'][$i] ?? null,
-                'uploaded_by'            => Auth::id(),
+                'file_path' => $path,
+                'file_original_name' => $file->getClientOriginalName(),
+                'file_mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'document_type' => $validated['document_types'][$i] ?? null,
+                'uploaded_by' => Auth::id(),
             ]);
         }
 
@@ -209,7 +209,7 @@ class CertificateRequestController extends Controller
         abort_if($certificateRequest->documents()->count() === 0, 422, 'Au moins une pièce justificative est requise avant transmission.');
 
         $certificateRequest->update([
-            'status'       => CertificateRequest::STATUS_PENDING,
+            'status' => CertificateRequest::STATUS_PENDING,
             'submitted_at' => now(),
         ]);
 
@@ -231,11 +231,11 @@ class CertificateRequestController extends Controller
             $staff,
             Notification::TYPE_CERT_REQUEST_CREATED,
             'Nouvelle demande de certificat',
-            "Nouvelle demande de {$broker->name}" . ($certificateRequest->insured_name ? " — {$certificateRequest->insured_name}" : '') . '.',
+            "Nouvelle demande de {$broker->name}".($certificateRequest->insured_name ? " — {$certificateRequest->insured_name}" : '').'.',
             [
-                'icon'  => 'inbox',
+                'icon' => 'inbox',
                 'color' => 'info',
-                'url'   => route('admin.certificate-requests.show', $certificateRequest),
+                'url' => route('admin.certificate-requests.show', $certificateRequest),
             ]
         );
     }
@@ -268,30 +268,30 @@ class CertificateRequestController extends Controller
 
         $validated = $request->validate([
             'completion_notes' => ['nullable', 'string', 'max:2000'],
-            'documents'        => ['nullable', 'array'],
-            'documents.*'      => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
-            'document_types'   => ['array'],
-            'document_types.*' => ['nullable', 'string', 'in:' . implode(',', CertificateRequestDocument::TYPES)],
+            'documents' => ['nullable', 'array'],
+            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
+            'document_types' => ['array'],
+            'document_types.*' => ['nullable', 'string', 'in:'.implode(',', CertificateRequestDocument::TYPES)],
         ]);
 
         foreach ($request->file('documents', []) as $i => $file) {
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs("certificate-requests/{$certificateRequest->id}", $filename, 'local');
 
             CertificateRequestDocument::create([
                 'certificate_request_id' => $certificateRequest->id,
-                'file_path'              => $path,
-                'file_original_name'     => $file->getClientOriginalName(),
-                'file_mime_type'         => $file->getMimeType(),
-                'file_size'              => $file->getSize(),
-                'document_type'          => $validated['document_types'][$i] ?? null,
-                'uploaded_by'            => Auth::id(),
+                'file_path' => $path,
+                'file_original_name' => $file->getClientOriginalName(),
+                'file_mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'document_type' => $validated['document_types'][$i] ?? null,
+                'uploaded_by' => Auth::id(),
             ]);
         }
 
         $certificateRequest->update([
-            'status'           => CertificateRequest::STATUS_COMPLETED,
-            'completed_at'     => now(),
+            'status' => CertificateRequest::STATUS_COMPLETED,
+            'completed_at' => now(),
             'completion_notes' => $validated['completion_notes'] ?? null,
         ]);
 
@@ -300,11 +300,11 @@ class CertificateRequestController extends Controller
                 $certificateRequest->assignedTo,
                 Notification::TYPE_CERT_REQUEST_COMPLETED,
                 'Dossier complété',
-                "Le partenaire a complété sa demande" . ($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '') . '.',
+                'Le partenaire a complété sa demande'.($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '').'.',
                 [
-                    'icon'  => 'file-check',
+                    'icon' => 'file-check',
                     'color' => 'info',
-                    'url'   => route('admin.certificate-requests.show', $certificateRequest),
+                    'url' => route('admin.certificate-requests.show', $certificateRequest),
                 ]
             );
         }

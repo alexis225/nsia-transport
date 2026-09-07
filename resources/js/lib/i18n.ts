@@ -1,4 +1,5 @@
-import i18next, { type i18n as I18nInstance } from 'i18next';
+import i18next from 'i18next';
+import type { i18n as I18nInstance } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 // ── i18n de la plateforme ────────────────────────────────────
@@ -54,7 +55,10 @@ type Catalog = Record<string, unknown>;
 const catalogs = import.meta.glob<{ default: Catalog }>('../locales/*/*.json');
 
 export function isSupportedLocale(value: unknown): value is Locale {
-    return typeof value === 'string' && (SUPPORTED_LOCALES as readonly string[]).includes(value);
+    return (
+        typeof value === 'string' &&
+        (SUPPORTED_LOCALES as readonly string[]).includes(value)
+    );
 }
 
 /**
@@ -62,7 +66,10 @@ export function isSupportedLocale(value: unknown): value is Locale {
  * Un namespace absent est ignore : le repli i18next prend le relais, ce qui
  * permet de livrer une traduction incomplete sans casser la page.
  */
-async function loadCatalogs(instance: I18nInstance, locale: Locale): Promise<void> {
+async function loadCatalogs(
+    instance: I18nInstance,
+    locale: Locale,
+): Promise<void> {
     await Promise.all(
         NAMESPACES.map(async (namespace) => {
             const path = `../locales/${locale}/${namespace}.json`;
@@ -73,13 +80,22 @@ async function loadCatalogs(instance: I18nInstance, locale: Locale): Promise<voi
             }
 
             const module = await loader();
-            instance.addResourceBundle(locale, namespace, module.default, true, true);
+            instance.addResourceBundle(
+                locale,
+                namespace,
+                module.default,
+                true,
+                true,
+            );
         }),
     );
 }
 
 /** Bascule l'instance sur une autre langue, en chargeant ses catalogues au besoin. */
-export async function changeLocale(instance: I18nInstance, locale: Locale): Promise<void> {
+export async function changeLocale(
+    instance: I18nInstance,
+    locale: Locale,
+): Promise<void> {
     if (instance.language === locale) {
         return;
     }
@@ -94,7 +110,9 @@ export async function changeLocale(instance: I18nInstance, locale: Locale): Prom
  * que l'une n'ecrase la langue de l'autre.
  */
 export async function createI18n(locale: string): Promise<I18nInstance> {
-    const resolved: Locale = isSupportedLocale(locale) ? locale : FALLBACK_LOCALE;
+    const resolved: Locale = isSupportedLocale(locale)
+        ? locale
+        : FALLBACK_LOCALE;
     const instance = i18next.createInstance();
 
     await instance.use(initReactI18next).init({

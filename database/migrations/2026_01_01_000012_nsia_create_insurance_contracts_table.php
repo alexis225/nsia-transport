@@ -25,9 +25,9 @@ return new class extends Migration
 
             $table->foreignUuid('tenant_id')->constrained('tenants');
             $table->foreignUuid('broker_id')
-                  ->nullable()
-                  ->constrained('brokers')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('brokers')
+                ->nullOnDelete();
 
             // ── Identification ────────────────────────────────
             $table->string('contract_number', 100);
@@ -47,11 +47,11 @@ return new class extends Migration
             $table->decimal('deductible', 20, 2)->default(0);           // franchise
 
             // ── Taux détaillés (décompte prime) ───────────────
-            $table->decimal('rate_ro',          8, 4)->nullable();      // R.O. %
-            $table->decimal('rate_rg',          8, 4)->nullable();      // R.G. %
-            $table->decimal('rate_surprime',    8, 4)->nullable();      // Surprime %
+            $table->decimal('rate_ro', 8, 4)->nullable();      // R.O. %
+            $table->decimal('rate_rg', 8, 4)->nullable();      // R.G. %
+            $table->decimal('rate_surprime', 8, 4)->nullable();      // Surprime %
             $table->decimal('rate_accessories', 8, 4)->nullable();      // Accessoires %
-            $table->decimal('rate_tax',         8, 4)->nullable();      // Taxe %
+            $table->decimal('rate_tax', 8, 4)->nullable();      // Taxe %
 
             // ── Garantie & Couverture ─────────────────────────
             $table->string('coverage_type', 50)->nullable(); // TOUS_RISQUES | FAP_SAUF | FAP_ABSOLUE
@@ -62,8 +62,8 @@ return new class extends Migration
             $table->char('incoterm_code', 5)->nullable();     // FOB, CIF, EXW...
             $table->unsignedBigInteger('transport_mode_id')->nullable();
             $table->foreign('transport_mode_id')
-                  ->references('id')->on('transport_modes')
-                  ->nullOnDelete();
+                ->references('id')->on('transport_modes')
+                ->nullOnDelete();
             $table->string('transport_mode_detail', 100)->nullable(); // précision libre
 
             // ── Couvertures géographiques ─────────────────────
@@ -77,9 +77,9 @@ return new class extends Migration
             // ── Approbation / Workflow ────────────────────────
             $table->boolean('requires_approval')->default(false);
             $table->foreignUuid('approved_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
             $table->text('validation_notes')->nullable();     // notes approbation / motif rejet
 
@@ -118,32 +118,32 @@ return new class extends Migration
             CHECK (coverage_type IS NULL OR coverage_type IN ('TOUS_RISQUES','FAP_SAUF','FAP_ABSOLUE'))");
 
         // ── Index ─────────────────────────────────────────────
-        DB::statement("CREATE INDEX idx_contracts_tenant_status
+        DB::statement('CREATE INDEX idx_contracts_tenant_status
             ON insurance_contracts(tenant_id, status)
-            WHERE deleted_at IS NULL");
+            WHERE deleted_at IS NULL');
 
-        DB::statement("CREATE INDEX idx_contracts_broker
+        DB::statement('CREATE INDEX idx_contracts_broker
             ON insurance_contracts(broker_id)
-            WHERE deleted_at IS NULL");
+            WHERE deleted_at IS NULL');
 
         DB::statement("CREATE INDEX idx_contracts_expiry
             ON insurance_contracts(expiry_date)
             WHERE status = 'ACTIVE'");
 
-        DB::statement("CREATE INDEX idx_contracts_insured
+        DB::statement('CREATE INDEX idx_contracts_insured
             ON insurance_contracts(tenant_id, insured_name)
-            WHERE deleted_at IS NULL");
+            WHERE deleted_at IS NULL');
 
-        DB::statement("CREATE INDEX idx_contracts_incoterm
+        DB::statement('CREATE INDEX idx_contracts_incoterm
             ON insurance_contracts(incoterm_code)
-            WHERE deleted_at IS NULL");
+            WHERE deleted_at IS NULL');
 
-        DB::statement("CREATE INDEX idx_contracts_transport
+        DB::statement('CREATE INDEX idx_contracts_transport
             ON insurance_contracts(transport_mode_id)
-            WHERE deleted_at IS NULL");
+            WHERE deleted_at IS NULL');
 
-        DB::statement("CREATE INDEX idx_contracts_number
-            ON insurance_contracts(contract_number)");
+        DB::statement('CREATE INDEX idx_contracts_number
+            ON insurance_contracts(contract_number)');
     }
 
     public function down(): void

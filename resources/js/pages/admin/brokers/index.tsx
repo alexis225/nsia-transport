@@ -1,49 +1,71 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
-    Search, Plus, Eye, Edit2, Trash2,
-    ToggleLeft, ToggleRight, X,
-    ChevronLeft, ChevronRight,
-    Briefcase, Mail, Phone, MapPin,
+    Search,
+    Plus,
+    Eye,
+    Edit2,
+    Trash2,
+    ToggleLeft,
+    ToggleRight,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Mail,
+    Phone,
+    MapPin,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
-interface Tenant { id: string; name: string; code: string; }
+interface Tenant {
+    id: string;
+    name: string;
+    code: string;
+}
 interface Broker {
-    id: string; name: string; code: string;
+    id: string;
+    name: string;
+    code: string;
     type: 'courtier_local' | 'partenaire_etranger';
-    agreement_number: string | null;
-    email: string | null; phone: string | null;
-    address: string | null; city: string | null; country_code: string;
-    is_active: boolean; created_at: string;
+    registration_number: string | null;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
+    city: string | null;
+    country_code: string;
+    is_active: boolean;
+    created_at: string;
     tenant: Tenant | null;
 }
 interface Paginated<T> {
-    data: T[]; current_page: number; last_page: number; total: number;
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
     brokers: Paginated<Broker>;
     filters: { search?: string; type?: string; status?: string };
-    isSA:    boolean;
-    can:     { create: boolean; edit: boolean; delete: boolean };
+    isSA: boolean;
+    can: { create: boolean; edit: boolean; delete: boolean };
 }
 
 const TYPE_STYLES = {
-    courtier_local:      { bg:'#EFF6FF', color:'#1D4ED8' },
-    partenaire_etranger: { bg:'#FDF4FF', color:'#7E22CE' },
+    courtier_local: { bg: '#EFF6FF', color: '#1D4ED8' },
+    partenaire_etranger: { bg: '#FDF4FF', color: '#7E22CE' },
 };
 
 const BROKER_COLORS = [
-    { bg:'#EEF2FF', color:'#4338CA' },
-    { bg:'#EFF6FF', color:'#1D4ED8' },
-    { bg:'#FFF7ED', color:'#C2410C' },
-    { bg:'#FDF4FF', color:'#7E22CE' },
-    { bg:'#F0FDF4', color:'#15803D' },
-    { bg:'#ECFDF5', color:'#065F46' },
+    { bg: '#EEF2FF', color: '#4338CA' },
+    { bg: '#EFF6FF', color: '#1D4ED8' },
+    { bg: '#FFF7ED', color: '#C2410C' },
+    { bg: '#FDF4FF', color: '#7E22CE' },
+    { bg: '#F0FDF4', color: '#15803D' },
+    { bg: '#ECFDF5', color: '#065F46' },
 ];
 
 export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
@@ -56,24 +78,33 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
     ];
 
     const applyFilter = (params: Record<string, string>) =>
-        router.get('/admin/brokers', { ...filters, ...params }, { preserveState:true, replace:true });
+        router.get(
+            '/admin/brokers',
+            { ...filters, ...params },
+            { preserveState: true, replace: true },
+        );
 
     const handleDelete = (broker: Broker) => {
-        if (confirm(t('index.confirmDelete', { name: broker.name })))
-            router.delete(route('admin.brokers.destroy', { broker: broker.id }));
+        if (confirm(t('index.confirmDelete', { name: broker.name }))) {
+            router.delete(
+                route('admin.brokers.destroy', { broker: broker.id }),
+            );
+        }
     };
 
     const handleToggle = (broker: Broker) => {
         const msg = broker.is_active
             ? t('index.confirmDeactivate', { name: broker.name })
             : t('index.confirmActivate', { name: broker.name });
-        if (confirm(msg))
+
+        if (confirm(msg)) {
             router.patch(route('admin.brokers.toggle', { broker: broker.id }));
+        }
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('index.title')}/>
+            <Head title={t('index.title')} />
             <style>{`
                 .br-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .br-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -120,17 +151,18 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="br-page">
-
                     {/* Header */}
                     <div className="br-hdr">
                         <div>
                             <h1 className="br-title">{t('index.heading')}</h1>
-                            <p className="br-sub">{t('index.count', { count: brokers.total })}</p>
+                            <p className="br-sub">
+                                {t('index.count', { count: brokers.total })}
+                            </p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.brokers.create')}>
-                                <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> {t('index.newBroker')}
+                                <Button className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]">
+                                    <Plus size={15} /> {t('index.newBroker')}
                                 </Button>
                             </Link>
                         )}
@@ -138,23 +170,74 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
 
                     {/* Toolbar */}
                     <div className="br-toolbar">
-                        <form className="br-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.searchPlaceholder')}/>
-                            <button type="submit"><Search size={14}/></button>
+                        <form
+                            className="br-search"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                applyFilter({ search, page: '1' });
+                            }}
+                        >
+                            <input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={t('index.searchPlaceholder')}
+                            />
+                            <button type="submit">
+                                <Search size={14} />
+                            </button>
                         </form>
-                        <select className="br-select" value={filters?.type ?? ''} onChange={e => applyFilter({ type: e.target.value, page:'1' })}>
+                        <select
+                            className="br-select"
+                            value={filters?.type ?? ''}
+                            onChange={(e) =>
+                                applyFilter({ type: e.target.value, page: '1' })
+                            }
+                        >
                             <option value="">{t('index.typeAll')}</option>
-                            <option value="courtier_local">{t('index.typeLocal')}</option>
-                            <option value="partenaire_etranger">{t('index.typeForeign')}</option>
+                            <option value="courtier_local">
+                                {t('index.typeLocal')}
+                            </option>
+                            <option value="partenaire_etranger">
+                                {t('index.typeForeign')}
+                            </option>
                         </select>
-                        <select className="br-select" value={filters?.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page:'1' })}>
+                        <select
+                            className="br-select"
+                            value={filters?.status ?? ''}
+                            onChange={(e) =>
+                                applyFilter({
+                                    status: e.target.value,
+                                    page: '1',
+                                })
+                            }
+                        >
                             <option value="">{t('index.statusAll')}</option>
-                            <option value="active">{t('index.statusActive')}</option>
-                            <option value="inactive">{t('index.statusInactive')}</option>
+                            <option value="active">
+                                {t('index.statusActive')}
+                            </option>
+                            <option value="inactive">
+                                {t('index.statusInactive')}
+                            </option>
                         </select>
-                        {(filters?.search || filters?.type || filters?.status) && (
-                            <button onClick={() => router.get('/admin/brokers')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> {t('index.clear')}
+                        {(filters?.search ||
+                            filters?.type ||
+                            filters?.status) && (
+                            <button
+                                onClick={() => router.get('/admin/brokers')}
+                                style={{
+                                    padding: '9px 12px',
+                                    background: 'none',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 8,
+                                    cursor: 'pointer',
+                                    color: '#94a3b8',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    fontSize: 12,
+                                }}
+                            >
+                                <X size={12} /> {t('index.clear')}
                             </button>
                         )}
                     </div>
@@ -172,86 +255,302 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
                                             <th>{t('index.table.type')}</th>
                                             <th>{t('index.table.contact')}</th>
                                             <th>{t('index.table.location')}</th>
-                                            {isSA && <th>{t('index.table.tenant')}</th>}
-                                            <th>{t('index.table.agreement')}</th>
+                                            {isSA && (
+                                                <th>
+                                                    {t('index.table.tenant')}
+                                                </th>
+                                            )}
+                                            <th>
+                                                {t('index.table.agreement')}
+                                            </th>
                                             <th>{t('index.table.status')}</th>
                                             <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {brokers.data.map((broker, i) => {
-                                            const c  = BROKER_COLORS[i % BROKER_COLORS.length];
+                                            const c =
+                                                BROKER_COLORS[
+                                                    i % BROKER_COLORS.length
+                                                ];
                                             const ts = TYPE_STYLES[broker.type];
-                                            const initials = broker.name.slice(0, 2).toUpperCase();
+                                            const initials = broker.name
+                                                .slice(0, 2)
+                                                .toUpperCase();
 
                                             return (
                                                 <tr key={broker.id}>
                                                     <td>
-                                                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                                            <div className="b-avatar" style={{ background: c.bg, color: c.color }}>
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 10,
+                                                            }}
+                                                        >
+                                                            <div
+                                                                className="b-avatar"
+                                                                style={{
+                                                                    background:
+                                                                        c.bg,
+                                                                    color: c.color,
+                                                                }}
+                                                            >
                                                                 {initials}
                                                             </div>
                                                             <div>
-                                                                <div className="b-name">{broker.name}</div>
-                                                                <div className="b-code">{broker.code}</div>
+                                                                <div className="b-name">
+                                                                    {
+                                                                        broker.name
+                                                                    }
+                                                                </div>
+                                                                <div className="b-code">
+                                                                    {
+                                                                        broker.code
+                                                                    }
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <span className="type-badge" style={{ background: ts.bg, color: ts.color }}>
-                                                            {broker.type === 'courtier_local' ? t('index.typeLocal') : t('index.typeForeign')}
+                                                        <span
+                                                            className="type-badge"
+                                                            style={{
+                                                                background:
+                                                                    ts.bg,
+                                                                color: ts.color,
+                                                            }}
+                                                        >
+                                                            {broker.type ===
+                                                            'courtier_local'
+                                                                ? t(
+                                                                      'index.typeLocal',
+                                                                  )
+                                                                : t(
+                                                                      'index.typeForeign',
+                                                                  )}
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <div className="contact-info">
-                                                            {broker.email && <div className="contact-row"><Mail size={10}/>{broker.email}</div>}
-                                                            {broker.phone && <div className="contact-row"><Phone size={10}/>{broker.phone}</div>}
-                                                            {!broker.email && !broker.phone && <span style={{ color:'#cbd5e1' }}>—</span>}
+                                                            {broker.email && (
+                                                                <div className="contact-row">
+                                                                    <Mail
+                                                                        size={
+                                                                            10
+                                                                        }
+                                                                    />
+                                                                    {
+                                                                        broker.email
+                                                                    }
+                                                                </div>
+                                                            )}
+                                                            {broker.phone && (
+                                                                <div className="contact-row">
+                                                                    <Phone
+                                                                        size={
+                                                                            10
+                                                                        }
+                                                                    />
+                                                                    {
+                                                                        broker.phone
+                                                                    }
+                                                                </div>
+                                                            )}
+                                                            {!broker.email &&
+                                                                !broker.phone && (
+                                                                    <span
+                                                                        style={{
+                                                                            color: '#cbd5e1',
+                                                                        }}
+                                                                    >
+                                                                        —
+                                                                    </span>
+                                                                )}
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div className="contact-info">
-                                                            {(broker.city || broker.country_code) && (
+                                                            {(broker.city ||
+                                                                broker.country_code) && (
                                                                 <div className="contact-row">
-                                                                    <MapPin size={10}/>
-                                                                    {[broker.city, broker.country_code].filter(Boolean).join(', ')}
+                                                                    <MapPin
+                                                                        size={
+                                                                            10
+                                                                        }
+                                                                    />
+                                                                    {[
+                                                                        broker.city,
+                                                                        broker.country_code,
+                                                                    ]
+                                                                        .filter(
+                                                                            Boolean,
+                                                                        )
+                                                                        .join(
+                                                                            ', ',
+                                                                        )}
                                                                 </div>
                                                             )}
-                                                            {!broker.city && !broker.address && <span style={{ color:'#cbd5e1' }}>—</span>}
+                                                            {!broker.city &&
+                                                                !broker.address && (
+                                                                    <span
+                                                                        style={{
+                                                                            color: '#cbd5e1',
+                                                                        }}
+                                                                    >
+                                                                        —
+                                                                    </span>
+                                                                )}
                                                         </div>
                                                     </td>
                                                     {isSA && (
-                                                        <td style={{ fontSize:12, color:'#64748b' }}>
-                                                            {broker.tenant?.name ?? '—'}
+                                                        <td
+                                                            style={{
+                                                                fontSize: 12,
+                                                                color: '#64748b',
+                                                            }}
+                                                        >
+                                                            {broker.tenant
+                                                                ?.name ?? '—'}
                                                         </td>
                                                     )}
-                                                    <td style={{ fontSize:11, fontFamily:'monospace', color:'#64748b' }}>
-                                                        {broker.registration_number ?? <span style={{ color:'#cbd5e1' }}>—</span>}
+                                                    <td
+                                                        style={{
+                                                            fontSize: 11,
+                                                            fontFamily:
+                                                                'monospace',
+                                                            color: '#64748b',
+                                                        }}
+                                                    >
+                                                        {broker.registration_number ?? (
+                                                            <span
+                                                                style={{
+                                                                    color: '#cbd5e1',
+                                                                }}
+                                                            >
+                                                                —
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td>
-                                                        {broker.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{tc('states.active')}</span>
-                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{tc('states.inactive')}</span>
-                                                        }
+                                                        {broker.is_active ? (
+                                                            <span className="s-active">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#22c55e',
+                                                                    }}
+                                                                />
+                                                                {tc(
+                                                                    'states.active',
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="s-inactive">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#94a3b8',
+                                                                    }}
+                                                                />
+                                                                {tc(
+                                                                    'states.inactive',
+                                                                )}
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td>
                                                         <div className="actions">
-                                                            <Link href={route('admin.brokers.show', { broker: broker.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> {t('index.view')}
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.brokers.show',
+                                                                    {
+                                                                        broker: broker.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-act btn-view"
+                                                            >
+                                                                <Eye
+                                                                    size={12}
+                                                                />{' '}
+                                                                {t(
+                                                                    'index.view',
+                                                                )}
                                                             </Link>
                                                             {can.edit && (
-                                                                <Link href={route('admin.brokers.edit', { broker: broker.id })} className="btn-act btn-edit">
-                                                                    <Edit2 size={12}/> {t('index.edit')}
+                                                                <Link
+                                                                    href={route(
+                                                                        'admin.brokers.edit',
+                                                                        {
+                                                                            broker: broker.id,
+                                                                        },
+                                                                    )}
+                                                                    className="btn-act btn-edit"
+                                                                >
+                                                                    <Edit2
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />{' '}
+                                                                    {t(
+                                                                        'index.edit',
+                                                                    )}
                                                                 </Link>
                                                             )}
                                                             {can.edit && (
-                                                                <button className={`btn-act ${broker.is_active ? 'btn-on' : 'btn-off'}`} onClick={() => handleToggle(broker)}>
-                                                                    {broker.is_active ? <><ToggleLeft size={12}/> {t('index.deactivate')}</> : <><ToggleRight size={12}/> {t('index.activate')}</>}
+                                                                <button
+                                                                    className={`btn-act ${broker.is_active ? 'btn-on' : 'btn-off'}`}
+                                                                    onClick={() =>
+                                                                        handleToggle(
+                                                                            broker,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {broker.is_active ? (
+                                                                        <>
+                                                                            <ToggleLeft
+                                                                                size={
+                                                                                    12
+                                                                                }
+                                                                            />{' '}
+                                                                            {t(
+                                                                                'index.deactivate',
+                                                                            )}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <ToggleRight
+                                                                                size={
+                                                                                    12
+                                                                                }
+                                                                            />{' '}
+                                                                            {t(
+                                                                                'index.activate',
+                                                                            )}
+                                                                        </>
+                                                                    )}
                                                                 </button>
                                                             )}
                                                             {can.delete && (
-                                                                <button className="btn-act btn-del" onClick={() => handleDelete(broker)}>
-                                                                    <Trash2 size={12}/> {t('index.delete')}
+                                                                <button
+                                                                    className="btn-act btn-del"
+                                                                    onClick={() =>
+                                                                        handleDelete(
+                                                                            broker,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Trash2
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />{' '}
+                                                                    {t(
+                                                                        'index.delete',
+                                                                    )}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -264,19 +563,73 @@ export default function BrokersIndex({ brokers, filters, isSA, can }: Props) {
 
                                 {brokers.last_page > 1 && (
                                     <div className="br-pagination">
-                                        <span className="br-pg-info">{t('index.pageInfo', { current: brokers.current_page, last: brokers.last_page, total: brokers.total })}</span>
+                                        <span className="br-pg-info">
+                                            {t('index.pageInfo', {
+                                                current: brokers.current_page,
+                                                last: brokers.last_page,
+                                                total: brokers.total,
+                                            })}
+                                        </span>
                                         <div className="br-pg-links">
-                                            <button className="pg-btn" disabled={brokers.current_page === 1} onClick={() => applyFilter({ page: String(brokers.current_page - 1) })}><ChevronLeft size={13}/></button>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    brokers.current_page === 1
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            brokers.current_page -
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronLeft size={13} />
+                                            </button>
                                             {brokers.links.map((link, i) => {
-                                                if (i === 0 || i === brokers.links.length - 1) return null;
+                                                if (
+                                                    i === 0 ||
+                                                    i ===
+                                                        brokers.links.length - 1
+                                                ) {
+                                                    return null;
+                                                }
+
                                                 return (
-                                                    <button key={`page-${i}`} className={`pg-btn ${link.active ? 'act' : ''}`}
-                                                            onClick={() => link.url && applyFilter({ page: link.label })}
-                                                            disabled={!link.url}
-                                                            dangerouslySetInnerHTML={{ __html: link.label }}/>
+                                                    <button
+                                                        key={`page-${i}`}
+                                                        className={`pg-btn ${link.active ? 'act' : ''}`}
+                                                        onClick={() =>
+                                                            link.url &&
+                                                            applyFilter({
+                                                                page: link.label,
+                                                            })
+                                                        }
+                                                        disabled={!link.url}
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: link.label,
+                                                        }}
+                                                    />
                                                 );
                                             })}
-                                            <button className="pg-btn" disabled={brokers.current_page === brokers.last_page} onClick={() => applyFilter({ page: String(brokers.current_page + 1) })}><ChevronRight size={13}/></button>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    brokers.current_page ===
+                                                    brokers.last_page
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            brokers.current_page +
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronRight size={13} />
+                                            </button>
                                         </div>
                                     </div>
                                 )}

@@ -58,7 +58,9 @@ export default function TwoFactor({
                     />
                     {twoFactorEnabled ? (
                         <div className="flex flex-col items-start justify-start space-y-4">
-                            <Badge variant="default">{t('twoFactor.enabled')}</Badge>
+                            <Badge variant="default">
+                                {t('twoFactor.enabled')}
+                            </Badge>
                             <p className="text-muted-foreground">
                                 {t('twoFactor.enabledText')}
                             </p>
@@ -77,7 +79,8 @@ export default function TwoFactor({
                                             type="submit"
                                             disabled={processing}
                                         >
-                                            <ShieldBan /> {t('twoFactor.disable')}
+                                            <ShieldBan />{' '}
+                                            {t('twoFactor.disable')}
                                         </Button>
                                     )}
                                 </Form>
@@ -85,7 +88,9 @@ export default function TwoFactor({
                         </div>
                     ) : (
                         <div className="flex flex-col items-start justify-start space-y-4">
-                            <Badge variant="destructive">{t('twoFactor.disabled')}</Badge>
+                            <Badge variant="destructive">
+                                {t('twoFactor.disabled')}
+                            </Badge>
                             <p className="text-muted-foreground">
                                 {t('twoFactor.disabledText')}
                             </p>

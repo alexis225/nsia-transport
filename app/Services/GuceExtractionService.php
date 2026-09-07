@@ -31,12 +31,12 @@ class GuceExtractionService
      */
     public function extract(string $absoluteFilePath): array
     {
-        $apiKey  = config('services.mindee.api_key');
+        $apiKey = config('services.mindee.api_key');
         $modelId = config('services.mindee.model_id');
 
         if (! $apiKey || ! $modelId) {
             throw new RuntimeException(
-                "Extraction automatique non configurée — MINDEE_V2_API_KEY et MINDEE_GUCE_MODEL_ID sont requis."
+                'Extraction automatique non configurée — MINDEE_V2_API_KEY et MINDEE_GUCE_MODEL_ID sont requis.'
             );
         }
 
@@ -165,7 +165,7 @@ class GuceExtractionService
         }
 
         $hasComma = str_contains($cleaned, ',');
-        $hasDot   = str_contains($cleaned, '.');
+        $hasDot = str_contains($cleaned, '.');
 
         if ($hasComma && $hasDot) {
             // Le séparateur décimal est celui qui apparaît en dernier,

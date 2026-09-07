@@ -1,128 +1,299 @@
-import { useRef, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import {
+    Award,
+    AlertTriangle,
+    CheckCircle,
+    Clock,
+    FileText,
+    Download,
+    Search,
+    Filter,
+    Ship,
+    Plane,
+    Truck,
+    ChevronLeft,
+    ChevronRight,
+    X,
+} from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import {
-    Award, AlertTriangle, CheckCircle, Clock,
-    FileText, Download, Search, Filter,
-    Ship, Plane, Truck, ChevronLeft, ChevronRight, X,
-} from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────
 interface CertRow {
-    id: string; certificate_number: string; status: string;
-    insured_name: string; insured_value: string; currency_code: string;
-    prime_total: string | null; transport_type: string | null;
-    voyage_from: string; voyage_to: string; voyage_date: string;
-    issued_at: string | null; created_at: string;
-    tenant:   { name: string; code: string } | null;
-    contract: { contract_number: string; broker: { name: string } | null } | null;
+    id: string;
+    certificate_number: string;
+    status: string;
+    insured_name: string;
+    insured_value: string;
+    currency_code: string;
+    prime_total: string | null;
+    transport_type: string | null;
+    voyage_from: string;
+    voyage_to: string;
+    voyage_date: string;
+    issued_at: string | null;
+    created_at: string;
+    tenant: { name: string; code: string } | null;
+    contract: {
+        contract_number: string;
+        broker: { name: string } | null;
+    } | null;
     issued_by: { first_name: string; last_name: string } | null;
 }
-interface BreakdownRow  { transport_type: string; count: number; total_value: string; total_prime: string }
-interface StatusRow     { status: string; count: number; total_value: string }
-interface Paginated<T>  {
-    data: T[]; total: number; current_page: number; last_page: number;
+interface BreakdownRow {
+    transport_type: string;
+    count: number;
+    total_value: string;
+    total_prime: string;
+}
+interface StatusRow {
+    status: string;
+    count: number;
+    total_value: string;
+}
+interface Paginated<T> {
+    data: T[];
+    total: number;
+    current_page: number;
+    last_page: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
     certificates: Paginated<CertRow>;
     stats: {
-        total: number; issued: number; submitted: number; draft: number; cancelled: number;
-        total_insured: number; total_prime: number; issued_insured: number; issued_prime: number;
+        total: number;
+        issued: number;
+        submitted: number;
+        draft: number;
+        cancelled: number;
+        total_insured: number;
+        total_prime: number;
+        issued_insured: number;
+        issued_prime: number;
     };
     byTransport: BreakdownRow[];
-    byStatus:    StatusRow[];
-    brokers:     { id: string; name: string }[];
-    tenants:     { id: string; name: string; code: string }[];
+    byStatus: StatusRow[];
+    brokers: { id: string; name: string }[];
+    tenants: { id: string; name: string; code: string }[];
     filters: {
-        date_from: string; date_to: string; date_field: string;
-        status: string; transport: string | null; broker_id: string | null;
-        tenant_id: string | null; search: string | null;
+        date_from: string;
+        date_to: string;
+        date_field: string;
+        status: string;
+        transport: string | null;
+        broker_id: string | null;
+        tenant_id: string | null;
+        search: string | null;
     };
     isSA: boolean;
 }
 
 // ── Constants ────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
-    ISSUED:    { color: '#15803d', bg: '#f0fdf4' },
+    ISSUED: { color: '#15803d', bg: '#f0fdf4' },
     SUBMITTED: { color: '#d97706', bg: '#fef3c7' },
-    DRAFT:     { color: '#64748b', bg: '#f8fafc' },
-    REJECTED:  { color: '#dc2626', bg: '#fef2f2' },
-    REPLACED:  { color: '#475569', bg: '#f1f5f9' },
+    DRAFT: { color: '#64748b', bg: '#f8fafc' },
+    REJECTED: { color: '#dc2626', bg: '#fef2f2' },
+    REPLACED: { color: '#475569', bg: '#f1f5f9' },
     CANCELLED: { color: '#991b1b', bg: '#fef2f2' },
 };
 
 const TRANSPORT_ICONS: Record<string, { icon: any; color: string }> = {
-    SEA:        { icon: Ship,  color: '#0284c7' },
-    AIR:        { icon: Plane, color: '#7c3aed' },
-    ROAD:       { icon: Truck, color: '#059669' },
-    RAIL:       { icon: Truck, color: '#d97706' },
+    SEA: { icon: Ship, color: '#0284c7' },
+    AIR: { icon: Plane, color: '#7c3aed' },
+    ROAD: { icon: Truck, color: '#059669' },
+    RAIL: { icon: Truck, color: '#d97706' },
     MULTIMODAL: { icon: Truck, color: '#0891b2' },
-    AUTRE:      { icon: Award, color: '#94a3b8' },
+    AUTRE: { icon: Award, color: '#94a3b8' },
 };
 
 // ── Helpers ──────────────────────────────────────────────────
-const fmt    = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 const fmtAmt = (v: string | number) =>
-    parseFloat(String(v)).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    parseFloat(String(v)).toLocaleString('fr-FR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    });
 
 // ── Sub-components ───────────────────────────────────────────
-function StatCard({ label, value, sub, color, bg, border, icon: Icon }: {
-    label: string; value: string | number; sub?: string;
-    color: string; bg?: string; border?: string; icon?: any;
+function StatCard({
+    label,
+    value,
+    sub,
+    color,
+    bg,
+    border,
+    icon: Icon,
+}: {
+    label: string;
+    value: string | number;
+    sub?: string;
+    color: string;
+    bg?: string;
+    border?: string;
+    icon?: any;
 }) {
     return (
-        <div style={{ background: bg ?? '#fff', border: `1.5px solid ${border ?? '#e2e8f0'}`,
-                      borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div
+            style={{
+                background: bg ?? '#fff',
+                border: `1.5px solid ${border ?? '#e2e8f0'}`,
+                borderRadius: 10,
+                padding: '12px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+            }}
+        >
             {Icon && (
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: `${color}18`,
-                              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon size={15} color={color}/>
+                <div
+                    style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
+                        background: `${color}18`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                    }}
+                >
+                    <Icon size={15} color={color} />
                 </div>
             )}
             <div>
-                <div style={{ fontSize: 9.5, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                <div
+                    style={{
+                        fontSize: 9.5,
+                        color: '#94a3b8',
+                        textTransform: 'uppercase',
+                        letterSpacing: '.05em',
+                    }}
+                >
                     {label}
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 700, color, lineHeight: 1.1 }}>{value}</div>
-                {sub && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>{sub}</div>}
+                <div
+                    style={{
+                        fontSize: 20,
+                        fontWeight: 700,
+                        color,
+                        lineHeight: 1.1,
+                    }}
+                >
+                    {value}
+                </div>
+                {sub && (
+                    <div
+                        style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}
+                    >
+                        {sub}
+                    </div>
+                )}
             </div>
         </div>
     );
 }
 
-function TransportBar({ rows, total }: { rows: BreakdownRow[]; total: number }) {
+function TransportBar({
+    rows,
+    total,
+}: {
+    rows: BreakdownRow[];
+    total: number;
+}) {
     const { t } = useTranslation('reports');
-    if (rows.length === 0) return (
-        <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '14px 0' }}>
-            {t('certificates.panels.noData')}
-        </div>
-    );
+
+    if (rows.length === 0) {
+        return (
+            <div
+                style={{
+                    fontSize: 12,
+                    color: '#94a3b8',
+                    textAlign: 'center',
+                    padding: '14px 0',
+                }}
+            >
+                {t('certificates.panels.noData')}
+            </div>
+        );
+    }
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-            {rows.map(r => {
-                const meta = TRANSPORT_ICONS[r.transport_type] ?? TRANSPORT_ICONS.AUTRE;
-                const label = t(`certificates.transportModes.${r.transport_type}`, { defaultValue: t('certificates.transportModes.AUTRE') });
+            {rows.map((r) => {
+                const meta =
+                    TRANSPORT_ICONS[r.transport_type] ?? TRANSPORT_ICONS.AUTRE;
+                const label = t(
+                    `certificates.transportModes.${r.transport_type}`,
+                    { defaultValue: t('certificates.transportModes.AUTRE') },
+                );
                 const Icon = meta.icon;
-                const pct  = total > 0 ? Math.round((r.count / total) * 100) : 0;
+                const pct = total > 0 ? Math.round((r.count / total) * 100) : 0;
+
                 return (
                     <div key={r.transport_type}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#475569' }}>
-                                <Icon size={11} color={meta.color}/> {label}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: 3,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    fontSize: 11,
+                                    color: '#475569',
+                                }}
+                            >
+                                <Icon size={11} color={meta.color} /> {label}
                             </div>
                             <div style={{ fontSize: 11, color: '#1e293b' }}>
                                 <strong>{r.count}</strong>
-                                <span style={{ color: '#94a3b8', marginLeft: 4 }}>({pct}%)</span>
+                                <span
+                                    style={{ color: '#94a3b8', marginLeft: 4 }}
+                                >
+                                    ({pct}%)
+                                </span>
                             </div>
                         </div>
-                        <div style={{ height: 5, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${pct}%`, background: meta.color, borderRadius: 3 }}/>
+                        <div
+                            style={{
+                                height: 5,
+                                background: '#f1f5f9',
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                            }}
+                        >
+                            <div
+                                style={{
+                                    height: '100%',
+                                    width: `${pct}%`,
+                                    background: meta.color,
+                                    borderRadius: 3,
+                                }}
+                            />
                         </div>
-                        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>
-                            {t('certificates.panels.valueLabel', { value: fmtAmt(r.total_value) })}
+                        <div
+                            style={{
+                                fontSize: 10,
+                                color: '#94a3b8',
+                                marginTop: 2,
+                            }}
+                        >
+                            {t('certificates.panels.valueLabel', {
+                                value: fmtAmt(r.total_value),
+                            })}
                         </div>
                     </div>
                 );
@@ -133,7 +304,14 @@ function TransportBar({ rows, total }: { rows: BreakdownRow[]; total: number }) 
 
 // ── Main Component ───────────────────────────────────────────
 export default function CertificatesReport({
-    certificates, stats, byTransport, byStatus, brokers, tenants, filters, isSA,
+    certificates,
+    stats,
+    byTransport,
+    byStatus,
+    brokers,
+    tenants,
+    filters,
+    isSA,
 }: Props) {
     const { t } = useTranslation('reports');
     const { t: tc } = useTranslation('common');
@@ -146,54 +324,105 @@ export default function CertificatesReport({
     ];
 
     const DATE_FIELD_LABELS: Record<string, string> = {
-        created_at:  t('certificates.dateFields.created_at'),
-        issued_at:   t('certificates.dateFields.issued_at'),
+        created_at: t('certificates.dateFields.created_at'),
+        issued_at: t('certificates.dateFields.issued_at'),
         voyage_date: t('certificates.dateFields.voyage_date'),
     };
 
     const [local, setLocal] = useState({ ...filters });
     const [showAdv, setShowAdv] = useState(
-        !!(filters.broker_id || filters.tenant_id || filters.transport || filters.search)
+        !!(
+            filters.broker_id ||
+            filters.tenant_id ||
+            filters.transport ||
+            filters.search
+        ),
     );
 
     const apply = () => {
         const params: Record<string, string> = {
-            date_from:  local.date_from,
-            date_to:    local.date_to,
+            date_from: local.date_from,
+            date_to: local.date_to,
             date_field: local.date_field,
-            status:     local.status,
+            status: local.status,
         };
-        if (local.transport)  params.transport  = local.transport;
-        if (local.broker_id)  params.broker_id  = local.broker_id;
-        if (local.tenant_id)  params.tenant_id  = local.tenant_id;
-        if (local.search)     params.search      = local.search;
-        router.get(route('admin.reports.certificates'), params, { preserveState: false });
+
+        if (local.transport) {
+            params.transport = local.transport;
+        }
+
+        if (local.broker_id) {
+            params.broker_id = local.broker_id;
+        }
+
+        if (local.tenant_id) {
+            params.tenant_id = local.tenant_id;
+        }
+
+        if (local.search) {
+            params.search = local.search;
+        }
+
+        router.get(route('admin.reports.certificates'), params, {
+            preserveState: false,
+        });
     };
 
     const reset = () => {
-        router.get(route('admin.reports.certificates'), {}, { preserveState: false });
+        router.get(
+            route('admin.reports.certificates'),
+            {},
+            { preserveState: false },
+        );
     };
 
-    const paginateTo = (url: string | null) => url && router.visit(url, { preserveState: true });
+    const paginateTo = (url: string | null) =>
+        url && router.visit(url, { preserveState: true });
 
     const exportUrl = () => {
         const p = new URLSearchParams();
-        if (local.date_from)  p.set('date_from',  local.date_from);
-        if (local.date_to)    p.set('date_to',    local.date_to);
-        if (local.status !== 'ALL') p.set('status', local.status);
-        if (local.transport)  p.set('transport_type', local.transport);
-        if (local.broker_id)  p.set('broker_id',  local.broker_id);
-        if (local.tenant_id)  p.set('tenant_id',  local.tenant_id);
-        if (local.search)     p.set('search',      local.search);
+
+        if (local.date_from) {
+            p.set('date_from', local.date_from);
+        }
+
+        if (local.date_to) {
+            p.set('date_to', local.date_to);
+        }
+
+        if (local.status !== 'ALL') {
+            p.set('status', local.status);
+        }
+
+        if (local.transport) {
+            p.set('transport_type', local.transport);
+        }
+
+        if (local.broker_id) {
+            p.set('broker_id', local.broker_id);
+        }
+
+        if (local.tenant_id) {
+            p.set('tenant_id', local.tenant_id);
+        }
+
+        if (local.search) {
+            p.set('search', local.search);
+        }
+
         return route('admin.certificates.export') + '?' + p.toString();
     };
 
-    const hasActiveFilters = filters.transport || filters.broker_id || filters.tenant_id || filters.search
-        || filters.status !== 'ALL';
+    const hasActiveFilters =
+        filters.transport ||
+        filters.broker_id ||
+        filters.tenant_id ||
+        filters.search ||
+        filters.status !== 'ALL';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('certificates.title')}/>
+            <Head title={t('certificates.title')} />
             <style>{`
                 .rpt-page  { padding: 4px; display: flex; flex-direction: column; gap: 14px; }
                 .rpt-panel { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
@@ -238,63 +467,158 @@ export default function CertificatesReport({
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="rpt-page">
-
                     {/* ── Header ──────────────────────────────── */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}
+                    >
                         <div>
-                            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                            <h1
+                                style={{
+                                    fontSize: 18,
+                                    fontWeight: 700,
+                                    color: '#1e293b',
+                                    lineHeight: 1,
+                                }}
+                            >
                                 {t('certificates.heading')}
                             </h1>
-                            <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
-                                {t('certificates.filterSummary', { field: DATE_FIELD_LABELS[filters.date_field], from: fmt(filters.date_from), to: fmt(filters.date_to) })}
+                            <p
+                                style={{
+                                    fontSize: 12,
+                                    color: '#94a3b8',
+                                    marginTop: 3,
+                                }}
+                            >
+                                {t('certificates.filterSummary', {
+                                    field: DATE_FIELD_LABELS[
+                                        filters.date_field
+                                    ],
+                                    from: fmt(filters.date_from),
+                                    to: fmt(filters.date_to),
+                                })}
                             </p>
                         </div>
-                        <a href={exportUrl()}
-                           style={{ fontSize: 12, color: '#15803d', textDecoration: 'none',
-                                    display: 'flex', alignItems: 'center', gap: 5,
-                                    background: '#f0fdf4', padding: '6px 12px', borderRadius: 8,
-                                    border: '1px solid #bbf7d0' }}>
-                            <Download size={13}/> {t('certificates.exportCsv')}
+                        <a
+                            href={exportUrl()}
+                            style={{
+                                fontSize: 12,
+                                color: '#15803d',
+                                textDecoration: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 5,
+                                background: '#f0fdf4',
+                                padding: '6px 12px',
+                                borderRadius: 8,
+                                border: '1px solid #bbf7d0',
+                            }}
+                        >
+                            <Download size={13} /> {t('certificates.exportCsv')}
                         </a>
                     </div>
 
                     {/* ── Filtres ──────────────────────────────── */}
                     <div className="filter-bar">
                         <div className="filter-row">
-                            <select className="fin fin-sel"
-                                    value={local.date_field}
-                                    onChange={e => setLocal(p => ({ ...p, date_field: e.target.value }))}>
-                                <option value="created_at">{t('certificates.dateFields.created_at')}</option>
-                                <option value="issued_at">{t('certificates.dateFields.issued_at')}</option>
-                                <option value="voyage_date">{t('certificates.dateFields.voyage_date')}</option>
+                            <select
+                                className="fin fin-sel"
+                                value={local.date_field}
+                                onChange={(e) =>
+                                    setLocal((p) => ({
+                                        ...p,
+                                        date_field: e.target.value,
+                                    }))
+                                }
+                            >
+                                <option value="created_at">
+                                    {t('certificates.dateFields.created_at')}
+                                </option>
+                                <option value="issued_at">
+                                    {t('certificates.dateFields.issued_at')}
+                                </option>
+                                <option value="voyage_date">
+                                    {t('certificates.dateFields.voyage_date')}
+                                </option>
                             </select>
-                            <input type="date" className="fin fin-date"
-                                   value={local.date_from}
-                                   onChange={e => setLocal(p => ({ ...p, date_from: e.target.value }))}/>
-                            <span style={{ fontSize: 11, color: '#94a3b8' }}>→</span>
-                            <input type="date" className="fin fin-date"
-                                   value={local.date_to}
-                                   onChange={e => setLocal(p => ({ ...p, date_to: e.target.value }))}/>
-                            <select className="fin fin-sel"
-                                    value={local.status}
-                                    onChange={e => setLocal(p => ({ ...p, status: e.target.value }))}>
-                                <option value="ALL">{t('certificates.allStatuses')}</option>
-                                <option value="ISSUED">{tc('certificateStatus.ISSUED')}</option>
-                                <option value="SUBMITTED">{tc('certificateStatus.SUBMITTED')}</option>
-                                <option value="DRAFT">{tc('certificateStatus.DRAFT')}</option>
-                                <option value="REJECTED">{tc('certificateStatus.REJECTED')}</option>
-                                <option value="REPLACED">{tc('certificateStatus.REPLACED')}</option>
-                                <option value="CANCELLED">{tc('certificateStatus.CANCELLED')}</option>
+                            <input
+                                type="date"
+                                className="fin fin-date"
+                                value={local.date_from}
+                                onChange={(e) =>
+                                    setLocal((p) => ({
+                                        ...p,
+                                        date_from: e.target.value,
+                                    }))
+                                }
+                            />
+                            <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                                →
+                            </span>
+                            <input
+                                type="date"
+                                className="fin fin-date"
+                                value={local.date_to}
+                                onChange={(e) =>
+                                    setLocal((p) => ({
+                                        ...p,
+                                        date_to: e.target.value,
+                                    }))
+                                }
+                            />
+                            <select
+                                className="fin fin-sel"
+                                value={local.status}
+                                onChange={(e) =>
+                                    setLocal((p) => ({
+                                        ...p,
+                                        status: e.target.value,
+                                    }))
+                                }
+                            >
+                                <option value="ALL">
+                                    {t('certificates.allStatuses')}
+                                </option>
+                                <option value="ISSUED">
+                                    {tc('certificateStatus.ISSUED')}
+                                </option>
+                                <option value="SUBMITTED">
+                                    {tc('certificateStatus.SUBMITTED')}
+                                </option>
+                                <option value="DRAFT">
+                                    {tc('certificateStatus.DRAFT')}
+                                </option>
+                                <option value="REJECTED">
+                                    {tc('certificateStatus.REJECTED')}
+                                </option>
+                                <option value="REPLACED">
+                                    {tc('certificateStatus.REPLACED')}
+                                </option>
+                                <option value="CANCELLED">
+                                    {tc('certificateStatus.CANCELLED')}
+                                </option>
                             </select>
-                            <button className="btn btn-secondary" onClick={() => setShowAdv(v => !v)}>
-                                <Filter size={12}/> {t('certificates.filtersToggle')} {showAdv ? '▲' : '▼'}
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowAdv((v) => !v)}
+                            >
+                                <Filter size={12} />{' '}
+                                {t('certificates.filtersToggle')}{' '}
+                                {showAdv ? '▲' : '▼'}
                             </button>
                             <button className="btn btn-primary" onClick={apply}>
-                                <Search size={12}/> {t('certificates.apply')}
+                                <Search size={12} /> {t('certificates.apply')}
                             </button>
                             {hasActiveFilters && (
-                                <button className="btn btn-danger" onClick={reset} title={t('certificates.resetTitle')}>
-                                    <X size={12}/>
+                                <button
+                                    className="btn btn-danger"
+                                    onClick={reset}
+                                    title={t('certificates.resetTitle')}
+                                >
+                                    <X size={12} />
                                 </button>
                             )}
                         </div>
@@ -302,36 +626,105 @@ export default function CertificatesReport({
                         {showAdv && (
                             <div className="adv-section">
                                 <div className="filter-row">
-                                    <input className="fin fin-search" placeholder={t('certificates.searchPlaceholder')}
-                                           value={local.search ?? ''}
-                                           onChange={e => setLocal(p => ({ ...p, search: e.target.value }))}/>
-                                    <select className="fin fin-sel"
-                                            value={local.transport ?? ''}
-                                            onChange={e => setLocal(p => ({ ...p, transport: e.target.value || null }))}>
-                                        <option value="">{t('certificates.transportModes.all')}</option>
-                                        <option value="SEA">{t('certificates.transportModes.SEA')}</option>
-                                        <option value="AIR">{t('certificates.transportModes.AIR')}</option>
-                                        <option value="ROAD">{t('certificates.transportModes.ROAD')}</option>
-                                        <option value="RAIL">{t('certificates.transportModes.RAIL')}</option>
-                                        <option value="MULTIMODAL">{t('certificates.transportModes.MULTIMODAL')}</option>
+                                    <input
+                                        className="fin fin-search"
+                                        placeholder={t(
+                                            'certificates.searchPlaceholder',
+                                        )}
+                                        value={local.search ?? ''}
+                                        onChange={(e) =>
+                                            setLocal((p) => ({
+                                                ...p,
+                                                search: e.target.value,
+                                            }))
+                                        }
+                                    />
+                                    <select
+                                        className="fin fin-sel"
+                                        value={local.transport ?? ''}
+                                        onChange={(e) =>
+                                            setLocal((p) => ({
+                                                ...p,
+                                                transport:
+                                                    e.target.value || null,
+                                            }))
+                                        }
+                                    >
+                                        <option value="">
+                                            {t(
+                                                'certificates.transportModes.all',
+                                            )}
+                                        </option>
+                                        <option value="SEA">
+                                            {t(
+                                                'certificates.transportModes.SEA',
+                                            )}
+                                        </option>
+                                        <option value="AIR">
+                                            {t(
+                                                'certificates.transportModes.AIR',
+                                            )}
+                                        </option>
+                                        <option value="ROAD">
+                                            {t(
+                                                'certificates.transportModes.ROAD',
+                                            )}
+                                        </option>
+                                        <option value="RAIL">
+                                            {t(
+                                                'certificates.transportModes.RAIL',
+                                            )}
+                                        </option>
+                                        <option value="MULTIMODAL">
+                                            {t(
+                                                'certificates.transportModes.MULTIMODAL',
+                                            )}
+                                        </option>
                                     </select>
                                     {brokers.length > 0 && (
-                                        <select className="fin fin-sel"
-                                                value={local.broker_id ?? ''}
-                                                onChange={e => setLocal(p => ({ ...p, broker_id: e.target.value || null }))}>
-                                            <option value="">{t('certificates.allBrokers')}</option>
-                                            {brokers.map(b => (
-                                                <option key={b.id} value={b.id}>{b.name}</option>
+                                        <select
+                                            className="fin fin-sel"
+                                            value={local.broker_id ?? ''}
+                                            onChange={(e) =>
+                                                setLocal((p) => ({
+                                                    ...p,
+                                                    broker_id:
+                                                        e.target.value || null,
+                                                }))
+                                            }
+                                        >
+                                            <option value="">
+                                                {t('certificates.allBrokers')}
+                                            </option>
+                                            {brokers.map((b) => (
+                                                <option key={b.id} value={b.id}>
+                                                    {b.name}
+                                                </option>
                                             ))}
                                         </select>
                                     )}
                                     {isSA && tenants.length > 0 && (
-                                        <select className="fin fin-sel"
-                                                value={local.tenant_id ?? ''}
-                                                onChange={e => setLocal(p => ({ ...p, tenant_id: e.target.value || null }))}>
-                                            <option value="">{t('certificates.allTenants')}</option>
-                                            {tenants.map(ten => (
-                                                <option key={ten.id} value={ten.id}>[{ten.code}] {ten.name}</option>
+                                        <select
+                                            className="fin fin-sel"
+                                            value={local.tenant_id ?? ''}
+                                            onChange={(e) =>
+                                                setLocal((p) => ({
+                                                    ...p,
+                                                    tenant_id:
+                                                        e.target.value || null,
+                                                }))
+                                            }
+                                        >
+                                            <option value="">
+                                                {t('certificates.allTenants')}
+                                            </option>
+                                            {tenants.map((ten) => (
+                                                <option
+                                                    key={ten.id}
+                                                    value={ten.id}
+                                                >
+                                                    [{ten.code}] {ten.name}
+                                                </option>
                                             ))}
                                         </select>
                                     )}
@@ -341,48 +734,107 @@ export default function CertificatesReport({
                     </div>
 
                     {/* ── Statistiques ─────────────────────────── */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr) repeat(2,1fr)', gap: 10 }}>
-                        <StatCard label={t('certificates.stats.total')} value={stats.total}
-                                  color="#1e293b" icon={FileText}/>
-                        <StatCard label={t('certificates.stats.issued')}    value={stats.issued}
-                                  color="#15803d" bg="#f0fdf4" border="#bbf7d0" icon={CheckCircle}/>
-                        <StatCard label={t('certificates.stats.pending')} value={stats.submitted}
-                                  color={stats.submitted > 0 ? '#d97706' : '#64748b'}
-                                  bg={stats.submitted > 0 ? '#fef3c7' : '#fff'}
-                                  border={stats.submitted > 0 ? '#fde68a' : '#e2e8f0'} icon={Clock}/>
-                        <StatCard label={t('certificates.stats.drafts')}  value={stats.draft}   color="#64748b" icon={FileText}/>
-                        <StatCard label={t('certificates.stats.cancelled')}     value={stats.cancelled}
-                                  color={stats.cancelled > 0 ? '#dc2626' : '#64748b'}
-                                  icon={AlertTriangle}/>
-                        <StatCard label={t('certificates.stats.totalInsuredValue')}
-                                  value={fmtAmt(stats.total_insured)}
-                                  sub={t('certificates.stats.issuedPrefix', { value: fmtAmt(stats.issued_insured) })}
-                                  color="#1d4ed8" icon={Award}/>
-                        <StatCard label={t('certificates.stats.totalPrime')}
-                                  value={fmtAmt(stats.total_prime)}
-                                  sub={t('certificates.stats.issuedPrefix', { value: fmtAmt(stats.issued_prime) })}
-                                  color="#7c3aed" icon={Award}/>
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(5,1fr) repeat(2,1fr)',
+                            gap: 10,
+                        }}
+                    >
+                        <StatCard
+                            label={t('certificates.stats.total')}
+                            value={stats.total}
+                            color="#1e293b"
+                            icon={FileText}
+                        />
+                        <StatCard
+                            label={t('certificates.stats.issued')}
+                            value={stats.issued}
+                            color="#15803d"
+                            bg="#f0fdf4"
+                            border="#bbf7d0"
+                            icon={CheckCircle}
+                        />
+                        <StatCard
+                            label={t('certificates.stats.pending')}
+                            value={stats.submitted}
+                            color={stats.submitted > 0 ? '#d97706' : '#64748b'}
+                            bg={stats.submitted > 0 ? '#fef3c7' : '#fff'}
+                            border={stats.submitted > 0 ? '#fde68a' : '#e2e8f0'}
+                            icon={Clock}
+                        />
+                        <StatCard
+                            label={t('certificates.stats.drafts')}
+                            value={stats.draft}
+                            color="#64748b"
+                            icon={FileText}
+                        />
+                        <StatCard
+                            label={t('certificates.stats.cancelled')}
+                            value={stats.cancelled}
+                            color={stats.cancelled > 0 ? '#dc2626' : '#64748b'}
+                            icon={AlertTriangle}
+                        />
+                        <StatCard
+                            label={t('certificates.stats.totalInsuredValue')}
+                            value={fmtAmt(stats.total_insured)}
+                            sub={t('certificates.stats.issuedPrefix', {
+                                value: fmtAmt(stats.issued_insured),
+                            })}
+                            color="#1d4ed8"
+                            icon={Award}
+                        />
+                        <StatCard
+                            label={t('certificates.stats.totalPrime')}
+                            value={fmtAmt(stats.total_prime)}
+                            sub={t('certificates.stats.issuedPrefix', {
+                                value: fmtAmt(stats.issued_prime),
+                            })}
+                            color="#7c3aed"
+                            icon={Award}
+                        />
                     </div>
 
                     {/* ── Tableau + Ventilation ────────────────── */}
                     <div className="main-layout">
-
                         {/* Tableau détaillé */}
                         <div className="rpt-panel">
                             <div className="rpt-panel-hdr">
                                 <div className="rpt-panel-hdr-title">
-                                    <Award size={14} color="#1d4ed8"/>
-                                    {t('certificates.panels.certificatesTitle', { count: certificates.total })}
+                                    <Award size={14} color="#1d4ed8" />
+                                    {t(
+                                        'certificates.panels.certificatesTitle',
+                                        { count: certificates.total },
+                                    )}
                                 </div>
-                                <Link href={route('admin.certificates.index')}
-                                      style={{ fontSize: 10, color: '#1d4ed8', textDecoration: 'none' }}>
+                                <Link
+                                    href={route('admin.certificates.index')}
+                                    style={{
+                                        fontSize: 10,
+                                        color: '#1d4ed8',
+                                        textDecoration: 'none',
+                                    }}
+                                >
                                     {t('certificates.panels.manageLink')}
                                 </Link>
                             </div>
 
                             {certificates.data.length === 0 ? (
-                                <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
-                                    <FileText size={28} style={{ marginBottom: 8, opacity: .4 }}/>
+                                <div
+                                    style={{
+                                        padding: '32px',
+                                        textAlign: 'center',
+                                        color: '#94a3b8',
+                                        fontSize: 13,
+                                    }}
+                                >
+                                    <FileText
+                                        size={28}
+                                        style={{
+                                            marginBottom: 8,
+                                            opacity: 0.4,
+                                        }}
+                                    />
                                     <div>{t('certificates.panels.empty')}</div>
                                 </div>
                             ) : (
@@ -390,88 +842,313 @@ export default function CertificatesReport({
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>{t('certificates.table.number')}</th>
-                                                <th>{t('certificates.table.insured')}</th>
-                                                <th>{t('certificates.table.brokerContract')}</th>
-                                                <th>{t('certificates.table.voyage')}</th>
-                                                <th>{t('certificates.table.mode')}</th>
-                                                <th>{t('certificates.table.insuredValue')}</th>
-                                                <th>{t('certificates.table.prime')}</th>
-                                                {isSA && <th>{t('certificates.table.tenant')}</th>}
-                                                <th>{t('certificates.table.status')}</th>
-                                                <th>{t('certificates.table.issuedDate')}</th>
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.number',
+                                                    )}
+                                                </th>
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.insured',
+                                                    )}
+                                                </th>
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.brokerContract',
+                                                    )}
+                                                </th>
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.voyage',
+                                                    )}
+                                                </th>
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.mode',
+                                                    )}
+                                                </th>
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.insuredValue',
+                                                    )}
+                                                </th>
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.prime',
+                                                    )}
+                                                </th>
+                                                {isSA && (
+                                                    <th>
+                                                        {t(
+                                                            'certificates.table.tenant',
+                                                        )}
+                                                    </th>
+                                                )}
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.status',
+                                                    )}
+                                                </th>
+                                                <th>
+                                                    {t(
+                                                        'certificates.table.issuedDate',
+                                                    )}
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {certificates.data.map(cert => {
-                                                const sColors = STATUS_COLORS[cert.status] ?? { color: '#64748b', bg: '#f8fafc' };
-                                                const sLabel  = tc(`certificateStatus.${cert.status}`, { defaultValue: cert.status });
-                                                const trMeta = TRANSPORT_ICONS[cert.transport_type ?? 'AUTRE'] ?? TRANSPORT_ICONS.AUTRE;
-                                                const trLabel = t(`certificates.transportModes.${cert.transport_type ?? 'AUTRE'}`, { defaultValue: t('certificates.transportModes.AUTRE') });
-                                                const TIcon  = trMeta.icon;
+                                            {certificates.data.map((cert) => {
+                                                const sColors = STATUS_COLORS[
+                                                    cert.status
+                                                ] ?? {
+                                                    color: '#64748b',
+                                                    bg: '#f8fafc',
+                                                };
+                                                const sLabel = tc(
+                                                    `certificateStatus.${cert.status}`,
+                                                    {
+                                                        defaultValue:
+                                                            cert.status,
+                                                    },
+                                                );
+                                                const trMeta =
+                                                    TRANSPORT_ICONS[
+                                                        cert.transport_type ??
+                                                            'AUTRE'
+                                                    ] ?? TRANSPORT_ICONS.AUTRE;
+                                                const trLabel = t(
+                                                    `certificates.transportModes.${cert.transport_type ?? 'AUTRE'}`,
+                                                    {
+                                                        defaultValue: t(
+                                                            'certificates.transportModes.AUTRE',
+                                                        ),
+                                                    },
+                                                );
+                                                const TIcon = trMeta.icon;
+
                                                 return (
                                                     <tr key={cert.id}>
                                                         <td>
-                                                            <Link href={route('admin.certificates.show', { certificate: cert.id })}
-                                                                  style={{ textDecoration: 'none' }}>
-                                                                <div className="cert-num">{cert.certificate_number}</div>
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.certificates.show',
+                                                                    {
+                                                                        certificate:
+                                                                            cert.id,
+                                                                    },
+                                                                )}
+                                                                style={{
+                                                                    textDecoration:
+                                                                        'none',
+                                                                }}
+                                                            >
+                                                                <div className="cert-num">
+                                                                    {
+                                                                        cert.certificate_number
+                                                                    }
+                                                                </div>
                                                             </Link>
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontWeight: 500, color: '#1e293b', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                                {cert.insured_name}
+                                                            <div
+                                                                style={{
+                                                                    fontWeight: 500,
+                                                                    color: '#1e293b',
+                                                                    maxWidth: 150,
+                                                                    overflow:
+                                                                        'hidden',
+                                                                    textOverflow:
+                                                                        'ellipsis',
+                                                                    whiteSpace:
+                                                                        'nowrap',
+                                                                }}
+                                                            >
+                                                                {
+                                                                    cert.insured_name
+                                                                }
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontSize: 11, color: '#475569', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                                {cert.contract?.broker?.name ?? '—'}
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: '#475569',
+                                                                    maxWidth: 130,
+                                                                    overflow:
+                                                                        'hidden',
+                                                                    textOverflow:
+                                                                        'ellipsis',
+                                                                    whiteSpace:
+                                                                        'nowrap',
+                                                                }}
+                                                            >
+                                                                {cert.contract
+                                                                    ?.broker
+                                                                    ?.name ??
+                                                                    '—'}
                                                             </div>
-                                                            <div style={{ fontSize: 10, color: '#94a3b8', fontFamily: 'monospace' }}>
-                                                                {cert.contract?.contract_number}
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                    fontFamily:
+                                                                        'monospace',
+                                                                }}
+                                                            >
+                                                                {
+                                                                    cert
+                                                                        .contract
+                                                                        ?.contract_number
+                                                                }
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontSize: 11, color: '#475569', display: 'flex', alignItems: 'center', gap: 3 }}>
-                                                                <TIcon size={10} color={trMeta.color}/>
-                                                                {cert.voyage_from}
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: '#475569',
+                                                                    display:
+                                                                        'flex',
+                                                                    alignItems:
+                                                                        'center',
+                                                                    gap: 3,
+                                                                }}
+                                                            >
+                                                                <TIcon
+                                                                    size={10}
+                                                                    color={
+                                                                        trMeta.color
+                                                                    }
+                                                                />
+                                                                {
+                                                                    cert.voyage_from
+                                                                }
                                                             </div>
-                                                            <div style={{ fontSize: 10, color: '#94a3b8' }}>→ {cert.voyage_to}</div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                →{' '}
+                                                                {cert.voyage_to}
+                                                            </div>
                                                         </td>
                                                         <td>
-                                                            <span style={{ fontSize: 10, color: trMeta.color, background: `${trMeta.color}14`, padding: '1px 6px', borderRadius: 6, fontWeight: 600 }}>
+                                                            <span
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: trMeta.color,
+                                                                    background: `${trMeta.color}14`,
+                                                                    padding:
+                                                                        '1px 6px',
+                                                                    borderRadius: 6,
+                                                                    fontWeight: 600,
+                                                                }}
+                                                            >
                                                                 {trLabel}
                                                             </span>
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 500 }}>
-                                                                {parseFloat(cert.insured_value).toLocaleString('fr-FR')}
+                                                            <div
+                                                                style={{
+                                                                    fontFamily:
+                                                                        'monospace',
+                                                                    fontSize: 11,
+                                                                    fontWeight: 500,
+                                                                }}
+                                                            >
+                                                                {parseFloat(
+                                                                    cert.insured_value,
+                                                                ).toLocaleString(
+                                                                    'fr-FR',
+                                                                )}
                                                             </div>
-                                                            <div style={{ fontSize: 10, color: '#94a3b8' }}>{cert.currency_code}</div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                {
+                                                                    cert.currency_code
+                                                                }
+                                                            </div>
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontFamily: 'monospace', fontSize: 11 }}>
-                                                                {cert.prime_total ? parseFloat(cert.prime_total).toLocaleString('fr-FR') : '—'}
+                                                            <div
+                                                                style={{
+                                                                    fontFamily:
+                                                                        'monospace',
+                                                                    fontSize: 11,
+                                                                }}
+                                                            >
+                                                                {cert.prime_total
+                                                                    ? parseFloat(
+                                                                          cert.prime_total,
+                                                                      ).toLocaleString(
+                                                                          'fr-FR',
+                                                                      )
+                                                                    : '—'}
                                                             </div>
                                                         </td>
                                                         {isSA && (
                                                             <td>
-                                                                <span style={{ fontSize: 10, color: '#64748b' }}>
-                                                                    {cert.tenant?.code ?? '—'}
+                                                                <span
+                                                                    style={{
+                                                                        fontSize: 10,
+                                                                        color: '#64748b',
+                                                                    }}
+                                                                >
+                                                                    {cert.tenant
+                                                                        ?.code ??
+                                                                        '—'}
                                                                 </span>
                                                             </td>
                                                         )}
                                                         <td>
-                                                            <span className="badge" style={{ color: sColors.color, background: sColors.bg }}>
+                                                            <span
+                                                                className="badge"
+                                                                style={{
+                                                                    color: sColors.color,
+                                                                    background:
+                                                                        sColors.bg,
+                                                                }}
+                                                            >
                                                                 {sLabel}
                                                             </span>
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap' }}>
-                                                                {cert.issued_at ? fmt(cert.issued_at) : '—'}
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: '#64748b',
+                                                                    whiteSpace:
+                                                                        'nowrap',
+                                                                }}
+                                                            >
+                                                                {cert.issued_at
+                                                                    ? fmt(
+                                                                          cert.issued_at,
+                                                                      )
+                                                                    : '—'}
                                                             </div>
                                                             {cert.issued_by && (
-                                                                <div style={{ fontSize: 10, color: '#94a3b8' }}>
-                                                                    {cert.issued_by.first_name} {cert.issued_by.last_name.charAt(0)}.
+                                                                <div
+                                                                    style={{
+                                                                        fontSize: 10,
+                                                                        color: '#94a3b8',
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        cert
+                                                                            .issued_by
+                                                                            .first_name
+                                                                    }{' '}
+                                                                    {cert.issued_by.last_name.charAt(
+                                                                        0,
+                                                                    )}
+                                                                    .
                                                                 </div>
                                                             )}
                                                         </td>
@@ -485,23 +1162,62 @@ export default function CertificatesReport({
                                     {certificates.last_page > 1 && (
                                         <div className="pg-row">
                                             <span className="pg-info">
-                                                {certificates.total} résultat(s) · Page {certificates.current_page}/{certificates.last_page}
+                                                {certificates.total} résultat(s)
+                                                · Page{' '}
+                                                {certificates.current_page}/
+                                                {certificates.last_page}
                                             </span>
                                             <div className="pg-links">
-                                                <button className="pg-btn" disabled={certificates.current_page === 1}
-                                                        onClick={() => paginateTo(certificates.links[0]?.url ?? null)}>
-                                                    <ChevronLeft size={13}/>
+                                                <button
+                                                    className="pg-btn"
+                                                    disabled={
+                                                        certificates.current_page ===
+                                                        1
+                                                    }
+                                                    onClick={() =>
+                                                        paginateTo(
+                                                            certificates
+                                                                .links[0]
+                                                                ?.url ?? null,
+                                                        )
+                                                    }
+                                                >
+                                                    <ChevronLeft size={13} />
                                                 </button>
-                                                {certificates.links.slice(1, -1).map((link, i) => (
-                                                    <button key={i}
+                                                {certificates.links
+                                                    .slice(1, -1)
+                                                    .map((link, i) => (
+                                                        <button
+                                                            key={i}
                                                             className={`pg-btn ${link.active ? 'act' : ''}`}
-                                                            onClick={() => paginateTo(link.url)}
+                                                            onClick={() =>
+                                                                paginateTo(
+                                                                    link.url,
+                                                                )
+                                                            }
                                                             disabled={!link.url}
-                                                            dangerouslySetInnerHTML={{ __html: link.label }}/>
-                                                ))}
-                                                <button className="pg-btn" disabled={certificates.current_page === certificates.last_page}
-                                                        onClick={() => paginateTo(certificates.links[certificates.links.length - 1]?.url ?? null)}>
-                                                    <ChevronRight size={13}/>
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: link.label,
+                                                            }}
+                                                        />
+                                                    ))}
+                                                <button
+                                                    className="pg-btn"
+                                                    disabled={
+                                                        certificates.current_page ===
+                                                        certificates.last_page
+                                                    }
+                                                    onClick={() =>
+                                                        paginateTo(
+                                                            certificates.links[
+                                                                certificates
+                                                                    .links
+                                                                    .length - 1
+                                                            ]?.url ?? null,
+                                                        )
+                                                    }
+                                                >
+                                                    <ChevronRight size={13} />
                                                 </button>
                                             </div>
                                         </div>
@@ -511,17 +1227,26 @@ export default function CertificatesReport({
                         </div>
 
                         {/* Colonne droite — Ventilations */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 12,
+                            }}
+                        >
                             {/* Par mode de transport */}
                             <div className="rpt-panel">
                                 <div className="rpt-panel-hdr">
                                     <div className="rpt-panel-hdr-title">
-                                        <Ship size={13} color="#0284c7"/> Par mode de transport
+                                        <Ship size={13} color="#0284c7" /> Par
+                                        mode de transport
                                     </div>
                                 </div>
                                 <div className="rpt-panel-body">
-                                    <TransportBar rows={byTransport} total={stats.total}/>
+                                    <TransportBar
+                                        rows={byTransport}
+                                        total={stats.total}
+                                    />
                                 </div>
                             </div>
 
@@ -529,32 +1254,110 @@ export default function CertificatesReport({
                             <div className="rpt-panel">
                                 <div className="rpt-panel-hdr">
                                     <div className="rpt-panel-hdr-title">
-                                        <CheckCircle size={13} color="#15803d"/> Par statut
+                                        <CheckCircle
+                                            size={13}
+                                            color="#15803d"
+                                        />{' '}
+                                        Par statut
                                     </div>
                                 </div>
                                 <div className="rpt-panel-body">
                                     {byStatus.length === 0 ? (
-                                        <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '10px 0' }}>
+                                        <div
+                                            style={{
+                                                fontSize: 12,
+                                                color: '#94a3b8',
+                                                textAlign: 'center',
+                                                padding: '10px 0',
+                                            }}
+                                        >
                                             {t('certificates.panels.noData')}
                                         </div>
                                     ) : (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                                            {byStatus.map(r => {
-                                                const s   = STATUS_COLORS[r.status] ?? { color: '#64748b', bg: '#f8fafc' };
-                                                const sLabel = tc(`certificateStatus.${r.status}`, { defaultValue: r.status });
-                                                const pct = stats.total > 0 ? Math.round((r.count / stats.total) * 100) : 0;
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 7,
+                                            }}
+                                        >
+                                            {byStatus.map((r) => {
+                                                const s = STATUS_COLORS[
+                                                    r.status
+                                                ] ?? {
+                                                    color: '#64748b',
+                                                    bg: '#f8fafc',
+                                                };
+                                                const sLabel = tc(
+                                                    `certificateStatus.${r.status}`,
+                                                    { defaultValue: r.status },
+                                                );
+                                                const pct =
+                                                    stats.total > 0
+                                                        ? Math.round(
+                                                              (r.count /
+                                                                  stats.total) *
+                                                                  100,
+                                                          )
+                                                        : 0;
+
                                                 return (
                                                     <div key={r.status}>
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                                                            <span className="badge" style={{ color: s.color, background: s.bg }}>
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                justifyContent:
+                                                                    'space-between',
+                                                                marginBottom: 3,
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className="badge"
+                                                                style={{
+                                                                    color: s.color,
+                                                                    background:
+                                                                        s.bg,
+                                                                }}
+                                                            >
                                                                 {sLabel}
                                                             </span>
-                                                            <span style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>
-                                                                {r.count} <span style={{ color: '#94a3b8', fontWeight: 400 }}>({pct}%)</span>
+                                                            <span
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: '#1e293b',
+                                                                    fontWeight: 600,
+                                                                }}
+                                                            >
+                                                                {r.count}{' '}
+                                                                <span
+                                                                    style={{
+                                                                        color: '#94a3b8',
+                                                                        fontWeight: 400,
+                                                                    }}
+                                                                >
+                                                                    ({pct}%)
+                                                                </span>
                                                             </span>
                                                         </div>
-                                                        <div style={{ height: 4, background: '#f1f5f9', borderRadius: 2, overflow: 'hidden' }}>
-                                                            <div style={{ height: '100%', width: `${pct}%`, background: s.color, borderRadius: 2 }}/>
+                                                        <div
+                                                            style={{
+                                                                height: 4,
+                                                                background:
+                                                                    '#f1f5f9',
+                                                                borderRadius: 2,
+                                                                overflow:
+                                                                    'hidden',
+                                                            }}
+                                                        >
+                                                            <div
+                                                                style={{
+                                                                    height: '100%',
+                                                                    width: `${pct}%`,
+                                                                    background:
+                                                                        s.color,
+                                                                    borderRadius: 2,
+                                                                }}
+                                                            />
                                                         </div>
                                                     </div>
                                                 );
@@ -568,33 +1371,72 @@ export default function CertificatesReport({
                             <div className="rpt-panel">
                                 <div className="rpt-panel-hdr">
                                     <div className="rpt-panel-hdr-title">
-                                        <Award size={13} color="#7c3aed"/> Récapitulatif
+                                        <Award size={13} color="#7c3aed" />{' '}
+                                        Récapitulatif
                                     </div>
                                 </div>
-                                <div className="rpt-panel-body" style={{ fontSize: 12 }}>
+                                <div
+                                    className="rpt-panel-body"
+                                    style={{ fontSize: 12 }}
+                                >
                                     {[
-                                        { label: 'Valeur totale assurée', val: fmtAmt(stats.total_insured) },
-                                        { label: 'dont Approuvé',         val: fmtAmt(stats.issued_insured), sub: true },
-                                        { label: 'Prime totale',          val: fmtAmt(stats.total_prime) },
-                                        { label: 'dont Approuvé',         val: fmtAmt(stats.issued_prime), sub: true },
+                                        {
+                                            label: 'Valeur totale assurée',
+                                            val: fmtAmt(stats.total_insured),
+                                        },
+                                        {
+                                            label: 'dont Approuvé',
+                                            val: fmtAmt(stats.issued_insured),
+                                            sub: true,
+                                        },
+                                        {
+                                            label: 'Prime totale',
+                                            val: fmtAmt(stats.total_prime),
+                                        },
+                                        {
+                                            label: 'dont Approuvé',
+                                            val: fmtAmt(stats.issued_prime),
+                                            sub: true,
+                                        },
                                     ].map((row, i) => (
-                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between',
-                                                              padding: '5px 0', borderBottom: '1px solid #f8fafc',
-                                                              paddingLeft: row.sub ? 12 : 0 }}>
-                                            <span style={{ color: row.sub ? '#94a3b8' : '#64748b', fontSize: row.sub ? 11 : 12 }}>
-                                                {row.sub ? '└ ' : ''}{row.label}
+                                        <div
+                                            key={i}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                padding: '5px 0',
+                                                borderBottom:
+                                                    '1px solid #f8fafc',
+                                                paddingLeft: row.sub ? 12 : 0,
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    color: row.sub
+                                                        ? '#94a3b8'
+                                                        : '#64748b',
+                                                    fontSize: row.sub ? 11 : 12,
+                                                }}
+                                            >
+                                                {row.sub ? '└ ' : ''}
+                                                {row.label}
                                             </span>
-                                            <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#1e293b', fontSize: 12 }}>
+                                            <span
+                                                style={{
+                                                    fontFamily: 'monospace',
+                                                    fontWeight: 600,
+                                                    color: '#1e293b',
+                                                    fontSize: 12,
+                                                }}
+                                            >
                                                 {row.val}
                                             </span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-
                         </div>
                     </div>
-
                 </div>
             </div>
         </AppLayout>

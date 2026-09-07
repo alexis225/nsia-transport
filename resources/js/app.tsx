@@ -14,19 +14,24 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 // Ziggy injecte les routes via @routes dans le layout Blade.
 // window.Ziggy est peuplé par cette directive.
 declare global {
-    function route(name: string, params?: object | undefined, absolute?: boolean): string;
+    function route(
+        name: string,
+        params?: object | undefined,
+        absolute?: boolean,
+    ): string;
     const Ziggy: object;
 }
 
 (window as any).route = (name: string, params?: object, absolute?: boolean) =>
-    ziggyRoute(name, params, absolute, (window as any).Ziggy);
+    (ziggyRoute as any)(name, params, absolute, (window as any).Ziggy);
 
 // ─────────────────────────────────────────────────────────────
 
 // La langue est celle rendue par Blade dans <html lang> (issue de
 // SetLocale) : on charge son catalogue avant le premier rendu pour eviter
 // un flash de libelles non traduits.
-const initialLocale = document.documentElement.lang?.slice(0, 2) || FALLBACK_LOCALE;
+const initialLocale =
+    document.documentElement.lang?.slice(0, 2) || FALLBACK_LOCALE;
 
 void createI18n(initialLocale).then((i18n) =>
     createInertiaApp({

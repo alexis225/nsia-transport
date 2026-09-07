@@ -22,7 +22,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $tableNames  = config('permission.table_names');
+        $tableNames = config('permission.table_names');
         $columnNames = config('permission.column_names');
 
         // ── roles ─────────────────────────────────────────────
@@ -57,7 +57,7 @@ return new class extends Migration
             );
 
             $table->foreign($columnNames['permission_pivot_key'] ?? 'permission_id')
-                  ->references('id')->on($tableNames['permissions'])->onDelete('cascade');
+                ->references('id')->on($tableNames['permissions'])->onDelete('cascade');
 
             $table->primary(
                 [$columnNames['permission_pivot_key'] ?? 'permission_id', $columnNames['model_morph_key'], 'model_type'],
@@ -79,7 +79,7 @@ return new class extends Migration
             );
 
             $table->foreign($columnNames['role_pivot_key'] ?? 'role_id')
-                  ->references('id')->on($tableNames['roles'])->onDelete('cascade');
+                ->references('id')->on($tableNames['roles'])->onDelete('cascade');
 
             $table->primary(
                 [$columnNames['role_pivot_key'] ?? 'role_id', $columnNames['model_morph_key'], 'model_type'],
@@ -93,10 +93,10 @@ return new class extends Migration
             $table->unsignedBigInteger($columnNames['role_pivot_key'] ?? 'role_id');
 
             $table->foreign($columnNames['permission_pivot_key'] ?? 'permission_id')
-                  ->references('id')->on($tableNames['permissions'])->onDelete('cascade');
+                ->references('id')->on($tableNames['permissions'])->onDelete('cascade');
 
             $table->foreign($columnNames['role_pivot_key'] ?? 'role_id')
-                  ->references('id')->on($tableNames['roles'])->onDelete('cascade');
+                ->references('id')->on($tableNames['roles'])->onDelete('cascade');
 
             $table->primary(
                 [$columnNames['permission_pivot_key'] ?? 'permission_id', $columnNames['role_pivot_key'] ?? 'role_id'],

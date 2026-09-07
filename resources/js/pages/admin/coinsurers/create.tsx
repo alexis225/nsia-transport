@@ -1,29 +1,42 @@
 import { Head, useForm } from '@inertiajs/react';
+import { Users2, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Users2, Check } from 'lucide-react';
 
-interface Tenant { id: string; name: string; code: string; }
+interface Tenant {
+    id: string;
+    name: string;
+    code: string;
+}
 interface Props {
-    tenants:         Tenant[];
+    tenants: Tenant[];
     defaultTenantId: string | null;
 }
 
 const COUNTRIES = [
-    { code:'CI', name:'Côte d\'Ivoire' }, { code:'SN', name:'Sénégal' },
-    { code:'ML', name:'Mali' }, { code:'BF', name:'Burkina Faso' },
-    { code:'GN', name:'Guinée' }, { code:'TG', name:'Togo' },
-    { code:'BJ', name:'Bénin' }, { code:'CM', name:'Cameroun' },
-    { code:'CG', name:'Congo' }, { code:'GA', name:'Gabon' },
-    { code:'MG', name:'Madagascar' }, { code:'NG', name:'Nigeria' },
-    { code:'FR', name:'France' }, { code:'BE', name:'Belgique' },
-    { code:'CH', name:'Suisse' }, { code:'MA', name:'Maroc' },
-    { code:'DZ', name:'Algérie' }, { code:'TN', name:'Tunisie' },
+    { code: 'CI', name: "Côte d'Ivoire" },
+    { code: 'SN', name: 'Sénégal' },
+    { code: 'ML', name: 'Mali' },
+    { code: 'BF', name: 'Burkina Faso' },
+    { code: 'GN', name: 'Guinée' },
+    { code: 'TG', name: 'Togo' },
+    { code: 'BJ', name: 'Bénin' },
+    { code: 'CM', name: 'Cameroun' },
+    { code: 'CG', name: 'Congo' },
+    { code: 'GA', name: 'Gabon' },
+    { code: 'MG', name: 'Madagascar' },
+    { code: 'NG', name: 'Nigeria' },
+    { code: 'FR', name: 'France' },
+    { code: 'BE', name: 'Belgique' },
+    { code: 'CH', name: 'Suisse' },
+    { code: 'MA', name: 'Maroc' },
+    { code: 'DZ', name: 'Algérie' },
+    { code: 'TN', name: 'Tunisie' },
 ];
 
 export default function CoinsurersCreate({ tenants, defaultTenantId }: Props) {
@@ -34,13 +47,13 @@ export default function CoinsurersCreate({ tenants, defaultTenantId }: Props) {
     ];
 
     const { data, setData, post, processing, errors } = useForm({
-        name:         '',
+        name: '',
         country_code: 'CI',
-        address:      '',
-        email:        '',
-        phone:        '',
-        is_active:    true,
-        tenant_id:    defaultTenantId ?? '',
+        address: '',
+        email: '',
+        phone: '',
+        is_active: true,
+        tenant_id: defaultTenantId ?? '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -50,10 +63,13 @@ export default function CoinsurersCreate({ tenants, defaultTenantId }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('create.title')}/>
+            <Head title={t('create.title')} />
             <CoinsurersForm
-                data={data} setData={setData} errors={errors}
-                processing={processing} onSubmit={submit}
+                data={data}
+                setData={setData}
+                errors={errors}
+                processing={processing}
+                onSubmit={submit}
                 tenants={tenants}
                 submitLabel={t('create.submitLabel')}
                 heroTitle={t('create.heroTitle')}
@@ -63,9 +79,20 @@ export default function CoinsurersCreate({ tenants, defaultTenantId }: Props) {
     );
 }
 
-export function CoinsurersForm({ data, setData, errors, processing, onSubmit, tenants, submitLabel, heroTitle, heroSub }: any) {
+export function CoinsurersForm({
+    data,
+    setData,
+    errors,
+    processing,
+    onSubmit,
+    tenants,
+    submitLabel,
+    heroTitle,
+    heroSub,
+}: any) {
     const { t } = useTranslation('coinsurers');
     const { t: tc } = useTranslation('common');
+
     return (
         <>
             <style>{`
@@ -92,71 +119,178 @@ export function CoinsurersForm({ data, setData, errors, processing, onSubmit, te
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="cif-wrap">
-
                     <div className="cif-hero">
-                        <div className="cif-hero-ico"><Users2 size={22} color="rgba(255,255,255,0.8)"/></div>
+                        <div className="cif-hero-ico">
+                            <Users2 size={22} color="rgba(255,255,255,0.8)" />
+                        </div>
                         <div className="cif-hero-info">
                             <div className="cif-hero-title">{heroTitle}</div>
                             <div className="cif-hero-sub">{heroSub}</div>
                         </div>
                     </div>
 
-                    <form onSubmit={onSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
-
+                    <form
+                        onSubmit={onSubmit}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
+                    >
                         {/* Identification */}
                         <div className="cif-card">
                             <div className="cif-card-hdr">
-                                <div className="cif-card-ttl">{t('form.identification.title')}</div>
-                                <div className="cif-card-sub">{t('form.identification.subtitle')}</div>
+                                <div className="cif-card-ttl">
+                                    {t('form.identification.title')}
+                                </div>
+                                <div className="cif-card-sub">
+                                    {t('form.identification.subtitle')}
+                                </div>
                             </div>
                             <div className="cif-card-body">
                                 <div className="grid gap-2">
-                                    <Label className="cif-label">{t('form.identification.name')}</Label>
-                                    <Input className="h-11" value={data.name} onChange={e => setData('name', e.target.value)} placeholder={t('form.identification.namePlaceholder')}/>
-                                    <InputError message={errors.name}/>
+                                    <Label className="cif-label">
+                                        {t('form.identification.name')}
+                                    </Label>
+                                    <Input
+                                        className="h-11"
+                                        value={data.name}
+                                        onChange={(e) =>
+                                            setData('name', e.target.value)
+                                        }
+                                        placeholder={t(
+                                            'form.identification.namePlaceholder',
+                                        )}
+                                    />
+                                    <InputError message={errors.name} />
                                 </div>
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">{t('form.identification.country')}</Label>
-                                        <select className="cif-select" value={data.country_code ?? ''} onChange={e => setData('country_code', e.target.value)}>
-                                            <option value="">{t('form.identification.noneOption')}</option>
-                                            {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                                        <Label className="cif-label">
+                                            {t('form.identification.country')}
+                                        </Label>
+                                        <select
+                                            className="cif-select"
+                                            value={data.country_code ?? ''}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'country_code',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            <option value="">
+                                                {t(
+                                                    'form.identification.noneOption',
+                                                )}
+                                            </option>
+                                            {COUNTRIES.map((c) => (
+                                                <option
+                                                    key={c.code}
+                                                    value={c.code}
+                                                >
+                                                    {c.name}
+                                                </option>
+                                            ))}
                                         </select>
-                                        <InputError message={errors.country_code}/>
+                                        <InputError
+                                            message={errors.country_code}
+                                        />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">{t('form.identification.phone')}</Label>
-                                        <Input className="h-11" value={data.phone ?? ''} onChange={e => setData('phone', e.target.value)} placeholder={t('form.identification.phonePlaceholder')}/>
-                                        <InputError message={errors.phone}/>
+                                        <Label className="cif-label">
+                                            {t('form.identification.phone')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            value={data.phone ?? ''}
+                                            onChange={(e) =>
+                                                setData('phone', e.target.value)
+                                            }
+                                            placeholder={t(
+                                                'form.identification.phonePlaceholder',
+                                            )}
+                                        />
+                                        <InputError message={errors.phone} />
                                     </div>
                                 </div>
 
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">{t('form.identification.email')}</Label>
-                                        <Input className="h-11" type="email" value={data.email ?? ''} onChange={e => setData('email', e.target.value)} placeholder={t('form.identification.emailPlaceholder')}/>
-                                        <InputError message={errors.email}/>
+                                        <Label className="cif-label">
+                                            {t('form.identification.email')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            type="email"
+                                            value={data.email ?? ''}
+                                            onChange={(e) =>
+                                                setData('email', e.target.value)
+                                            }
+                                            placeholder={t(
+                                                'form.identification.emailPlaceholder',
+                                            )}
+                                        />
+                                        <InputError message={errors.email} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">{t('form.identification.address')}</Label>
-                                        <Input className="h-11" value={data.address ?? ''} onChange={e => setData('address', e.target.value)} placeholder={t('form.identification.addressPlaceholder')}/>
-                                        <InputError message={errors.address}/>
+                                        <Label className="cif-label">
+                                            {t('form.identification.address')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            value={data.address ?? ''}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'address',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'form.identification.addressPlaceholder',
+                                            )}
+                                        />
+                                        <InputError message={errors.address} />
                                     </div>
                                 </div>
 
-                                <p style={{ fontSize:11, color:'#94a3b8' }}>
+                                <p style={{ fontSize: 11, color: '#94a3b8' }}>
                                     {t('form.identification.rateHint')}
                                 </p>
 
                                 {tenants?.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="cif-label">{t('form.identification.tenant')}</Label>
-                                        <select className="cif-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
-                                            <option value="">{t('form.identification.selectTenant')}</option>
-                                            {tenants.map((tn: any) => <option key={tn.id} value={tn.id}>{tn.name} ({tn.code})</option>)}
+                                        <Label className="cif-label">
+                                            {t('form.identification.tenant')}
+                                        </Label>
+                                        <select
+                                            className="cif-select"
+                                            value={data.tenant_id}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'tenant_id',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            <option value="">
+                                                {t(
+                                                    'form.identification.selectTenant',
+                                                )}
+                                            </option>
+                                            {tenants.map((tn: any) => (
+                                                <option
+                                                    key={tn.id}
+                                                    value={tn.id}
+                                                >
+                                                    {tn.name} ({tn.code})
+                                                </option>
+                                            ))}
                                         </select>
-                                        <InputError message={errors.tenant_id}/>
+                                        <InputError
+                                            message={errors.tenant_id}
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -165,30 +299,81 @@ export function CoinsurersForm({ data, setData, errors, processing, onSubmit, te
                         {/* Statut */}
                         <div className="cif-card">
                             <div className="cif-card-hdr">
-                                <div className="cif-card-ttl">{t('form.status.title')}</div>
+                                <div className="cif-card-ttl">
+                                    {t('form.status.title')}
+                                </div>
                             </div>
                             <div className="cif-card-body">
-                                <div className="cif-toggle" onClick={() => setData('is_active', !data.is_active)}>
-                                    <div className="cif-toggle-box" style={{ background: data.is_active ? '#1e3a8a' : '#e2e8f0' }}>
-                                        <div className="cif-toggle-thumb" style={{ left: data.is_active ? '21px' : '3px' }}/>
+                                <div
+                                    className="cif-toggle"
+                                    onClick={() =>
+                                        setData('is_active', !data.is_active)
+                                    }
+                                >
+                                    <div
+                                        className="cif-toggle-box"
+                                        style={{
+                                            background: data.is_active
+                                                ? '#1e3a8a'
+                                                : '#e2e8f0',
+                                        }}
+                                    >
+                                        <div
+                                            className="cif-toggle-thumb"
+                                            style={{
+                                                left: data.is_active
+                                                    ? '21px'
+                                                    : '3px',
+                                            }}
+                                        />
                                     </div>
                                     <div>
-                                        <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>
-                                            {data.is_active ? t('form.status.active') : t('form.status.inactive')}
+                                        <div
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 500,
+                                                color: '#1e293b',
+                                            }}
+                                        >
+                                            {data.is_active
+                                                ? t('form.status.active')
+                                                : t('form.status.inactive')}
                                         </div>
-                                        <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>
-                                            {data.is_active ? t('form.status.activeHint') : t('form.status.inactiveHint')}
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#94a3b8',
+                                                marginTop: 1,
+                                            }}
+                                        >
+                                            {data.is_active
+                                                ? t('form.status.activeHint')
+                                                : t('form.status.inactiveHint')}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div style={{ display:'flex', gap:8 }}>
-                            <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? tc('states.saving') : <><Check size={14}/> {submitLabel}</>}
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                            >
+                                {processing ? (
+                                    tc('states.saving')
+                                ) : (
+                                    <>
+                                        <Check size={14} /> {submitLabel}
+                                    </>
+                                )}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => window.history.back()}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => window.history.back()}
+                            >
                                 {tc('actions.cancel')}
                             </Button>
                         </div>

@@ -12,11 +12,11 @@ import { TOGO_POSITIONS } from './togo';
 // départ tant qu'aucune surcharge n'a été enregistrée en base.
 export const DEFAULT_POSITIONS_BY_TEMPLATE: Record<string, FieldPosition[]> = {
     'guinee-conakry': GUINEE_CONAKRY_POSITIONS,
-    'gabon':          GABON_POSITIONS,
-    'togo':           TOGO_POSITIONS,
-    'senegal':        SENEGAL_POSITIONS,
-    'cameroun':       CAMEROUN_POSITIONS,
-    'congo':          CONGO_POSITIONS,
-    'benin':          BENIN_POSITIONS,
+    gabon: GABON_POSITIONS,
+    togo: TOGO_POSITIONS,
+    senegal: SENEGAL_POSITIONS,
+    cameroun: CAMEROUN_POSITIONS,
+    congo: CONGO_POSITIONS,
+    benin: BENIN_POSITIONS,
     // ── Enregistrer ici les nouveaux templates ──
 };

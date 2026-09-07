@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class InsuranceContract extends Model
 {
-    use HasUuids, HasFactory, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'insurance_contracts';
 
@@ -46,55 +46,64 @@ class InsuranceContract extends Model
     ];
 
     protected $casts = [
-        'effective_date'     => 'date',
-        'expiry_date'        => 'date',
-        'approved_at'        => 'datetime',
-        'nn300_unlocked_at'  => 'datetime',
-        'suspended_at'       => 'datetime',
-        'requires_approval'  => 'boolean',
+        'effective_date' => 'date',
+        'expiry_date' => 'date',
+        'approved_at' => 'datetime',
+        'nn300_unlocked_at' => 'datetime',
+        'suspended_at' => 'datetime',
+        'requires_approval' => 'boolean',
         'subscription_limit' => 'decimal:2',
-        'used_limit'         => 'decimal:2',
-        'treaty_limit'       => 'decimal:2',
-        'plein'              => 'decimal:2',
-        'escalade_enabled'   => 'boolean',
+        'used_limit' => 'decimal:2',
+        'treaty_limit' => 'decimal:2',
+        'plein' => 'decimal:2',
+        'escalade_enabled' => 'boolean',
         'escalade_threshold_pct' => 'decimal:2',
-        'premium_rate'       => 'decimal:5',
-        'deductible'         => 'decimal:2',
-        'rate_ro'            => 'decimal:4',
-        'rate_rg'            => 'decimal:4',
+        'premium_rate' => 'decimal:5',
+        'deductible' => 'decimal:2',
+        'rate_ro' => 'decimal:4',
+        'rate_rg' => 'decimal:4',
         'accessories_amount' => 'decimal:2',
-        'rate_tax'           => 'decimal:4',
-        'clauses'            => 'array',
-        'exclusions'         => 'array',
-        'covered_countries'  => 'array',
+        'rate_tax' => 'decimal:4',
+        'clauses' => 'array',
+        'exclusions' => 'array',
+        'covered_countries' => 'array',
         'conditioning_types' => 'array',
         'certificates_count' => 'integer',
         'certificates_limit' => 'integer',
         'notice_period_days' => 'integer',
         // US-051 — Chiffrement données PII (non-queryables)
-        'insured_address'    => 'encrypted',
-        'insured_phone'      => 'encrypted',
+        'insured_address' => 'encrypted',
+        'insured_phone' => 'encrypted',
         'subscriber_address' => 'encrypted',
-        'subscriber_phone'   => 'encrypted',
+        'subscriber_phone' => 'encrypted',
     ];
 
     // ── Constantes ────────────────────────────────────────────
-    const TYPE_OPEN_POLICY    = 'OPEN_POLICY';
-    const TYPE_VOYAGE         = 'VOYAGE';
-    const TYPE_ANNUAL_VOYAGE  = 'ANNUAL_VOYAGE';
+    const TYPE_OPEN_POLICY = 'OPEN_POLICY';
+
+    const TYPE_VOYAGE = 'VOYAGE';
+
+    const TYPE_ANNUAL_VOYAGE = 'ANNUAL_VOYAGE';
+
     // Police tiers chargeur — fonctionnement identique à la police ouverte
     // (pas de verrou "un seul certificat" contrairement au type VOYAGE).
     const TYPE_TIERS_CHARGEUR = 'TIERS_CHARGEUR';
 
-    const STATUS_DRAFT     = 'DRAFT';
-    const STATUS_ACTIVE    = 'ACTIVE';
+    const STATUS_DRAFT = 'DRAFT';
+
+    const STATUS_ACTIVE = 'ACTIVE';
+
     const STATUS_SUSPENDED = 'SUSPENDED';
-    const STATUS_EXPIRED   = 'EXPIRED';
+
+    const STATUS_EXPIRED = 'EXPIRED';
+
     const STATUS_CANCELLED = 'CANCELLED';
 
-    const COVERAGE_TOUS_RISQUES  = 'TOUS_RISQUES';
-    const COVERAGE_FAP_SAUF      = 'FAP_SAUF';
-    const COVERAGE_FAP_ABSOLUE   = 'FAP_ABSOLUE';
+    const COVERAGE_TOUS_RISQUES = 'TOUS_RISQUES';
+
+    const COVERAGE_FAP_SAUF = 'FAP_SAUF';
+
+    const COVERAGE_FAP_ABSOLUE = 'FAP_ABSOLUE';
 
     // Valeurs de repli si le paramètre général (Setting, /admin/settings)
     // n'existe pas encore — la vraie valeur active est toujours lue via
@@ -103,7 +112,8 @@ class InsuranceContract extends Model
     // au-delà, alerte informative pour placement en réassurance
     // facultative (non bloquant).
     const NN300_STANDARD_CEILING = 2000000000.00;
-    const TREATY_DEFAULT_LIMIT   = 6000000000.00;
+
+    const TREATY_DEFAULT_LIMIT = 6000000000.00;
 
     // ── Relations ────────────────────────────────────────────
     public function tenant(): BelongsTo
@@ -179,9 +189,20 @@ class InsuranceContract extends Model
     }
 
     // ── Helpers ───────────────────────────────────────────────
-    public function isActive(): bool    { return $this->status === self::STATUS_ACTIVE; }
-    public function isDraft(): bool     { return $this->status === self::STATUS_DRAFT; }
-    public function isExpired(): bool   { return $this->expiry_date->isPast(); }
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expiry_date->isPast();
+    }
 
     public function canIssue(): bool
     {
@@ -228,13 +249,19 @@ class InsuranceContract extends Model
     public function exceedsSubscriptionLimit(float $additionalValue = 0): bool
     {
         $ceiling = $this->effectiveCeiling();
-        if ($ceiling === null) return false;
+        if ($ceiling === null) {
+            return false;
+        }
+
         return ((float) $this->used_limit + $additionalValue) > $ceiling;
     }
 
     public function reachedCertificatesLimit(): bool
     {
-        if ($this->certificates_limit === null) return false;
+        if ($this->certificates_limit === null) {
+            return false;
+        }
+
         return $this->certificates_count >= $this->certificates_limit;
     }
 
@@ -254,21 +281,30 @@ class InsuranceContract extends Model
     // facultative, non bloquant — cf. CertificateController::submit()).
     public function exceedsTreatyLimit(float $additionalValue = 0): bool
     {
-        if ($this->treaty_limit === null) return false;
+        if ($this->treaty_limit === null) {
+            return false;
+        }
+
         return ((float) $this->used_limit + $additionalValue) > (float) $this->treaty_limit;
     }
 
     public function remainingLimit(): ?float
     {
         $ceiling = $this->effectiveCeiling();
-        if ($ceiling === null) return null;
+        if ($ceiling === null) {
+            return null;
+        }
+
         return max(0, $ceiling - (float) $this->used_limit);
     }
 
     public function usagePercent(): float
     {
         $ceiling = $this->effectiveCeiling();
-        if (! $ceiling) return 0;
+        if (! $ceiling) {
+            return 0;
+        }
+
         return min(100, round(((float) $this->used_limit / $ceiling) * 100, 1));
     }
 
@@ -276,7 +312,10 @@ class InsuranceContract extends Model
     // plafond NN300 cumulé ci-dessus). Null = pas de plein défini.
     public function exceedsPlein(float $insuredValue): bool
     {
-        if ($this->plein === null || (float) $this->plein <= 0) return false;
+        if ($this->plein === null || (float) $this->plein <= 0) {
+            return false;
+        }
+
         return $insuredValue > (float) $this->plein;
     }
 
@@ -286,13 +325,14 @@ class InsuranceContract extends Model
      */
     public static function generateContractNumber(string $tenantCode, string $type): string
     {
-        $typeCode = match($type) {
-            'OPEN_POLICY'   => 'OP',
+        $typeCode = match ($type) {
+            'OPEN_POLICY' => 'OP',
             'ANNUAL_VOYAGE' => 'AV',
-            default         => 'VG',
+            default => 'VG',
         };
-        $year  = now()->format('Y');
+        $year = now()->format('Y');
         $count = static::whereYear('created_at', $year)->count() + 1;
-        return strtoupper($tenantCode) . '-' . $typeCode . '-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
+
+        return strtoupper($tenantCode).'-'.$typeCode.'-'.$year.'-'.str_pad($count, 6, '0', STR_PAD_LEFT);
     }
 }

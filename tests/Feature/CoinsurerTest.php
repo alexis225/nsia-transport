@@ -27,8 +27,9 @@ function makeRefCoinsurerTenant(): Tenant
 function makeRefCoinsurerAdmin(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
@@ -36,6 +37,7 @@ function makeRefCoinsurerSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
@@ -43,24 +45,26 @@ function makeRefCoinsurerSuperAdmin(): User
 function makeRefCoinsurerSouscripteur(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('souscripteur');
+
     return $user;
 }
 
 function makeRefCoinsurerBareUser(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
+
     return User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
 }
 
 function makeRefCoinsurer(string $tenantId, array $overrides = []): Coinsurer
 {
     return Coinsurer::create(array_merge([
-        'tenant_id'    => $tenantId,
-        'name'         => 'Coassureur Test',
+        'tenant_id' => $tenantId,
+        'name' => 'Coassureur Test',
         'country_code' => 'CI',
-        'is_active'    => true,
+        'is_active' => true,
     ], $overrides));
 }
 
@@ -87,11 +91,11 @@ it('crée un coassureur avec des données valides', function () {
     $admin = makeRefCoinsurerAdmin();
 
     $payload = [
-        'name'         => 'AXA Réassurance',
+        'name' => 'AXA Réassurance',
         'country_code' => 'CI',
-        'email'        => 'contact@axa-re.ci',
-        'phone'        => '+225 0102030405',
-        'is_active'    => true,
+        'email' => 'contact@axa-re.ci',
+        'phone' => '+225 0102030405',
+        'is_active' => true,
     ];
 
     $this->actingAs($admin)
@@ -99,13 +103,13 @@ it('crée un coassureur avec des données valides', function () {
         ->assertRedirect(route('admin.coinsurers.index'));
 
     $this->assertDatabaseHas('coinsurers', [
-        'name'      => 'AXA Réassurance',
+        'name' => 'AXA Réassurance',
         'tenant_id' => $admin->tenant_id,
     ]);
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'coinsurer_created',
+        'user_id' => $admin->id,
+        'action' => 'coinsurer_created',
         'entity_type' => 'coinsurer',
     ]);
 });
@@ -115,7 +119,7 @@ it('refuse la création avec des données invalides ou manquantes', function () 
 
     $this->actingAs($admin)
         ->post('/admin/coinsurers', [
-            'name'  => '',
+            'name' => '',
             'email' => 'pas-un-email',
         ])
         ->assertSessionHasErrors(['name', 'email']);
@@ -128,7 +132,7 @@ it('refuse la création avec un country_code invalide', function () {
 
     $this->actingAs($admin)
         ->post('/admin/coinsurers', [
-            'name'         => 'Coassureur Test',
+            'name' => 'Coassureur Test',
             'country_code' => 'CIV', // 3 caractères au lieu de 2
         ])
         ->assertSessionHasErrors(['country_code']);
@@ -146,7 +150,7 @@ it('refuse la création sans la permission coinsurers.create', function () {
 
 // ── Update ───────────────────────────────────────────────────
 it('modifie un coassureur de sa filiale', function () {
-    $admin     = makeRefCoinsurerAdmin();
+    $admin = makeRefCoinsurerAdmin();
     $coinsurer = makeRefCoinsurer($admin->tenant_id, ['name' => 'Ancien Nom']);
 
     $this->actingAs($admin)
@@ -156,16 +160,16 @@ it('modifie un coassureur de sa filiale', function () {
     expect($coinsurer->fresh()->name)->toBe('Nouveau Nom');
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'coinsurer_updated',
+        'user_id' => $admin->id,
+        'action' => 'coinsurer_updated',
         'entity_type' => 'coinsurer',
-        'entity_id'   => $coinsurer->id,
+        'entity_id' => $coinsurer->id,
     ]);
 });
 
 it('refuse la modification sans la permission coinsurers.edit', function () {
-    $tenant    = makeRefCoinsurerTenant();
-    $user      = makeRefCoinsurerSouscripteur($tenant->id);
+    $tenant = makeRefCoinsurerTenant();
+    $user = makeRefCoinsurerSouscripteur($tenant->id);
     $coinsurer = makeRefCoinsurer($tenant->id, ['name' => 'Intact']);
 
     $this->actingAs($user)
@@ -177,7 +181,7 @@ it('refuse la modification sans la permission coinsurers.edit', function () {
 
 // ── Destroy ──────────────────────────────────────────────────
 it('supprime un coassureur de sa filiale', function () {
-    $admin     = makeRefCoinsurerAdmin();
+    $admin = makeRefCoinsurerAdmin();
     $coinsurer = makeRefCoinsurer($admin->tenant_id);
 
     $this->actingAs($admin)
@@ -187,16 +191,16 @@ it('supprime un coassureur de sa filiale', function () {
     $this->assertSoftDeleted('coinsurers', ['id' => $coinsurer->id]);
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'coinsurer_deleted',
+        'user_id' => $admin->id,
+        'action' => 'coinsurer_deleted',
         'entity_type' => 'coinsurer',
-        'entity_id'   => $coinsurer->id,
+        'entity_id' => $coinsurer->id,
     ]);
 });
 
 it('refuse la suppression sans la permission coinsurers.delete', function () {
-    $tenant    = makeRefCoinsurerTenant();
-    $user      = makeRefCoinsurerSouscripteur($tenant->id);
+    $tenant = makeRefCoinsurerTenant();
+    $user = makeRefCoinsurerSouscripteur($tenant->id);
     $coinsurer = makeRefCoinsurer($tenant->id);
 
     $this->actingAs($user)
@@ -208,7 +212,7 @@ it('refuse la suppression sans la permission coinsurers.delete', function () {
 
 // ── Toggle ───────────────────────────────────────────────────
 it('active/désactive un coassureur via toggle', function () {
-    $admin     = makeRefCoinsurerAdmin();
+    $admin = makeRefCoinsurerAdmin();
     $coinsurer = makeRefCoinsurer($admin->tenant_id, ['is_active' => true]);
 
     $this->actingAs($admin)
@@ -219,8 +223,8 @@ it('active/désactive un coassureur via toggle', function () {
 });
 
 it('refuse le toggle sans la permission coinsurers.edit', function () {
-    $tenant    = makeRefCoinsurerTenant();
-    $user      = makeRefCoinsurerSouscripteur($tenant->id);
+    $tenant = makeRefCoinsurerTenant();
+    $user = makeRefCoinsurerSouscripteur($tenant->id);
     $coinsurer = makeRefCoinsurer($tenant->id, ['is_active' => true]);
 
     $this->actingAs($user)
@@ -232,9 +236,9 @@ it('refuse le toggle sans la permission coinsurers.edit', function () {
 
 // ── Isolation tenant ─────────────────────────────────────────
 it('un admin_filiale ne peut pas voir un coassureur d\'une autre filiale', function () {
-    $tenantA   = makeRefCoinsurerTenant();
-    $tenantB   = makeRefCoinsurerTenant();
-    $admin     = makeRefCoinsurerAdmin($tenantA->id);
+    $tenantA = makeRefCoinsurerTenant();
+    $tenantB = makeRefCoinsurerTenant();
+    $admin = makeRefCoinsurerAdmin($tenantA->id);
     $coinsurer = makeRefCoinsurer($tenantB->id);
 
     $this->actingAs($admin)
@@ -243,9 +247,9 @@ it('un admin_filiale ne peut pas voir un coassureur d\'une autre filiale', funct
 });
 
 it('un admin_filiale ne peut pas modifier un coassureur d\'une autre filiale', function () {
-    $tenantA   = makeRefCoinsurerTenant();
-    $tenantB   = makeRefCoinsurerTenant();
-    $admin     = makeRefCoinsurerAdmin($tenantA->id);
+    $tenantA = makeRefCoinsurerTenant();
+    $tenantB = makeRefCoinsurerTenant();
+    $admin = makeRefCoinsurerAdmin($tenantA->id);
     $coinsurer = makeRefCoinsurer($tenantB->id, ['name' => 'Intact']);
 
     $this->actingAs($admin)
@@ -256,9 +260,9 @@ it('un admin_filiale ne peut pas modifier un coassureur d\'une autre filiale', f
 });
 
 it('un admin_filiale ne peut pas supprimer un coassureur d\'une autre filiale', function () {
-    $tenantA   = makeRefCoinsurerTenant();
-    $tenantB   = makeRefCoinsurerTenant();
-    $admin     = makeRefCoinsurerAdmin($tenantA->id);
+    $tenantA = makeRefCoinsurerTenant();
+    $tenantB = makeRefCoinsurerTenant();
+    $admin = makeRefCoinsurerAdmin($tenantA->id);
     $coinsurer = makeRefCoinsurer($tenantB->id);
 
     $this->actingAs($admin)
@@ -269,9 +273,9 @@ it('un admin_filiale ne peut pas supprimer un coassureur d\'une autre filiale', 
 });
 
 it('un super_admin voit les coassureurs de toutes les filiales', function () {
-    $tenantA    = makeRefCoinsurerTenant();
+    $tenantA = makeRefCoinsurerTenant();
     $superAdmin = makeRefCoinsurerSuperAdmin();
-    $coinsurer  = makeRefCoinsurer($tenantA->id);
+    $coinsurer = makeRefCoinsurer($tenantA->id);
 
     $this->actingAs($superAdmin)
         ->get("/admin/coinsurers/{$coinsurer->id}")

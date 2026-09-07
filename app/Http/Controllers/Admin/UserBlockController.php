@@ -31,9 +31,9 @@ class UserBlockController extends Controller
         $this->authorizeTenantAccess($user);
 
         $user->update([
-            'is_active'      => false,
-            'blocked_by'     => $request->user()->id,
-            'blocked_at'     => now(),
+            'is_active' => false,
+            'blocked_by' => $request->user()->id,
+            'blocked_at' => now(),
             'blocked_reason' => $request->reason,
         ]);
 
@@ -41,7 +41,7 @@ class UserBlockController extends Controller
         DB::table('sessions')->where('user_id', $user->id)->delete();
 
         $this->auditLog($request, $user, 'user_blocked', [
-            'reason'     => $request->reason,
+            'reason' => $request->reason,
             'blocked_by' => (string) $request->user()->id,
         ]);
 
@@ -51,12 +51,12 @@ class UserBlockController extends Controller
     public function unblock(Request $request, User $user): RedirectResponse
     {
         $user->update([
-            'is_active'             => true,
-            'blocked_by'            => null,
-            'blocked_at'            => null,
-            'blocked_reason'        => null,
+            'is_active' => true,
+            'blocked_by' => null,
+            'blocked_at' => null,
+            'blocked_reason' => null,
             'failed_login_attempts' => 0,
-            'locked_until'          => null,
+            'locked_until' => null,
         ]);
 
         $this->auditLog($request, $user, 'user_unblocked', [
@@ -82,15 +82,15 @@ class UserBlockController extends Controller
     private function auditLog(Request $request, User $target, string $action, array $metadata = []): void
     {
         AuditLog::create([
-            'tenant_id'   => $target->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => $action,
+            'tenant_id' => $target->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => $action,
             'entity_type' => 'user',
-            'entity_id'   => $target->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => $metadata,
-            'old_values'  => ['is_active' => $action === 'user_blocked' ? true : false],
+            'entity_id' => $target->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => $metadata,
+            'old_values' => ['is_active' => $action === 'user_blocked' ? true : false],
         ]);
     }
 }

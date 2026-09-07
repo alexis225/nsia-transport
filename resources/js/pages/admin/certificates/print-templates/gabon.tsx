@@ -14,6 +14,16 @@ interface Props {
     positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateGabon({ certificate, calibrate, positionsOverride }: Props) {
-    return <StubOverlay certificate={certificate} positions={positionsOverride ?? GABON_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateGabon({
+    certificate,
+    calibrate,
+    positionsOverride,
+}: Props) {
+    return (
+        <StubOverlay
+            certificate={certificate}
+            positions={positionsOverride ?? GABON_POSITIONS}
+            calibrate={calibrate}
+        />
+    );
 }

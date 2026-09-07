@@ -6,6 +6,7 @@ use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * ============================================================
@@ -41,35 +42,35 @@ class CertificatePdfService
 
         $template = $certificate->template
             ?? CertificateTemplate::where('tenant_id', $certificate->tenant_id)
-                                   ->where('is_active', true)
-                                   ->first();
+                ->where('is_active', true)
+                ->first();
 
         $html = view('pdf.certificate', [
             'certificate' => $certificate,
-            'template'    => $template,
-            'logoBase64'  => $this->getLogoBase64($template),
-            'qrBase64'    => $this->qrService->generateBase64Image($certificate),
-            'verifyUrl'   => $this->qrService->getVerifyUrl($certificate),
+            'template' => $template,
+            'logoBase64' => $this->getLogoBase64($template),
+            'qrBase64' => $this->qrService->generateBase64Image($certificate),
+            'verifyUrl' => $this->qrService->getVerifyUrl($certificate),
         ])->render();
 
         $pdf = Pdf::loadHTML($html)
             ->setPaper('a4', 'portrait')
             ->setOptions([
                 'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled'      => true,
-                'defaultFont'          => 'DejaVu Sans',
-                'dpi'                  => 150,
-                'defaultPaperSize'     => 'a4',
+                'isRemoteEnabled' => true,
+                'defaultFont' => 'DejaVu Sans',
+                'dpi' => 150,
+                'defaultPaperSize' => 'a4',
             ]);
 
-        $path     = "certificates/{$certificate->tenant->code}/{$certificate->certificate_number}.pdf";
+        $path = "certificates/{$certificate->tenant->code}/{$certificate->certificate_number}.pdf";
         $pdfContent = $pdf->output();
 
         Storage::disk('public')->put($path, $pdfContent);
 
         // Mettre à jour le certificat avec le chemin PDF
         $certificate->update([
-            'pdf_path'         => $path,
+            'pdf_path' => $path,
             'pdf_generated_at' => now(),
         ]);
 
@@ -79,7 +80,7 @@ class CertificatePdfService
     /**
      * Retourne le PDF en stream (téléchargement direct)
      */
-    public function download(Certificate $certificate): \Symfony\Component\HttpFoundation\Response
+    public function download(Certificate $certificate): Response
     {
         // Regénérer si absent
         if (! $certificate->pdf_path || ! Storage::disk('public')->exists($certificate->pdf_path)) {
@@ -93,19 +94,19 @@ class CertificatePdfService
 
         $html = view('pdf.certificate', [
             'certificate' => $certificate,
-            'template'    => $template,
-            'logoBase64'  => $this->getLogoBase64($template),
-            'qrBase64'    => $this->qrService->generateBase64Image($certificate),
-            'verifyUrl'   => $this->qrService->getVerifyUrl($certificate),
+            'template' => $template,
+            'logoBase64' => $this->getLogoBase64($template),
+            'qrBase64' => $this->qrService->generateBase64Image($certificate),
+            'verifyUrl' => $this->qrService->getVerifyUrl($certificate),
         ])->render();
 
         return Pdf::loadHTML($html)
             ->setPaper('a4', 'portrait')
             ->setOptions([
                 'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled'      => false,
-                'defaultFont'          => 'DejaVu Sans',
-                'dpi'                  => 150,
+                'isRemoteEnabled' => false,
+                'defaultFont' => 'DejaVu Sans',
+                'dpi' => 150,
             ])
             ->download("{$certificate->certificate_number}.pdf");
     }
@@ -113,7 +114,7 @@ class CertificatePdfService
     /**
      * Retourne le PDF en stream (affichage dans navigateur)
      */
-    public function stream(Certificate $certificate): \Symfony\Component\HttpFoundation\Response
+    public function stream(Certificate $certificate): Response
     {
         $certificate->loadMissing(['template', 'contract', 'tenant', 'issuedBy']);
         $template = $certificate->template
@@ -121,19 +122,19 @@ class CertificatePdfService
 
         $html = view('pdf.certificate', [
             'certificate' => $certificate,
-            'template'    => $template,
-            'logoBase64'  => $this->getLogoBase64($template),
-            'qrBase64'    => $this->qrService->generateBase64Image($certificate),
-            'verifyUrl'   => $this->qrService->getVerifyUrl($certificate),
+            'template' => $template,
+            'logoBase64' => $this->getLogoBase64($template),
+            'qrBase64' => $this->qrService->generateBase64Image($certificate),
+            'verifyUrl' => $this->qrService->getVerifyUrl($certificate),
         ])->render();
 
         return Pdf::loadHTML($html)
             ->setPaper('a4', 'portrait')
             ->setOptions([
                 'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled'      => false,
-                'defaultFont'          => 'DejaVu Sans',
-                'dpi'                  => 150,
+                'isRemoteEnabled' => false,
+                'defaultFont' => 'DejaVu Sans',
+                'dpi' => 150,
             ])
             ->stream("{$certificate->certificate_number}.pdf");
     }
@@ -143,18 +144,22 @@ class CertificatePdfService
      */
     private function getLogoBase64(?CertificateTemplate $template): ?string
     {
-        if (! $template?->logo_path) return null;
-        if (! Storage::disk('public')->exists($template->logo_path)) return null;
+        if (! $template?->logo_path) {
+            return null;
+        }
+        if (! Storage::disk('public')->exists($template->logo_path)) {
+            return null;
+        }
 
-        $content   = Storage::disk('public')->get($template->logo_path);
+        $content = Storage::disk('public')->get($template->logo_path);
         $extension = pathinfo($template->logo_path, PATHINFO_EXTENSION);
-        $mime      = match (strtolower($extension)) {
-            'png'  => 'image/png',
+        $mime = match (strtolower($extension)) {
+            'png' => 'image/png',
             'webp' => 'image/webp',
-            'svg'  => 'image/svg+xml',
+            'svg' => 'image/svg+xml',
             default => 'image/jpeg',
         };
 
-        return "data:{$mime};base64," . base64_encode($content);
+        return "data:{$mime};base64,".base64_encode($content);
     }
 }

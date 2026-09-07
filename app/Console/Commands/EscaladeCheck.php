@@ -24,7 +24,7 @@ class EscaladeCheck extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ApprovalWorkflowService $service) : void
+    public function handle(ApprovalWorkflowService $service): void
     {
         $count = $service->checkExpired();
         $this->info("{$count} workflow(s) traité(s).");

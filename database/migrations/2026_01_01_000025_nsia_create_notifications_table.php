@@ -36,9 +36,9 @@ return new class extends Migration
 
             // ── Colonnes custom NSIA ──────────────────────────
             $table->foreignUuid('tenant_id')
-                  ->nullable()
-                  ->constrained('tenants')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('tenants')
+                ->nullOnDelete();
 
             $table->string('channel', 20)->default('IN_APP');
             // EMAIL | SMS | IN_APP | WEBHOOK

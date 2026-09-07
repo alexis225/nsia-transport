@@ -40,32 +40,33 @@ class CertificateTemplateSeeder extends Seeder
         $tenant = Tenant::where('code', 'GA')->first();
         if (! $tenant) {
             $this->command->warn('⚠ Filiale GA (Gabon) introuvable — template ignoré.');
+
             return;
         }
 
         CertificateTemplate::updateOrCreate(
             ['tenant_id' => $tenant->id],
             [
-                'name'             => 'Ordre d\'assurance NSIA Gabon',
-                'code'             => 'GA',
-                'type'             => CertificateTemplate::TYPE_CARNET_ORDRE,
-                'company_name'     => 'NSIA Gabon',
-                'company_address'  => 'Résidence les Frangipaniers - B.P.2221 et 2225 - Libreville',
-                'company_phone'    => '91-76.00.54 - Fax: 241.01.74.17.02',
-                'company_email'    => 'nsiagabon@groupensia.com',
-                'company_rccm'     => 'RCCM N° 2000 B 00254',
-                'company_capital'  => '1.200.000.000 F CFA',
-                'legal_framework'  => 'Entreprise régie par le code des assurances CIMA S.A avec Conseil d\'Administration',
-                'currency_code'    => 'XAF',
-                'city'             => 'LIBREVILLE',
-                'number_prefix'    => 'N°',
-                'number_padding'   => 6,
-                'last_number'      => 41259,
-                'is_bilingual'     => false,
+                'name' => 'Ordre d\'assurance NSIA Gabon',
+                'code' => 'GA',
+                'type' => CertificateTemplate::TYPE_CARNET_ORDRE,
+                'company_name' => 'NSIA Gabon',
+                'company_address' => 'Résidence les Frangipaniers - B.P.2221 et 2225 - Libreville',
+                'company_phone' => '91-76.00.54 - Fax: 241.01.74.17.02',
+                'company_email' => 'nsiagabon@groupensia.com',
+                'company_rccm' => 'RCCM N° 2000 B 00254',
+                'company_capital' => '1.200.000.000 F CFA',
+                'legal_framework' => 'Entreprise régie par le code des assurances CIMA S.A avec Conseil d\'Administration',
+                'currency_code' => 'XAF',
+                'city' => 'LIBREVILLE',
+                'number_prefix' => 'N°',
+                'number_padding' => 6,
+                'last_number' => 41259,
+                'is_bilingual' => false,
                 'has_container_options' => true,
-                'has_flight_number'     => true,
-                'has_vessel_name'       => true,
-                'has_currency_rate'     => false,
+                'has_flight_number' => true,
+                'has_vessel_name' => true,
+                'has_currency_rate' => false,
                 'prime_breakdown_lines' => [
                     ['key' => 'ro',            'label' => 'R.O',          'label_en' => 'O.R'],
                     ['key' => 'rg',            'label' => 'R.G',          'label_en' => 'W.R'],
@@ -76,8 +77,8 @@ class CertificateTemplateSeeder extends Seeder
                     ['key' => 'taxe',          'label' => 'Taxe',         'label_en' => 'Tax'],
                     ['key' => 'prime_totale',  'label' => 'Prime Total',  'label_en' => 'Total Premium'],
                 ],
-                'footer_text'   => 'IMPORTANT : LE PRESENT ORDRE D\'ASSURANCE NE VAUT CERTIFICAT D\'ASSURANCE QUE REVETU DE LA SIGNATURE ET DU CACHET DE L\'ASSUREUR.',
-                'is_active'     => true,
+                'footer_text' => 'IMPORTANT : LE PRESENT ORDRE D\'ASSURANCE NE VAUT CERTIFICAT D\'ASSURANCE QUE REVETU DE LA SIGNATURE ET DU CACHET DE L\'ASSUREUR.',
+                'is_active' => true,
             ]
         );
 
@@ -90,33 +91,34 @@ class CertificateTemplateSeeder extends Seeder
         $tenant = Tenant::where('code', 'GN')->first();
         if (! $tenant) {
             $this->command->warn('⚠ Filiale GN (Guinée) introuvable — template ignoré.');
+
             return;
         }
 
         CertificateTemplate::updateOrCreate(
             ['tenant_id' => $tenant->id],
             [
-                'name'             => 'Certificat d\'assurance NSIA Guinée',
-                'code'             => 'GN',
-                'type'             => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
-                'company_name'     => 'NSIA Assurances',
-                'company_address'  => 'Immeuble NSIA - BP 5884 Conakry Guinée',
-                'company_phone'    => '(+224) 666 18 12 82 / 625 00 00 70',
-                'company_email'    => 'nsiaguinee@groupensia.com',
-                'company_website'  => 'www.groupensia.com',
-                'company_rccm'     => 'RCCM/GC-KAL/024,618A/2009',
-                'company_capital'  => '13 000 000 000 GNF',
-                'legal_framework'  => 'Société Anonyme — Entreprise régie par le code des Assurances de la Guinée',
-                'currency_code'    => 'GNF',
-                'city'             => 'CONAKRY',
-                'number_prefix'    => 'N°',
-                'number_padding'   => 7,
-                'last_number'      => 27651,
-                'is_bilingual'     => true,
+                'name' => 'Certificat d\'assurance NSIA Guinée',
+                'code' => 'GN',
+                'type' => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
+                'company_name' => 'NSIA Assurances',
+                'company_address' => 'Immeuble NSIA - BP 5884 Conakry Guinée',
+                'company_phone' => '(+224) 666 18 12 82 / 625 00 00 70',
+                'company_email' => 'nsiaguinee@groupensia.com',
+                'company_website' => 'www.groupensia.com',
+                'company_rccm' => 'RCCM/GC-KAL/024,618A/2009',
+                'company_capital' => '13 000 000 000 GNF',
+                'legal_framework' => 'Société Anonyme — Entreprise régie par le code des Assurances de la Guinée',
+                'currency_code' => 'GNF',
+                'city' => 'CONAKRY',
+                'number_prefix' => 'N°',
+                'number_padding' => 7,
+                'last_number' => 27651,
+                'is_bilingual' => true,
                 'has_container_options' => false,
-                'has_flight_number'     => false,
-                'has_vessel_name'       => true,
-                'has_currency_rate'     => false,
+                'has_flight_number' => false,
+                'has_vessel_name' => true,
+                'has_currency_rate' => false,
                 'prime_breakdown_lines' => [
                     ['key' => 'ro',            'label' => 'R.O',          'label_en' => 'O.R'],
                     ['key' => 'rg',            'label' => 'R.G',          'label_en' => 'W.R'],
@@ -127,8 +129,8 @@ class CertificateTemplateSeeder extends Seeder
                     ['key' => 'taxe',          'label' => 'Taxe',         'label_en' => 'Tax'],
                     ['key' => 'prime_totale',  'label' => 'Prime Total',  'label_en' => 'Total Premium'],
                 ],
-                'footer_text'   => 'Toutes indemnités pour perte ou avaries seront payées, dans les conditions prévues à l\'article 27 des Conditions Générales entre les mains du porteur de l\'original du certificat d\'assurance et des pièces justificatives de la réclamation.',
-                'is_active'     => true,
+                'footer_text' => 'Toutes indemnités pour perte ou avaries seront payées, dans les conditions prévues à l\'article 27 des Conditions Générales entre les mains du porteur de l\'original du certificat d\'assurance et des pièces justificatives de la réclamation.',
+                'is_active' => true,
             ]
         );
 
@@ -141,31 +143,32 @@ class CertificateTemplateSeeder extends Seeder
         $tenant = Tenant::where('code', 'TG')->first();
         if (! $tenant) {
             $this->command->warn('⚠ Filiale TG (Togo) introuvable — template ignoré.');
+
             return;
         }
 
         CertificateTemplate::updateOrCreate(
             ['tenant_id' => $tenant->id],
             [
-                'name'             => 'Ordre d\'assurance NSIA Togo',
-                'code'             => 'TG',
-                'type'             => CertificateTemplate::TYPE_CARNET_ORDRE,
-                'company_name'     => 'NSIA Assurances',
-                'company_address'  => 'Siège Social : Rue Brazza derrière Poste Centrale - 01 BP 1120 Lomé',
-                'company_phone'    => '(228) 22 23 49 00 - Fax: (228) 22 20 81 52',
-                'company_email'    => 'nsiatogo@groupensia.com',
-                'company_capital'  => 'F.CFA 5.962.400.000',
-                'legal_framework'  => 'Entreprise régie par le code des Assurances des États Membres de la CIMA',
-                'currency_code'    => 'XOF',
-                'city'             => 'LOME',
-                'number_prefix'    => 'Nr',
-                'number_padding'   => 6,
-                'last_number'      => 8755,
-                'is_bilingual'     => false,
+                'name' => 'Ordre d\'assurance NSIA Togo',
+                'code' => 'TG',
+                'type' => CertificateTemplate::TYPE_CARNET_ORDRE,
+                'company_name' => 'NSIA Assurances',
+                'company_address' => 'Siège Social : Rue Brazza derrière Poste Centrale - 01 BP 1120 Lomé',
+                'company_phone' => '(228) 22 23 49 00 - Fax: (228) 22 20 81 52',
+                'company_email' => 'nsiatogo@groupensia.com',
+                'company_capital' => 'F.CFA 5.962.400.000',
+                'legal_framework' => 'Entreprise régie par le code des Assurances des États Membres de la CIMA',
+                'currency_code' => 'XOF',
+                'city' => 'LOME',
+                'number_prefix' => 'Nr',
+                'number_padding' => 6,
+                'last_number' => 8755,
+                'is_bilingual' => false,
                 'has_container_options' => false,
-                'has_flight_number'     => true,
-                'has_vessel_name'       => true,
-                'has_currency_rate'     => true,
+                'has_flight_number' => true,
+                'has_vessel_name' => true,
+                'has_currency_rate' => true,
                 'prime_breakdown_lines' => [
                     ['key' => 'ro',            'label' => 'R.O',          'label_en' => 'O.R'],
                     ['key' => 'rg',            'label' => 'R.G',          'label_en' => 'W.R'],
@@ -176,8 +179,8 @@ class CertificateTemplateSeeder extends Seeder
                     ['key' => 'taxe',          'label' => 'Taxe',         'label_en' => 'Tax'],
                     ['key' => 'prime_totale',  'label' => 'Prime Total',  'label_en' => 'Total Premium'],
                 ],
-                'footer_text'   => 'IMPORTANT : LE PRESENT ORDRE D\'ASSURANCE NE VAUT CERTIFICAT D\'ASSURANCE QUE REVETU DE LA SIGNATURE ET DU CACHET DE L\'ASSUREUR.',
-                'is_active'     => true,
+                'footer_text' => 'IMPORTANT : LE PRESENT ORDRE D\'ASSURANCE NE VAUT CERTIFICAT D\'ASSURANCE QUE REVETU DE LA SIGNATURE ET DU CACHET DE L\'ASSUREUR.',
+                'is_active' => true,
             ]
         );
 
@@ -190,30 +193,31 @@ class CertificateTemplateSeeder extends Seeder
         $tenant = Tenant::where('code', 'BJ')->first();
         if (! $tenant) {
             $this->command->warn('⚠ Filiale BJ (Bénin) introuvable — template ignoré.');
+
             return;
         }
 
         CertificateTemplate::updateOrCreate(
             ['tenant_id' => $tenant->id],
             [
-                'name'             => 'Certificat d\'assurance NSIA Bénin',
-                'code'             => 'BJ',
-                'type'             => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
-                'company_name'     => 'NSIA Assurances',
-                'company_address'  => '1066 Boulevard Saint Michel - Immeuble NSIA Bénin Face Hall des Arts - 08 BP 0258 Tri Postal - Cotonou (Bénin)',
-                'company_phone'    => '(229) 21 36 55 00 / 21 31 33 69 - Fax: (229) 21 31 35 17',
-                'company_email'    => 'nsiabenin@groupensia.com',
-                'legal_framework'  => 'Entreprise régie par le code des Assurances',
-                'currency_code'    => 'XOF',
-                'city'             => 'COTONOU',
-                'number_prefix'    => 'N°',
-                'number_padding'   => 7,
-                'last_number'      => 32205,
-                'is_bilingual'     => true,
+                'name' => 'Certificat d\'assurance NSIA Bénin',
+                'code' => 'BJ',
+                'type' => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
+                'company_name' => 'NSIA Assurances',
+                'company_address' => '1066 Boulevard Saint Michel - Immeuble NSIA Bénin Face Hall des Arts - 08 BP 0258 Tri Postal - Cotonou (Bénin)',
+                'company_phone' => '(229) 21 36 55 00 / 21 31 33 69 - Fax: (229) 21 31 35 17',
+                'company_email' => 'nsiabenin@groupensia.com',
+                'legal_framework' => 'Entreprise régie par le code des Assurances',
+                'currency_code' => 'XOF',
+                'city' => 'COTONOU',
+                'number_prefix' => 'N°',
+                'number_padding' => 7,
+                'last_number' => 32205,
+                'is_bilingual' => true,
                 'has_container_options' => false,
-                'has_flight_number'     => false,
-                'has_vessel_name'       => true,
-                'has_currency_rate'     => false,
+                'has_flight_number' => false,
+                'has_vessel_name' => true,
+                'has_currency_rate' => false,
                 'prime_breakdown_lines' => [
                     ['key' => 'ro',            'label' => 'R.O',          'label_en' => 'O.R'],
                     ['key' => 'rg',            'label' => 'R.G',          'label_en' => 'W.R'],
@@ -224,8 +228,8 @@ class CertificateTemplateSeeder extends Seeder
                     ['key' => 'taxe',          'label' => 'Taxe',         'label_en' => 'Tax'],
                     ['key' => 'prime_totale',  'label' => 'Prime Total',  'label_en' => 'Total Premium'],
                 ],
-                'footer_text'   => 'Toutes indemnités pour pertes ou avaries seront payées, dans les conditions prévues à l\'article 27 des Conditions Générales entre les mains du porteur de l\'original du certificat d\'assurance et des pièces justificatives de la réclamation.',
-                'is_active'     => true,
+                'footer_text' => 'Toutes indemnités pour pertes ou avaries seront payées, dans les conditions prévues à l\'article 27 des Conditions Générales entre les mains du porteur de l\'original du certificat d\'assurance et des pièces justificatives de la réclamation.',
+                'is_active' => true,
             ]
         );
 

@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Listeners\RecordFailedLogin;
 use App\Models\Certificate;
+use App\Models\UserRoleGrant;
+use App\Observers\CertificateObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed as LoginFailed;
 use Illuminate\Support\Facades\Date;
@@ -14,7 +16,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
-use App\Observers\CertificateObserver;
+use Spatie\Permission\PermissionRegistrar;
+
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void {}
@@ -25,11 +28,11 @@ class AppServiceProvider extends ServiceProvider
         Certificate::observe(CertificateObserver::class);
         // ── Super admin bypass ────────────────────────────────
         Gate::before(function ($user, $ability) {
-            if($user->hasRole('super_admin')){
+            if ($user->hasRole('super_admin')) {
                 return true;
             }
 
-            if (\App\Models\UserRoleGrant::hasGrantedPermission($user, $ability)) {
+            if (UserRoleGrant::hasGrantedPermission($user, $ability)) {
                 return true;
             }
 
@@ -44,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
             $event->extendSocialite('microsoft', MicrosoftExtendSocialite::class);
         });
 
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     protected function configureDefaults(): void

@@ -302,7 +302,10 @@
             "htmlPreview": "Aperçu HTML"
         },
         "modals": {
-            "issue": { "title": "Approuver le certificat", "action": "Approuver" },
+            "issue": {
+                "title": "Approuver le certificat",
+                "action": "Approuver"
+            },
             "reject": { "title": "Rejeter le certificat", "action": "Rejeter" },
             "cancel": { "title": "Annuler le certificat", "action": "Annuler" },
             "replace": {
@@ -649,11 +652,26 @@
                 "heading": "Nouvelle demande de certificat",
                 "subtitle": "Décrivez l'expédition et joignez vos pièces justificatives",
                 "documentTypes": {
-                    "BL": { "label": "BL (Bill of Lading)", "hint": "Connaissement maritime" },
-                    "FACTURE": { "label": "Facture", "hint": "Facture commerciale" },
-                    "FDI": { "label": "FDI", "hint": "Fiche de déclaration d'importation" },
-                    "DOCUMENTS_TRANSPORT": { "label": "Documents de transport", "hint": "LTA, CMR, bordereau..." },
-                    "AUTRE": { "label": "Autres justificatifs", "hint": "Tout autre document utile" }
+                    "BL": {
+                        "label": "BL (Bill of Lading)",
+                        "hint": "Connaissement maritime"
+                    },
+                    "FACTURE": {
+                        "label": "Facture",
+                        "hint": "Facture commerciale"
+                    },
+                    "FDI": {
+                        "label": "FDI",
+                        "hint": "Fiche de déclaration d'importation"
+                    },
+                    "DOCUMENTS_TRANSPORT": {
+                        "label": "Documents de transport",
+                        "hint": "LTA, CMR, bordereau..."
+                    },
+                    "AUTRE": {
+                        "label": "Autres justificatifs",
+                        "hint": "Tout autre document utile"
+                    }
                 },
                 "tenant": {
                     "title": "Filiale",

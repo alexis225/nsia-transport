@@ -17,8 +17,8 @@ return new class extends Migration
         Schema::table('certificates', function (Blueprint $table) {
             $table->char('origin_country_code', 2)->nullable()->after('voyage_from');
             $table->foreign('origin_country_code')
-                  ->references('code')->on('countries')
-                  ->nullOnDelete();
+                ->references('code')->on('countries')
+                ->nullOnDelete();
         });
 
         DB::statement('ALTER TABLE certificates DROP CONSTRAINT cert_transport_check');

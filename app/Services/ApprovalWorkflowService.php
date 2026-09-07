@@ -38,14 +38,19 @@ class ApprovalWorkflowService
         User $submitter
     ): bool {
         // Vérifier si escalade désactivée pour ce contrat
-        if ($contract->escalade_enabled === false) return false;
+        if ($contract->escalade_enabled === false) {
+            return false;
+        }
 
         // Trouver le workflow applicable
         $workflowConfig = ApprovalWorkflowConfig::findForCertificate($certificate, $contract);
-        if (! $workflowConfig) return false;
+        if (! $workflowConfig) {
+            return false;
+        }
 
         // Déclencher
         $this->trigger($certificate, $contract, $workflowConfig, $submitter);
+
         return true;
     }
 
@@ -58,21 +63,21 @@ class ApprovalWorkflowService
         ApprovalWorkflowConfig $config,
         User $submitter
     ): ApprovalRequest {
-        $totalSteps  = $config->totalSteps();
+        $totalSteps = $config->totalSteps();
         $step1Config = $config->getStep(1);
-        $timeout     = $step1Config['timeout_hours'] ?? 48;
+        $timeout = $step1Config['timeout_hours'] ?? 48;
 
         $request = ApprovalRequest::create([
-            'tenant_id'    => $certificate->tenant_id,
-            'entity_type'  => 'CERTIFICATE',
-            'entity_id'    => $certificate->id,
-            'workflow_id'  => $config->id,
+            'tenant_id' => $certificate->tenant_id,
+            'entity_type' => 'CERTIFICATE',
+            'entity_id' => $certificate->id,
+            'workflow_id' => $config->id,
             'current_step' => 1,
-            'total_steps'  => $totalSteps,
-            'status'       => ApprovalRequest::STATUS_PENDING,
+            'total_steps' => $totalSteps,
+            'status' => ApprovalRequest::STATUS_PENDING,
             'requested_by' => $submitter->id,
-            'due_date'     => ApprovalRequest::computeDueDate(now(), $timeout),
-            'notes'        => "Escalade NN300 déclenchée — valeur certificat : {$certificate->insured_value} {$certificate->currency_code}",
+            'due_date' => ApprovalRequest::computeDueDate(now(), $timeout),
+            'notes' => "Escalade NN300 déclenchée — valeur certificat : {$certificate->insured_value} {$certificate->currency_code}",
         ]);
 
         // Notifier les approbateurs de l'étape 1
@@ -80,8 +85,8 @@ class ApprovalWorkflowService
 
         $this->audit($certificate, $submitter, 'escalade.triggered', [
             'workflow' => $config->name,
-            'step'     => 1,
-            'role'     => $step1Config['role'] ?? '—',
+            'step' => 1,
+            'role' => $step1Config['role'] ?? '—',
         ]);
 
         return $request;
@@ -100,18 +105,18 @@ class ApprovalWorkflowService
 
             // Enregistrer la décision
             ApprovalDecision::create([
-                'request_id'  => $request->id,
+                'request_id' => $request->id,
                 'step_number' => $request->current_step,
                 'approver_id' => $approver->id,
-                'decision'    => ApprovalDecision::DECISION_APPROVED,
-                'comment'     => $comment,
-                'decided_at'  => now(),
+                'decision' => ApprovalDecision::DECISION_APPROVED,
+                'comment' => $comment,
+                'decided_at' => now(),
             ]);
 
             if ($request->isLastStep()) {
                 // Dernière étape → émission automatique
                 $request->update([
-                    'status'      => ApprovalRequest::STATUS_APPROVED,
+                    'status' => ApprovalRequest::STATUS_APPROVED,
                     'resolved_by' => $approver->id,
                     'resolved_at' => now(),
                 ]);
@@ -120,26 +125,26 @@ class ApprovalWorkflowService
                 $this->issueCertificate($certificate, $approver, $request);
 
                 $this->audit($certificate, $approver, 'escalade.approved', [
-                    'step'        => $request->current_step,
+                    'step' => $request->current_step,
                     'auto_issued' => true,
                 ]);
 
             } else {
                 // Passer à l'étape suivante
-                $nextStep       = $request->current_step + 1;
+                $nextStep = $request->current_step + 1;
                 $nextStepConfig = $config->getStep($nextStep);
-                $timeout        = $nextStepConfig['timeout_hours'] ?? 48;
+                $timeout = $nextStepConfig['timeout_hours'] ?? 48;
 
                 $request->update([
                     'current_step' => $nextStep,
-                    'due_date'     => ApprovalRequest::computeDueDate(now(), $timeout),
+                    'due_date' => ApprovalRequest::computeDueDate(now(), $timeout),
                 ]);
 
                 $certificate = $request->certificate();
                 $this->notifyStepApprovers($request, $config, $nextStep, $certificate);
 
                 $this->audit($certificate, $approver, 'escalade.step_approved', [
-                    'step'      => $request->current_step - 1,
+                    'step' => $request->current_step - 1,
                     'next_step' => $nextStep,
                 ]);
             }
@@ -155,32 +160,32 @@ class ApprovalWorkflowService
         DB::transaction(function () use ($request, $approver, $reason) {
 
             ApprovalDecision::create([
-                'request_id'  => $request->id,
+                'request_id' => $request->id,
                 'step_number' => $request->current_step,
                 'approver_id' => $approver->id,
-                'decision'    => ApprovalDecision::DECISION_REJECTED,
-                'comment'     => $reason,
-                'decided_at'  => now(),
+                'decision' => ApprovalDecision::DECISION_REJECTED,
+                'comment' => $reason,
+                'decided_at' => now(),
             ]);
 
             $request->update([
-                'status'      => ApprovalRequest::STATUS_REJECTED,
+                'status' => ApprovalRequest::STATUS_REJECTED,
                 'resolved_by' => $approver->id,
                 'resolved_at' => now(),
-                'notes'       => "Rejeté à l'étape {$request->current_step} : {$reason}",
+                'notes' => "Rejeté à l'étape {$request->current_step} : {$reason}",
             ]);
 
             $certificate = $request->certificate();
             $certificate->update([
-                'status'           => Certificate::STATUS_REJECTED,
-                'rejected_at'      => now(),
+                'status' => Certificate::STATUS_REJECTED,
+                'rejected_at' => now(),
                 'rejection_reason' => "Escalade NN300 rejetée (étape {$request->current_step}) : {$reason}",
             ]);
 
             $this->notifyCreator($request, 'rejected', $reason);
 
             $this->audit($certificate, $approver, 'escalade.rejected', [
-                'step'   => $request->current_step,
+                'step' => $request->current_step,
                 'reason' => $reason,
             ], 'WARNING');
         });
@@ -203,24 +208,24 @@ class ApprovalWorkflowService
 
                 // Enregistrer l'expiration
                 ApprovalDecision::create([
-                    'request_id'  => $request->id,
+                    'request_id' => $request->id,
                     'step_number' => $request->current_step,
                     'approver_id' => null,
-                    'decision'    => ApprovalDecision::DECISION_DELEGATED,
+                    'decision' => ApprovalDecision::DECISION_DELEGATED,
                     // DELEGATED = escalade automatique (seule valeur disponible sans EXPIRED)
-                    'comment'     => 'Délai dépassé — escalade automatique',
-                    'decided_at'  => now(),
+                    'comment' => 'Délai dépassé — escalade automatique',
+                    'decided_at' => now(),
                 ]);
 
                 if (! $request->isLastStep() && $config) {
                     // Passer à l'étape suivante
-                    $nextStep       = $request->current_step + 1;
+                    $nextStep = $request->current_step + 1;
                     $nextStepConfig = $config->getStep($nextStep);
-                    $timeout        = $nextStepConfig['timeout_hours'] ?? 48;
+                    $timeout = $nextStepConfig['timeout_hours'] ?? 48;
 
                     $request->update([
                         'current_step' => $nextStep,
-                        'due_date'     => ApprovalRequest::computeDueDate(now(), $timeout),
+                        'due_date' => ApprovalRequest::computeDueDate(now(), $timeout),
                     ]);
 
                     $certificate = $request->certificate();
@@ -231,16 +236,16 @@ class ApprovalWorkflowService
                 } else {
                     // Dernière étape expirée → rejet automatique
                     $request->update([
-                        'status'      => ApprovalRequest::STATUS_REJECTED,
+                        'status' => ApprovalRequest::STATUS_REJECTED,
                         'resolved_at' => now(),
-                        'notes'       => 'Rejet automatique — délai de toutes les étapes dépassé.',
+                        'notes' => 'Rejet automatique — délai de toutes les étapes dépassé.',
                     ]);
 
                     $certificate = $request->certificate();
                     if ($certificate) {
                         $certificate->update([
-                            'status'           => Certificate::STATUS_REJECTED,
-                            'rejected_at'      => now(),
+                            'status' => Certificate::STATUS_REJECTED,
+                            'rejected_at' => now(),
                             'rejection_reason' => 'Escalade NN300 expirée — aucun approbateur n\'a répondu dans le délai imparti.',
                         ]);
                         $this->notifyCreator($request, 'expired', null);
@@ -259,13 +264,13 @@ class ApprovalWorkflowService
     private function issueCertificate(Certificate $certificate, User $approver, ApprovalRequest $request): void
     {
         $certificate->update([
-            'status'           => Certificate::STATUS_ISSUED,
-            'issued_at'        => now(),
-            'issued_by'        => $approver->id,
+            'status' => Certificate::STATUS_ISSUED,
+            'issued_at' => now(),
+            'issued_by' => $approver->id,
             'validation_notes' => 'Approuvé automatiquement suite à la validation de l\'escalade NN300.',
         ]);
 
-        app(\App\Services\CertificatePdfService::class)->generate($certificate);
+        app(CertificatePdfService::class)->generate($certificate);
 
         $this->notifyCreator($request, 'approved', null);
     }
@@ -277,10 +282,12 @@ class ApprovalWorkflowService
         Certificate $certificate
     ): void {
         $stepConfig = $config->getStep($step);
-        if (! $stepConfig) return;
+        if (! $stepConfig) {
+            return;
+        }
 
-        $role    = $stepConfig['role'];
-        $label   = $stepConfig['label'] ?? "Étape {$step}";
+        $role = $stepConfig['role'];
+        $label = $stepConfig['label'] ?? "Étape {$step}";
         $timeout = $stepConfig['timeout_hours'] ?? 48;
 
         $query = User::whereHas('roles', fn ($q) => $q->where('name', $role));
@@ -298,13 +305,13 @@ class ApprovalWorkflowService
             "Escalade NN300 — {$label}",
             "Certificat {$certificate->certificate_number} — décision requise sous {$timeout}h ouvrables",
             [
-                'icon'               => 'trending-up',
-                'color'              => 'danger',
-                'url'                => route('admin.approvals.show', $request),
-                'entity_id'          => $request->id,
+                'icon' => 'trending-up',
+                'color' => 'danger',
+                'url' => route('admin.approvals.show', $request),
+                'entity_id' => $request->id,
                 'certificate_number' => $certificate->certificate_number,
-                'step'               => $step,
-                'due_date'           => $request->due_date?->toISOString(),
+                'step' => $step,
+                'due_date' => $request->due_date?->toISOString(),
             ]
         );
     }
@@ -312,41 +319,45 @@ class ApprovalWorkflowService
     private function notifyCreator(ApprovalRequest $request, string $outcome, ?string $reason): void
     {
         $certificate = $request->certificate();
-        if (! $certificate) return;
+        if (! $certificate) {
+            return;
+        }
 
         $creator = User::find($certificate->created_by);
-        if (! $creator) return;
+        if (! $creator) {
+            return;
+        }
 
         $configs = [
             'approved' => ['title' => 'Certificat approuvé et émis',   'color' => 'success', 'icon' => 'check-circle'],
             'rejected' => ['title' => 'Escalade rejetée',              'color' => 'danger',  'icon' => 'x-circle'],
-            'expired'  => ['title' => 'Escalade expirée — délai',      'color' => 'danger',  'icon' => 'x-circle'],
+            'expired' => ['title' => 'Escalade expirée — délai',      'color' => 'danger',  'icon' => 'x-circle'],
         ];
 
-        $cfg  = $configs[$outcome] ?? $configs['rejected'];
+        $cfg = $configs[$outcome] ?? $configs['rejected'];
         $body = $outcome === 'approved'
             ? "N° {$certificate->certificate_number} émis automatiquement."
-            : "N° {$certificate->certificate_number}" . ($reason ? " — {$reason}" : '');
+            : "N° {$certificate->certificate_number}".($reason ? " — {$reason}" : '');
 
         Notification::send($creator, 'EscaladeDecision', $cfg['title'], $body, [
-            'icon'  => $cfg['icon'],
+            'icon' => $cfg['icon'],
             'color' => $cfg['color'],
-            'url'   => route('admin.certificates.show', $certificate),
+            'url' => route('admin.certificates.show', $certificate),
         ]);
     }
 
     private function audit(Certificate $cert, User $user, string $action, array $data = [], string $severity = 'INFO'): void
     {
         AuditLog::create([
-            'tenant_id'   => $cert->tenant_id,
-            'user_id'     => $user->id,
-            'action'      => $action,
+            'tenant_id' => $cert->tenant_id,
+            'user_id' => $user->id,
+            'action' => $action,
             'entity_type' => 'Certificate',
-            'entity_id'   => $cert->id,
-            'severity'    => $severity,
-            'ip_address'  => request()->ip(),
-            'user_agent'  => request()->userAgent(),
-            'new_values'  => $data ?: null,
+            'entity_id' => $cert->id,
+            'severity' => $severity,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'new_values' => $data ?: null,
         ]);
     }
 }

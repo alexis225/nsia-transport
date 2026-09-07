@@ -1,30 +1,64 @@
 import { Head, Link } from '@inertiajs/react';
+import {
+    TrendingUp,
+    AlertTriangle,
+    CheckCircle,
+    XCircle,
+    Eye,
+    Search,
+    Unlock,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { TrendingUp, AlertTriangle, CheckCircle, XCircle, Eye, Search, Unlock } from 'lucide-react';
 
 interface ContractLimit {
-    id: string; contract_number: string; insured_name: string;
-    currency_code: string; subscription_limit: number;
-    effective_limit: number | null; nn300_unlocked: boolean; treaty_limit: number | null;
-    used_limit: number; remaining_limit: number; usage_percent: number;
-    certificates_count: number; certificates_limit: number | null;
+    id: string;
+    contract_number: string;
+    insured_name: string;
+    currency_code: string;
+    subscription_limit: number;
+    effective_limit: number | null;
+    nn300_unlocked: boolean;
+    treaty_limit: number | null;
+    used_limit: number;
+    remaining_limit: number;
+    usage_percent: number;
+    certificates_count: number;
+    certificates_limit: number | null;
     alert_level: 'ok' | 'warning' | 'critical';
-    expiry_date: string; can_issue: boolean;
+    expiry_date: string;
+    can_issue: boolean;
     tenant: { name: string; code: string } | null;
 }
 interface Props {
     contracts: ContractLimit[];
-    stats: { total_contracts: number; critical: number; warning: number; ok: number; total_used: number; total_limit: number; };
+    stats: {
+        total_contracts: number;
+        critical: number;
+        warning: number;
+        ok: number;
+        total_used: number;
+        total_limit: number;
+    };
     isSA: boolean;
 }
 
 const ALERT_STYLES = {
-    critical: { bg:'#fef2f2', border:'#fecaca', bar:'#ef4444', text:'#dc2626' },
-    warning:  { bg:'#fffbeb', border:'#fde68a', bar:'#f59e0b', text:'#92400e' },
-    ok:       { bg:'#f0fdf4', border:'#bbf7d0', bar:'#22c55e', text:'#15803d' },
+    critical: {
+        bg: '#fef2f2',
+        border: '#fecaca',
+        bar: '#ef4444',
+        text: '#dc2626',
+    },
+    warning: {
+        bg: '#fffbeb',
+        border: '#fde68a',
+        bar: '#f59e0b',
+        text: '#92400e',
+    },
+    ok: { bg: '#f0fdf4', border: '#bbf7d0', bar: '#22c55e', text: '#15803d' },
 };
 
 const fmt = (n: number, currency: string) =>
@@ -41,19 +75,23 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
 
     const filteredContracts = useMemo(() => {
         const q = search.trim().toLowerCase();
-        if (! q) return contracts;
 
-        return contracts.filter(c =>
-            c.contract_number.toLowerCase().includes(q)
-            || c.insured_name.toLowerCase().includes(q)
-            || (c.tenant?.name.toLowerCase().includes(q) ?? false)
-            || (c.tenant?.code.toLowerCase().includes(q) ?? false)
+        if (!q) {
+            return contracts;
+        }
+
+        return contracts.filter(
+            (c) =>
+                c.contract_number.toLowerCase().includes(q) ||
+                c.insured_name.toLowerCase().includes(q) ||
+                (c.tenant?.name.toLowerCase().includes(q) ?? false) ||
+                (c.tenant?.code.toLowerCase().includes(q) ?? false),
         );
     }, [contracts, search]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('limits.title')}/>
+            <Head title={t('limits.title')} />
             <style>{`
                 .lm-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .lm-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -103,7 +141,6 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="lm-page">
-
                     {/* Header */}
                     <div>
                         <h1 className="lm-title">{t('limits.heading')}</h1>
@@ -113,87 +150,219 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                     {/* KPIs */}
                     <div className="kpi-grid">
                         <div className="kpi-card">
-                            <div className="kpi-val">{stats.total_contracts}</div>
-                            <div className="kpi-lbl">{t('limits.kpi.tracked')}</div>
+                            <div className="kpi-val">
+                                {stats.total_contracts}
+                            </div>
+                            <div className="kpi-lbl">
+                                {t('limits.kpi.tracked')}
+                            </div>
                         </div>
-                        <div className="kpi-card" style={{ borderColor: stats.critical > 0 ? '#fecaca' : undefined }}>
-                            <div className="kpi-val" style={{ color: stats.critical > 0 ? '#dc2626' : '#1e293b' }}>
+                        <div
+                            className="kpi-card"
+                            style={{
+                                borderColor:
+                                    stats.critical > 0 ? '#fecaca' : undefined,
+                            }}
+                        >
+                            <div
+                                className="kpi-val"
+                                style={{
+                                    color:
+                                        stats.critical > 0
+                                            ? '#dc2626'
+                                            : '#1e293b',
+                                }}
+                            >
                                 {stats.critical}
                             </div>
-                            <div className="kpi-lbl">{t('limits.kpi.critical')}</div>
+                            <div className="kpi-lbl">
+                                {t('limits.kpi.critical')}
+                            </div>
                         </div>
-                        <div className="kpi-card" style={{ borderColor: stats.warning > 0 ? '#fde68a' : undefined }}>
-                            <div className="kpi-val" style={{ color: stats.warning > 0 ? '#92400e' : '#1e293b' }}>
+                        <div
+                            className="kpi-card"
+                            style={{
+                                borderColor:
+                                    stats.warning > 0 ? '#fde68a' : undefined,
+                            }}
+                        >
+                            <div
+                                className="kpi-val"
+                                style={{
+                                    color:
+                                        stats.warning > 0
+                                            ? '#92400e'
+                                            : '#1e293b',
+                                }}
+                            >
                                 {stats.warning}
                             </div>
-                            <div className="kpi-lbl">{t('limits.kpi.warning')}</div>
+                            <div className="kpi-lbl">
+                                {t('limits.kpi.warning')}
+                            </div>
                         </div>
                         <div className="kpi-card">
-                            <div className="kpi-val" style={{ color:'#15803d' }}>{stats.ok}</div>
-                            <div className="kpi-lbl">{t('limits.kpi.normal')}</div>
+                            <div
+                                className="kpi-val"
+                                style={{ color: '#15803d' }}
+                            >
+                                {stats.ok}
+                            </div>
+                            <div className="kpi-lbl">
+                                {t('limits.kpi.normal')}
+                            </div>
                         </div>
                         <div className="kpi-card">
-                            <div className="kpi-val" style={{ fontSize:16 }}>
+                            <div className="kpi-val" style={{ fontSize: 16 }}>
                                 {stats.total_limit > 0
-                                    ? Math.round((stats.total_used / stats.total_limit) * 100) + '%'
+                                    ? Math.round(
+                                          (stats.total_used /
+                                              stats.total_limit) *
+                                              100,
+                                      ) + '%'
                                     : '—'}
                             </div>
-                            <div className="kpi-lbl">{t('limits.kpi.globalUsage')}</div>
+                            <div className="kpi-lbl">
+                                {t('limits.kpi.globalUsage')}
+                            </div>
                         </div>
                     </div>
 
                     {/* Recherche rapide */}
-                    <div style={{ position:'relative', maxWidth:340 }}>
-                        <Search size={14} color="#94a3b8" style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)' }}/>
+                    <div style={{ position: 'relative', maxWidth: 340 }}>
+                        <Search
+                            size={14}
+                            color="#94a3b8"
+                            style={{
+                                position: 'absolute',
+                                left: 12,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                            }}
+                        />
                         <input
                             type="text"
                             value={search}
-                            onChange={e => setSearch(e.target.value)}
+                            onChange={(e) => setSearch(e.target.value)}
                             placeholder={t('limits.searchPlaceholder')}
-                            style={{ width:'100%', padding:'8px 12px 8px 34px', fontSize:13, border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', boxSizing:'border-box' }}
+                            style={{
+                                width: '100%',
+                                padding: '8px 12px 8px 34px',
+                                fontSize: 13,
+                                border: '1.5px solid #e2e8f0',
+                                borderRadius: 9,
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                            }}
                         />
                     </div>
 
                     {/* Grille de cards */}
                     {contracts.length === 0 ? (
                         <div className="empty">
-                            <TrendingUp size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
+                            <TrendingUp
+                                size={32}
+                                color="#e2e8f0"
+                                style={{ marginBottom: 8 }}
+                            />
                             <div>{t('limits.emptyAll')}</div>
                         </div>
                     ) : filteredContracts.length === 0 ? (
                         <div className="empty">
-                            <Search size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
+                            <Search
+                                size={32}
+                                color="#e2e8f0"
+                                style={{ marginBottom: 8 }}
+                            />
                             <div>{t('limits.emptySearch', { search })}</div>
                         </div>
                     ) : (
                         <div className="cards-grid">
-                            {filteredContracts.map(contract => {
+                            {filteredContracts.map((contract) => {
                                 const as = ALERT_STYLES[contract.alert_level];
+
                                 return (
-                                    <div key={contract.id} className={`lm-card ${contract.alert_level}`}>
+                                    <div
+                                        key={contract.id}
+                                        className={`lm-card ${contract.alert_level}`}
+                                    >
                                         <div className="lm-card-hdr">
                                             <div>
-                                                <div className="lm-card-num">{contract.contract_number}</div>
-                                                <div className="lm-card-name">{contract.insured_name}</div>
+                                                <div className="lm-card-num">
+                                                    {contract.contract_number}
+                                                </div>
+                                                <div className="lm-card-name">
+                                                    {contract.insured_name}
+                                                </div>
                                                 {isSA && contract.tenant && (
-                                                    <div style={{ fontSize:10, color:'#94a3b8' }}>{contract.tenant.name}</div>
+                                                    <div
+                                                        style={{
+                                                            fontSize: 10,
+                                                            color: '#94a3b8',
+                                                        }}
+                                                    >
+                                                        {contract.tenant.name}
+                                                    </div>
                                                 )}
                                             </div>
-                                            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
-                                                <span className="alert-badge" style={{ background: as.bg, border:`1px solid ${as.border}`, color: as.text }}>
-                                                    {contract.alert_level === 'critical' && <AlertTriangle size={10}/>}
-                                                    {contract.alert_level === 'warning'  && <AlertTriangle size={10}/>}
-                                                    {contract.alert_level === 'ok'       && <CheckCircle  size={10}/>}
-                                                    {t(`limits.alertLabels.${contract.alert_level}`)}
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'flex-end',
+                                                    gap: 4,
+                                                }}
+                                            >
+                                                <span
+                                                    className="alert-badge"
+                                                    style={{
+                                                        background: as.bg,
+                                                        border: `1px solid ${as.border}`,
+                                                        color: as.text,
+                                                    }}
+                                                >
+                                                    {contract.alert_level ===
+                                                        'critical' && (
+                                                        <AlertTriangle
+                                                            size={10}
+                                                        />
+                                                    )}
+                                                    {contract.alert_level ===
+                                                        'warning' && (
+                                                        <AlertTriangle
+                                                            size={10}
+                                                        />
+                                                    )}
+                                                    {contract.alert_level ===
+                                                        'ok' && (
+                                                        <CheckCircle
+                                                            size={10}
+                                                        />
+                                                    )}
+                                                    {t(
+                                                        `limits.alertLabels.${contract.alert_level}`,
+                                                    )}
                                                 </span>
                                                 {contract.nn300_unlocked && (
-                                                    <span className="alert-badge" style={{ background:'#eff6ff', border:'1px solid #bfdbfe', color:'#1d4ed8' }}>
-                                                        <Unlock size={9}/> {t('limits.unlockedTreaty')}
+                                                    <span
+                                                        className="alert-badge"
+                                                        style={{
+                                                            background:
+                                                                '#eff6ff',
+                                                            border: '1px solid #bfdbfe',
+                                                            color: '#1d4ed8',
+                                                        }}
+                                                    >
+                                                        <Unlock size={9} />{' '}
+                                                        {t(
+                                                            'limits.unlockedTreaty',
+                                                        )}
                                                     </span>
                                                 )}
                                                 {!contract.can_issue && (
                                                     <span className="blocked-badge">
-                                                        <XCircle size={9}/> {t('limits.blocked')}
+                                                        <XCircle size={9} />{' '}
+                                                        {t('limits.blocked')}
                                                     </span>
                                                 )}
                                             </div>
@@ -203,56 +372,145 @@ export default function ContractLimits({ contracts, stats, isSA }: Props) {
                                             {/* Barre progression */}
                                             <div className="progress-wrap">
                                                 <div className="progress-header">
-                                                    <span style={{ fontSize:11, color:'#64748b' }}>{t('limits.usageLabel')}</span>
-                                                    <span className="progress-pct" style={{ color: as.text }}>
-                                                        {contract.usage_percent}%
+                                                    <span
+                                                        style={{
+                                                            fontSize: 11,
+                                                            color: '#64748b',
+                                                        }}
+                                                    >
+                                                        {t('limits.usageLabel')}
+                                                    </span>
+                                                    <span
+                                                        className="progress-pct"
+                                                        style={{
+                                                            color: as.text,
+                                                        }}
+                                                    >
+                                                        {contract.usage_percent}
+                                                        %
                                                     </span>
                                                 </div>
                                                 <div className="progress-bar">
-                                                    <div className="progress-fill"
-                                                         style={{ width:`${contract.usage_percent}%`, background: as.bar }}/>
+                                                    <div
+                                                        className="progress-fill"
+                                                        style={{
+                                                            width: `${contract.usage_percent}%`,
+                                                            background: as.bar,
+                                                        }}
+                                                    />
                                                 </div>
                                             </div>
 
                                             {/* Montants */}
                                             <div className="amounts-grid">
                                                 <div className="amount-item">
-                                                    <div className="amount-label">{t('limits.used')}</div>
+                                                    <div className="amount-label">
+                                                        {t('limits.used')}
+                                                    </div>
                                                     <div className="amount-value">
-                                                        {fmt(contract.used_limit, contract.currency_code)}
+                                                        {fmt(
+                                                            contract.used_limit,
+                                                            contract.currency_code,
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="amount-item">
-                                                    <div className="amount-label">{t('limits.remaining')}</div>
-                                                    <div className="amount-value" style={{ color: as.text }}>
-                                                        {fmt(contract.remaining_limit, contract.currency_code)}
+                                                    <div className="amount-label">
+                                                        {t('limits.remaining')}
+                                                    </div>
+                                                    <div
+                                                        className="amount-value"
+                                                        style={{
+                                                            color: as.text,
+                                                        }}
+                                                    >
+                                                        {fmt(
+                                                            contract.remaining_limit,
+                                                            contract.currency_code,
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <div className="amount-item" style={{ gridColumn:'1/-1' }}>
+                                                <div
+                                                    className="amount-item"
+                                                    style={{
+                                                        gridColumn: '1/-1',
+                                                    }}
+                                                >
                                                     <div className="amount-label">
-                                                        {contract.nn300_unlocked ? t('limits.effectiveTreatyLimit') : t('limits.totalNN300Limit')}
+                                                        {contract.nn300_unlocked
+                                                            ? t(
+                                                                  'limits.effectiveTreatyLimit',
+                                                              )
+                                                            : t(
+                                                                  'limits.totalNN300Limit',
+                                                              )}
                                                     </div>
                                                     <div className="amount-value">
-                                                        {fmt(contract.effective_limit ?? contract.subscription_limit, contract.currency_code)}
+                                                        {fmt(
+                                                            contract.effective_limit ??
+                                                                contract.subscription_limit,
+                                                            contract.currency_code,
+                                                        )}
                                                     </div>
-                                                    {contract.nn300_unlocked && contract.treaty_limit !== null && (
-                                                        <div style={{ fontSize:10, color:'#94a3b8', marginTop:2 }}>
-                                                            {t('limits.standardNN300Limit', { amount: fmt(contract.subscription_limit, contract.currency_code) })}
-                                                        </div>
-                                                    )}
+                                                    {contract.nn300_unlocked &&
+                                                        contract.treaty_limit !==
+                                                            null && (
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                    marginTop: 2,
+                                                                }}
+                                                            >
+                                                                {t(
+                                                                    'limits.standardNN300Limit',
+                                                                    {
+                                                                        amount: fmt(
+                                                                            contract.subscription_limit,
+                                                                            contract.currency_code,
+                                                                        ),
+                                                                    },
+                                                                )}
+                                                            </div>
+                                                        )}
                                                 </div>
                                             </div>
 
                                             {/* Footer */}
                                             <div className="lm-card-footer">
                                                 <div className="cert-info">
-                                                    <span style={{ color:'#1e293b', fontWeight:500 }}>{contract.certificates_count}</span>
-                                                    {contract.certificates_limit && ` / ${contract.certificates_limit}`} {t('limits.certificates', { count: contract.certificates_count })}
-                                                    {' · '} {t('limits.expiry', { date: contract.expiry_date })}
+                                                    <span
+                                                        style={{
+                                                            color: '#1e293b',
+                                                            fontWeight: 500,
+                                                        }}
+                                                    >
+                                                        {
+                                                            contract.certificates_count
+                                                        }
+                                                    </span>
+                                                    {contract.certificates_limit &&
+                                                        ` / ${contract.certificates_limit}`}{' '}
+                                                    {t('limits.certificates', {
+                                                        count: contract.certificates_count,
+                                                    })}
+                                                    {' · '}{' '}
+                                                    {t('limits.expiry', {
+                                                        date: contract.expiry_date,
+                                                    })}
                                                 </div>
-                                                <Link href={route('admin.contracts.show', { contract: contract.id })}
-                                                      className="btn-view">
-                                                    <Eye size={11}/> {t('limits.view')}
+                                                <Link
+                                                    href={route(
+                                                        'admin.contracts.show',
+                                                        {
+                                                            contract:
+                                                                contract.id,
+                                                        },
+                                                    )}
+                                                    className="btn-view"
+                                                >
+                                                    <Eye size={11} />{' '}
+                                                    {t('limits.view')}
                                                 </Link>
                                             </div>
                                         </div>

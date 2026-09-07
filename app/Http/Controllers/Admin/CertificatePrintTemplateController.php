@@ -33,7 +33,7 @@ class CertificatePrintTemplateController extends Controller
     {
         return Inertia::render('admin/certificates/print-positions/edit', [
             'templateId' => $templateId,
-            'override'   => CertificatePrintTemplate::where('template_id', $templateId)->first(),
+            'override' => CertificatePrintTemplate::where('template_id', $templateId)->first(),
         ]);
     }
 
@@ -48,15 +48,15 @@ class CertificatePrintTemplateController extends Controller
         $request->merge(['positions' => is_array($positions) ? $positions : null]);
 
         $validated = $request->validate([
-            'positions'             => ['required', 'array', 'min:1'],
-            'positions.*.key'       => ['required', 'string'],
-            'positions.*.top'       => ['required', 'numeric'],
-            'positions.*.left'      => ['required', 'numeric'],
-            'positions.*.width'     => ['nullable', 'numeric'],
-            'positions.*.fontSize'  => ['nullable', 'numeric'],
-            'positions.*.align'     => ['nullable', 'in:left,center,right'],
-            'positions.*.bold'      => ['nullable', 'boolean'],
-            'base_pdf'              => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'positions' => ['required', 'array', 'min:1'],
+            'positions.*.key' => ['required', 'string'],
+            'positions.*.top' => ['required', 'numeric'],
+            'positions.*.left' => ['required', 'numeric'],
+            'positions.*.width' => ['nullable', 'numeric'],
+            'positions.*.fontSize' => ['nullable', 'numeric'],
+            'positions.*.align' => ['nullable', 'in:left,center,right'],
+            'positions.*.bold' => ['nullable', 'boolean'],
+            'base_pdf' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
         ], [
             'positions.required' => 'Le JSON des positions est invalide ou vide.',
         ]);
@@ -71,8 +71,8 @@ class CertificatePrintTemplateController extends Controller
         }
 
         $template->template_id = $templateId;
-        $template->positions   = $validated['positions'];
-        $template->updated_by  = $request->user()->id;
+        $template->positions = $validated['positions'];
+        $template->updated_by = $request->user()->id;
         $template->save();
 
         return back()->with('status', 'Positions mises à jour.');

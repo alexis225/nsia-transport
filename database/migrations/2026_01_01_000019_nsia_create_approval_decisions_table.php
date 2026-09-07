@@ -20,13 +20,13 @@ return new class extends Migration
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             $table->foreignUuid('request_id')
-                  ->constrained('approval_requests')
-                  ->cascadeOnDelete();
+                ->constrained('approval_requests')
+                ->cascadeOnDelete();
 
             $table->unsignedSmallInteger('step_number');
 
             $table->foreignUuid('approver_id')
-                  ->constrained('users');
+                ->constrained('users');
 
             $table->string('decision', 20); // APPROVED | REJECTED | DELEGATED
 

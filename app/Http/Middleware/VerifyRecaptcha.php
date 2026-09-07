@@ -32,7 +32,7 @@ class VerifyRecaptcha
 {
     /** Routes Fortify protégées, et l'action reCAPTCHA attendue pour chacune. */
     private const PROTECTED_ROUTES = [
-        'login.store'    => 'login',
+        'login.store' => 'login',
         'register.store' => 'register',
         'password.email' => 'forgot_password',
     ];
@@ -49,7 +49,7 @@ class VerifyRecaptcha
 
         if ($token === '' || ! $this->verify($token, $action, $request->ip())) {
             throw ValidationException::withMessages([
-                'g-recaptcha-response' => "Vérification anti-robot échouée. Veuillez réessayer.",
+                'g-recaptcha-response' => 'Vérification anti-robot échouée. Veuillez réessayer.',
             ]);
         }
 
@@ -64,13 +64,14 @@ class VerifyRecaptcha
     private function verify(string $token, string $expectedAction, ?string $ip): bool
     {
         $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret'   => config('services.recaptcha.secret_key'),
+            'secret' => config('services.recaptcha.secret_key'),
             'response' => $token,
             'remoteip' => $ip,
         ]);
 
         if (! $response->ok()) {
             Log::warning('VerifyRecaptcha: siteverify HTTP non-OK', ['status' => $response->status()]);
+
             return false;
         }
 
@@ -78,17 +79,20 @@ class VerifyRecaptcha
 
         if (! ($data['success'] ?? false)) {
             Log::info('VerifyRecaptcha: échec', ['errors' => $data['error-codes'] ?? null, 'action' => $expectedAction]);
+
             return false;
         }
 
         if (($data['action'] ?? null) !== $expectedAction) {
             Log::warning('VerifyRecaptcha: action inattendue', ['expected' => $expectedAction, 'got' => $data['action'] ?? null]);
+
             return false;
         }
 
         $minScore = (float) config('services.recaptcha.min_score', 0.5);
         if ((float) ($data['score'] ?? 0) < $minScore) {
             Log::info('VerifyRecaptcha: score sous le seuil', ['score' => $data['score'] ?? null, 'min' => $minScore]);
+
             return false;
         }
 

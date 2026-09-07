@@ -9,7 +9,8 @@ class CertificateSequence extends Model
 {
     // Clé primaire composite — pas de HasUuids
     public $incrementing = false;
-    public $timestamps   = false;
+
+    public $timestamps = false;
 
     protected $primaryKey = null; // composite : (tenant_id, year, prefix)
 
@@ -23,7 +24,7 @@ class CertificateSequence extends Model
     protected function casts(): array
     {
         return [
-            'year'       => 'integer',
+            'year' => 'integer',
             'last_value' => 'integer',
             'updated_at' => 'datetime',
         ];

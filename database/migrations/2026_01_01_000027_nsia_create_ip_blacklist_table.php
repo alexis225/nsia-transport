@@ -25,7 +25,7 @@ return new class extends Migration
     {
         // Création en SQL raw pour le type CIDR natif PostgreSQL
         // (Blueprint ne supporte pas les types PostgreSQL spécifiques)
-        DB::statement("
+        DB::statement('
             CREATE TABLE ip_blacklist (
                 id         UUID        NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
                 ip_range   CIDR        NOT NULL UNIQUE,
@@ -34,14 +34,14 @@ return new class extends Migration
                 expires_at TIMESTAMPTZ,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
-        ");
+        ');
 
         // FK ajoutée via Schema::table (Blueprint standard)
         Schema::table('ip_blacklist', function (Blueprint $table) {
             $table->foreign('blocked_by')
-                  ->references('id')
-                  ->on('users')
-                  ->nullOnDelete();
+                ->references('id')
+                ->on('users')
+                ->nullOnDelete();
         });
 
         // Index GiST pour les recherches CIDR "est-ce que cette IP est dans la plage ?"

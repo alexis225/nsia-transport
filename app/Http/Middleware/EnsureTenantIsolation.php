@@ -4,8 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
+
 class EnsureTenantIsolation
 {
     /**
@@ -20,6 +21,7 @@ class EnsureTenantIsolation
             // Stocker le tenant courant globalement
             app()->instance('current_tenant_id', $user->tenant_id);
         }
+
         return $next($request);
     }
 }

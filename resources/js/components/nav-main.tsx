@@ -1,7 +1,11 @@
-import { useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
+import { useState } from 'react';
+import {
+    SidebarGroup,
+    SidebarMenu,
+    SidebarMenuItem,
+} from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem } from '@/types';
 
@@ -28,17 +32,19 @@ export function NavMain({ items = [] }: { items: NavItemExtended[] }) {
 
     const [openItems, setOpenItems] = useState<string[]>(() =>
         items
-            .filter(item => item.children?.some(c => isCurrentUrl(c.href)))
-            .map(item => item.title)
+            .filter((item) => item.children?.some((c) => isCurrentUrl(c.href)))
+            .map((item) => item.title),
     );
 
     const toggle = (title: string) =>
-        setOpenItems(prev =>
-            prev.includes(title) ? prev.filter(t => t !== title) : [...prev, title]
+        setOpenItems((prev) =>
+            prev.includes(title)
+                ? prev.filter((t) => t !== title)
+                : [...prev, title],
         );
 
-    const simpleItems  = items.filter(i => !i.children?.length);
-    const complexItems = items.filter(i => !!i.children?.length);
+    const simpleItems = items.filter((i) => !i.children?.length);
+    const complexItems = items.filter((i) => !!i.children?.length);
 
     return (
         <>
@@ -211,17 +217,25 @@ export function NavMain({ items = [] }: { items: NavItemExtended[] }) {
                 <SidebarGroup className="px-0 py-0">
                     <div className="mn-section">Navigation</div>
                     <SidebarMenu>
-                        {simpleItems.map(item => {
+                        {simpleItems.map((item) => {
                             const act = isCurrentUrl(item.href ?? '');
+
                             return (
-                                <SidebarMenuItem key={item.title} className="mn-simple">
+                                <SidebarMenuItem
+                                    key={item.title}
+                                    className="mn-simple"
+                                >
                                     <Link
                                         href={item.href ?? '#'}
                                         className={`mn-simple-link ${act ? 'active' : ''}`}
                                         prefetch
                                     >
-                                        <span className={`mn-ico ${act ? 'mn-ico-active' : ''}`}>
-                                            {item.icon && <item.icon size={15}/>}
+                                        <span
+                                            className={`mn-ico ${act ? 'mn-ico-active' : ''}`}
+                                        >
+                                            {item.icon && (
+                                                <item.icon size={15} />
+                                            )}
                                         </span>
                                         <span>{item.title}</span>
                                     </Link>
@@ -237,24 +251,38 @@ export function NavMain({ items = [] }: { items: NavItemExtended[] }) {
                 <SidebarGroup className="px-0 py-0">
                     <div className="mn-section">Modules</div>
                     <SidebarMenu>
-                        {complexItems.map(item => {
-                            const isOpen    = openItems.includes(item.title);
-                            const isActPar  = item.children?.some(c => isCurrentUrl(c.href)) ?? false;
+                        {complexItems.map((item) => {
+                            const isOpen = openItems.includes(item.title);
+                            const isActPar =
+                                item.children?.some((c) =>
+                                    isCurrentUrl(c.href),
+                                ) ?? false;
                             const childCount = item.children?.length ?? 0;
 
                             return (
-                                <SidebarMenuItem key={item.title} className="mn-group">
+                                <SidebarMenuItem
+                                    key={item.title}
+                                    className="mn-group"
+                                >
                                     {/* ── Parent ── */}
                                     <button
                                         className={`mn-parent ${isOpen ? 'open' : ''} ${isActPar ? 'active-parent' : ''}`}
                                         onClick={() => toggle(item.title)}
                                     >
-                                        <span className={`mn-ico ${isActPar ? 'mn-ico-active' : ''}`}>
-                                            {item.icon && <item.icon size={15}/>}
+                                        <span
+                                            className={`mn-ico ${isActPar ? 'mn-ico-active' : ''}`}
+                                        >
+                                            {item.icon && (
+                                                <item.icon size={15} />
+                                            )}
                                         </span>
-                                        <span className="mn-label">{item.title}</span>
+                                        <span className="mn-label">
+                                            {item.title}
+                                        </span>
                                         {childCount > 0 && (
-                                            <span className="mn-badge">{childCount}</span>
+                                            <span className="mn-badge">
+                                                {childCount}
+                                            </span>
                                         )}
                                         <ChevronDown
                                             size={13}
@@ -263,8 +291,10 @@ export function NavMain({ items = [] }: { items: NavItemExtended[] }) {
                                     </button>
 
                                     {/* ── Sous-menu ── */}
-                                    <div className={`mn-submenu ${isOpen ? 'open' : ''}`}>
-                                        {item.children!.map(child => (
+                                    <div
+                                        className={`mn-submenu ${isOpen ? 'open' : ''}`}
+                                    >
+                                        {item.children!.map((child) =>
                                             child.external ? (
                                                 <a
                                                     key={child.href}
@@ -273,7 +303,7 @@ export function NavMain({ items = [] }: { items: NavItemExtended[] }) {
                                                     rel="noopener noreferrer"
                                                     className="mn-sublink"
                                                 >
-                                                    <span className="mn-subdot"/>
+                                                    <span className="mn-subdot" />
                                                     {child.title}
                                                 </a>
                                             ) : (
@@ -283,11 +313,11 @@ export function NavMain({ items = [] }: { items: NavItemExtended[] }) {
                                                     className={`mn-sublink ${isCurrentUrl(child.href) ? 'active' : ''}`}
                                                     prefetch
                                                 >
-                                                    <span className="mn-subdot"/>
+                                                    <span className="mn-subdot" />
                                                     {child.title}
                                                 </Link>
-                                            )
-                                        ))}
+                                            ),
+                                        )}
                                     </div>
                                 </SidebarMenuItem>
                             );

@@ -27,15 +27,15 @@ class DtagDashboardController extends Controller
         $globalCertBase = Certificate::query();
 
         $global = [
-            'issued_month'   => (clone $globalCertBase)->where('status', 'ISSUED')
-                                    ->whereMonth('issued_at', now()->month)->whereYear('issued_at', now()->year)->count(),
-            'issued_ytd'     => (clone $globalCertBase)->where('status', 'ISSUED')
-                                    ->whereYear('issued_at', now()->year)->count(),
-            'submitted'      => (clone $globalCertBase)->where('status', 'SUBMITTED')->count(),
+            'issued_month' => (clone $globalCertBase)->where('status', 'ISSUED')
+                ->whereMonth('issued_at', now()->month)->whereYear('issued_at', now()->year)->count(),
+            'issued_ytd' => (clone $globalCertBase)->where('status', 'ISSUED')
+                ->whereYear('issued_at', now()->year)->count(),
+            'submitted' => (clone $globalCertBase)->where('status', 'SUBMITTED')->count(),
             'contracts_active' => InsuranceContract::where('status', 'ACTIVE')->count(),
-            'prime_month'    => (float)(clone $globalCertBase)->where('status', 'ISSUED')
-                                    ->whereMonth('issued_at', now()->month)->whereYear('issued_at', now()->year)
-                                    ->sum('prime_total'),
+            'prime_month' => (float) (clone $globalCertBase)->where('status', 'ISSUED')
+                ->whereMonth('issued_at', now()->month)->whereYear('issued_at', now()->year)
+                ->sum('prime_total'),
         ];
 
         // ── KPIs par filiale ──────────────────────────────────────
@@ -49,7 +49,7 @@ class DtagDashboardController extends Controller
                 ->whereMonth('issued_at', now()->subMonthNoOverflow()->month)
                 ->whereYear('issued_at', now()->subMonthNoOverflow()->year)->count();
 
-            $primeMonth = (float)(clone $base)->where('status', 'ISSUED')
+            $primeMonth = (float) (clone $base)->where('status', 'ISSUED')
                 ->whereMonth('issued_at', now()->month)->whereYear('issued_at', now()->year)
                 ->sum('prime_total');
 
@@ -66,15 +66,15 @@ class DtagDashboardController extends Controller
                 ->whereYear('issued_at', now()->year)->count();
 
             return [
-                'id'                 => $tenant->id,
-                'name'               => $tenant->name,
-                'code'               => $tenant->code,
-                'issued_month'       => $issuedMonth,
-                'issued_prev_month'  => $issuedPrev,
-                'issued_ytd'         => $ytd,
-                'prime_month'        => $primeMonth,
-                'submitted'          => $submitted,
-                'contracts_active'   => $contractsActive,
+                'id' => $tenant->id,
+                'name' => $tenant->name,
+                'code' => $tenant->code,
+                'issued_month' => $issuedMonth,
+                'issued_prev_month' => $issuedPrev,
+                'issued_ytd' => $ytd,
+                'prime_month' => $primeMonth,
+                'submitted' => $submitted,
+                'contracts_active' => $contractsActive,
                 'expiring_contracts' => $expiringContracts,
             ];
         });
@@ -91,11 +91,11 @@ class DtagDashboardController extends Controller
         $monthlyData = [];
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $key  = $date->format('Y-m');
+            $key = $date->format('Y-m');
             $monthlyData[] = [
-                'label'  => $date->locale('fr')->isoFormat('MMM YY'),
-                'issued' => (int)($rawMonthly[$key]->issued ?? 0),
-                'amount' => (float)($rawMonthly[$key]->amount ?? 0),
+                'label' => $date->locale('fr')->isoFormat('MMM YY'),
+                'issued' => (int) ($rawMonthly[$key]->issued ?? 0),
+                'amount' => (float) ($rawMonthly[$key]->amount ?? 0),
             ];
         }
 
@@ -115,13 +115,13 @@ class DtagDashboardController extends Controller
             ->get();
 
         return Inertia::render('admin/dashboard/dtag', [
-            'global'      => $global,
-            'byTenant'    => $byTenant->values(),
+            'global' => $global,
+            'byTenant' => $byTenant->values(),
             'monthlyData' => $monthlyData,
-            'topTenants'  => $topTenants,
+            'topTenants' => $topTenants,
             'tenantCount' => $tenants->count(),
-            'currentMonth'=> now()->locale('fr')->isoFormat('MMMM YYYY'),
-            'currentYear' => (int)now()->year,
+            'currentMonth' => now()->locale('fr')->isoFormat('MMMM YYYY'),
+            'currentYear' => (int) now()->year,
         ]);
     }
 }

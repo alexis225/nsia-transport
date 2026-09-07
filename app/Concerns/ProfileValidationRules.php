@@ -12,20 +12,20 @@ trait ProfileValidationRules
      *
      * @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>>
      */
-    protected function profileRules(string|null $userId = null): array
+    protected function profileRules(?string $userId = null): array
     {
         return [
             'first_name' => ['sometimes', 'string', 'max:100'],
-            'last_name'  => ['sometimes', 'string', 'max:100'],
-            'name'       => ['sometimes', 'string', 'max:255'],
-            'email'      => [
+            'last_name' => ['sometimes', 'string', 'max:100'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'email' => [
                 'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'phone'      => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30'],
         ];
     }
 

@@ -13,6 +13,7 @@ use App\Models\ReportExecution;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
@@ -43,11 +44,11 @@ function makeExpUser(?string $role = 'admin_filiale', ?string $tenantId = null):
 function makeExpExecution(User $user, array $overrides = []): ReportExecution
 {
     return ReportExecution::create(array_merge([
-        'tenant_id'    => $user->tenant_id,
+        'tenant_id' => $user->tenant_id,
         'requested_by' => $user->id,
-        'format'       => 'CSV',
-        'status'       => ReportExecution::STATUS_QUEUED,
-        'parameters'   => [],
+        'format' => 'CSV',
+        'status' => ReportExecution::STATUS_QUEUED,
+        'parameters' => [],
     ], $overrides));
 }
 
@@ -62,7 +63,7 @@ it('redirige vers login si non authentifié (dispatch export)', function () {
 });
 
 it('redirige vers login si non authentifié (status export)', function () {
-    $this->get('/admin/exports/' . \Illuminate\Support\Str::uuid() . '/status')
+    $this->get('/admin/exports/'.Str::uuid().'/status')
         ->assertRedirect('/login');
 });
 
@@ -94,11 +95,11 @@ it('déclenche un export asynchrone de certificats et crée un ReportExecution Q
     $executionId = $response->json('execution_id');
 
     $this->assertDatabaseHas('report_executions', [
-        'id'           => $executionId,
+        'id' => $executionId,
         'requested_by' => $user->id,
-        'tenant_id'    => $user->tenant_id,
-        'status'       => ReportExecution::STATUS_QUEUED,
-        'format'       => 'CSV',
+        'tenant_id' => $user->tenant_id,
+        'status' => ReportExecution::STATUS_QUEUED,
+        'format' => 'CSV',
     ]);
 
     Queue::assertPushed(AsyncCertificateExportJob::class);
@@ -107,7 +108,7 @@ it('déclenche un export asynchrone de certificats et crée un ReportExecution Q
 // ── Statut d'un export ────────────────────────────────────────────
 
 it('consulte le statut d\'un export appartenant à l\'utilisateur courant', function () {
-    $user      = makeExpUser('admin_filiale');
+    $user = makeExpUser('admin_filiale');
     $execution = makeExpExecution($user, ['status' => ReportExecution::STATUS_PROCESSING]);
 
     $this->actingAs($user)
@@ -117,7 +118,7 @@ it('consulte le statut d\'un export appartenant à l\'utilisateur courant', func
 });
 
 it('un utilisateur ne peut pas consulter le statut d\'un export d\'un autre utilisateur', function () {
-    $owner     = makeExpUser('admin_filiale');
+    $owner = makeExpUser('admin_filiale');
     $execution = makeExpExecution($owner);
 
     $stranger = makeExpUser('admin_filiale'); // autre filiale (tenant distinct par défaut)
@@ -130,7 +131,7 @@ it('un utilisateur ne peut pas consulter le statut d\'un export d\'un autre util
 // ── Liste des exports (index) ─────────────────────────────────────
 
 it('liste uniquement les exports de l\'utilisateur courant', function () {
-    $user  = makeExpUser('admin_filiale');
+    $user = makeExpUser('admin_filiale');
     $other = makeExpUser('admin_filiale');
 
     makeExpExecution($user);
@@ -148,7 +149,7 @@ it('liste uniquement les exports de l\'utilisateur courant', function () {
 // ── Téléchargement ─────────────────────────────────────────────────
 
 it('refuse le téléchargement d\'un export non terminé', function () {
-    $user      = makeExpUser('admin_filiale');
+    $user = makeExpUser('admin_filiale');
     $execution = makeExpExecution($user, ['status' => ReportExecution::STATUS_QUEUED]);
 
     $this->actingAs($user)
@@ -157,7 +158,7 @@ it('refuse le téléchargement d\'un export non terminé', function () {
 });
 
 it('un utilisateur ne peut pas télécharger l\'export d\'un autre utilisateur', function () {
-    $owner     = makeExpUser('admin_filiale');
+    $owner = makeExpUser('admin_filiale');
     $execution = makeExpExecution($owner, ['status' => ReportExecution::STATUS_COMPLETED]);
 
     $stranger = makeExpUser('admin_filiale');
@@ -170,7 +171,7 @@ it('un utilisateur ne peut pas télécharger l\'export d\'un autre utilisateur',
 // ── Suppression ─────────────────────────────────────────────────────
 
 it('supprime un export appartenant à l\'utilisateur courant', function () {
-    $user      = makeExpUser('admin_filiale');
+    $user = makeExpUser('admin_filiale');
     $execution = makeExpExecution($user);
 
     $this->actingAs($user)
@@ -182,7 +183,7 @@ it('supprime un export appartenant à l\'utilisateur courant', function () {
 });
 
 it('un utilisateur ne peut pas supprimer l\'export d\'un autre utilisateur', function () {
-    $owner     = makeExpUser('admin_filiale');
+    $owner = makeExpUser('admin_filiale');
     $execution = makeExpExecution($owner);
 
     $stranger = makeExpUser('admin_filiale');

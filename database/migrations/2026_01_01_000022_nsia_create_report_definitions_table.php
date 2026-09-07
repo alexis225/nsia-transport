@@ -22,9 +22,9 @@ return new class extends Migration
 
             // NULL = rapport global DTAG
             $table->foreignUuid('tenant_id')
-                  ->nullable()
-                  ->constrained('tenants')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('tenants')
+                ->nullOnDelete();
 
             $table->string('name');
 
@@ -45,14 +45,14 @@ return new class extends Migration
             $table->string('schedule', 100)->nullable(); // ex: "0 6 1 * *" = 1er du mois à 6h
 
             // Formats d'export autorisés pour ce rapport
-            $table->json('export_formats')->default(json_encode(['PDF','EXCEL','CSV'])); // TEXT[] remplacé par JSONB
+            $table->json('export_formats')->default(json_encode(['PDF', 'EXCEL', 'CSV'])); // TEXT[] remplacé par JSONB
 
             $table->boolean('is_active')->default(true);
 
             $table->foreignUuid('created_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();

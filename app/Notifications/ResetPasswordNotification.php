@@ -14,10 +14,9 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
     /**
      * Create a new notification instance.
      */
-
     public function __construct(public string $token)
     {
-       $this->token = $token;
+        $this->token = $token;
     }
 
     /**
@@ -40,9 +39,9 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
-    return (new MailMessage)
-        ->subject('Réinitialisation de votre mot de passe NSIA TRANSPORT')
-        ->view('emails.reset-password', ['url' => $url, 'user' => $notifiable]);
+        return (new MailMessage)
+            ->subject('Réinitialisation de votre mot de passe NSIA TRANSPORT')
+            ->view('emails.reset-password', ['url' => $url, 'user' => $notifiable]);
     }
 
     /**

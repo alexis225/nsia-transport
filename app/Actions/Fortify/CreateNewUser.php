@@ -28,9 +28,9 @@ class CreateNewUser implements CreatesNewUsers
 
         return User::create([
             'first_name' => $input['first_name'] ?? ($nameParts[0] ?: 'User'),
-            'last_name'  => $input['last_name']  ?? ($nameParts[1] ?? ''),
-            'email'      => $input['email'],
-            'password'   => $input['password'],
+            'last_name' => $input['last_name'] ?? ($nameParts[1] ?? ''),
+            'email' => $input['email'],
+            'password' => $input['password'],
         ]);
     }
 }

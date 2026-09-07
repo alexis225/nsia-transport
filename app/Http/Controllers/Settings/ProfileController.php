@@ -16,8 +16,10 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    private const AVATAR_DISK   = 'public';
+    private const AVATAR_DISK = 'public';
+
     private const AVATAR_FOLDER = 'avatars';
+
     private const AVATAR_MAX_KB = 2048;
 
     /**
@@ -27,7 +29,7 @@ class ProfileController extends Controller
     {
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status'          => $request->session()->get('status'),
+            'status' => $request->session()->get('status'),
         ]);
     }
 
@@ -58,13 +60,13 @@ class ProfileController extends Controller
                 'file',
                 'image',
                 'mimes:jpeg,png,webp',
-                'max:' . self::AVATAR_MAX_KB,
+                'max:'.self::AVATAR_MAX_KB,
             ],
         ], [
             'avatar.required' => 'Veuillez sélectionner une image.',
-            'avatar.image'    => 'Le fichier doit être une image.',
-            'avatar.mimes'    => 'Formats acceptés : JPG, PNG, WebP.',
-            'avatar.max'      => 'La taille maximale est de 2 Mo.',
+            'avatar.image' => 'Le fichier doit être une image.',
+            'avatar.mimes' => 'Formats acceptés : JPG, PNG, WebP.',
+            'avatar.max' => 'La taille maximale est de 2 Mo.',
         ]);
 
         $user = $request->user();
@@ -124,13 +126,13 @@ class ProfileController extends Controller
     private function auditLog(Request $request, string $action): void
     {
         AuditLog::create([
-            'tenant_id'   => $request->user()->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => $action,
+            'tenant_id' => $request->user()->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => $action,
             'entity_type' => 'user',
-            'entity_id'   => $request->user()->id,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'entity_id' => $request->user()->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
     }
 }

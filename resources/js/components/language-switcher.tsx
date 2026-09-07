@@ -7,7 +7,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { changeLocale, type Locale } from '@/lib/i18n';
+import { changeLocale } from '@/lib/i18n';
+import type { Locale } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { update as updateLocale } from '@/routes/locale';
 
@@ -27,22 +28,32 @@ interface Props {
  * un evenement de navigation Inertia, qui peut ne pas se declencher quand
  * l'URL de retour est identique a la page courante).
  */
-export default function LanguageSwitcher({ variant = 'icon', className }: Props) {
+export default function LanguageSwitcher({
+    variant = 'icon',
+    className,
+}: Props) {
     const { t, i18n } = useTranslation();
-    const { locale, locales } = usePage<{ locale: Locale; locales: Record<Locale, string> }>().props;
+    const { locale, locales } = usePage<{
+        locale: Locale;
+        locales: Record<Locale, string>;
+    }>().props;
 
     const select = (next: string) => {
         if (next === locale) {
             return;
         }
 
-        router.patch(updateLocale().url, { locale: next }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                document.documentElement.lang = next;
-                void changeLocale(i18n, next as Locale);
+        router.patch(
+            updateLocale().url,
+            { locale: next },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    document.documentElement.lang = next;
+                    void changeLocale(i18n, next as Locale);
+                },
             },
-        });
+        );
     };
 
     return (
@@ -55,11 +66,13 @@ export default function LanguageSwitcher({ variant = 'icon', className }: Props)
                 <SelectValue>{locales[locale] ?? locale}</SelectValue>
             </SelectTrigger>
             <SelectContent align="end">
-                {(Object.entries(locales) as [Locale, string][]).map(([code, label]) => (
-                    <SelectItem key={code} value={code}>
-                        {label}
-                    </SelectItem>
-                ))}
+                {(Object.entries(locales) as [Locale, string][]).map(
+                    ([code, label]) => (
+                        <SelectItem key={code} value={code}>
+                            {label}
+                        </SelectItem>
+                    ),
+                )}
             </SelectContent>
         </Select>
     );

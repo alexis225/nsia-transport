@@ -1,49 +1,89 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
+import { Head, Link } from '@inertiajs/react';
 import { Plus, Eye, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 interface Amendment {
-    id: string; amendment_number: string; sequence: number;
-    reason: string; status: string;
+    id: string;
+    amendment_number: string;
+    sequence: number;
+    reason: string;
+    status: string;
     changes: Record<string, any>;
-    submitted_at: string | null; reviewed_at: string | null; applied_at: string | null;
+    submitted_at: string | null;
+    reviewed_at: string | null;
+    applied_at: string | null;
     created_by: { first_name: string; last_name: string } | null;
     created_at: string;
 }
 interface Contract {
-    id: string; contract_number: string; insured_name: string; status: string;
+    id: string;
+    contract_number: string;
+    insured_name: string;
+    status: string;
     tenant: { name: string; code: string } | null;
 }
 interface Props {
-    contract:   Contract;
+    contract: Contract;
     amendments: Amendment[];
-    can:        { create: boolean; validate: boolean };
+    can: { create: boolean; validate: boolean };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string; icon: any }> = {
-    DRAFT:    { bg:'#f8fafc', color:'#64748b', dot:'#94a3b8', icon: FileText },
-    PENDING:  { bg:'#fffbeb', color:'#92400e', dot:'#f59e0b', icon: Clock },
-    APPROVED: { bg:'#f0fdf4', color:'#15803d', dot:'#22c55e', icon: CheckCircle },
-    REJECTED: { bg:'#fef2f2', color:'#dc2626', dot:'#ef4444', icon: XCircle },
+const STATUS_STYLES: Record<
+    string,
+    { bg: string; color: string; dot: string; icon: any }
+> = {
+    DRAFT: { bg: '#f8fafc', color: '#64748b', dot: '#94a3b8', icon: FileText },
+    PENDING: { bg: '#fffbeb', color: '#92400e', dot: '#f59e0b', icon: Clock },
+    APPROVED: {
+        bg: '#f0fdf4',
+        color: '#15803d',
+        dot: '#22c55e',
+        icon: CheckCircle,
+    },
+    REJECTED: {
+        bg: '#fef2f2',
+        color: '#dc2626',
+        dot: '#ef4444',
+        icon: XCircle,
+    },
 };
 
-const fmt   = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
-const fmtDt = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+const fmtDt = (d: string) =>
+    new Date(d).toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 
 export default function AmendmentsIndex({ contract, amendments, can }: Props) {
     const { t } = useTranslation('contracts');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('breadcrumb.contracts'),  href: '/admin/contracts' },
-        { title: contract.contract_number, href: route('admin.contracts.show', { contract: contract.id }) },
+        { title: t('breadcrumb.contracts'), href: '/admin/contracts' },
+        {
+            title: contract.contract_number,
+            href: route('admin.contracts.show', { contract: contract.id }),
+        },
         { title: t('breadcrumb.amendments') },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('amendments.index.title', { number: contract.contract_number })}/>
+            <Head
+                title={t('amendments.index.title', {
+                    number: contract.contract_number,
+                })}
+            />
             <style>{`
                 .ai-page{padding:4px;display:flex;flex-direction:column;gap:16px;max-width:860px;margin:0 auto;}
                 .ai-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -69,84 +109,229 @@ export default function AmendmentsIndex({ contract, amendments, can }: Props) {
                 <div className="ai-page">
                     <div className="ai-hdr">
                         <div>
-                            <h1 className="ai-title">{t('amendments.index.heading', { number: contract.contract_number })}</h1>
-                            <p className="ai-sub">{contract.insured_name} · {contract.tenant?.name} · {t('amendments.index.count', { count: amendments.length })}</p>
+                            <h1 className="ai-title">
+                                {t('amendments.index.heading', {
+                                    number: contract.contract_number,
+                                })}
+                            </h1>
+                            <p className="ai-sub">
+                                {contract.insured_name} ·{' '}
+                                {contract.tenant?.name} ·{' '}
+                                {t('amendments.index.count', {
+                                    count: amendments.length,
+                                })}
+                            </p>
                         </div>
                         {can.create && contract.status === 'ACTIVE' && (
-                            <Link href={route('admin.contracts.amendments.create', { contract: contract.id })}>
-                                <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={14}/> {t('amendments.index.newAmendment')}
+                            <Link
+                                href={route(
+                                    'admin.contracts.amendments.create',
+                                    { contract: contract.id },
+                                )}
+                            >
+                                <Button className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]">
+                                    <Plus size={14} />{' '}
+                                    {t('amendments.index.newAmendment')}
                                 </Button>
                             </Link>
                         )}
                     </div>
 
                     {/* Alerte avenants en attente */}
-                    {amendments.some(a => a.status === 'PENDING') && can.validate && (
-                        <div className="pending-banner">
-                            <Clock size={14}/>
-                            {t('amendments.index.pendingBanner', { count: amendments.filter(a => a.status === 'PENDING').length })}
-                        </div>
-                    )}
+                    {amendments.some((a) => a.status === 'PENDING') &&
+                        can.validate && (
+                            <div className="pending-banner">
+                                <Clock size={14} />
+                                {t('amendments.index.pendingBanner', {
+                                    count: amendments.filter(
+                                        (a) => a.status === 'PENDING',
+                                    ).length,
+                                })}
+                            </div>
+                        )}
 
                     <div className="ai-card">
                         {amendments.length === 0 ? (
                             <div className="empty">
-                                <FileText size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
+                                <FileText
+                                    size={32}
+                                    color="#e2e8f0"
+                                    style={{ marginBottom: 8 }}
+                                />
                                 <div>{t('amendments.index.empty')}</div>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>{t('amendments.index.table.number')}</th>
-                                        <th>{t('amendments.index.table.reason')}</th>
-                                        <th>{t('amendments.index.table.changes')}</th>
-                                        <th>{t('amendments.index.table.createdAt')}</th>
-                                        <th>{t('amendments.index.table.appliedAt')}</th>
-                                        <th>{t('amendments.index.table.status')}</th>
-                                        <th>{t('amendments.index.table.actions')}</th>
+                                        <th>
+                                            {t('amendments.index.table.number')}
+                                        </th>
+                                        <th>
+                                            {t('amendments.index.table.reason')}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'amendments.index.table.changes',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'amendments.index.table.createdAt',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'amendments.index.table.appliedAt',
+                                            )}
+                                        </th>
+                                        <th>
+                                            {t('amendments.index.table.status')}
+                                        </th>
+                                        <th>
+                                            {t(
+                                                'amendments.index.table.actions',
+                                            )}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {amendments.map(a => {
-                                        const ss = STATUS_STYLES[a.status] ?? STATUS_STYLES.DRAFT;
-                                        const StatusIcon = ss.icon;
-                                        const changesCount = Object.keys(a.changes).length;
+                                    {amendments.map((a) => {
+                                        const ss =
+                                            STATUS_STYLES[a.status] ??
+                                            STATUS_STYLES.DRAFT;
+                                        const changesCount = Object.keys(
+                                            a.changes,
+                                        ).length;
+
                                         return (
                                             <tr key={a.id}>
                                                 <td>
-                                                    <div className="amend-num">{a.amendment_number}</div>
-                                                    <div style={{ fontSize:10, color:'#94a3b8' }}>{t('amendments.index.sequenceLabel', { sequence: a.sequence })}</div>
+                                                    <div className="amend-num">
+                                                        {a.amendment_number}
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            fontSize: 10,
+                                                            color: '#94a3b8',
+                                                        }}
+                                                    >
+                                                        {t(
+                                                            'amendments.index.sequenceLabel',
+                                                            {
+                                                                sequence:
+                                                                    a.sequence,
+                                                            },
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td>
-                                                    <div style={{ maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#1e293b', fontWeight:500 }}>
+                                                    <div
+                                                        style={{
+                                                            maxWidth: 200,
+                                                            overflow: 'hidden',
+                                                            textOverflow:
+                                                                'ellipsis',
+                                                            whiteSpace:
+                                                                'nowrap',
+                                                            color: '#1e293b',
+                                                            fontWeight: 500,
+                                                        }}
+                                                    >
                                                         {a.reason}
                                                     </div>
                                                     {a.created_by && (
-                                                        <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                            {t('amendments.index.createdBy', { name: `${a.created_by.first_name} ${a.created_by.last_name}` })}
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#94a3b8',
+                                                            }}
+                                                        >
+                                                            {t(
+                                                                'amendments.index.createdBy',
+                                                                {
+                                                                    name: `${a.created_by.first_name} ${a.created_by.last_name}`,
+                                                                },
+                                                            )}
                                                         </div>
                                                     )}
                                                 </td>
                                                 <td>
-                                                    <span style={{ background:'#f1f5f9', color:'#475569', borderRadius:8, padding:'2px 8px', fontSize:11, fontWeight:500 }}>
-                                                        {t('amendments.index.fields', { count: changesCount })}
+                                                    <span
+                                                        style={{
+                                                            background:
+                                                                '#f1f5f9',
+                                                            color: '#475569',
+                                                            borderRadius: 8,
+                                                            padding: '2px 8px',
+                                                            fontSize: 11,
+                                                            fontWeight: 500,
+                                                        }}
+                                                    >
+                                                        {t(
+                                                            'amendments.index.fields',
+                                                            {
+                                                                count: changesCount,
+                                                            },
+                                                        )}
                                                     </span>
                                                 </td>
-                                                <td style={{ fontSize:11, color:'#64748b' }}>{fmt(a.created_at)}</td>
-                                                <td style={{ fontSize:11, color: a.applied_at ? '#15803d' : '#94a3b8' }}>
-                                                    {a.applied_at ? fmtDt(a.applied_at) : '—'}
+                                                <td
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: '#64748b',
+                                                    }}
+                                                >
+                                                    {fmt(a.created_at)}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: a.applied_at
+                                                            ? '#15803d'
+                                                            : '#94a3b8',
+                                                    }}
+                                                >
+                                                    {a.applied_at
+                                                        ? fmtDt(a.applied_at)
+                                                        : '—'}
                                                 </td>
                                                 <td>
-                                                    <span className="status-badge" style={{ background: ss.bg, color: ss.color }}>
-                                                        <span className="s-dot" style={{ background: ss.dot }}/>{t(`amendmentStatusLabels.${a.status}`)}
+                                                    <span
+                                                        className="status-badge"
+                                                        style={{
+                                                            background: ss.bg,
+                                                            color: ss.color,
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="s-dot"
+                                                            style={{
+                                                                background:
+                                                                    ss.dot,
+                                                            }}
+                                                        />
+                                                        {t(
+                                                            `amendmentStatusLabels.${a.status}`,
+                                                        )}
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <Link href={route('admin.contracts.amendments.show', { contract: contract.id, amendment: a.id })}
-                                                          className="btn-view">
-                                                        <Eye size={11}/> {t('amendments.index.view')}
+                                                    <Link
+                                                        href={route(
+                                                            'admin.contracts.amendments.show',
+                                                            {
+                                                                contract:
+                                                                    contract.id,
+                                                                amendment: a.id,
+                                                            },
+                                                        )}
+                                                        className="btn-view"
+                                                    >
+                                                        <Eye size={11} />{' '}
+                                                        {t(
+                                                            'amendments.index.view',
+                                                        )}
                                                     </Link>
                                                 </td>
                                             </tr>

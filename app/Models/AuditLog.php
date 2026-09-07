@@ -44,15 +44,18 @@ class AuditLog extends Model
         return [
             'old_values' => 'array',
             'new_values' => 'array',
-            'metadata'   => 'array',
+            'metadata' => 'array',
             'created_at' => 'datetime',
         ];
     }
 
     // ── Constantes sévérité ──────────────────────────────────
-    const SEVERITY_INFO     = 'INFO';
-    const SEVERITY_WARNING  = 'WARNING';
-    const SEVERITY_ERROR    = 'ERROR';
+    const SEVERITY_INFO = 'INFO';
+
+    const SEVERITY_WARNING = 'WARNING';
+
+    const SEVERITY_ERROR = 'ERROR';
+
     const SEVERITY_CRITICAL = 'CRITICAL';
 
     // ── Scopes ───────────────────────────────────────────────

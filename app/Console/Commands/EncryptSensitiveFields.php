@@ -2,8 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Broker;
-use App\Models\InsuranceContract;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -15,13 +13,16 @@ use Illuminate\Support\Facades\DB;
  */
 class EncryptSensitiveFields extends Command
 {
-    protected $signature   = 'nsia:encrypt-sensitive-fields {--dry-run : Simuler sans modifier}';
+    protected $signature = 'nsia:encrypt-sensitive-fields {--dry-run : Simuler sans modifier}';
+
     protected $description = 'Chiffre les champs PII existants en clair (US-051)';
 
     public function handle(): int
     {
         $dryRun = $this->option('dry-run');
-        if ($dryRun) $this->warn('Mode simulation — aucune modification.');
+        if ($dryRun) {
+            $this->warn('Mode simulation — aucune modification.');
+        }
 
         $this->encryptModel(
             'brokers',
@@ -36,6 +37,7 @@ class EncryptSensitiveFields extends Command
         );
 
         $this->info('[ENCRYPT] Terminé.');
+
         return self::SUCCESS;
     }
 
@@ -48,15 +50,21 @@ class EncryptSensitiveFields extends Command
             $changes = [];
             foreach ($fields as $field) {
                 $val = $row->$field;
-                if ($val === null) continue;
+                if ($val === null) {
+                    continue;
+                }
 
                 // Déjà chiffré ? (les valeurs chiffrées par Laravel commencent par "eyJ")
-                if (str_starts_with($val, 'eyJ')) continue;
+                if (str_starts_with($val, 'eyJ')) {
+                    continue;
+                }
 
                 $changes[$field] = Crypt::encryptString($val);
             }
 
-            if (empty($changes)) continue;
+            if (empty($changes)) {
+                continue;
+            }
 
             if (! $dryRun) {
                 DB::table($table)->where('id', $row->id)->update($changes);
@@ -64,6 +72,6 @@ class EncryptSensitiveFields extends Command
             $updated++;
         }
 
-        $this->line("  {$table} : {$updated} ligne(s) " . ($dryRun ? 'à migrer' : 'chiffrées') . '.');
+        $this->line("  {$table} : {$updated} ligne(s) ".($dryRun ? 'à migrer' : 'chiffrées').'.');
     }
 }

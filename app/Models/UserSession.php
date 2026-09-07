@@ -27,9 +27,9 @@ class UserSession extends Model
     {
         return [
             'last_activity' => 'datetime',
-            'expires_at'    => 'datetime',
-            'revoked_at'    => 'datetime',
-            'created_at'    => 'datetime',
+            'expires_at' => 'datetime',
+            'revoked_at' => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 
@@ -49,7 +49,7 @@ class UserSession extends Model
     public function scopeActive($query)
     {
         return $query->whereNull('revoked_at')
-                     ->where('expires_at', '>', now());
+            ->where('expires_at', '>', now());
     }
 
     // ── Relations ────────────────────────────────────────────

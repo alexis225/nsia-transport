@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -28,11 +27,11 @@ class ReportDefinition extends Model
     protected function casts(): array
     {
         return [
-            'query_config'   => 'array',
+            'query_config' => 'array',
             'export_formats' => 'array',
-            'is_active'      => 'boolean',
-            'created_at'     => 'datetime',
-            'updated_at'     => 'datetime',
+            'is_active' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 

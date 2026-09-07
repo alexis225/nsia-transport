@@ -21,29 +21,29 @@ return new class extends Migration
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             $table->foreignUuid('user_id')
-                  ->constrained('users')
-                  ->cascadeOnDelete();
+                ->constrained('users')
+                ->cascadeOnDelete();
 
             $table->foreignUuid('tenant_id')
-                  ->nullable()
-                  ->constrained('tenants')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('tenants')
+                ->nullOnDelete();
 
             $table->string('role_name', 100);   // miroir du nom de rôle spatie
 
             $table->foreignUuid('granted_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamp('granted_at')->useCurrent();
 
             // Délégation temporaire
             $table->timestamp('expires_at')->nullable();
 
             $table->foreignUuid('revoked_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamp('revoked_at')->nullable();
 
             $table->text('reason')->nullable();

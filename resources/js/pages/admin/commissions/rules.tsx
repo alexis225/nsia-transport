@@ -1,35 +1,65 @@
-import { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
+import { Plus, X, ToggleLeft, ToggleRight, Percent } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Plus, X, ToggleLeft, ToggleRight, Percent } from 'lucide-react';
 
 interface Rule {
-    id: string; rate_pct: number; effective_date: string;
-    end_date: string | null; is_active: boolean; notes: string | null;
+    id: string;
+    rate_pct: number;
+    effective_date: string;
+    end_date: string | null;
+    is_active: boolean;
+    notes: string | null;
     broker: { id: string; name: string; code: string } | null;
     contract: { id: string; contract_number: string } | null;
     created_by: { name: string } | null;
 }
-interface Broker   { id: string; name: string; code: string; }
-interface Contract { id: string; contract_number: string; insured_name: string; broker_id: string | null; }
-interface Paginated<T> { data: T[]; current_page: number; last_page: number; total: number; from: number; to: number; }
+interface Broker {
+    id: string;
+    name: string;
+    code: string;
+}
+interface Contract {
+    id: string;
+    contract_number: string;
+    insured_name: string;
+    broker_id: string | null;
+}
+interface Paginated<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
+    from: number;
+    to: number;
+}
 interface Props {
-    rules:     Paginated<Rule>;
-    brokers:   Broker[];
+    rules: Paginated<Rule>;
+    brokers: Broker[];
     contracts: Contract[];
     baseTypes: Record<string, string>;
-    filters:   { broker_id?: string };
-    isSA:      boolean;
+    filters: { broker_id?: string };
+    isSA: boolean;
 }
 
-const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 
-export default function CommissionRules({ rules, brokers, contracts, baseTypes, filters, isSA }: Props) {
+export default function CommissionRules({
+    rules,
+    brokers,
+    contracts,
+    baseTypes,
+}: Props) {
     const { t } = useTranslation('commissions');
     const { t: tc } = useTranslation('common');
     const [showForm, setShowForm] = useState(false);
@@ -40,19 +70,22 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
     ];
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        broker_id:           '',
-        contract_id:         '',
-        rate_pct:            '',
-        base_type:           'prime_total',
-        custom_base_amount:  '',
-        effective_date:      new Date().toISOString().slice(0, 10),
-        end_date:            '',
-        notes:               '',
+        broker_id: '',
+        contract_id: '',
+        rate_pct: '',
+        base_type: 'prime_total',
+        custom_base_amount: '',
+        effective_date: new Date().toISOString().slice(0, 10),
+        end_date: '',
+        notes: '',
     });
 
     const handleSubmit = () => {
         post(route('admin.commissions.rules.store'), {
-            onSuccess: () => { reset(); setShowForm(false); },
+            onSuccess: () => {
+                reset();
+                setShowForm(false);
+            },
         });
     };
 
@@ -62,12 +95,12 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
 
     // Filtrer les contrats selon le courtier sélectionné
     const filteredContracts = data.broker_id
-        ? contracts.filter(c => c.broker_id === data.broker_id)
+        ? contracts.filter((c) => c.broker_id === data.broker_id)
         : contracts;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('rules.title')}/>
+            <Head title={t('rules.title')} />
             <style>{`
                 .cr-page{padding:4px;display:flex;flex-direction:column;gap:14px;}
                 .cr-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -93,17 +126,24 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="cr-page">
-
                     {/* Header */}
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}
+                    >
                         <div>
                             <h1 className="cr-title">{t('rules.heading')}</h1>
                             <p className="cr-sub">{t('rules.subtitle')}</p>
                         </div>
                         {!showForm && (
-                            <Button onClick={() => setShowForm(true)}
-                                    className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                <Plus size={14}/> {t('rules.newRule')}
+                            <Button
+                                onClick={() => setShowForm(true)}
+                                className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]"
+                            >
+                                <Plus size={14} /> {t('rules.newRule')}
                             </Button>
                         )}
                     </div>
@@ -112,115 +152,349 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                     {showForm && (
                         <div className="form-card">
                             <div className="form-card-hdr">
-                                <span className="form-card-ttl">{t('rules.form.title')}</span>
-                                <button onClick={() => { setShowForm(false); reset(); }}
-                                        style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.7)' }}>
-                                    <X size={16}/>
+                                <span className="form-card-ttl">
+                                    {t('rules.form.title')}
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        setShowForm(false);
+                                        reset();
+                                    }}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        color: 'rgba(255,255,255,0.7)',
+                                    }}
+                                >
+                                    <X size={16} />
                                 </button>
                             </div>
                             <div className="form-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                        <Label
+                                            style={{
+                                                fontSize: 10.5,
+                                                fontWeight: 600,
+                                                color: '#64748b',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '.08em',
+                                            }}
+                                        >
                                             {t('rules.form.broker')}
                                         </Label>
-                                        <select value={data.broker_id} onChange={e => { setData('broker_id', e.target.value); setData('contract_id', ''); }}
-                                                className="hs-select">
-                                            <option value="">{t('rules.form.chooseBroker')}</option>
-                                            {brokers.map(b => (
-                                                <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
+                                        <select
+                                            value={data.broker_id}
+                                            onChange={(e) => {
+                                                setData(
+                                                    'broker_id',
+                                                    e.target.value,
+                                                );
+                                                setData('contract_id', '');
+                                            }}
+                                            className="hs-select"
+                                        >
+                                            <option value="">
+                                                {t('rules.form.chooseBroker')}
+                                            </option>
+                                            {brokers.map((b) => (
+                                                <option key={b.id} value={b.id}>
+                                                    {b.name} ({b.code})
+                                                </option>
                                             ))}
                                         </select>
-                                        {errors.broker_id && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.broker_id}</p>}
+                                        {errors.broker_id && (
+                                            <p
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#dc2626',
+                                                }}
+                                            >
+                                                {errors.broker_id}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                        <Label
+                                            style={{
+                                                fontSize: 10.5,
+                                                fontWeight: 600,
+                                                color: '#64748b',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '.08em',
+                                            }}
+                                        >
                                             {t('rules.form.contract')}
                                         </Label>
-                                        <select value={data.contract_id} onChange={e => setData('contract_id', e.target.value)}
-                                                className="hs-select">
-                                            <option value="">{t('rules.form.generalRate')}</option>
-                                            {filteredContracts.map(c => (
-                                                <option key={c.id} value={c.id}>{c.contract_number} — {c.insured_name}</option>
+                                        <select
+                                            value={data.contract_id}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'contract_id',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="hs-select"
+                                        >
+                                            <option value="">
+                                                {t('rules.form.generalRate')}
+                                            </option>
+                                            {filteredContracts.map((c) => (
+                                                <option key={c.id} value={c.id}>
+                                                    {c.contract_number} —{' '}
+                                                    {c.insured_name}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                        <Label
+                                            style={{
+                                                fontSize: 10.5,
+                                                fontWeight: 600,
+                                                color: '#64748b',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '.08em',
+                                            }}
+                                        >
                                             {t('rules.form.rate')}
                                         </Label>
-                                        <Input type="number" min="0" max="100" step="0.01" className="h-11"
-                                               value={data.rate_pct} onChange={e => setData('rate_pct', e.target.value)}
-                                               placeholder={t('rules.form.ratePlaceholder')}/>
-                                        {errors.rate_pct && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.rate_pct}</p>}
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.01"
+                                            className="h-11"
+                                            value={data.rate_pct}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'rate_pct',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'rules.form.ratePlaceholder',
+                                            )}
+                                        />
+                                        {errors.rate_pct && (
+                                            <p
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#dc2626',
+                                                }}
+                                            >
+                                                {errors.rate_pct}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
                                 <div className="form-grid-2">
                                     <div className="grid gap-2">
-                                        <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                        <Label
+                                            style={{
+                                                fontSize: 10.5,
+                                                fontWeight: 600,
+                                                color: '#64748b',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '.08em',
+                                            }}
+                                        >
                                             {t('rules.form.baseType')}
                                         </Label>
-                                        <select value={data.base_type} onChange={e => setData('base_type', e.target.value)}
-                                                className="hs-select">
-                                            {Object.entries(baseTypes).map(([val, label]) => (
-                                                <option key={val} value={val}>{label as string}</option>
-                                            ))}
+                                        <select
+                                            value={data.base_type}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'base_type',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="hs-select"
+                                        >
+                                            {Object.entries(baseTypes).map(
+                                                ([val, label]) => (
+                                                    <option
+                                                        key={val}
+                                                        value={val}
+                                                    >
+                                                        {label as string}
+                                                    </option>
+                                                ),
+                                            )}
                                         </select>
                                     </div>
                                     {data.base_type === 'custom_amount' && (
                                         <div className="grid gap-2">
-                                            <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                            <Label
+                                                style={{
+                                                    fontSize: 10.5,
+                                                    fontWeight: 600,
+                                                    color: '#64748b',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '.08em',
+                                                }}
+                                            >
                                                 {t('rules.form.fixedAmount')}
                                             </Label>
-                                            <Input type="number" min="0" step="0.01" className="h-11"
-                                                   value={data.custom_base_amount}
-                                                   onChange={e => setData('custom_base_amount', e.target.value)}
-                                                   placeholder={t('rules.form.fixedAmountPlaceholder')}/>
-                                            {errors.custom_base_amount && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.custom_base_amount}</p>}
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                className="h-11"
+                                                value={data.custom_base_amount}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'custom_base_amount',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder={t(
+                                                    'rules.form.fixedAmountPlaceholder',
+                                                )}
+                                            />
+                                            {errors.custom_base_amount && (
+                                                <p
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: '#dc2626',
+                                                    }}
+                                                >
+                                                    {errors.custom_base_amount}
+                                                </p>
+                                            )}
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="form-grid-2">
                                     <div className="grid gap-2">
-                                        <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                        <Label
+                                            style={{
+                                                fontSize: 10.5,
+                                                fontWeight: 600,
+                                                color: '#64748b',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '.08em',
+                                            }}
+                                        >
                                             {t('rules.form.effectiveDate')}
                                         </Label>
-                                        <Input type="date" className="h-11" value={data.effective_date}
-                                               onChange={e => setData('effective_date', e.target.value)}/>
-                                        {errors.effective_date && <p style={{ fontSize:11, color:'#dc2626' }}>{errors.effective_date}</p>}
+                                        <Input
+                                            type="date"
+                                            className="h-11"
+                                            value={data.effective_date}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'effective_date',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                        {errors.effective_date && (
+                                            <p
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#dc2626',
+                                                }}
+                                            >
+                                                {errors.effective_date}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                        <Label
+                                            style={{
+                                                fontSize: 10.5,
+                                                fontWeight: 600,
+                                                color: '#64748b',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '.08em',
+                                            }}
+                                        >
                                             {t('rules.form.endDate')}
                                         </Label>
-                                        <Input type="date" className="h-11" value={data.end_date}
-                                               onChange={e => setData('end_date', e.target.value)}/>
+                                        <Input
+                                            type="date"
+                                            className="h-11"
+                                            value={data.end_date}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'end_date',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                    <Label
+                                        style={{
+                                            fontSize: 10.5,
+                                            fontWeight: 600,
+                                            color: '#64748b',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '.08em',
+                                        }}
+                                    >
                                         {t('rules.form.notes')}
                                     </Label>
-                                    <Input className="h-11" value={data.notes} onChange={e => setData('notes', e.target.value)}
-                                           placeholder={t('rules.form.notesPlaceholder')}/>
+                                    <Input
+                                        className="h-11"
+                                        value={data.notes}
+                                        onChange={(e) =>
+                                            setData('notes', e.target.value)
+                                        }
+                                        placeholder={t(
+                                            'rules.form.notesPlaceholder',
+                                        )}
+                                    />
                                 </div>
 
-                                <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#92400e' }}>
+                                <div
+                                    style={{
+                                        background: '#fffbeb',
+                                        border: '1px solid #fde68a',
+                                        borderRadius: 8,
+                                        padding: '10px 14px',
+                                        fontSize: 12,
+                                        color: '#92400e',
+                                    }}
+                                >
                                     {t('rules.form.hint')}
                                 </div>
 
-                                <div style={{ display:'flex', gap:8 }}>
-                                    <Button disabled={processing || !data.broker_id || !data.rate_pct || !data.effective_date}
-                                            onClick={handleSubmit}
-                                            className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                        {processing ? tc('states.saving') : <><Percent size={13}/> {t('rules.form.submit')}</>}
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <Button
+                                        disabled={
+                                            processing ||
+                                            !data.broker_id ||
+                                            !data.rate_pct ||
+                                            !data.effective_date
+                                        }
+                                        onClick={handleSubmit}
+                                        className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                                    >
+                                        {processing ? (
+                                            tc('states.saving')
+                                        ) : (
+                                            <>
+                                                <Percent size={13} />{' '}
+                                                {t('rules.form.submit')}
+                                            </>
+                                        )}
                                     </Button>
-                                    <Button variant="outline" onClick={() => { setShowForm(false); reset(); }}>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setShowForm(false);
+                                            reset();
+                                        }}
+                                    >
                                         {tc('actions.cancel')}
                                     </Button>
                                 </div>
@@ -232,7 +506,11 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                     <div className="cr-card">
                         {rules.data.length === 0 ? (
                             <div className="empty">
-                                <Percent size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
+                                <Percent
+                                    size={32}
+                                    color="#e2e8f0"
+                                    style={{ marginBottom: 8 }}
+                                />
                                 <div>{t('rules.empty')}</div>
                             </div>
                         ) : (
@@ -242,7 +520,9 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                         <th>{t('rules.table.broker')}</th>
                                         <th>{t('rules.table.contract')}</th>
                                         <th>{t('rules.table.rate')}</th>
-                                        <th>{t('rules.table.effectiveDate')}</th>
+                                        <th>
+                                            {t('rules.table.effectiveDate')}
+                                        </th>
                                         <th>{t('rules.table.endDate')}</th>
                                         <th>{t('rules.table.status')}</th>
                                         <th>{t('rules.table.notes')}</th>
@@ -250,49 +530,158 @@ export default function CommissionRules({ rules, brokers, contracts, baseTypes, 
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {rules.data.map(rule => (
+                                    {rules.data.map((rule) => (
                                         <tr key={rule.id}>
                                             <td>
-                                                <div style={{ fontWeight:500 }}>{rule.broker?.name}</div>
-                                                <div style={{ fontSize:10, color:'#94a3b8', fontFamily:'monospace' }}>{rule.broker?.code}</div>
+                                                <div
+                                                    style={{ fontWeight: 500 }}
+                                                >
+                                                    {rule.broker?.name}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 10,
+                                                        color: '#94a3b8',
+                                                        fontFamily: 'monospace',
+                                                    }}
+                                                >
+                                                    {rule.broker?.code}
+                                                </div>
                                             </td>
                                             <td>
                                                 {rule.contract ? (
-                                                    <span style={{ fontSize:11, background:'#f0f9ff', color:'#0284c7', padding:'2px 7px', borderRadius:7, border:'1px solid #bae6fd' }}>
-                                                        {rule.contract.contract_number}
+                                                    <span
+                                                        style={{
+                                                            fontSize: 11,
+                                                            background:
+                                                                '#f0f9ff',
+                                                            color: '#0284c7',
+                                                            padding: '2px 7px',
+                                                            borderRadius: 7,
+                                                            border: '1px solid #bae6fd',
+                                                        }}
+                                                    >
+                                                        {
+                                                            rule.contract
+                                                                .contract_number
+                                                        }
                                                     </span>
                                                 ) : (
-                                                    <span style={{ fontSize:11, color:'#94a3b8' }}>{t('rules.table.general')}</span>
+                                                    <span
+                                                        style={{
+                                                            fontSize: 11,
+                                                            color: '#94a3b8',
+                                                        }}
+                                                    >
+                                                        {t(
+                                                            'rules.table.general',
+                                                        )}
+                                                    </span>
                                                 )}
                                             </td>
                                             <td>
                                                 <span className="rate-badge">
-                                                    {parseFloat(String(rule.rate_pct)).toFixed(2)}<Percent size={11}/>
+                                                    {parseFloat(
+                                                        String(rule.rate_pct),
+                                                    ).toFixed(2)}
+                                                    <Percent size={11} />
                                                 </span>
                                             </td>
-                                            <td style={{ fontSize:12 }}>{fmt(rule.effective_date)}</td>
-                                            <td style={{ fontSize:12, color:'#94a3b8' }}>
-                                                {rule.end_date ? fmt(rule.end_date) : '—'}
+                                            <td style={{ fontSize: 12 }}>
+                                                {fmt(rule.effective_date)}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    fontSize: 12,
+                                                    color: '#94a3b8',
+                                                }}
+                                            >
+                                                {rule.end_date
+                                                    ? fmt(rule.end_date)
+                                                    : '—'}
                                             </td>
                                             <td>
-                                                <span className="status-badge" style={{
-                                                    background: rule.is_active ? '#f0fdf4' : '#f8fafc',
-                                                    color:      rule.is_active ? '#15803d' : '#94a3b8',
-                                                }}>
-                                                    <span style={{ width:5, height:5, borderRadius:'50%', background: rule.is_active ? '#22c55e' : '#cbd5e1' }}/>
-                                                    {rule.is_active ? t('rules.status.active') : t('rules.status.inactive')}
+                                                <span
+                                                    className="status-badge"
+                                                    style={{
+                                                        background:
+                                                            rule.is_active
+                                                                ? '#f0fdf4'
+                                                                : '#f8fafc',
+                                                        color: rule.is_active
+                                                            ? '#15803d'
+                                                            : '#94a3b8',
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{
+                                                            width: 5,
+                                                            height: 5,
+                                                            borderRadius: '50%',
+                                                            background:
+                                                                rule.is_active
+                                                                    ? '#22c55e'
+                                                                    : '#cbd5e1',
+                                                        }}
+                                                    />
+                                                    {rule.is_active
+                                                        ? t(
+                                                              'rules.status.active',
+                                                          )
+                                                        : t(
+                                                              'rules.status.inactive',
+                                                          )}
                                                 </span>
                                             </td>
-                                            <td style={{ fontSize:11, color:'#94a3b8', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                            <td
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#94a3b8',
+                                                    maxWidth: 150,
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap',
+                                                }}
+                                            >
                                                 {rule.notes ?? '—'}
                                             </td>
                                             <td>
-                                                <button onClick={() => toggle(rule.id)}
-                                                        style={{ background:'none', border:'none', cursor:'pointer', color:'#64748b', display:'flex', alignItems:'center', gap:4, fontSize:11 }}>
-                                                    {rule.is_active
-                                                        ? <><ToggleRight size={16} color="#15803d"/> {t('rules.toggle.deactivate')}</>
-                                                        : <><ToggleLeft size={16} color="#94a3b8"/> {t('rules.toggle.activate')}</>
+                                                <button
+                                                    onClick={() =>
+                                                        toggle(rule.id)
                                                     }
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        color: '#64748b',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 4,
+                                                        fontSize: 11,
+                                                    }}
+                                                >
+                                                    {rule.is_active ? (
+                                                        <>
+                                                            <ToggleRight
+                                                                size={16}
+                                                                color="#15803d"
+                                                            />{' '}
+                                                            {t(
+                                                                'rules.toggle.deactivate',
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <ToggleLeft
+                                                                size={16}
+                                                                color="#94a3b8"
+                                                            />{' '}
+                                                            {t(
+                                                                'rules.toggle.activate',
+                                                            )}
+                                                        </>
+                                                    )}
                                                 </button>
                                             </td>
                                         </tr>

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('rejected_at')->nullable()->after('cancelled_at');
             $table->timestamp('replaced_at')->nullable()->after('rejected_at');
             $table->foreignUuid('replaced_by_certificate_id')->nullable()->after('replaced_at')
-                  ->constrained('certificates')->nullOnDelete();
+                ->constrained('certificates')->nullOnDelete();
         });
 
         DB::statement('ALTER TABLE certificates DROP CONSTRAINT IF EXISTS cert_status_check');

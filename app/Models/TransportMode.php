@@ -12,12 +12,17 @@ class TransportMode extends Model
     protected $fillable = ['code', 'name_fr', 'name_en', 'icon'];
 
     // ── Constantes ───────────────────────────────────────────
-    const SEA        = 'SEA';
-    const AIR        = 'AIR';
-    const ROAD       = 'ROAD';
-    const RAIL       = 'RAIL';
+    const SEA = 'SEA';
+
+    const AIR = 'AIR';
+
+    const ROAD = 'ROAD';
+
+    const RAIL = 'RAIL';
+
     const MULTIMODAL = 'MULTIMODAL';
-    const POSTAL     = 'POSTAL';
+
+    const POSTAL = 'POSTAL';
 
     // ── Relations ────────────────────────────────────────────
     public function certificates(): HasMany

@@ -27,8 +27,9 @@ function makeRefExpertTenant(): Tenant
 function makeRefExpertAdmin(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
@@ -36,6 +37,7 @@ function makeRefExpertSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
@@ -43,25 +45,27 @@ function makeRefExpertSuperAdmin(): User
 function makeRefExpertSouscripteur(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('souscripteur');
+
     return $user;
 }
 
 function makeRefExpertBareUser(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
+
     return User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
 }
 
 function makeRefExpert(string $tenantId, array $overrides = []): Expert
 {
     return Expert::create(array_merge([
-        'tenant_id'    => $tenantId,
-        'name'         => 'Expert Test',
-        'email'        => 'expert@test.ci',
+        'tenant_id' => $tenantId,
+        'name' => 'Expert Test',
+        'email' => 'expert@test.ci',
         'country_code' => 'CI',
-        'is_active'    => true,
+        'is_active' => true,
     ], $overrides));
 }
 
@@ -88,11 +92,11 @@ it('crée un expert avec des données valides', function () {
     $admin = makeRefExpertAdmin();
 
     $payload = [
-        'name'         => 'Cabinet Expertise Maritime',
-        'email'        => 'contact@expertise-maritime.ci',
-        'phone'        => '+225 0102030405',
+        'name' => 'Cabinet Expertise Maritime',
+        'email' => 'contact@expertise-maritime.ci',
+        'phone' => '+225 0102030405',
         'country_code' => 'CI',
-        'is_active'    => true,
+        'is_active' => true,
     ];
 
     $this->actingAs($admin)
@@ -100,13 +104,13 @@ it('crée un expert avec des données valides', function () {
         ->assertRedirect(route('admin.experts.index'));
 
     $this->assertDatabaseHas('experts', [
-        'name'      => 'Cabinet Expertise Maritime',
+        'name' => 'Cabinet Expertise Maritime',
         'tenant_id' => $admin->tenant_id,
     ]);
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'expert_created',
+        'user_id' => $admin->id,
+        'action' => 'expert_created',
         'entity_type' => 'expert',
     ]);
 });
@@ -116,7 +120,7 @@ it('refuse la création avec des données invalides ou manquantes', function () 
 
     $this->actingAs($admin)
         ->post('/admin/experts', [
-            'name'  => '',
+            'name' => '',
             'email' => 'pas-un-email',
         ])
         ->assertSessionHasErrors(['name', 'email']);
@@ -129,7 +133,7 @@ it('refuse la création avec un country_code invalide', function () {
 
     $this->actingAs($admin)
         ->post('/admin/experts', [
-            'name'         => 'Expert Test',
+            'name' => 'Expert Test',
             'country_code' => 'CIV', // 3 caractères au lieu de 2
         ])
         ->assertSessionHasErrors(['country_code']);
@@ -147,7 +151,7 @@ it('refuse la création sans la permission experts.create', function () {
 
 // ── Update ───────────────────────────────────────────────────
 it('modifie un expert de sa filiale', function () {
-    $admin  = makeRefExpertAdmin();
+    $admin = makeRefExpertAdmin();
     $expert = makeRefExpert($admin->tenant_id, ['name' => 'Ancien Nom']);
 
     $this->actingAs($admin)
@@ -157,16 +161,16 @@ it('modifie un expert de sa filiale', function () {
     expect($expert->fresh()->name)->toBe('Nouveau Nom');
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'expert_updated',
+        'user_id' => $admin->id,
+        'action' => 'expert_updated',
         'entity_type' => 'expert',
-        'entity_id'   => $expert->id,
+        'entity_id' => $expert->id,
     ]);
 });
 
 it('refuse la modification sans la permission experts.edit', function () {
     $tenant = makeRefExpertTenant();
-    $user   = makeRefExpertSouscripteur($tenant->id);
+    $user = makeRefExpertSouscripteur($tenant->id);
     $expert = makeRefExpert($tenant->id, ['name' => 'Intact']);
 
     $this->actingAs($user)
@@ -178,7 +182,7 @@ it('refuse la modification sans la permission experts.edit', function () {
 
 // ── Destroy ──────────────────────────────────────────────────
 it('supprime un expert de sa filiale', function () {
-    $admin  = makeRefExpertAdmin();
+    $admin = makeRefExpertAdmin();
     $expert = makeRefExpert($admin->tenant_id);
 
     $this->actingAs($admin)
@@ -188,16 +192,16 @@ it('supprime un expert de sa filiale', function () {
     $this->assertSoftDeleted('experts', ['id' => $expert->id]);
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id'     => $admin->id,
-        'action'      => 'expert_deleted',
+        'user_id' => $admin->id,
+        'action' => 'expert_deleted',
         'entity_type' => 'expert',
-        'entity_id'   => $expert->id,
+        'entity_id' => $expert->id,
     ]);
 });
 
 it('refuse la suppression sans la permission experts.delete', function () {
     $tenant = makeRefExpertTenant();
-    $user   = makeRefExpertSouscripteur($tenant->id);
+    $user = makeRefExpertSouscripteur($tenant->id);
     $expert = makeRefExpert($tenant->id);
 
     $this->actingAs($user)
@@ -209,7 +213,7 @@ it('refuse la suppression sans la permission experts.delete', function () {
 
 // ── Toggle ───────────────────────────────────────────────────
 it('active/désactive un expert via toggle', function () {
-    $admin  = makeRefExpertAdmin();
+    $admin = makeRefExpertAdmin();
     $expert = makeRefExpert($admin->tenant_id, ['is_active' => true]);
 
     $this->actingAs($admin)
@@ -221,7 +225,7 @@ it('active/désactive un expert via toggle', function () {
 
 it('refuse le toggle sans la permission experts.edit', function () {
     $tenant = makeRefExpertTenant();
-    $user   = makeRefExpertSouscripteur($tenant->id);
+    $user = makeRefExpertSouscripteur($tenant->id);
     $expert = makeRefExpert($tenant->id, ['is_active' => true]);
 
     $this->actingAs($user)
@@ -235,8 +239,8 @@ it('refuse le toggle sans la permission experts.edit', function () {
 it('un admin_filiale ne peut pas voir un expert d\'une autre filiale', function () {
     $tenantA = makeRefExpertTenant();
     $tenantB = makeRefExpertTenant();
-    $admin   = makeRefExpertAdmin($tenantA->id);
-    $expert  = makeRefExpert($tenantB->id);
+    $admin = makeRefExpertAdmin($tenantA->id);
+    $expert = makeRefExpert($tenantB->id);
 
     $this->actingAs($admin)
         ->get("/admin/experts/{$expert->id}")
@@ -246,8 +250,8 @@ it('un admin_filiale ne peut pas voir un expert d\'une autre filiale', function 
 it('un admin_filiale ne peut pas modifier un expert d\'une autre filiale', function () {
     $tenantA = makeRefExpertTenant();
     $tenantB = makeRefExpertTenant();
-    $admin   = makeRefExpertAdmin($tenantA->id);
-    $expert  = makeRefExpert($tenantB->id, ['name' => 'Intact']);
+    $admin = makeRefExpertAdmin($tenantA->id);
+    $expert = makeRefExpert($tenantB->id, ['name' => 'Intact']);
 
     $this->actingAs($admin)
         ->put("/admin/experts/{$expert->id}", ['name' => 'Piraté'])
@@ -259,8 +263,8 @@ it('un admin_filiale ne peut pas modifier un expert d\'une autre filiale', funct
 it('un admin_filiale ne peut pas supprimer un expert d\'une autre filiale', function () {
     $tenantA = makeRefExpertTenant();
     $tenantB = makeRefExpertTenant();
-    $admin   = makeRefExpertAdmin($tenantA->id);
-    $expert  = makeRefExpert($tenantB->id);
+    $admin = makeRefExpertAdmin($tenantA->id);
+    $expert = makeRefExpert($tenantB->id);
 
     $this->actingAs($admin)
         ->delete("/admin/experts/{$expert->id}")
@@ -270,9 +274,9 @@ it('un admin_filiale ne peut pas supprimer un expert d\'une autre filiale', func
 });
 
 it('un super_admin voit les experts de toutes les filiales', function () {
-    $tenantA    = makeRefExpertTenant();
+    $tenantA = makeRefExpertTenant();
     $superAdmin = makeRefExpertSuperAdmin();
-    $expert     = makeRefExpert($tenantA->id);
+    $expert = makeRefExpert($tenantA->id);
 
     $this->actingAs($superAdmin)
         ->get("/admin/experts/{$expert->id}")

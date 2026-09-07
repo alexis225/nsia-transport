@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class CertificateTemplate extends Model
 {
-    use HasUuids, HasFactory, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'tenant_id', 'name', 'code', 'type',
@@ -32,26 +32,28 @@ class CertificateTemplate extends Model
     ];
 
     protected $casts = [
-        'is_bilingual'           => 'boolean',
-        'has_container_options'  => 'boolean',
-        'has_flight_number'      => 'boolean',
-        'has_vessel_name'        => 'boolean',
-        'has_currency_rate'      => 'boolean',
-        'is_active'              => 'boolean',
-        'prime_breakdown_lines'  => 'array',
-        'number_padding'         => 'integer',
-        'last_number'            => 'integer',
+        'is_bilingual' => 'boolean',
+        'has_container_options' => 'boolean',
+        'has_flight_number' => 'boolean',
+        'has_vessel_name' => 'boolean',
+        'has_currency_rate' => 'boolean',
+        'is_active' => 'boolean',
+        'prime_breakdown_lines' => 'array',
+        'number_padding' => 'integer',
+        'last_number' => 'integer',
     ];
 
     // ── Types de modèle — référentiel officiel ─────────────────
     const TYPE_CERTIFICAT_ASSURANCE = 'certificat_assurance';
-    const TYPE_CERTIFICAT_ETATIQUE  = 'certificat_etatique';
-    const TYPE_CARNET_ORDRE         = 'carnet_ordre';
+
+    const TYPE_CERTIFICAT_ETATIQUE = 'certificat_etatique';
+
+    const TYPE_CARNET_ORDRE = 'carnet_ordre';
 
     const TYPES = [
         self::TYPE_CERTIFICAT_ASSURANCE => "Certificat d'Assurance",
-        self::TYPE_CERTIFICAT_ETATIQUE  => 'Certificat Étatique (GUCE, GUOT, etc.)',
-        self::TYPE_CARNET_ORDRE         => "Certificat Carnet d'Ordre",
+        self::TYPE_CERTIFICAT_ETATIQUE => 'Certificat Étatique (GUCE, GUOT, etc.)',
+        self::TYPE_CARNET_ORDRE => "Certificat Carnet d'Ordre",
     ];
 
     // ── Relations ────────────────────────────────────────────
@@ -69,7 +71,8 @@ class CertificateTemplate extends Model
     {
         $this->increment('last_number');
         $num = str_pad($this->last_number, $this->number_padding, '0', STR_PAD_LEFT);
-        return ($this->number_prefix ?? 'N°') . $num;
+
+        return ($this->number_prefix ?? 'N°').$num;
     }
 
     /**
@@ -78,7 +81,7 @@ class CertificateTemplate extends Model
     public function getLogoUrlAttribute(): ?string
     {
         return $this->logo_path
-            ? asset('storage/' . $this->logo_path)
+            ? asset('storage/'.$this->logo_path)
             : null;
     }
 }

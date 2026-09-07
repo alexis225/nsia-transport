@@ -1,12 +1,29 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { FilePlus2, Eye, ChevronLeft, ChevronRight, Inbox, Search, X } from 'lucide-react';
+import {
+    FilePlus2,
+    Eye,
+    ChevronLeft,
+    ChevronRight,
+    Inbox,
+    Search,
+    X,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
-type RequestStatus = 'DRAFT' | 'PENDING' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'COMPLETED' | 'APPROVED' | 'FULFILLED' | 'CLOSED' | 'REJECTED';
+type RequestStatus =
+    | 'DRAFT'
+    | 'PENDING'
+    | 'IN_REVIEW'
+    | 'INFO_REQUESTED'
+    | 'COMPLETED'
+    | 'APPROVED'
+    | 'FULFILLED'
+    | 'CLOSED'
+    | 'REJECTED';
 
 interface CertificateRequestRow {
     id: string;
@@ -34,41 +51,86 @@ interface Props {
 }
 
 const STATUS_COLORS: Record<RequestStatus, { bg: string; color: string }> = {
-    DRAFT:          { bg: '#f1f5f9', color: '#64748b' },
-    PENDING:        { bg: '#fffbeb', color: '#b45309' },
-    IN_REVIEW:      { bg: '#eff6ff', color: '#1d4ed8' },
+    DRAFT: { bg: '#f1f5f9', color: '#64748b' },
+    PENDING: { bg: '#fffbeb', color: '#b45309' },
+    IN_REVIEW: { bg: '#eff6ff', color: '#1d4ed8' },
     INFO_REQUESTED: { bg: '#fff7ed', color: '#c2410c' },
-    COMPLETED:      { bg: '#eef2ff', color: '#4338ca' },
-    APPROVED:       { bg: '#f0fdf4', color: '#15803d' },
-    FULFILLED:      { bg: '#f0fdf4', color: '#15803d' },
-    CLOSED:         { bg: '#f1f5f9', color: '#475569' },
-    REJECTED:       { bg: '#fef2f2', color: '#b91c1c' },
+    COMPLETED: { bg: '#eef2ff', color: '#4338ca' },
+    APPROVED: { bg: '#f0fdf4', color: '#15803d' },
+    FULFILLED: { bg: '#f0fdf4', color: '#15803d' },
+    CLOSED: { bg: '#f1f5f9', color: '#475569' },
+    REJECTED: { bg: '#fef2f2', color: '#b91c1c' },
 };
 
-export default function PartnerCertificateRequestsIndex({ certificateRequests, filters }: Props) {
+export default function PartnerCertificateRequestsIndex({
+    certificateRequests,
+    filters,
+}: Props) {
     const { t } = useTranslation('certificates');
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('partner.requests.index.breadcrumb'), href: '/partner/certificate-requests' },
+        {
+            title: t('partner.requests.index.breadcrumb'),
+            href: '/partner/certificate-requests',
+        },
     ];
 
-    const STATUS_STYLES: Record<RequestStatus, { bg: string; color: string; label: string }> = {
-        DRAFT:          { ...STATUS_COLORS.DRAFT,          label: t('shared.requestStatus.DRAFT') },
-        PENDING:        { ...STATUS_COLORS.PENDING,        label: t('shared.requestStatus.PENDING') },
-        IN_REVIEW:      { ...STATUS_COLORS.IN_REVIEW,      label: t('shared.requestStatus.IN_REVIEW') },
-        INFO_REQUESTED: { ...STATUS_COLORS.INFO_REQUESTED, label: t('shared.requestStatus.INFO_REQUESTED') },
-        COMPLETED:      { ...STATUS_COLORS.COMPLETED,      label: t('shared.requestStatus.COMPLETED') },
-        APPROVED:       { ...STATUS_COLORS.APPROVED,       label: t('shared.requestStatus.APPROVED') },
-        FULFILLED:      { ...STATUS_COLORS.FULFILLED,      label: t('shared.requestStatus.FULFILLED') },
-        CLOSED:         { ...STATUS_COLORS.CLOSED,         label: t('shared.requestStatus.CLOSED') },
-        REJECTED:       { ...STATUS_COLORS.REJECTED,       label: t('shared.requestStatus.REJECTED') },
+    const STATUS_STYLES: Record<
+        RequestStatus,
+        { bg: string; color: string; label: string }
+    > = {
+        DRAFT: {
+            ...STATUS_COLORS.DRAFT,
+            label: t('shared.requestStatus.DRAFT'),
+        },
+        PENDING: {
+            ...STATUS_COLORS.PENDING,
+            label: t('shared.requestStatus.PENDING'),
+        },
+        IN_REVIEW: {
+            ...STATUS_COLORS.IN_REVIEW,
+            label: t('shared.requestStatus.IN_REVIEW'),
+        },
+        INFO_REQUESTED: {
+            ...STATUS_COLORS.INFO_REQUESTED,
+            label: t('shared.requestStatus.INFO_REQUESTED'),
+        },
+        COMPLETED: {
+            ...STATUS_COLORS.COMPLETED,
+            label: t('shared.requestStatus.COMPLETED'),
+        },
+        APPROVED: {
+            ...STATUS_COLORS.APPROVED,
+            label: t('shared.requestStatus.APPROVED'),
+        },
+        FULFILLED: {
+            ...STATUS_COLORS.FULFILLED,
+            label: t('shared.requestStatus.FULFILLED'),
+        },
+        CLOSED: {
+            ...STATUS_COLORS.CLOSED,
+            label: t('shared.requestStatus.CLOSED'),
+        },
+        REJECTED: {
+            ...STATUS_COLORS.REJECTED,
+            label: t('shared.requestStatus.REJECTED'),
+        },
     };
 
     const [search, setSearch] = useState(filters.search ?? '');
-    const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    const fmt = (d: string) =>
+        new Date(d).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
 
     function applyFilters(next: Partial<{ search: string; status: string }>) {
-        router.get(route('partner.certificate-requests.index'), { ...filters, ...next }, { preserveState: true, replace: true });
+        router.get(
+            route('partner.certificate-requests.index'),
+            { ...filters, ...next },
+            { preserveState: true, replace: true },
+        );
     }
 
     return (
@@ -76,57 +138,184 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
             <Head title={t('partner.requests.index.title')} />
 
             <div style={{ padding: '24px', width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '24px',
+                    }}
+                >
                     <div>
-                        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('partner.requests.index.heading')}</h1>
-                        <p style={{ color: '#64748b', fontSize: '13px', margin: '4px 0 0' }}>{t('partner.requests.index.subtitle')}</p>
+                        <h1
+                            style={{
+                                fontSize: '20px',
+                                fontWeight: 700,
+                                color: '#0f172a',
+                                margin: 0,
+                            }}
+                        >
+                            {t('partner.requests.index.heading')}
+                        </h1>
+                        <p
+                            style={{
+                                color: '#64748b',
+                                fontSize: '13px',
+                                margin: '4px 0 0',
+                            }}
+                        >
+                            {t('partner.requests.index.subtitle')}
+                        </p>
                     </div>
                     <Link href={route('partner.certificate-requests.create')}>
-                        <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <FilePlus2 size={15} /> {t('partner.requests.index.newRequest')}
+                        <Button
+                            className="bg-[#1e3a8a] text-white hover:bg-[#1e40af]"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                            }}
+                        >
+                            <FilePlus2 size={15} />{' '}
+                            {t('partner.requests.index.newRequest')}
                         </Button>
                     </Link>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'center' }}>
-                    <div style={{ position: 'relative', flex: 1, maxWidth: '380px' }}>
-                        <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <div
+                    style={{
+                        display: 'flex',
+                        gap: '8px',
+                        marginBottom: '16px',
+                        alignItems: 'center',
+                    }}
+                >
+                    <div
+                        style={{
+                            position: 'relative',
+                            flex: 1,
+                            maxWidth: '380px',
+                        }}
+                    >
+                        <Search
+                            size={16}
+                            style={{
+                                position: 'absolute',
+                                left: '10px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: '#94a3b8',
+                            }}
+                        />
                         <input
                             value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && applyFilters({ search })}
-                            placeholder={t('partner.requests.index.searchPlaceholder')}
-                            style={{ width: '100%', padding: '8px 8px 8px 34px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                            onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={(e) =>
+                                e.key === 'Enter' && applyFilters({ search })
+                            }
+                            placeholder={t(
+                                'partner.requests.index.searchPlaceholder',
+                            )}
+                            style={{
+                                width: '100%',
+                                padding: '8px 8px 8px 34px',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                            }}
                         />
                         {search && (
-                            <button type="button" onClick={() => {
+                            <button
+                                type="button"
+                                onClick={() => {
                                     setSearch('');
                                     applyFilters({ search: '' });
                                 }}
-                                    style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                                style={{
+                                    position: 'absolute',
+                                    right: '8px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: '#94a3b8',
+                                }}
+                            >
                                 <X size={14} />
                             </button>
                         )}
                     </div>
-                    <select value={filters.status ?? ''} onChange={e => applyFilters({ status: e.target.value })}
-                            style={{ padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>
-                        <option value="">{t('partner.requests.index.allStatuses')}</option>
-                        <option value="DRAFT">{t('shared.requestStatus.DRAFT')}</option>
-                        <option value="PENDING">{t('shared.requestStatus.PENDING')}</option>
-                        <option value="IN_REVIEW">{t('shared.requestStatus.IN_REVIEW')}</option>
-                        <option value="INFO_REQUESTED">{t('shared.requestStatus.INFO_REQUESTED')}</option>
-                        <option value="COMPLETED">{t('shared.requestStatus.COMPLETED')}</option>
-                        <option value="APPROVED">{t('shared.requestStatus.APPROVED')}</option>
-                        <option value="FULFILLED">{t('shared.requestStatus.FULFILLED')}</option>
-                        <option value="CLOSED">{t('shared.requestStatus.CLOSED')}</option>
-                        <option value="REJECTED">{t('shared.requestStatus.REJECTED')}</option>
+                    <select
+                        value={filters.status ?? ''}
+                        onChange={(e) =>
+                            applyFilters({ status: e.target.value })
+                        }
+                        style={{
+                            padding: '8px 10px',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <option value="">
+                            {t('partner.requests.index.allStatuses')}
+                        </option>
+                        <option value="DRAFT">
+                            {t('shared.requestStatus.DRAFT')}
+                        </option>
+                        <option value="PENDING">
+                            {t('shared.requestStatus.PENDING')}
+                        </option>
+                        <option value="IN_REVIEW">
+                            {t('shared.requestStatus.IN_REVIEW')}
+                        </option>
+                        <option value="INFO_REQUESTED">
+                            {t('shared.requestStatus.INFO_REQUESTED')}
+                        </option>
+                        <option value="COMPLETED">
+                            {t('shared.requestStatus.COMPLETED')}
+                        </option>
+                        <option value="APPROVED">
+                            {t('shared.requestStatus.APPROVED')}
+                        </option>
+                        <option value="FULFILLED">
+                            {t('shared.requestStatus.FULFILLED')}
+                        </option>
+                        <option value="CLOSED">
+                            {t('shared.requestStatus.CLOSED')}
+                        </option>
+                        <option value="REJECTED">
+                            {t('shared.requestStatus.REJECTED')}
+                        </option>
                     </select>
                 </div>
 
-                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <div
+                    style={{
+                        background: '#fff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                    }}
+                >
+                    <table
+                        style={{
+                            width: '100%',
+                            borderCollapse: 'collapse',
+                            fontSize: '13px',
+                        }}
+                    >
                         <thead>
-                            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                            <tr
+                                style={{
+                                    background: '#f8fafc',
+                                    borderBottom: '1px solid #e2e8f0',
+                                }}
+                            >
                                 {[
                                     t('partner.requests.index.table.reference'),
                                     t('partner.requests.index.table.date'),
@@ -134,72 +323,218 @@ export default function PartnerCertificateRequestsIndex({ certificateRequests, f
                                     t('partner.requests.index.table.route'),
                                     t('partner.requests.index.table.status'),
                                     '',
-                                ].map(h => (
-                                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>{h}</th>
+                                ].map((h) => (
+                                    <th
+                                        key={h}
+                                        style={{
+                                            padding: '10px 14px',
+                                            textAlign: 'left',
+                                            fontWeight: 600,
+                                            color: '#374151',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        {h}
+                                    </th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {certificateRequests.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-                                        <Inbox size={32} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.4 }} />
+                                    <td
+                                        colSpan={6}
+                                        style={{
+                                            padding: '40px',
+                                            textAlign: 'center',
+                                            color: '#94a3b8',
+                                        }}
+                                    >
+                                        <Inbox
+                                            size={32}
+                                            style={{
+                                                margin: '0 auto 8px',
+                                                display: 'block',
+                                                opacity: 0.4,
+                                            }}
+                                        />
                                         {t('partner.requests.index.empty')}
                                     </td>
                                 </tr>
-                            ) : certificateRequests.data.map((cr, i) => {
-                                const s = STATUS_STYLES[cr.status];
+                            ) : (
+                                certificateRequests.data.map((cr, i) => {
+                                    const s = STATUS_STYLES[cr.status];
 
-                                return (
-                                    <tr key={cr.id} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                                        <td style={{ padding: '10px 14px', color: '#374151', fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{cr.reference ?? '—'}</td>
-                                        <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{fmt(cr.created_at)}</td>
-                                        <td style={{ padding: '10px 14px', fontWeight: 500, color: '#0f172a' }}>{cr.insured_name ?? '—'}</td>
-                                        <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>
-                                            {cr.voyage_from && cr.voyage_to ? <>{cr.voyage_from} <span style={{ color: '#94a3b8' }}>→</span> {cr.voyage_to}</> : '—'}
-                                        </td>
-                                        <td style={{ padding: '10px 14px' }}>
-                                            <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: '3px 10px', fontSize: 11.5, fontWeight: 500 }}>
-                                                {s.label}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '10px 14px' }}>
-                                            <Link href={route('partner.certificate-requests.show', { certificateRequest: cr.id })}>
-                                                <button title={t('partner.requests.index.view')} style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', color: '#3b82f6' }}>
-                                                    <Eye size={14} />
-                                                </button>
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                    return (
+                                        <tr
+                                            key={cr.id}
+                                            style={{
+                                                borderBottom:
+                                                    '1px solid #f1f5f9',
+                                                background:
+                                                    i % 2 === 0
+                                                        ? '#fff'
+                                                        : '#fafafa',
+                                            }}
+                                        >
+                                            <td
+                                                style={{
+                                                    padding: '10px 14px',
+                                                    color: '#374151',
+                                                    fontFamily: 'monospace',
+                                                    fontSize: 12,
+                                                    whiteSpace: 'nowrap',
+                                                }}
+                                            >
+                                                {cr.reference ?? '—'}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: '10px 14px',
+                                                    color: '#374151',
+                                                    whiteSpace: 'nowrap',
+                                                }}
+                                            >
+                                                {fmt(cr.created_at)}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: '10px 14px',
+                                                    fontWeight: 500,
+                                                    color: '#0f172a',
+                                                }}
+                                            >
+                                                {cr.insured_name ?? '—'}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: '10px 14px',
+                                                    color: '#374151',
+                                                    fontSize: 12,
+                                                }}
+                                            >
+                                                {cr.voyage_from &&
+                                                cr.voyage_to ? (
+                                                    <>
+                                                        {cr.voyage_from}{' '}
+                                                        <span
+                                                            style={{
+                                                                color: '#94a3b8',
+                                                            }}
+                                                        >
+                                                            →
+                                                        </span>{' '}
+                                                        {cr.voyage_to}
+                                                    </>
+                                                ) : (
+                                                    '—'
+                                                )}
+                                            </td>
+                                            <td
+                                                style={{ padding: '10px 14px' }}
+                                            >
+                                                <span
+                                                    style={{
+                                                        background: s.bg,
+                                                        color: s.color,
+                                                        borderRadius: 20,
+                                                        padding: '3px 10px',
+                                                        fontSize: 11.5,
+                                                        fontWeight: 500,
+                                                    }}
+                                                >
+                                                    {s.label}
+                                                </span>
+                                            </td>
+                                            <td
+                                                style={{ padding: '10px 14px' }}
+                                            >
+                                                <Link
+                                                    href={route(
+                                                        'partner.certificate-requests.show',
+                                                        {
+                                                            certificateRequest:
+                                                                cr.id,
+                                                        },
+                                                    )}
+                                                >
+                                                    <button
+                                                        title={t(
+                                                            'partner.requests.index.view',
+                                                        )}
+                                                        style={{
+                                                            border: '1px solid #e2e8f0',
+                                                            background: '#fff',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 7px',
+                                                            cursor: 'pointer',
+                                                            color: '#3b82f6',
+                                                        }}
+                                                    >
+                                                        <Eye size={14} />
+                                                    </button>
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
                         </tbody>
                     </table>
                 </div>
 
                 {certificateRequests.last_page > 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '20px' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            marginTop: '20px',
+                        }}
+                    >
                         {certificateRequests.links.map((link, i) => {
                             if (!link.url && !link.active) {
                                 return null;
                             }
 
-                            const isArrow = link.label.includes('Previous') || link.label.includes('Next');
+                            const isArrow =
+                                link.label.includes('Previous') ||
+                                link.label.includes('Next');
 
                             return (
                                 <button
                                     key={i}
                                     disabled={!link.url}
-                                    onClick={() => link.url && router.get(link.url)}
+                                    onClick={() =>
+                                        link.url && router.get(link.url)
+                                    }
                                     style={{
-                                        padding: '6px 10px', border: '1px solid',
-                                        borderColor: link.active ? '#1e3a8a' : '#e2e8f0',
-                                        background: link.active ? '#1e3a8a' : '#fff',
+                                        padding: '6px 10px',
+                                        border: '1px solid',
+                                        borderColor: link.active
+                                            ? '#1e3a8a'
+                                            : '#e2e8f0',
+                                        background: link.active
+                                            ? '#1e3a8a'
+                                            : '#fff',
                                         color: link.active ? '#fff' : '#374151',
-                                        borderRadius: '4px', cursor: link.url ? 'pointer' : 'default',
-                                        opacity: link.url ? 1 : 0.4, fontSize: '13px',
-                                    }}>
-                                    {isArrow ? (link.label.includes('Previous') ? <ChevronLeft size={14} /> : <ChevronRight size={14} />) : link.label}
+                                        borderRadius: '4px',
+                                        cursor: link.url
+                                            ? 'pointer'
+                                            : 'default',
+                                        opacity: link.url ? 1 : 0.4,
+                                        fontSize: '13px',
+                                    }}
+                                >
+                                    {isArrow ? (
+                                        link.label.includes('Previous') ? (
+                                            <ChevronLeft size={14} />
+                                        ) : (
+                                            <ChevronRight size={14} />
+                                        )
+                                    ) : (
+                                        link.label
+                                    )}
                                 </button>
                             );
                         })}

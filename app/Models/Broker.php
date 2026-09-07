@@ -36,19 +36,20 @@ class Broker extends Model
     protected function casts(): array
     {
         return [
-            'commission_rate'     => 'decimal:2',
-            'is_active'           => 'boolean',
-            'blocked_at'          => 'datetime',
+            'commission_rate' => 'decimal:2',
+            'is_active' => 'boolean',
+            'blocked_at' => 'datetime',
             // US-051 — Chiffrement données PII (non-queryables)
-            'address'             => 'encrypted',
-            'phone'               => 'encrypted',
+            'address' => 'encrypted',
+            'phone' => 'encrypted',
             'registration_number' => 'encrypted',
         ];
     }
 
     // ── Constantes ───────────────────────────────────────────
     // Valeurs contrainte DB : fix_brokers_type_constraint migration
-    const TYPE_LOCAL   = 'courtier_local';
+    const TYPE_LOCAL = 'courtier_local';
+
     const TYPE_FOREIGN = 'partenaire_etranger';
 
     // ── Scopes ───────────────────────────────────────────────
@@ -65,9 +66,9 @@ class Broker extends Model
     public function scopeSearch($query, string $term)
     {
         return $query->where(function ($q) use ($term) {
-            $q->where('name',  'ilike', "%{$term}%")
-              ->orWhere('code', 'ilike', "%{$term}%")
-              ->orWhere('email','ilike', "%{$term}%");
+            $q->where('name', 'ilike', "%{$term}%")
+                ->orWhere('code', 'ilike', "%{$term}%")
+                ->orWhere('email', 'ilike', "%{$term}%");
         });
     }
 

@@ -26,7 +26,7 @@ class ContractLimitController extends Controller
     {
         $this->authorizeTenant($contract);
 
-        $usedLimit         = (float) $contract->used_limit;
+        $usedLimit = (float) $contract->used_limit;
         // Plafond effectivement opposable : Traité si le contrat a été
         // débloqué suite à validation DTAG d'un dépassement NN300, sinon
         // NN300 standard — cf. InsuranceContract::effectiveCeiling().
@@ -47,28 +47,28 @@ class ContractLimitController extends Controller
             ->limit(5)
             ->get(['id', 'certificate_number', 'insured_value', 'status', 'issued_at', 'cancelled_at'])
             ->map(fn ($c) => [
-                'id'                 => $c->id,
+                'id' => $c->id,
                 'certificate_number' => $c->certificate_number,
-                'insured_value'      => (float) $c->insured_value,
-                'status'             => $c->status,
-                'date'               => ($c->issued_at ?? $c->cancelled_at)?->format('d/m/Y H:i'),
+                'insured_value' => (float) $c->insured_value,
+                'status' => $c->status,
+                'date' => ($c->issued_at ?? $c->cancelled_at)?->format('d/m/Y H:i'),
             ]);
 
         return response()->json([
-            'contract_id'        => $contract->id,
-            'contract_number'    => $contract->contract_number,
-            'currency_code'      => $contract->currency_code,
+            'contract_id' => $contract->id,
+            'contract_number' => $contract->contract_number,
+            'currency_code' => $contract->currency_code,
             'subscription_limit' => $subscriptionLimit,
-            'nn300_unlocked'     => $contract->isNn300Unlocked(),
-            'used_limit'         => $usedLimit,
-            'remaining_limit'    => $remainingLimit,
-            'usage_percent'      => $usagePercent,
+            'nn300_unlocked' => $contract->isNn300Unlocked(),
+            'used_limit' => $usedLimit,
+            'remaining_limit' => $remainingLimit,
+            'usage_percent' => $usagePercent,
             'certificates_count' => $contract->certificates_count,
             'certificates_limit' => $contract->certificates_limit,
-            'alert_level'        => $this->getAlertLevel($usagePercent),
-            'can_issue'          => $contract->canIssue(),
-            'recent_certs'       => $recentCerts,
-            'updated_at'         => now()->toISOString(),
+            'alert_level' => $this->getAlertLevel($usagePercent),
+            'can_issue' => $contract->canIssue(),
+            'recent_certs' => $recentCerts,
+            'updated_at' => now()->toISOString(),
         ]);
     }
 
@@ -86,47 +86,52 @@ class ContractLimitController extends Controller
             ->orderByRaw('(used_limit / subscription_limit) DESC')
             ->get()
             ->map(fn ($c) => [
-                'id'                 => $c->id,
-                'contract_number'    => $c->contract_number,
-                'insured_name'       => $c->insured_name,
-                'currency_code'      => $c->currency_code,
+                'id' => $c->id,
+                'contract_number' => $c->contract_number,
+                'insured_name' => $c->insured_name,
+                'currency_code' => $c->currency_code,
                 'subscription_limit' => (float) $c->subscription_limit,
-                'effective_limit'    => $c->effectiveCeiling(),
-                'nn300_unlocked'     => $c->isNn300Unlocked(),
-                'treaty_limit'       => $c->treaty_limit !== null ? (float) $c->treaty_limit : null,
-                'used_limit'         => (float) $c->used_limit,
-                'remaining_limit'    => $c->remainingLimit(),
-                'usage_percent'      => $c->usagePercent(),
+                'effective_limit' => $c->effectiveCeiling(),
+                'nn300_unlocked' => $c->isNn300Unlocked(),
+                'treaty_limit' => $c->treaty_limit !== null ? (float) $c->treaty_limit : null,
+                'used_limit' => (float) $c->used_limit,
+                'remaining_limit' => $c->remainingLimit(),
+                'usage_percent' => $c->usagePercent(),
                 'certificates_count' => $c->certificates_count,
                 'certificates_limit' => $c->certificates_limit,
-                'alert_level'        => $this->getAlertLevel($c->usagePercent()),
-                'expiry_date'        => $c->expiry_date->format('d/m/Y'),
-                'can_issue'          => $c->canIssue(),
-                'tenant'             => $c->tenant?->only(['name', 'code']),
+                'alert_level' => $this->getAlertLevel($c->usagePercent()),
+                'expiry_date' => $c->expiry_date->format('d/m/Y'),
+                'can_issue' => $c->canIssue(),
+                'tenant' => $c->tenant?->only(['name', 'code']),
             ]);
 
         // Stats globales
         $stats = [
-            'total_contracts'  => $contracts->count(),
-            'critical'         => $contracts->where('alert_level', 'critical')->count(),
-            'warning'          => $contracts->where('alert_level', 'warning')->count(),
-            'ok'               => $contracts->where('alert_level', 'ok')->count(),
-            'total_used'       => $contracts->sum('used_limit'),
-            'total_limit'      => $contracts->sum('effective_limit'),
+            'total_contracts' => $contracts->count(),
+            'critical' => $contracts->where('alert_level', 'critical')->count(),
+            'warning' => $contracts->where('alert_level', 'warning')->count(),
+            'ok' => $contracts->where('alert_level', 'ok')->count(),
+            'total_used' => $contracts->sum('used_limit'),
+            'total_limit' => $contracts->sum('effective_limit'),
         ];
 
         return Inertia::render('admin/contracts/limits', [
             'contracts' => $contracts,
-            'stats'     => $stats,
-            'isSA'      => $isSA,
+            'stats' => $stats,
+            'isSA' => $isSA,
         ]);
     }
 
     // ── Niveau d'alerte ───────────────────────────────────────
     private function getAlertLevel(float $percent): string
     {
-        if ($percent >= 95) return 'critical'; // rouge — blocage imminent
-        if ($percent >= 80) return 'warning';  // orange — alerte
+        if ($percent >= 95) {
+            return 'critical';
+        } // rouge — blocage imminent
+        if ($percent >= 80) {
+            return 'warning';
+        }  // orange — alerte
+
         return 'ok';                            // vert — normal
     }
 
@@ -134,7 +139,11 @@ class ContractLimitController extends Controller
     private function authorizeTenant(InsuranceContract $contract): void
     {
         $user = auth()->user();
-        if ($user->hasRole('super_admin')) return;
-        if ((string) $user->tenant_id !== (string) $contract->tenant_id) abort(403);
+        if ($user->hasRole('super_admin')) {
+            return;
+        }
+        if ((string) $user->tenant_id !== (string) $contract->tenant_id) {
+            abort(403);
+        }
     }
 }

@@ -29,15 +29,18 @@ class ContractAmendment extends Model
     ];
 
     protected $casts = [
-        'changes'      => 'array',
+        'changes' => 'array',
         'submitted_at' => 'datetime',
-        'reviewed_at'  => 'datetime',
-        'applied_at'   => 'datetime',
+        'reviewed_at' => 'datetime',
+        'applied_at' => 'datetime',
     ];
 
-    const STATUS_DRAFT    = 'DRAFT';
-    const STATUS_PENDING  = 'PENDING';
+    const STATUS_DRAFT = 'DRAFT';
+
+    const STATUS_PENDING = 'PENDING';
+
     const STATUS_APPROVED = 'APPROVED';
+
     const STATUS_REJECTED = 'REJECTED';
 
     // ── Relations ────────────────────────────────────────────
@@ -67,10 +70,25 @@ class ContractAmendment extends Model
     }
 
     // ── Helpers ───────────────────────────────────────────────
-    public function isDraft(): bool    { return $this->status === self::STATUS_DRAFT; }
-    public function isPending(): bool  { return $this->status === self::STATUS_PENDING; }
-    public function isApproved(): bool { return $this->status === self::STATUS_APPROVED; }
-    public function isRejected(): bool { return $this->status === self::STATUS_REJECTED; }
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === self::STATUS_APPROVED;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
+    }
 
     /**
      * Génère le numéro d'avenant
@@ -78,7 +96,7 @@ class ContractAmendment extends Model
      */
     public static function generateNumber(InsuranceContract $contract, int $sequence): string
     {
-        return 'AV-' . $contract->contract_number . '-' . str_pad($sequence, 3, '0', STR_PAD_LEFT);
+        return 'AV-'.$contract->contract_number.'-'.str_pad($sequence, 3, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -95,19 +113,21 @@ class ContractAmendment extends Model
 
         $changes = [];
         foreach ($trackableFields as $field) {
-            if (! array_key_exists($field, $newValues)) continue;
+            if (! array_key_exists($field, $newValues)) {
+                continue;
+            }
 
             $before = $contract->$field;
-            $after  = $newValues[$field];
+            $after = $newValues[$field];
 
             // Normaliser pour comparaison
-            $beforeStr = is_array($before) ? json_encode($before) : (string)($before ?? '');
-            $afterStr  = is_array($after)  ? json_encode($after)  : (string)($after  ?? '');
+            $beforeStr = is_array($before) ? json_encode($before) : (string) ($before ?? '');
+            $afterStr = is_array($after) ? json_encode($after) : (string) ($after ?? '');
 
             if ($beforeStr !== $afterStr) {
                 $changes[$field] = [
                     'before' => $before,
-                    'after'  => $after,
+                    'after' => $after,
                 ];
             }
         }

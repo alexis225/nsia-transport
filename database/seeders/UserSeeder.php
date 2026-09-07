@@ -16,16 +16,16 @@ class UserSeeder extends Seeder
         $this->command->info('👤 Création des utilisateurs...');
 
         // Super Admin — pas de tenant
-        //$this->createUser(null, 'super_admin', 'Admin', 'DTAG','admin@nsia-groupe.com', 'SuperAdmin@2026!');
-        $this->createUser(null, 'super_admin', 'Admin', 'DTAG','jean-louis.goueguy@nsiaholdingassurances.com', 'SuperAdmin@2026!');
+        // $this->createUser(null, 'super_admin', 'Admin', 'DTAG','admin@nsia-groupe.com', 'SuperAdmin@2026!');
+        $this->createUser(null, 'super_admin', 'Admin', 'DTAG', 'jean-louis.goueguy@nsiaholdingassurances.com', 'SuperAdmin@2026!');
 
         // Un user par rôle par filiale (sauf DTAG)
         $filiales = DB::table('tenants')->where('code', '!=', 'DTAG')->get();
 
         foreach ($filiales as $tenant) {
             $code = strtolower($tenant->code);
-            $this->createUser($tenant->code, 'admin_filiale',  'Admin',        $tenant->code, "admin.{$code}@nsia-{$code}.com",        "Admin@{$tenant->code}2026!");
-            $this->createUser($tenant->code, 'souscripteur',   'Souscripteur', $tenant->code, "souscripteur.{$code}@nsia-{$code}.com", "Souscript@{$tenant->code}2026!");
+            $this->createUser($tenant->code, 'admin_filiale', 'Admin', $tenant->code, "admin.{$code}@nsia-{$code}.com", "Admin@{$tenant->code}2026!");
+            $this->createUser($tenant->code, 'souscripteur', 'Souscripteur', $tenant->code, "souscripteur.{$code}@nsia-{$code}.com", "Souscript@{$tenant->code}2026!");
 
             $courtier = $this->createUser($tenant->code, 'courtier_local', 'Courtier', $tenant->code, "courtier.{$code}@nsia-{$code}.com", "Courtier@{$tenant->code}2026!");
             $this->linkDemoBroker($courtier, $tenant->id, $tenant->code);
@@ -40,11 +40,11 @@ class UserSeeder extends Seeder
 
     private function createUser(
         ?string $tenantCode,
-        string  $role,
-        string  $firstName,
-        string  $lastName,
-        string  $email,
-        string  $password,
+        string $role,
+        string $firstName,
+        string $lastName,
+        string $email,
+        string $password,
     ): User {
         // Récupérer le tenant_id UUID via DB::table (pas via modèle)
         $tenantId = null;
@@ -63,14 +63,14 @@ class UserSeeder extends Seeder
         $user = User::firstOrCreate(
             ['email' => $email],
             [
-                'tenant_id'           => $tenantId,
-                'first_name'          => $firstName,
-                'last_name'           => $lastName,
-                'password'            => Hash::make($password),
-                'email_verified_at'   => now(),
-                'is_active'           => true,
-                'locale'              => 'fr',
-                'timezone'            => $timezone,
+                'tenant_id' => $tenantId,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'password' => Hash::make($password),
+                'email_verified_at' => now(),
+                'is_active' => true,
+                'locale' => 'fr',
+                'timezone' => $timezone,
                 'password_changed_at' => now(),
             ]
         );
@@ -90,12 +90,12 @@ class UserSeeder extends Seeder
     private function linkDemoBroker(User $user, string $tenantId, string $tenantCode): void
     {
         $broker = Broker::firstOrCreate(
-            ['tenant_id' => $tenantId, 'code' => 'BRK-' . $tenantCode . '-DEMO'],
+            ['tenant_id' => $tenantId, 'code' => 'BRK-'.$tenantCode.'-DEMO'],
             [
-                'name'       => "Courtier Démo {$tenantCode}",
-                'type'       => Broker::TYPE_LOCAL,
-                'email'      => $user->email,
-                'is_active'  => true,
+                'name' => "Courtier Démo {$tenantCode}",
+                'type' => Broker::TYPE_LOCAL,
+                'email' => $user->email,
+                'is_active' => true,
                 'created_by' => $user->id,
             ]
         );

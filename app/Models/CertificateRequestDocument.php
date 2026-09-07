@@ -21,11 +21,15 @@ class CertificateRequestDocument extends Model
     ];
 
     // ── Types de pièces jointes ────────────────────────────────
-    const TYPE_BL                  = 'BL';
-    const TYPE_INVOICE             = 'FACTURE';
-    const TYPE_FDI                 = 'FDI';
-    const TYPE_TRANSPORT_DOCUMENT  = 'DOCUMENTS_TRANSPORT';
-    const TYPE_OTHER               = 'AUTRE';
+    const TYPE_BL = 'BL';
+
+    const TYPE_INVOICE = 'FACTURE';
+
+    const TYPE_FDI = 'FDI';
+
+    const TYPE_TRANSPORT_DOCUMENT = 'DOCUMENTS_TRANSPORT';
+
+    const TYPE_OTHER = 'AUTRE';
 
     const TYPES = [
         self::TYPE_BL,
@@ -36,11 +40,11 @@ class CertificateRequestDocument extends Model
     ];
 
     const TYPE_LABELS = [
-        self::TYPE_BL                 => 'BL (Bill of Lading)',
-        self::TYPE_INVOICE            => 'Facture',
-        self::TYPE_FDI                => 'FDI',
+        self::TYPE_BL => 'BL (Bill of Lading)',
+        self::TYPE_INVOICE => 'Facture',
+        self::TYPE_FDI => 'FDI',
         self::TYPE_TRANSPORT_DOCUMENT => 'Document de transport',
-        self::TYPE_OTHER              => 'Autre justificatif',
+        self::TYPE_OTHER => 'Autre justificatif',
     ];
 
     public function certificateRequest(): BelongsTo

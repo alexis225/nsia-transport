@@ -18,7 +18,7 @@ class CheckIpBlacklist
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $ip       = $request->ip();
+        $ip = $request->ip();
         $cacheKey = "ip_blocked_{$ip}";
 
         try {
@@ -49,7 +49,7 @@ class CheckIpBlacklist
     private function queryIsBlocked(string $ip): bool
     {
         $inTransaction = DB::transactionLevel() > 0;
-        $sp            = 'sp_ip_' . substr(md5($ip), 0, 8);
+        $sp = 'sp_ip_'.substr(md5($ip), 0, 8);
 
         if ($inTransaction) {
             try {
@@ -71,8 +71,10 @@ class CheckIpBlacklist
             if ($inTransaction) {
                 try {
                     DB::statement("ROLLBACK TO SAVEPOINT {$sp}");
-                } catch (\Throwable) {}
+                } catch (\Throwable) {
+                }
             }
+
             return false;
         }
     }

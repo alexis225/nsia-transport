@@ -9,9 +9,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+
 class SocialAuthController extends Controller
 {
     private const ALLOWED_PROVIDERS = ['google', 'microsoft'];
@@ -23,11 +23,11 @@ class SocialAuthController extends Controller
         $redirectUri = urlencode(env('MICROSOFT_REDIRECT_URI'));
         $scope = urlencode('User.Read');
 
-        $url = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize" .
-            "?client_id={$clientId}" .
-            "&response_type=code" .
-            "&redirect_uri={$redirectUri}" .
-            "&response_mode=query" .
+        $url = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'.
+            "?client_id={$clientId}".
+            '&response_type=code'.
+            "&redirect_uri={$redirectUri}".
+            '&response_mode=query'.
             "&scope={$scope}";
 
         return redirect()->away($url);
@@ -59,65 +59,64 @@ class SocialAuthController extends Controller
             // }
 
             // $tokenData = $tokenResponse->json();
-        
+
             // $idToken = $tokenData['access_token'];
             // $userInfo = $this->decodeJwt($idToken);
-            //---------------------user info pour les tests à supprimer après les tests------------------
+            // ---------------------user info pour les tests à supprimer après les tests------------------
             $userInfo = [
-                'upn'         => 'jean-louis.goueguy@nsiaholdingassurances.com',
-                'given_name'  => 'Jean-Louis Alexis',
+                'upn' => 'jean-louis.goueguy@nsiaholdingassurances.com',
+                'given_name' => 'Jean-Louis Alexis',
                 'family_name' => 'GOUEGUY',
-                'name'        => 'GOUEGUY Jean-Louis Alexis [NSIA Holding Assurances]',
-                'email'       => 'jean-louis.goueguy@nsiaholdingassurances.com',
+                'name' => 'GOUEGUY Jean-Louis Alexis [NSIA Holding Assurances]',
+                'email' => 'jean-louis.goueguy@nsiaholdingassurances.com',
             ];
-            //dd($userInfo, $tokenResponse->json()["access_token"]);
+            // dd($userInfo, $tokenResponse->json()["access_token"]);
         } catch (\Exception $e) {
             return redirect()->route('login')
                 ->withErrors(['email' => 'Authentification OAuth échouée. Veuillez réessayer.']);
         }
         $email = $userInfo['upn'];
-        if (!  $email) {
+        if (! $email) {
             return redirect()->route('login')
                 ->withErrors(['email' => 'Aucun email fourni par le provider OAuth.']);
         }
-        
+
         $allowedDomains = explode(',', env('MICROSOFT_ALLOWED_DOMAINS', ''));
-        if (!empty(array_filter($allowedDomains))) {
-            $domain = substr(strrchr($email, "@"), 1);
-            if (!in_array($domain, $allowedDomains)) {
+        if (! empty(array_filter($allowedDomains))) {
+            $domain = substr(strrchr($email, '@'), 1);
+            if (! in_array($domain, $allowedDomains)) {
                 return redirect('/')->with('error', 'Votre domaine email n\'est pas autorisé.');
             }
         }
-        
+
         // ── Trouver ou créer l'utilisateur ───────────────────
-        $user = User::where('email',  $email)->first();
-       
+        $user = User::where('email', $email)->first();
 
         if (! $user) {
             $user = User::create([
-                'email'             =>  $email,
-                'first_name'        => $this->extractFirstName($userInfo["given_name"]),
-                'last_name'         => $this->extractLastName($userInfo["family_name"]),
-                'password'          => Hash::make(Str::random(32)),
+                'email' => $email,
+                'first_name' => $this->extractFirstName($userInfo['given_name']),
+                'last_name' => $this->extractLastName($userInfo['family_name']),
+                'password' => Hash::make(Str::random(32)),
                 'email_verified_at' => now(),
-                'is_active'         => true,
-                'locale'            => 'fr',
-                'timezone'          => 'Africa/Abidjan'
+                'is_active' => true,
+                'locale' => 'fr',
+                'timezone' => 'Africa/Abidjan',
             ]);
 
-            $user->assignRole("client");
+            $user->assignRole('client');
 
             AuditLog::create([
-                'tenant_id'      => null,
-                'user_id'        => $user->id,
-                'action'         => 'oauth_register',
+                'tenant_id' => null,
+                'user_id' => $user->id,
+                'action' => 'oauth_register',
                 'entity_type' => 'auth',
-                'entity_id'   => $user->id,
-                'ip_address'     => $request->ip(),
-                'user_agent'     => $request->userAgent(),
-                'new_data'       => ['provider' => $provider, 'email' => $user->email],
+                'entity_id' => $user->id,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'new_data' => ['provider' => $provider, 'email' => $user->email],
             ]);
-            
+
         }
 
         // ── Compte désactivé ─────────────────────────────────
@@ -138,21 +137,21 @@ class SocialAuthController extends Controller
         $request->session()->regenerate();
 
         $user->update([
-            'last_login_at'         => now(),
-            'last_login_ip'         => $request->ip(),
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
             'failed_login_attempts' => 0,
-            'locked_until'          => null,
+            'locked_until' => null,
         ]);
 
         AuditLog::create([
-            'tenant_id'      => $user->tenant_id,
-            'user_id'        => $user->id,
-            'action'         => 'oauth_login_success',
+            'tenant_id' => $user->tenant_id,
+            'user_id' => $user->id,
+            'action' => 'oauth_login_success',
             'entity_type' => 'auth',
-            'entity_id'   => $user->id,
-            'ip_address'     => $request->ip(),
-            'user_agent'     => $request->userAgent(),
-            'new_data'       => ['provider' => $provider],
+            'entity_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_data' => ['provider' => $provider],
         ]);
 
         return redirect()->intended(route('admin.dashboard'));
@@ -167,15 +166,21 @@ class SocialAuthController extends Controller
 
     private function extractFirstName(?string $fullName): string
     {
-        if (! $fullName) return 'Utilisateur';
+        if (! $fullName) {
+            return 'Utilisateur';
+        }
+
         return explode(' ', trim($fullName))[0] ?? 'Utilisateur';
     }
 
     private function extractLastName(?string $fullName): string
     {
-        if (! $fullName) return '';
+        if (! $fullName) {
+            return '';
+        }
         $parts = explode(' ', trim($fullName));
         array_shift($parts);
+
         return implode(' ', $parts);
     }
 
@@ -183,7 +188,7 @@ class SocialAuthController extends Controller
     {
         [$header, $payload, $signature] = explode('.', $jwt);
         $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $payload)), true);
+
         return $payload;
     }
-
 }

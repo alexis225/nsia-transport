@@ -54,7 +54,7 @@ it('redirige vers login si non authentifié (centre notifications)', function ()
 });
 
 it('redirige vers login si non authentifié (marquer comme lue)', function () {
-    $this->patch('/admin/notifications/feed/' . Str::uuid() . '/read')
+    $this->patch('/admin/notifications/feed/'.Str::uuid().'/read')
         ->assertRedirect('/login');
 });
 
@@ -78,10 +78,10 @@ it('NotificationHelper::send persiste une notification in-app avec les bons cham
 
     $this->assertDatabaseHas('notifications', [
         'notifiable_type' => 'App\\Models\\User',
-        'notifiable_id'   => $user->id,
-        'type'            => Notification::TYPE_CERT_ISSUED,
-        'tenant_id'       => $user->tenant_id,
-        'channel'         => Notification::CHANNEL_IN_APP,
+        'notifiable_id' => $user->id,
+        'type' => Notification::TYPE_CERT_ISSUED,
+        'tenant_id' => $user->tenant_id,
+        'channel' => Notification::CHANNEL_IN_APP,
     ]);
 
     $notif = Notification::forUser($user->id)->first();
@@ -121,7 +121,7 @@ it('NotificationPreference::accepts est vrai par défaut puis faux après désac
 // ── Marquage comme lue (NotificationController::markRead) ────────
 
 it('marque comme lue une notification appartenant à l\'utilisateur courant', function () {
-    $user  = makeNotifUser();
+    $user = makeNotifUser();
     $notif = Notification::send($user, 'CertificateIssued', 'Titre', 'Corps');
 
     $this->actingAs($user)
@@ -150,7 +150,7 @@ it('ne marque pas comme lue une notification appartenant à un autre utilisateur
 });
 
 it('marque toutes les notifications de l\'utilisateur courant comme lues', function () {
-    $user  = makeNotifUser();
+    $user = makeNotifUser();
     $other = makeNotifUser();
 
     $n1 = Notification::send($user, 'CertificateIssued', 'T1', 'B1');
@@ -183,7 +183,7 @@ it('liste le flux de notifications avec le compteur non lues', function () {
 });
 
 it('le flux ne retourne que les notifications de l\'utilisateur courant', function () {
-    $user  = makeNotifUser();
+    $user = makeNotifUser();
     $other = makeNotifUser();
 
     Notification::send($user, 'CertificateIssued', 'Titre 1', 'Corps 1');
@@ -221,9 +221,9 @@ it('sauvegarde les préférences de notification', function () {
     $response->assertStatus(200)->assertJson(['ok' => true]);
 
     $this->assertDatabaseHas('notification_preferences', [
-        'user_id'    => $user->id,
+        'user_id' => $user->id,
         'event_type' => 'CertificateIssued',
-        'in_app'     => false,
-        'email'      => true,
+        'in_app' => false,
+        'email' => true,
     ]);
 });

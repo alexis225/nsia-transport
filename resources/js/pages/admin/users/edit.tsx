@@ -1,22 +1,25 @@
 import { Head, useForm } from '@inertiajs/react';
+import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Edit2, Check } from 'lucide-react';
 
 interface User {
-    id: string; first_name: string; last_name: string;
-    email: string; phone: string | null;
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string | null;
     roles: { name: string }[];
     tenant: { id: string; name: string } | null;
 }
 interface Props {
-    user:    User;
-    roles:   string[];
+    user: User;
+    roles: string[];
     tenants: { id: string; name: string; code: string }[];
 }
 
@@ -29,14 +32,15 @@ export default function UserEdit({ user, roles, tenants }: Props) {
         { title: t('edit.breadcrumbEdit') },
     ];
 
-    const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
-        first_name: user.first_name,
-        last_name:  user.last_name,
-        email:      user.email,
-        phone:      user.phone ?? '',
-        role:       user.roles?.[0]?.name ?? '',
-        tenant_id:  user.tenant?.id ?? '',
-    });
+    const { data, setData, put, processing, errors, recentlySuccessful } =
+        useForm({
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            phone: user.phone ?? '',
+            role: user.roles?.[0]?.name ?? '',
+            tenant_id: user.tenant?.id ?? '',
+        });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -45,7 +49,9 @@ export default function UserEdit({ user, roles, tenants }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${t('edit.title', { name: `${user.first_name} ${user.last_name}` })} — NSIA Transport`}/>
+            <Head
+                title={`${t('edit.title', { name: `${user.first_name} ${user.last_name}` })} — NSIA Transport`}
+            />
             <style>{`
                 .ue-wrap{width:100%;max-width:760px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .ue-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
@@ -68,87 +74,217 @@ export default function UserEdit({ user, roles, tenants }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="ue-wrap">
-
                     {/* Hero */}
                     <div className="ue-hero">
                         <div className="ue-avatar">
                             {`${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase()}
                         </div>
                         <div className="ue-hero-info">
-                            <div className="ue-hero-name">{t('edit.hero.name', { name: `${user.first_name} ${user.last_name}` })}</div>
-                            <div className="ue-hero-sub">{user.email} · {user.tenant?.name ?? t('edit.hero.noTenant')}</div>
+                            <div className="ue-hero-name">
+                                {t('edit.hero.name', {
+                                    name: `${user.first_name} ${user.last_name}`,
+                                })}
+                            </div>
+                            <div className="ue-hero-sub">
+                                {user.email} ·{' '}
+                                {user.tenant?.name ?? t('edit.hero.noTenant')}
+                            </div>
                         </div>
                     </div>
 
                     {/* Formulaire */}
                     <div className="ue-card">
                         <div className="ue-card-hdr">
-                            <div className="ue-card-ttl">{t('edit.form.title')}</div>
-                            <div className="ue-card-sub">{t('edit.form.subtitle')}</div>
+                            <div className="ue-card-ttl">
+                                {t('edit.form.title')}
+                            </div>
+                            <div className="ue-card-sub">
+                                {t('edit.form.subtitle')}
+                            </div>
                         </div>
                         <div className="ue-card-body">
-                            <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
-
+                            <form
+                                onSubmit={submit}
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 16,
+                                }}
+                            >
                                 {recentlySuccessful && (
-                                    <div className="status-ok"><Check size={13}/>{t('edit.form.saved')}</div>
+                                    <div className="status-ok">
+                                        <Check size={13} />
+                                        {t('edit.form.saved')}
+                                    </div>
                                 )}
 
                                 {/* Prénom + Nom */}
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="ue-label">{t('edit.fields.firstName')}</Label>
-                                        <Input className="h-11" value={data.first_name} onChange={e => setData('first_name', e.target.value)} placeholder={t('edit.fields.firstNamePlaceholder')}/>
-                                        <InputError message={errors.first_name}/>
+                                        <Label className="ue-label">
+                                            {t('edit.fields.firstName')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            value={data.first_name}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'first_name',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'edit.fields.firstNamePlaceholder',
+                                            )}
+                                        />
+                                        <InputError
+                                            message={errors.first_name}
+                                        />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="ue-label">{t('edit.fields.lastName')}</Label>
-                                        <Input className="h-11" value={data.last_name} onChange={e => setData('last_name', e.target.value)} placeholder={t('edit.fields.lastNamePlaceholder')}/>
-                                        <InputError message={errors.last_name}/>
+                                        <Label className="ue-label">
+                                            {t('edit.fields.lastName')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            value={data.last_name}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'last_name',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'edit.fields.lastNamePlaceholder',
+                                            )}
+                                        />
+                                        <InputError
+                                            message={errors.last_name}
+                                        />
                                     </div>
                                 </div>
 
                                 {/* Email */}
                                 <div className="grid gap-2">
-                                    <Label className="ue-label">{t('edit.fields.email')}</Label>
-                                    <Input className="h-11" type="email" value={data.email} onChange={e => setData('email', e.target.value)} placeholder="prenom.nom@nsia.com"/>
-                                    <InputError message={errors.email}/>
+                                    <Label className="ue-label">
+                                        {t('edit.fields.email')}
+                                    </Label>
+                                    <Input
+                                        className="h-11"
+                                        type="email"
+                                        value={data.email}
+                                        onChange={(e) =>
+                                            setData('email', e.target.value)
+                                        }
+                                        placeholder="prenom.nom@nsia.com"
+                                    />
+                                    <InputError message={errors.email} />
                                 </div>
 
                                 {/* Téléphone */}
                                 <div className="grid gap-2">
-                                    <Label className="ue-label">{t('edit.fields.phone')}</Label>
-                                    <Input className="h-11" type="tel" value={data.phone} onChange={e => setData('phone', e.target.value)} placeholder="+225 07 00 00 00 00"/>
-                                    <InputError message={errors.phone}/>
+                                    <Label className="ue-label">
+                                        {t('edit.fields.phone')}
+                                    </Label>
+                                    <Input
+                                        className="h-11"
+                                        type="tel"
+                                        value={data.phone}
+                                        onChange={(e) =>
+                                            setData('phone', e.target.value)
+                                        }
+                                        placeholder="+225 07 00 00 00 00"
+                                    />
+                                    <InputError message={errors.phone} />
                                 </div>
 
                                 {/* Rôle */}
                                 <div className="grid gap-2">
-                                    <Label className="ue-label">{t('edit.fields.role')}</Label>
-                                    <select className="ue-select" value={data.role} onChange={e => setData('role', e.target.value)}>
-                                        <option value="">{t('edit.fields.roleNone')}</option>
-                                        {roles.map(r => <option key={r} value={r}>{r.replace(/_/g,' ')}</option>)}
+                                    <Label className="ue-label">
+                                        {t('edit.fields.role')}
+                                    </Label>
+                                    <select
+                                        className="ue-select"
+                                        value={data.role}
+                                        onChange={(e) =>
+                                            setData('role', e.target.value)
+                                        }
+                                    >
+                                        <option value="">
+                                            {t('edit.fields.roleNone')}
+                                        </option>
+                                        {roles.map((r) => (
+                                            <option key={r} value={r}>
+                                                {r.replace(/_/g, ' ')}
+                                            </option>
+                                        ))}
                                     </select>
-                                    <InputError message={errors.role}/>
+                                    <InputError message={errors.role} />
                                 </div>
 
                                 {/* Filiale — réservé au super_admin */}
                                 {tenants.length > 0 && (
                                     <div className="grid gap-2">
-                                        <Label className="ue-label">{t('edit.fields.tenant')}</Label>
-                                        <select className="ue-select" value={data.tenant_id} onChange={e => setData('tenant_id', e.target.value)}>
-                                            <option value="">{t('edit.fields.tenantNone')}</option>
-                                            {tenants.map(tn => <option key={tn.id} value={tn.id}>{tn.name} ({tn.code})</option>)}
+                                        <Label className="ue-label">
+                                            {t('edit.fields.tenant')}
+                                        </Label>
+                                        <select
+                                            className="ue-select"
+                                            value={data.tenant_id}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'tenant_id',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            <option value="">
+                                                {t('edit.fields.tenantNone')}
+                                            </option>
+                                            {tenants.map((tn) => (
+                                                <option
+                                                    key={tn.id}
+                                                    value={tn.id}
+                                                >
+                                                    {tn.name} ({tn.code})
+                                                </option>
+                                            ))}
                                         </select>
-                                        <InputError message={errors.tenant_id}/>
+                                        <InputError
+                                            message={errors.tenant_id}
+                                        />
                                     </div>
                                 )}
 
                                 {/* Actions */}
-                                <div style={{ display:'flex', gap:8, paddingTop:4, borderTop:'1px solid #f8fafc', marginTop:4 }}>
-                                    <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                        {processing ? t('edit.actions.saving') : <><Check size={14}/> {t('edit.actions.save')}</>}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        gap: 8,
+                                        paddingTop: 4,
+                                        borderTop: '1px solid #f8fafc',
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                                    >
+                                        {processing ? (
+                                            t('edit.actions.saving')
+                                        ) : (
+                                            <>
+                                                <Check size={14} />{' '}
+                                                {t('edit.actions.save')}
+                                            </>
+                                        )}
                                     </Button>
-                                    <Button type="button" variant="outline" onClick={() => window.history.back()}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => window.history.back()}
+                                    >
                                         {tc('actions.cancel')}
                                     </Button>
                                 </div>

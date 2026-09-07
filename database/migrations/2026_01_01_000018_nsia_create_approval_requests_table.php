@@ -28,9 +28,9 @@ return new class extends Migration
             $table->uuid('entity_id');          // id du certificat ou contrat
 
             $table->foreignUuid('workflow_id')
-                  ->nullable()
-                  ->constrained('approval_workflows')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('approval_workflows')
+                ->nullOnDelete();
 
             $table->unsignedSmallInteger('current_step')->default(1);
             $table->unsignedSmallInteger('total_steps');
@@ -39,14 +39,14 @@ return new class extends Migration
             // PENDING | APPROVED | REJECTED | CANCELLED
 
             $table->foreignUuid('requested_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             $table->foreignUuid('resolved_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             $table->timestamp('resolved_at')->nullable();
             $table->timestamp('due_date')->nullable();   // délai de réponse attendu

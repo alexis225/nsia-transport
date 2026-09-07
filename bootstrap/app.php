@@ -13,6 +13,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -31,13 +33,13 @@ return Application::configure(basePath: dirname(__DIR__))
             CheckIpBlacklist::class,  // US-050
         ]);
         $middleware->alias([
-            'permission'       => CheckPermission::class,
+            'permission' => CheckPermission::class,
             'tenant.isolation' => EnsureTenantIsolation::class,
-            'staff.only'       => EnsureStaffAccess::class,
-            'module'           => EnsureModuleEnabled::class,
-            'tenant.context'   => SetTenantContext::class,   // US-052
-            'role'             => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'staff.only' => EnsureStaffAccess::class,
+            'module' => EnsureModuleEnabled::class,
+            'tenant.context' => SetTenantContext::class,   // US-052
+            'role' => RoleMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

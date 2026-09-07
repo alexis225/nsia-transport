@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Fortify;
@@ -51,6 +52,7 @@ class FortifyAuthServiceProvider extends ServiceProvider
 
             if (! $user) {
                 $this->auditLog($request, null, 'login_failed', ['email' => $request->email]);
+
                 return null; // Fortify gère le message d'erreur
             }
 
@@ -60,6 +62,7 @@ class FortifyAuthServiceProvider extends ServiceProvider
                 // Fortify retourne null → ValidationException générique
                 // Pour un message spécifique, on utilise withErrors via session
                 session()->flash('login_error', __('auth.blocked'));
+
                 return null;
             }
 
@@ -69,11 +72,12 @@ class FortifyAuthServiceProvider extends ServiceProvider
                 session()->flash('login_error', __('auth.locked', [
                     'minutes' => $user->locked_until->diffInMinutes(now()),
                 ]));
+
                 return null;
             }
 
             // Vérification mot de passe
-            if (! \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+            if (! Hash::check($request->password, $user->password)) {
                 $user->increment('failed_login_attempts');
 
                 if ($user->failed_login_attempts >= 5) {
@@ -90,9 +94,9 @@ class FortifyAuthServiceProvider extends ServiceProvider
             // ── Succès ───────────────────────────────────────
             $user->update([
                 'failed_login_attempts' => 0,
-                'locked_until'          => null,
-                'last_login_at'         => now(),
-                'last_login_ip'         => $request->ip(),
+                'locked_until' => null,
+                'last_login_at' => now(),
+                'last_login_ip' => $request->ip(),
             ]);
 
             $this->auditLog($request, $user->id, 'login_success');
@@ -104,7 +108,7 @@ class FortifyAuthServiceProvider extends ServiceProvider
         // Fortify utilise ce rate limiter sur POST /login
         RateLimiter::for('login', function (Request $request) {
             return Limit::perMinutes(10, 5)
-                ->by(strtolower($request->email) . '|' . $request->ip())
+                ->by(strtolower($request->email).'|'.$request->ip())
                 ->response(function () {
                     return redirect()->route('login')
                         ->withErrors(['email' => __('auth.throttle', [
@@ -124,18 +128,18 @@ class FortifyAuthServiceProvider extends ServiceProvider
     private function auditLog(
         Request $request,
         ?string $userId,
-        string  $action,
-        array   $metadata = [],
+        string $action,
+        array $metadata = [],
     ): void {
         AuditLog::create([
-            'tenant_id'      => null,
-            'user_id'        => $userId,
-            'action'         => $action,
+            'tenant_id' => null,
+            'user_id' => $userId,
+            'action' => $action,
             'auditable_type' => 'auth',
-            'auditable_id'   => $userId ?? null,
-            'ip_address'     => $request->ip(),
-            'user_agent'     => $request->userAgent(),
-            'new_data'       => $metadata ?: null,
+            'auditable_id' => $userId ?? null,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_data' => $metadata ?: null,
         ]);
     }
 }

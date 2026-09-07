@@ -25,9 +25,9 @@ return new class extends Migration
 
             // NULL = catégorie globale visible par toutes les filiales
             $table->foreignUuid('tenant_id')
-                  ->nullable()
-                  ->constrained('tenants')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('tenants')
+                ->nullOnDelete();
 
             $table->string('code', 50);
             $table->string('name');
@@ -41,7 +41,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
-            
+
             $table->index('tenant_id');
             $table->index('parent_id');
             $table->index('is_active');
@@ -50,9 +50,9 @@ return new class extends Migration
         // FK auto-référencée ajoutée APRÈS que la PK existe
         Schema::table('merchandise_categories', function (Blueprint $table) {
             $table->foreign('parent_id')
-                  ->references('id')
-                  ->on('merchandise_categories')
-                  ->nullOnDelete();
+                ->references('id')
+                ->on('merchandise_categories')
+                ->nullOnDelete();
         });
 
         DB::statement('ALTER TABLE merchandise_categories ADD CONSTRAINT merch_risk_check CHECK (risk_level BETWEEN 1 AND 3)');

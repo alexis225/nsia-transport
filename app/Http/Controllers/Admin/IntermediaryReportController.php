@@ -27,15 +27,15 @@ class IntermediaryReportController extends Controller
 {
     public function index(Request $request): Response
     {
-        $user     = $request->user();
-        $isSA     = $user->hasRole('super_admin');
+        $user = $request->user();
+        $isSA = $user->hasRole('super_admin');
         $tenantId = $user->tenant_id;
 
         $tab = $request->input('tab', 'brokers'); // brokers | coinsurers | experts
 
         // ── Filtres partagés ───────────────────────────────────────
         $filterTenant = $isSA ? $request->input('tenant_id') : null;
-        $brokerType   = $request->input('broker_type');   // LOCAL | FOREIGN
+        $brokerType = $request->input('broker_type');   // LOCAL | FOREIGN
         $contractType = $request->input('contract_type'); // OPEN_POLICY | VOYAGE | ANNUAL_VOYAGE | TIERS_CHARGEUR
 
         // ── COURTIERS ─────────────────────────────────────────────
@@ -101,20 +101,20 @@ class IntermediaryReportController extends Controller
 
         // Enrichir chaque courtier
         $brokersData = $brokers->map(fn ($b) => array_merge($b->toArray(), [
-            'certs_month'     => (int) ($certsByBroker[$b->id]     ?? 0),
-            'certs_ytd'       => (int) ($certsByBrokerYtd[$b->id]  ?? 0),
-            'comm_paid_ytd'   => (float) ($commByBroker[$b->id]    ?? 0),
-            'comm_pending'    => (float) ($commPendingByBroker[$b->id]['total_pending'] ?? 0),
+            'certs_month' => (int) ($certsByBroker[$b->id] ?? 0),
+            'certs_ytd' => (int) ($certsByBrokerYtd[$b->id] ?? 0),
+            'comm_paid_ytd' => (float) ($commByBroker[$b->id] ?? 0),
+            'comm_pending' => (float) ($commPendingByBroker[$b->id]['total_pending'] ?? 0),
             'comm_pending_count' => (int) ($commPendingByBroker[$b->id]['pending_count'] ?? 0),
         ]));
 
         // Stats courtiers
         $brokerStats = [
-            'total'    => $brokers->count(),
-            'active'   => $brokers->where('is_active', true)->count(),
+            'total' => $brokers->count(),
+            'active' => $brokers->where('is_active', true)->count(),
             'inactive' => $brokers->where('is_active', false)->count(),
-            'local'    => $brokers->where('type', Broker::TYPE_LOCAL)->count(),
-            'foreign'  => $brokers->where('type', Broker::TYPE_FOREIGN)->count(),
+            'local' => $brokers->where('type', Broker::TYPE_LOCAL)->count(),
+            'foreign' => $brokers->where('type', Broker::TYPE_FOREIGN)->count(),
             'with_certs_month' => count(array_filter($certsByBroker, fn ($c) => $c > 0)),
         ];
 
@@ -131,8 +131,8 @@ class IntermediaryReportController extends Controller
             ->get();
 
         $coinsurersStats = [
-            'total'    => $coinsurers->count(),
-            'active'   => $coinsurers->where('is_active', true)->count(),
+            'total' => $coinsurers->count(),
+            'active' => $coinsurers->where('is_active', true)->count(),
             'inactive' => $coinsurers->where('is_active', false)->count(),
         ];
 
@@ -146,28 +146,28 @@ class IntermediaryReportController extends Controller
             ->get();
 
         $expertStats = [
-            'total'    => $experts->count(),
-            'active'   => $experts->where('is_active', true)->count(),
+            'total' => $experts->count(),
+            'active' => $experts->where('is_active', true)->count(),
             'inactive' => $experts->where('is_active', false)->count(),
         ];
 
         return Inertia::render('admin/reports/intermediaries', [
-            'brokersData'     => $brokersData->values(),
-            'brokerStats'     => $brokerStats,
-            'coinsurers'      => $coinsurers,
+            'brokersData' => $brokersData->values(),
+            'brokerStats' => $brokerStats,
+            'coinsurers' => $coinsurers,
             'coinsurersStats' => $coinsurersStats,
-            'experts'         => $experts,
-            'expertStats'     => $expertStats,
-            'tab'             => $tab,
-            'isSA'            => $isSA,
-            'tenants'         => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']) : collect(),
-            'filters'         => [
-                'tenant_id'     => $filterTenant,
-                'broker_type'   => $brokerType,
+            'experts' => $experts,
+            'expertStats' => $expertStats,
+            'tab' => $tab,
+            'isSA' => $isSA,
+            'tenants' => $isSA ? Tenant::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']) : collect(),
+            'filters' => [
+                'tenant_id' => $filterTenant,
+                'broker_type' => $brokerType,
                 'contract_type' => $contractType,
             ],
-            'currentMonth'    => now()->locale('fr')->isoFormat('MMMM YYYY'),
-            'currentYear'     => (int) now()->year,
+            'currentMonth' => now()->locale('fr')->isoFormat('MMMM YYYY'),
+            'currentYear' => (int) now()->year,
         ]);
     }
 }

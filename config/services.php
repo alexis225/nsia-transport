@@ -34,16 +34,16 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-     'google' => [
-       'client_id'     => env('GOOGLE_CLIENT_ID'),
-       'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    'redirect'      => env('GOOGLE_REDIRECT_URI'),
-   ],
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
     'microsoft' => [
-        'client_id'     => env('MICROSOFT_CLIENT_ID'),
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
         'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
-        'redirect'      => env('MICROSOFT_REDIRECT_URI'),
-        'tenant'        => env('MICROSOFT_TENANT_ID'),
+        'redirect' => env('MICROSOFT_REDIRECT_URI'),
+        'tenant' => env('MICROSOFT_TENANT_ID'),
     ],
 
     // Extraction automatique des certificats GUCE (Mindee API Builder —
@@ -53,7 +53,7 @@ return [
     // gauche = champ GuceCertificate local, colonne de droite = nom du
     // champ tel que défini dans le modèle Mindee).
     'mindee' => [
-        'api_key'  => env('MINDEE_V2_API_KEY'),
+        'api_key' => env('MINDEE_V2_API_KEY'),
         'model_id' => env('MINDEE_GUCE_MODEL_ID'),
         // NB (2026-07-21) : le modèle Mindee "Insurance Certificate" ne
         // fournit nativement que policy_holder_name/policy_number/
@@ -72,23 +72,23 @@ return [
         // 'marques' pointait vers un slug inexistant et renvoyait null à
         // chaque extraction.
         'field_map' => [
-            'guce_reference'     => 'guce_reference',
+            'guce_reference' => 'guce_reference',
             'certificate_number' => 'certificate_number',
-            'policy_number'      => 'policy_number',
-            'insured_name'       => 'policy_holder_name',
-            'insured_address'    => 'insured_address',
-            'cargo_description'  => 'cargo_description',
-            'weight'             => 'weight',
-            'marks'              => 'marks',
-            'vessel'             => 'vessel',
-            'origin'             => 'origin',
-            'destination'        => 'destination',
-            'transit_date'       => 'transit_date',
-            'insured_value'      => 'insured_value',
-            'currency'           => 'currency',
-            'net_premium'        => 'net_premium',
-            'total_premium'      => 'premium_amount',
-            'fdi_reference'      => 'fdi_reference',
+            'policy_number' => 'policy_number',
+            'insured_name' => 'policy_holder_name',
+            'insured_address' => 'insured_address',
+            'cargo_description' => 'cargo_description',
+            'weight' => 'weight',
+            'marks' => 'marks',
+            'vessel' => 'vessel',
+            'origin' => 'origin',
+            'destination' => 'destination',
+            'transit_date' => 'transit_date',
+            'insured_value' => 'insured_value',
+            'currency' => 'currency',
+            'net_premium' => 'net_premium',
+            'total_premium' => 'premium_amount',
+            'fdi_reference' => 'fdi_reference',
         ],
     ],
 
@@ -99,10 +99,10 @@ return [
     // ignorée (utile en dev tant que les clés ne sont pas créées) — voir
     // App\Http\Middleware\VerifyRecaptcha.
     'recaptcha' => [
-        'site_key'   => env('RECAPTCHA_SITE_KEY'),
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
         'secret_key' => env('RECAPTCHA_SECRET_KEY'),
         // Score Google entre 0 (bot certain) et 1 (humain certain).
-        'min_score'  => (float) env('RECAPTCHA_MIN_SCORE', 0.5),
+        'min_score' => (float) env('RECAPTCHA_MIN_SCORE', 0.5),
     ],
 
 ];

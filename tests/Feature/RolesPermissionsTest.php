@@ -10,7 +10,6 @@
 
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -22,12 +21,13 @@ beforeEach(function () {
 // ── Helper ───────────────────────────────────────────────────
 function makeUserWithRole(string $role, ?string $tenantId = null): User
 {
-    $tenant   = Tenant::factory()->create();
-    $user     = User::factory()->create([
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create([
         'tenant_id' => $tenantId ?? $tenant->id,
         'is_active' => true,
     ]);
     $user->assignRole($role);
+
     return $user;
 }
 

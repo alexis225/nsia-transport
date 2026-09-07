@@ -1,61 +1,63 @@
 import { Head, usePage } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout';
-import { useAppearance } from '@/hooks/use-appearance';
-import { edit } from '@/routes/profile';
-import type { BreadcrumbItem } from '@/types';
 import { Palette, Monitor, Sun, Moon, Check, Type, Layout } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAppearance } from '@/hooks/use-appearance';
+import AppLayout from '@/layouts/app-layout';
+import { edit } from '@/routes/profile';
+import type { BreadcrumbItem } from '@/types';
 
 type Theme = 'light' | 'dark' | 'system';
 
 // Les libelles sont resolus a l'affichage : seules les valeurs techniques
 // (persistees en preference) vivent ici.
 const THEMES: { value: Theme; Icon: React.FC<any> }[] = [
-    { value:'light',  Icon: Sun },
-    { value:'dark',   Icon: Moon },
-    { value:'system', Icon: Monitor },
+    { value: 'light', Icon: Sun },
+    { value: 'dark', Icon: Moon },
+    { value: 'system', Icon: Monitor },
 ];
 
 const FONT_SIZES = [
-    { value:'sm', size:'12px' },
-    { value:'md', size:'14px' },
-    { value:'lg', size:'16px' },
+    { value: 'sm', size: '12px' },
+    { value: 'md', size: '14px' },
+    { value: 'lg', size: '16px' },
 ];
 
 const ACCENT_COLORS = [
-    { value:'blue',   hex:'#1e3a8a' },
-    { value:'indigo', hex:'#4338ca' },
-    { value:'violet', hex:'#7c3aed' },
-    { value:'teal',   hex:'#0f766e' },
-    { value:'green',  hex:'#15803d' },
+    { value: 'blue', hex: '#1e3a8a' },
+    { value: 'indigo', hex: '#4338ca' },
+    { value: 'violet', hex: '#7c3aed' },
+    { value: 'teal', hex: '#0f766e' },
+    { value: 'green', hex: '#15803d' },
 ];
 
 const SIDEBAR_STATES = ['expanded', 'collapsed'] as const;
 
 export default function AppearancePage() {
-    const { t }     = useTranslation('settings');
+    const { t } = useTranslation('settings');
     const { t: ta } = useTranslation('auth');
-    const { auth }                     = usePage().props as any;
-    const user                         = auth?.user;
+    const { auth } = usePage().props as any;
+    const user = auth?.user;
     const { appearance, updateAppearance } = useAppearance();
 
-    const initials = `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
-    const fullName  = user?.first_name ? `${user.first_name} ${user.last_name}` : (user?.name ?? '');
+    const initials =
+        `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
+    const fullName = user?.first_name
+        ? `${user.first_name} ${user.last_name}`
+        : (user?.name ?? '');
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('breadcrumb.profile'), href: edit() },
         { title: t('breadcrumb.appearance') },
     ];
 
-    const [fontSize,     setFontSize]     = useState('md');
-    const [accentColor,  setAccentColor]  = useState('blue');
+    const [fontSize, setFontSize] = useState('md');
+    const [accentColor, setAccentColor] = useState('blue');
     const [sidebarState, setSidebarState] = useState('expanded');
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${t('appearance.title')} — NSIA Transport`}/>
+            <Head title={`${t('appearance.title')} — NSIA Transport`} />
             <style>{`
                 .ap-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .ap-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:26px 24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -123,50 +125,102 @@ export default function AppearancePage() {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="ap-wrap">
-
                     {/* Hero */}
                     <div className="ap-hero">
                         <div className="ap-avatar">{initials}</div>
                         <div className="ap-hero-info">
-                            <div className="ap-hero-name">{fullName || ta('user.fallbackName')}</div>
-                            <div className="ap-hero-sub">{t('appearance.heroSubtitle')}</div>
+                            <div className="ap-hero-name">
+                                {fullName || ta('user.fallbackName')}
+                            </div>
+                            <div className="ap-hero-sub">
+                                {t('appearance.heroSubtitle')}
+                            </div>
                         </div>
                         <div className="ap-hero-ico">
-                            <Palette size={22} color="rgba(255,255,255,0.7)"/>
+                            <Palette size={22} color="rgba(255,255,255,0.7)" />
                         </div>
                     </div>
 
                     {/* Thème */}
                     <div className="ap-card">
                         <div className="ap-card-hdr">
-                            <div className="ap-card-ico" style={{background:'#fdf4ff'}}><Palette size={17} color="#a855f7"/></div>
-                            <div><div className="ap-card-ttl">{t('appearance.theme.title')}</div><div className="ap-card-sub">{t('appearance.theme.subtitle')}</div></div>
+                            <div
+                                className="ap-card-ico"
+                                style={{ background: '#fdf4ff' }}
+                            >
+                                <Palette size={17} color="#a855f7" />
+                            </div>
+                            <div>
+                                <div className="ap-card-ttl">
+                                    {t('appearance.theme.title')}
+                                </div>
+                                <div className="ap-card-sub">
+                                    {t('appearance.theme.subtitle')}
+                                </div>
+                            </div>
                         </div>
                         <div className="ap-card-body">
                             <div className="theme-grid">
                                 {THEMES.map(({ value, Icon }) => (
-                                    <div key={value} className={`theme-card ${appearance === value ? 'active' : ''}`} onClick={() => updateAppearance(value)}>
-                                        <div className="theme-ico"><Icon size={19} color={appearance === value ? '#1d4ed8' : '#94a3b8'}/></div>
-                                        <div><div className="theme-label">{t(`appearance.theme.${value}`)}</div><div className="theme-desc">{t(`appearance.theme.${value}Desc`)}</div></div>
-                                        <div className="theme-check">{appearance === value && <Check size={10} color="#fff"/>}</div>
+                                    <div
+                                        key={value}
+                                        className={`theme-card ${appearance === value ? 'active' : ''}`}
+                                        onClick={() => updateAppearance(value)}
+                                    >
+                                        <div className="theme-ico">
+                                            <Icon
+                                                size={19}
+                                                color={
+                                                    appearance === value
+                                                        ? '#1d4ed8'
+                                                        : '#94a3b8'
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <div className="theme-label">
+                                                {t(`appearance.theme.${value}`)}
+                                            </div>
+                                            <div className="theme-desc">
+                                                {t(
+                                                    `appearance.theme.${value}Desc`,
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="theme-check">
+                                            {appearance === value && (
+                                                <Check size={10} color="#fff" />
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                             {/* Mini preview */}
                             <div className="preview">
                                 <div className="preview-top">
-                                    <div className="preview-dot" style={{background:'#ef4444'}}/>
-                                    <div className="preview-dot" style={{background:'#f59e0b'}}/>
-                                    <div className="preview-dot" style={{background:'#22c55e'}}/>
+                                    <div
+                                        className="preview-dot"
+                                        style={{ background: '#ef4444' }}
+                                    />
+                                    <div
+                                        className="preview-dot"
+                                        style={{ background: '#f59e0b' }}
+                                    />
+                                    <div
+                                        className="preview-dot"
+                                        style={{ background: '#22c55e' }}
+                                    />
                                 </div>
                                 <div className="preview-body">
                                     <div className="preview-sb">
-                                        <div className="preview-sb-item act"/>
-                                        <div className="preview-sb-item"/>
-                                        <div className="preview-sb-item"/>
+                                        <div className="preview-sb-item act" />
+                                        <div className="preview-sb-item" />
+                                        <div className="preview-sb-item" />
                                     </div>
                                     <div className="preview-cnt">
-                                        <div className="preview-block"/><div className="preview-block"/><div className="preview-block"/>
+                                        <div className="preview-block" />
+                                        <div className="preview-block" />
+                                        <div className="preview-block" />
                                     </div>
                                 </div>
                             </div>
@@ -176,15 +230,40 @@ export default function AppearancePage() {
                     {/* Taille texte */}
                     <div className="ap-card">
                         <div className="ap-card-hdr">
-                            <div className="ap-card-ico" style={{background:'#eff6ff'}}><Type size={17} color="#3b82f6"/></div>
-                            <div><div className="ap-card-ttl">{t('appearance.fontSize.title')}</div><div className="ap-card-sub">{t('appearance.fontSize.subtitle')}</div></div>
+                            <div
+                                className="ap-card-ico"
+                                style={{ background: '#eff6ff' }}
+                            >
+                                <Type size={17} color="#3b82f6" />
+                            </div>
+                            <div>
+                                <div className="ap-card-ttl">
+                                    {t('appearance.fontSize.title')}
+                                </div>
+                                <div className="ap-card-sub">
+                                    {t('appearance.fontSize.subtitle')}
+                                </div>
+                            </div>
                         </div>
                         <div className="ap-card-body">
                             <div className="font-grid">
-                                {FONT_SIZES.map(f => (
-                                    <div key={f.value} className={`font-card ${fontSize === f.value ? 'active' : ''}`} onClick={() => setFontSize(f.value)}>
-                                        <div className="font-sample" style={{fontSize:f.size}}>Aa</div>
-                                        <div className="font-name">{t(`appearance.fontSize.${f.value}`)}</div>
+                                {FONT_SIZES.map((f) => (
+                                    <div
+                                        key={f.value}
+                                        className={`font-card ${fontSize === f.value ? 'active' : ''}`}
+                                        onClick={() => setFontSize(f.value)}
+                                    >
+                                        <div
+                                            className="font-sample"
+                                            style={{ fontSize: f.size }}
+                                        >
+                                            Aa
+                                        </div>
+                                        <div className="font-name">
+                                            {t(
+                                                `appearance.fontSize.${f.value}`,
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -194,17 +273,47 @@ export default function AppearancePage() {
                     {/* Couleur accent */}
                     <div className="ap-card">
                         <div className="ap-card-hdr">
-                            <div className="ap-card-ico" style={{background:'#fff7ed'}}><Palette size={17} color="#f97316"/></div>
-                            <div><div className="ap-card-ttl">{t('appearance.accent.title')}</div><div className="ap-card-sub">{t('appearance.accent.subtitle')}</div></div>
+                            <div
+                                className="ap-card-ico"
+                                style={{ background: '#fff7ed' }}
+                            >
+                                <Palette size={17} color="#f97316" />
+                            </div>
+                            <div>
+                                <div className="ap-card-ttl">
+                                    {t('appearance.accent.title')}
+                                </div>
+                                <div className="ap-card-sub">
+                                    {t('appearance.accent.subtitle')}
+                                </div>
+                            </div>
                         </div>
                         <div className="ap-card-body">
                             <div className="color-grid">
-                                {ACCENT_COLORS.map(c => (
-                                    <div key={c.value} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-                                        <div className={`color-swatch ${accentColor === c.value ? 'active' : ''}`} style={{background:c.hex}} onClick={() => setAccentColor(c.value)}>
-                                            {accentColor === c.value && <Check size={13} color="#fff"/>}
+                                {ACCENT_COLORS.map((c) => (
+                                    <div
+                                        key={c.value}
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 3,
+                                        }}
+                                    >
+                                        <div
+                                            className={`color-swatch ${accentColor === c.value ? 'active' : ''}`}
+                                            style={{ background: c.hex }}
+                                            onClick={() =>
+                                                setAccentColor(c.value)
+                                            }
+                                        >
+                                            {accentColor === c.value && (
+                                                <Check size={13} color="#fff" />
+                                            )}
                                         </div>
-                                        <span className="color-lbl">{t(`appearance.accent.${c.value}`)}</span>
+                                        <span className="color-lbl">
+                                            {t(`appearance.accent.${c.value}`)}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
@@ -214,28 +323,89 @@ export default function AppearancePage() {
                     {/* Sidebar */}
                     <div className="ap-card">
                         <div className="ap-card-hdr">
-                            <div className="ap-card-ico" style={{background:'#f0fdf4'}}><Layout size={17} color="#16a34a"/></div>
-                            <div><div className="ap-card-ttl">{t('appearance.sidebar.title')}</div><div className="ap-card-sub">{t('appearance.sidebar.subtitle')}</div></div>
+                            <div
+                                className="ap-card-ico"
+                                style={{ background: '#f0fdf4' }}
+                            >
+                                <Layout size={17} color="#16a34a" />
+                            </div>
+                            <div>
+                                <div className="ap-card-ttl">
+                                    {t('appearance.sidebar.title')}
+                                </div>
+                                <div className="ap-card-sub">
+                                    {t('appearance.sidebar.subtitle')}
+                                </div>
+                            </div>
                         </div>
                         <div className="ap-card-body">
                             <div className="sb-grid">
-                                {SIDEBAR_STATES.map(value => (
-                                    <div key={value} className={`sb-opt ${sidebarState === value ? 'active' : ''}`} onClick={() => setSidebarState(value)}>
-                                        <div style={{width:28,height:28,background:sidebarState===value?'#eff6ff':'#f1f5f9',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                            <Layout size={14} color={sidebarState===value?'#1d4ed8':'#94a3b8'}/>
+                                {SIDEBAR_STATES.map((value) => (
+                                    <div
+                                        key={value}
+                                        className={`sb-opt ${sidebarState === value ? 'active' : ''}`}
+                                        onClick={() => setSidebarState(value)}
+                                    >
+                                        <div
+                                            style={{
+                                                width: 28,
+                                                height: 28,
+                                                background:
+                                                    sidebarState === value
+                                                        ? '#eff6ff'
+                                                        : '#f1f5f9',
+                                                borderRadius: 7,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0,
+                                            }}
+                                        >
+                                            <Layout
+                                                size={14}
+                                                color={
+                                                    sidebarState === value
+                                                        ? '#1d4ed8'
+                                                        : '#94a3b8'
+                                                }
+                                            />
                                         </div>
                                         <div>
-                                            <div className="sb-opt-ttl">{t(`appearance.sidebar.${value}`)}</div>
-                                            <div className="sb-opt-sub">{t(`appearance.sidebar.${value}Desc`)}</div>
+                                            <div className="sb-opt-ttl">
+                                                {t(
+                                                    `appearance.sidebar.${value}`,
+                                                )}
+                                            </div>
+                                            <div className="sb-opt-sub">
+                                                {t(
+                                                    `appearance.sidebar.${value}Desc`,
+                                                )}
+                                            </div>
                                         </div>
-                                        {sidebarState === value && <Check size={13} color="#1d4ed8" style={{marginLeft:'auto',flexShrink:0}}/>}
+                                        {sidebarState === value && (
+                                            <Check
+                                                size={13}
+                                                color="#1d4ed8"
+                                                style={{
+                                                    marginLeft: 'auto',
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        )}
                                     </div>
                                 ))}
                             </div>
-                            <p style={{fontSize:12,color:'#94a3b8',fontStyle:'italic'}}>{t('appearance.autosave')}</p>
+                            <p
+                                style={{
+                                    fontSize: 12,
+                                    color: '#94a3b8',
+                                    fontStyle: 'italic',
+                                }}
+                            >
+                                {t('appearance.autosave')}
+                            </p>
                         </div>
                     </div>
-
                 </div>
             </div>
         </AppLayout>

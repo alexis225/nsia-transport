@@ -16,7 +16,12 @@
         "currencies": ["Código", "Nome", "Símbolo"],
         "incoterms": ["Código", "Nome", "Descrição", "Modos compatíveis"],
         "transport_modes": ["Código", "Nome FR", "Nome EN", "Ícone"],
-        "merchandise_categories": ["Código", "Nome", "Nível de risco", "Parente"]
+        "merchandise_categories": [
+            "Código",
+            "Nome",
+            "Nível de risco",
+            "Parente"
+        ]
     },
     "fields": {
         "countryCode": "Código ISO (2 letras)",

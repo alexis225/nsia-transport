@@ -26,7 +26,8 @@ use Inertia\Response;
  */
 class AuthController extends Controller
 {
-    private const MAX_ATTEMPTS    = 5;
+    private const MAX_ATTEMPTS = 5;
+
     private const LOCKOUT_MINUTES = 10;
 
     // ── Page login (Inertia) ─────────────────────────────────
@@ -47,7 +48,7 @@ class AuthController extends Controller
             $seconds = RateLimiter::availableIn($key);
 
             $this->auditLog($request, null, 'login_lockout', [
-                'email'           => $request->email,
+                'email' => $request->email,
                 'retry_after_sec' => $seconds,
             ]);
 
@@ -118,9 +119,9 @@ class AuthController extends Controller
 
         $user->update([
             'failed_login_attempts' => 0,
-            'locked_until'          => null,
-            'last_login_at'         => now(),
-            'last_login_ip'         => $request->ip(),
+            'locked_until' => null,
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
         ]);
 
         $this->auditLog($request, $user->id, 'login_success');
@@ -143,25 +144,25 @@ class AuthController extends Controller
     // ── Clé rate limiting ────────────────────────────────────
     private function throttleKey(Request $request): string
     {
-        return 'login|' . strtolower($request->email) . '|' . $request->ip();
+        return 'login|'.strtolower($request->email).'|'.$request->ip();
     }
 
     // ── Audit log ────────────────────────────────────────────
     private function auditLog(
         Request $request,
         ?string $userId,
-        string  $action,
-        array   $metadata = [],
+        string $action,
+        array $metadata = [],
     ): void {
         AuditLog::create([
-            'tenant_id'      => null,
-            'user_id'        => $userId,
-            'action'         => $action,
+            'tenant_id' => null,
+            'user_id' => $userId,
+            'action' => $action,
             'auditable_type' => 'auth',
-            'auditable_id'   => $userId ?? null,
-            'ip_address'     => $request->ip(),
-            'user_agent'     => $request->userAgent(),
-            'new_data'       => $metadata ?: null,
+            'auditable_id' => $userId ?? null,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_data' => $metadata ?: null,
         ]);
     }
 }

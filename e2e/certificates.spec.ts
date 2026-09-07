@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
  * US-059 — Tests E2E : Gestion des certificats
@@ -33,6 +34,7 @@ test.describe('Liste des certificats', () => {
 
         // Cliquer sur le filtre ISSUED
         const issuedCard = page.locator('[data-status="ISSUED"], .kpi-card').first();
+
         if (await issuedCard.isVisible()) {
             await issuedCard.click();
         }
@@ -75,6 +77,7 @@ test.describe('Recherche avancée certificats', () => {
 
         // Le bouton Effacer doit être visible (hasSearch = true)
         const clearBtn = page.locator('button:has-text("Effacer")');
+
         if (await clearBtn.isVisible()) {
             await clearBtn.click();
             await expect(page).toHaveURL(/\/admin\/certificates\/search$/);

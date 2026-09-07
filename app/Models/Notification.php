@@ -26,26 +26,39 @@ class Notification extends Model
     use HasUuids;
 
     // ── Canaux ────────────────────────────────────────────────
-    const CHANNEL_IN_APP  = 'IN_APP';
-    const CHANNEL_EMAIL   = 'EMAIL';
-    const CHANNEL_SMS     = 'SMS';
+    const CHANNEL_IN_APP = 'IN_APP';
+
+    const CHANNEL_EMAIL = 'EMAIL';
+
+    const CHANNEL_SMS = 'SMS';
+
     const CHANNEL_WEBHOOK = 'WEBHOOK';
 
     // ── Types ─────────────────────────────────────────────────
-    const TYPE_CERT_SUBMITTED    = 'CertificateSubmitted';
-    const TYPE_CERT_ISSUED       = 'CertificateIssued';
-    const TYPE_CERT_REJECTED     = 'CertificateRejected';
-    const TYPE_CERT_CANCELLED    = 'CertificateCancelled';
+    const TYPE_CERT_SUBMITTED = 'CertificateSubmitted';
+
+    const TYPE_CERT_ISSUED = 'CertificateIssued';
+
+    const TYPE_CERT_REJECTED = 'CertificateRejected';
+
+    const TYPE_CERT_CANCELLED = 'CertificateCancelled';
+
     const TYPE_CONTRACT_EXPIRING = 'ContractExpiring';
-    const TYPE_CONTRACT_LIMIT    = 'ContractLimitReached';
+
+    const TYPE_CONTRACT_LIMIT = 'ContractLimitReached';
 
     // Demandes partenaires (CertificateRequest)
-    const TYPE_CERT_REQUEST_CREATED        = 'CertificateRequestCreated';
-    const TYPE_CERT_REQUEST_IN_REVIEW      = 'CertificateRequestInReview';
-    const TYPE_CERT_REQUEST_REJECTED       = 'CertificateRequestRejected';
+    const TYPE_CERT_REQUEST_CREATED = 'CertificateRequestCreated';
+
+    const TYPE_CERT_REQUEST_IN_REVIEW = 'CertificateRequestInReview';
+
+    const TYPE_CERT_REQUEST_REJECTED = 'CertificateRequestRejected';
+
     const TYPE_CERT_REQUEST_INFO_REQUESTED = 'CertificateRequestInfoRequested';
-    const TYPE_CERT_REQUEST_COMPLETED      = 'CertificateRequestCompleted';
-    const TYPE_CERT_REQUEST_CLOSED         = 'CertificateRequestClosed';
+
+    const TYPE_CERT_REQUEST_COMPLETED = 'CertificateRequestCompleted';
+
+    const TYPE_CERT_REQUEST_CLOSED = 'CertificateRequestClosed';
 
     protected $fillable = [
         'type',
@@ -58,7 +71,7 @@ class Notification extends Model
     ];
 
     protected $casts = [
-        'data'    => 'array',
+        'data' => 'array',
         'read_at' => 'datetime',
     ];
 
@@ -77,7 +90,7 @@ class Notification extends Model
     public function scopeForUser($query, string $userId)
     {
         return $query->where('notifiable_type', 'App\\Models\\User')
-                     ->where('notifiable_id', $userId);
+            ->where('notifiable_id', $userId);
     }
 
     public function scopeInApp($query)
@@ -107,22 +120,22 @@ class Notification extends Model
      * avec le trait Notifiable de Laravel.
      */
     public static function send(
-        User   $user,
+        User $user,
         string $type,
         string $title,
         string $body,
-        array  $data = [],
+        array $data = [],
         string $channel = self::CHANNEL_IN_APP
     ): self {
         return static::create([
-            'type'            => $type,
+            'type' => $type,
             'notifiable_type' => 'App\\Models\\User',
-            'notifiable_id'   => $user->id,
-            'tenant_id'       => $user->tenant_id,
-            'channel'         => $channel,
-            'data'            => array_merge($data, [
+            'notifiable_id' => $user->id,
+            'tenant_id' => $user->tenant_id,
+            'channel' => $channel,
+            'data' => array_merge($data, [
                 'title' => $title,
-                'body'  => $body,
+                'body' => $body,
             ]),
         ]);
     }
@@ -132,10 +145,10 @@ class Notification extends Model
      */
     public static function sendToMany(
         iterable $users,
-        string   $type,
-        string   $title,
-        string   $body,
-        array    $data = []
+        string $type,
+        string $title,
+        string $body,
+        array $data = []
     ): void {
         foreach ($users as $user) {
             static::send($user, $type, $title, $body, $data);

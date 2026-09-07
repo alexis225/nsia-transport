@@ -28,6 +28,6 @@ class CertificatePrintTemplate extends Model
 
     public function getBasePdfUrlAttribute(): ?string
     {
-        return $this->base_pdf_path ? asset('storage/' . $this->base_pdf_path) : null;
+        return $this->base_pdf_path ? asset('storage/'.$this->base_pdf_path) : null;
     }
 }

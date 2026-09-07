@@ -26,10 +26,11 @@ beforeEach(function () {
 function makeRecaptchaUser(): User
 {
     $tenant = Tenant::factory()->create();
+
     return User::factory()->create([
         'tenant_id' => $tenant->id,
-        'email'     => 'recaptcha-test@nsia-ci.com',
-        'password'  => Hash::make('Password@123'),
+        'email' => 'recaptcha-test@nsia-ci.com',
+        'password' => Hash::make('Password@123'),
         'is_active' => true,
         'mfa_enabled' => false,
     ]);
@@ -40,8 +41,8 @@ function fakeGoogleSiteverify(bool $success, string $action = 'login', float $sc
     Http::fake([
         'https://www.google.com/recaptcha/api/siteverify' => Http::response([
             'success' => $success,
-            'action'  => $action,
-            'score'   => $score,
+            'action' => $action,
+            'score' => $score,
         ]),
     ]);
 }
@@ -50,7 +51,7 @@ it('bloque le login sans g-recaptcha-response quand des clés sont configurées'
     makeRecaptchaUser();
 
     $this->post('/login', [
-        'email'    => 'recaptcha-test@nsia-ci.com',
+        'email' => 'recaptcha-test@nsia-ci.com',
         'password' => 'Password@123',
     ])->assertSessionHasErrors(['g-recaptcha-response']);
 
@@ -62,9 +63,9 @@ it('bloque le login si Google renvoie success=false', function () {
     fakeGoogleSiteverify(success: false);
 
     $this->post('/login', [
-        'email'                 => 'recaptcha-test@nsia-ci.com',
-        'password'              => 'Password@123',
-        'g-recaptcha-response'  => 'un-token',
+        'email' => 'recaptcha-test@nsia-ci.com',
+        'password' => 'Password@123',
+        'g-recaptcha-response' => 'un-token',
     ])->assertSessionHasErrors(['g-recaptcha-response']);
 
     $this->assertGuest();
@@ -75,8 +76,8 @@ it('bloque le login si le score est sous le seuil configuré', function () {
     fakeGoogleSiteverify(success: true, action: 'login', score: 0.1);
 
     $this->post('/login', [
-        'email'                => 'recaptcha-test@nsia-ci.com',
-        'password'             => 'Password@123',
+        'email' => 'recaptcha-test@nsia-ci.com',
+        'password' => 'Password@123',
         'g-recaptcha-response' => 'un-token',
     ])->assertSessionHasErrors(['g-recaptcha-response']);
 
@@ -88,8 +89,8 @@ it("bloque le login si l'action Google ne correspond pas (anti-rejeu entre formu
     fakeGoogleSiteverify(success: true, action: 'register', score: 0.9);
 
     $this->post('/login', [
-        'email'                => 'recaptcha-test@nsia-ci.com',
-        'password'             => 'Password@123',
+        'email' => 'recaptcha-test@nsia-ci.com',
+        'password' => 'Password@123',
         'g-recaptcha-response' => 'un-token-genere-pour-register',
     ])->assertSessionHasErrors(['g-recaptcha-response']);
 
@@ -101,8 +102,8 @@ it('autorise le login avec un token valide (success, bonne action, bon score)', 
     fakeGoogleSiteverify(success: true, action: 'login', score: 0.9);
 
     $this->post('/login', [
-        'email'                => 'recaptcha-test@nsia-ci.com',
-        'password'             => 'Password@123',
+        'email' => 'recaptcha-test@nsia-ci.com',
+        'password' => 'Password@123',
         'g-recaptcha-response' => 'un-bon-token',
     ])->assertRedirect();
 
@@ -126,7 +127,7 @@ it('laisse passer sans vérification quand RECAPTCHA_SECRET_KEY est vide (compor
     makeRecaptchaUser();
 
     $this->post('/login', [
-        'email'    => 'recaptcha-test@nsia-ci.com',
+        'email' => 'recaptcha-test@nsia-ci.com',
         'password' => 'Password@123',
     ])->assertRedirect();
 

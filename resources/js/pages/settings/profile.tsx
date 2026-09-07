@@ -1,7 +1,19 @@
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import {
+    User,
+    Camera,
+    Check,
+    Shield,
+    Phone,
+    Trash2,
+    Languages,
+} from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import InputError from '@/components/input-error';
+import LanguageSwitcher from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,10 +21,6 @@ import AppLayout from '@/layouts/app-layout';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { BreadcrumbItem } from '@/types';
-import { User, Camera, Check, Shield, Phone, Trash2, Languages } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from '@/components/language-switcher';
 
 export default function Profile({
     mustVerifyEmail,
@@ -23,57 +31,83 @@ export default function Profile({
 }) {
     const { t } = useTranslation('settings');
     const { auth } = usePage().props as any;
-    const user     = auth?.user;
+    const user = auth?.user;
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('breadcrumb.profile'), href: edit() },
     ];
 
-    const initials = `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
-    const fullName  = user?.first_name ? `${user.first_name} ${user.last_name}` : (user?.name ?? '');
+    const initials =
+        `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
+    const fullName = user?.first_name
+        ? `${user.first_name} ${user.last_name}`
+        : (user?.name ?? '');
 
     const userRole = user?.roles?.[0] ?? '';
     // Un role absent du catalogue est affiche tel quel plutot que remplace
     // par la cle brute.
-    const roleLabel = userRole ? t(`roles.${userRole}`, { defaultValue: userRole }) : '';
+    const roleLabel = userRole
+        ? t(`roles.${userRole}`, { defaultValue: userRole })
+        : '';
 
     // ── Avatar upload ─────────────────────────────────────────
-    const fileRef                     = useRef<HTMLInputElement>(null);
-    const [preview, setPreview]       = useState<string | null>(user?.avatar_path ?? null);
+    const fileRef = useRef<HTMLInputElement>(null);
+    const [preview, setPreview] = useState<string | null>(
+        user?.avatar_path ?? null,
+    );
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
-    const [uploading, setUploading]   = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [uploadDone, setUploadDone] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+            return;
+        }
+
         setAvatarFile(file);
         setPreview(URL.createObjectURL(file));
         setUploadDone(false);
     };
 
     const handleAvatarUpload = () => {
-        if (!avatarFile) return;
+        if (!avatarFile) {
+            return;
+        }
+
         setUploading(true);
         const formData = new FormData();
         formData.append('avatar', avatarFile);
         router.post('/settings/avatar', formData, {
             forceFormData: true,
-            onSuccess: () => { setUploading(false); setUploadDone(true); setAvatarFile(null); },
-            onError:   () => { setUploading(false); },
+            onSuccess: () => {
+                setUploading(false);
+                setUploadDone(true);
+                setAvatarFile(null);
+            },
+            onError: () => {
+                setUploading(false);
+            },
         });
     };
 
     const handleAvatarRemove = () => {
-        if (!confirm(t('profile.avatar.confirmRemove'))) return;
+        if (!confirm(t('profile.avatar.confirmRemove'))) {
+            return;
+        }
+
         router.delete('/settings/avatar', {
-            onSuccess: () => { setPreview(null); setAvatarFile(null); },
+            onSuccess: () => {
+                setPreview(null);
+                setAvatarFile(null);
+            },
         });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${t('profile.title')} — NSIA Transport`}/>
+            <Head title={`${t('profile.title')} — NSIA Transport`} />
             <style>{`
                 .pf-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
 
@@ -128,28 +162,43 @@ export default function Profile({
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="pf-wrap">
-
                     {/* ── Hero ── */}
                     <div className="pf-hero">
                         <div className="pf-avatar-wrap">
-                            <div className="pf-avatar" onClick={() => fileRef.current?.click()}>
-                                {preview
-                                    ? <img src={preview} alt=""/>
-                                    : initials
-                                }
+                            <div
+                                className="pf-avatar"
+                                onClick={() => fileRef.current?.click()}
+                            >
+                                {preview ? (
+                                    <img src={preview} alt="" />
+                                ) : (
+                                    initials
+                                )}
                             </div>
-                            <div className="pf-avatar-overlay" onClick={() => fileRef.current?.click()} title={t('profile.avatar.changePhoto')}>
-                                <Camera size={12} color="#fff"/>
+                            <div
+                                className="pf-avatar-overlay"
+                                onClick={() => fileRef.current?.click()}
+                                title={t('profile.avatar.changePhoto')}
+                            >
+                                <Camera size={12} color="#fff" />
                             </div>
-                            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp"
-                                   style={{display:'none'}} onChange={handleFileChange}/>
+                            <input
+                                ref={fileRef}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                style={{ display: 'none' }}
+                                onChange={handleFileChange}
+                            />
                         </div>
                         <div className="pf-hero-info">
-                            <div className="pf-hero-name">{fullName || t('profile.defaultUserName')}</div>
+                            <div className="pf-hero-name">
+                                {fullName || t('profile.defaultUserName')}
+                            </div>
                             <div className="pf-hero-sub">{user?.email}</div>
                             {userRole && (
                                 <span className="pf-role">
-                                    <Shield size={10}/>{roleLabel}
+                                    <Shield size={10} />
+                                    {roleLabel}
                                 </span>
                             )}
                         </div>
@@ -158,43 +207,89 @@ export default function Profile({
                     {/* ── Photo de profil ── */}
                     <div className="pf-card">
                         <div className="pf-card-hdr">
-                            <div className="pf-card-ico" style={{background:'#f0fdf4'}}>
-                                <Camera size={17} color="#16a34a"/>
+                            <div
+                                className="pf-card-ico"
+                                style={{ background: '#f0fdf4' }}
+                            >
+                                <Camera size={17} color="#16a34a" />
                             </div>
                             <div>
-                                <div className="pf-card-ttl">{t('profile.avatar.title')}</div>
-                                <div className="pf-card-sub">{t('profile.avatar.subtitle')}</div>
+                                <div className="pf-card-ttl">
+                                    {t('profile.avatar.title')}
+                                </div>
+                                <div className="pf-card-sub">
+                                    {t('profile.avatar.subtitle')}
+                                </div>
                             </div>
                         </div>
                         <div className="pf-card-body">
                             {uploadDone && (
-                                <div className="status-ok"><Check size={13}/>{t('profile.avatar.updated')}</div>
+                                <div className="status-ok">
+                                    <Check size={13} />
+                                    {t('profile.avatar.updated')}
+                                </div>
                             )}
                             <div className="avatar-section">
                                 <div className="avatar-preview">
-                                    {preview
-                                        ? <img src={preview} alt=""/>
-                                        : initials
-                                    }
+                                    {preview ? (
+                                        <img src={preview} alt="" />
+                                    ) : (
+                                        initials
+                                    )}
                                 </div>
                                 <div className="avatar-actions">
                                     <div className="avatar-btn-row">
-                                        <button type="button" className="avatar-upload-btn" onClick={() => fileRef.current?.click()}>
-                                            <Camera size={13}/> {t('profile.avatar.choose')}
+                                        <button
+                                            type="button"
+                                            className="avatar-upload-btn"
+                                            onClick={() =>
+                                                fileRef.current?.click()
+                                            }
+                                        >
+                                            <Camera size={13} />{' '}
+                                            {t('profile.avatar.choose')}
                                         </button>
                                         {(preview || user?.avatar_path) && (
-                                            <button type="button" onClick={handleAvatarRemove}
-                                                    style={{padding:'8px 12px',background:'#fef2f2',border:'1px solid #fecaca',borderRadius:9,fontSize:12,color:'#dc2626',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:5,fontFamily:'inherit'}}>
-                                                <Trash2 size={12}/> {t('profile.avatar.remove')}
+                                            <button
+                                                type="button"
+                                                onClick={handleAvatarRemove}
+                                                style={{
+                                                    padding: '8px 12px',
+                                                    background: '#fef2f2',
+                                                    border: '1px solid #fecaca',
+                                                    borderRadius: 9,
+                                                    fontSize: 12,
+                                                    color: '#dc2626',
+                                                    cursor: 'pointer',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: 5,
+                                                    fontFamily: 'inherit',
+                                                }}
+                                            >
+                                                <Trash2 size={12} />{' '}
+                                                {t('profile.avatar.remove')}
                                             </button>
                                         )}
                                     </div>
-                                    <span className="avatar-hint">{t('profile.avatar.hint')}</span>
+                                    <span className="avatar-hint">
+                                        {t('profile.avatar.hint')}
+                                    </span>
                                 </div>
                                 {avatarFile && (
-                                    <Button onClick={handleAvatarUpload} disabled={uploading}
-                                            className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5 flex-shrink-0">
-                                        {uploading ? t('profile.avatar.uploading') : <><Check size={14}/> {t('profile.save')}</>}
+                                    <Button
+                                        onClick={handleAvatarUpload}
+                                        disabled={uploading}
+                                        className="h-10 flex-shrink-0 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                                    >
+                                        {uploading ? (
+                                            t('profile.avatar.uploading')
+                                        ) : (
+                                            <>
+                                                <Check size={14} />{' '}
+                                                {t('profile.save')}
+                                            </>
+                                        )}
                                     </Button>
                                 )}
                             </div>
@@ -204,12 +299,19 @@ export default function Profile({
                     {/* ── Langue de l'interface ── */}
                     <div className="pf-card">
                         <div className="pf-card-hdr">
-                            <div className="pf-card-ico" style={{background:'#faf5ff'}}>
-                                <Languages size={17} color="#9333ea"/>
+                            <div
+                                className="pf-card-ico"
+                                style={{ background: '#faf5ff' }}
+                            >
+                                <Languages size={17} color="#9333ea" />
                             </div>
                             <div>
-                                <div className="pf-card-ttl">{t('profile.language.title')}</div>
-                                <div className="pf-card-sub">{t('profile.language.subtitle')}</div>
+                                <div className="pf-card-ttl">
+                                    {t('profile.language.title')}
+                                </div>
+                                <div className="pf-card-sub">
+                                    {t('profile.language.subtitle')}
+                                </div>
                             </div>
                         </div>
                         <div className="pf-card-body">
@@ -220,45 +322,91 @@ export default function Profile({
                     {/* ── Informations personnelles ── */}
                     <div className="pf-card">
                         <div className="pf-card-hdr">
-                            <div className="pf-card-ico" style={{background:'#eff6ff'}}>
-                                <User size={17} color="#3b82f6"/>
+                            <div
+                                className="pf-card-ico"
+                                style={{ background: '#eff6ff' }}
+                            >
+                                <User size={17} color="#3b82f6" />
                             </div>
                             <div>
-                                <div className="pf-card-ttl">{t('profile.personal.title')}</div>
-                                <div className="pf-card-sub">{t('profile.personal.subtitle')}</div>
+                                <div className="pf-card-ttl">
+                                    {t('profile.personal.title')}
+                                </div>
+                                <div className="pf-card-sub">
+                                    {t('profile.personal.subtitle')}
+                                </div>
                             </div>
                         </div>
                         <div className="pf-card-body">
-                            <Form {...ProfileController.update.form()} options={{preserveScroll:true}} className="space-y-0">
-                                {({ processing, recentlySuccessful, errors }) => (
-                                    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+                            <Form
+                                {...ProfileController.update.form()}
+                                options={{ preserveScroll: true }}
+                                className="space-y-0"
+                            >
+                                {({
+                                    processing,
+                                    recentlySuccessful,
+                                    errors,
+                                }) => (
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: 16,
+                                        }}
+                                    >
                                         {recentlySuccessful && (
-                                            <div className="status-ok"><Check size={13}/>Modifications enregistrées.</div>
+                                            <div className="status-ok">
+                                                <Check size={13} />
+                                                Modifications enregistrées.
+                                            </div>
                                         )}
 
                                         {/* Prénom + Nom */}
                                         <div className="form-grid">
                                             <div className="grid gap-2">
-                                                <Label className="pf-label">{t('profile.personal.firstName')}</Label>
+                                                <Label className="pf-label">
+                                                    {t(
+                                                        'profile.personal.firstName',
+                                                    )}
+                                                </Label>
                                                 <Input
-                                                    id="first_name" name="first_name"
+                                                    id="first_name"
+                                                    name="first_name"
                                                     className="h-11"
-                                                    defaultValue={user?.first_name ?? ''}
+                                                    defaultValue={
+                                                        user?.first_name ?? ''
+                                                    }
                                                     autoComplete="given-name"
-                                                    placeholder={t('profile.personal.firstNamePlaceholder')}
+                                                    placeholder={t(
+                                                        'profile.personal.firstNamePlaceholder',
+                                                    )}
                                                 />
-                                                <InputError message={errors.first_name}/>
+                                                <InputError
+                                                    message={errors.first_name}
+                                                />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label className="pf-label">{t('profile.personal.lastName')}</Label>
+                                                <Label className="pf-label">
+                                                    {t(
+                                                        'profile.personal.lastName',
+                                                    )}
+                                                </Label>
                                                 <Input
-                                                    id="last_name" name="last_name"
+                                                    id="last_name"
+                                                    name="last_name"
                                                     className="h-11"
-                                                    defaultValue={user?.last_name ?? ''}
+                                                    defaultValue={
+                                                        user?.last_name ?? ''
+                                                    }
                                                     autoComplete="family-name"
-                                                    placeholder={t('profile.personal.lastNamePlaceholder')}
+                                                    placeholder={t(
+                                                        'profile.personal.lastNamePlaceholder',
+                                                    )}
                                                 />
-                                                <InputError message={errors.last_name}/>
+                                                <InputError
+                                                    message={errors.last_name}
+                                                />
                                             </div>
                                         </div>
 
@@ -266,61 +414,111 @@ export default function Profile({
                                         <div className="grid gap-2">
                                             <Label className="pf-label">
                                                 {t('profile.personal.email')}
-                                                {user?.email_verified_at
-                                                    ? <span className="pill-ok"><Check size={9}/>{t('profile.personal.emailVerified')}</span>
-                                                    : <span className="pill-warn">{t('profile.personal.emailUnverified')}</span>
-                                                }
+                                                {user?.email_verified_at ? (
+                                                    <span className="pill-ok">
+                                                        <Check size={9} />
+                                                        {t(
+                                                            'profile.personal.emailVerified',
+                                                        )}
+                                                    </span>
+                                                ) : (
+                                                    <span className="pill-warn">
+                                                        {t(
+                                                            'profile.personal.emailUnverified',
+                                                        )}
+                                                    </span>
+                                                )}
                                             </Label>
                                             <Input
-                                                id="email" name="email" type="email"
+                                                id="email"
+                                                name="email"
+                                                type="email"
                                                 className="h-11"
                                                 defaultValue={user?.email}
-                                                required autoComplete="username"
-                                                placeholder={t('profile.personal.emailPlaceholder')}
+                                                required
+                                                autoComplete="username"
+                                                placeholder={t(
+                                                    'profile.personal.emailPlaceholder',
+                                                )}
                                             />
-                                            <InputError message={errors.email}/>
+                                            <InputError
+                                                message={errors.email}
+                                            />
                                         </div>
 
                                         {/* Téléphone */}
                                         <div className="grid gap-2">
                                             <Label className="pf-label">
-                                                <span style={{display:'flex',alignItems:'center',gap:5}}>
-                                                    <Phone size={11}/> {t('profile.personal.phone')}
+                                                <span
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 5,
+                                                    }}
+                                                >
+                                                    <Phone size={11} />{' '}
+                                                    {t(
+                                                        'profile.personal.phone',
+                                                    )}
                                                 </span>
                                             </Label>
                                             <Input
-                                                id="phone" name="phone" type="tel"
+                                                id="phone"
+                                                name="phone"
+                                                type="tel"
                                                 className="h-11"
                                                 defaultValue={user?.phone ?? ''}
                                                 autoComplete="tel"
-                                                placeholder={t('profile.personal.phonePlaceholder')}
+                                                placeholder={t(
+                                                    'profile.personal.phonePlaceholder',
+                                                )}
                                             />
-                                            <InputError message={errors.phone}/>
+                                            <InputError
+                                                message={errors.phone}
+                                            />
                                         </div>
 
                                         {/* Email non vérifié */}
-                                        {mustVerifyEmail && user?.email_verified_at === null && (
-                                            <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
-                                                <p className="text-sm text-amber-800">
-                                                    {t('profile.verify.notice')}{' '}
-                                                    <Link href={send()} as="button" className="font-medium underline text-amber-900 hover:text-amber-700 transition-colors">
-                                                        {t('profile.verify.resend')}
-                                                    </Link>
-                                                </p>
-                                                {status === 'verification-link-sent' && (
-                                                    <p className="mt-2 text-sm font-medium text-green-600 flex items-center gap-1">
-                                                        <Check size={12}/>{t('profile.verify.sent')}
+                                        {mustVerifyEmail &&
+                                            user?.email_verified_at ===
+                                                null && (
+                                                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                                                    <p className="text-sm text-amber-800">
+                                                        {t(
+                                                            'profile.verify.notice',
+                                                        )}{' '}
+                                                        <Link
+                                                            href={send()}
+                                                            as="button"
+                                                            className="font-medium text-amber-900 underline transition-colors hover:text-amber-700"
+                                                        >
+                                                            {t(
+                                                                'profile.verify.resend',
+                                                            )}
+                                                        </Link>
                                                     </p>
-                                                )}
-                                            </div>
-                                        )}
+                                                    {status ===
+                                                        'verification-link-sent' && (
+                                                        <p className="mt-2 flex items-center gap-1 text-sm font-medium text-green-600">
+                                                            <Check size={12} />
+                                                            {t(
+                                                                'profile.verify.sent',
+                                                            )}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
 
                                         {/* Submit */}
                                         <div className="flex items-center gap-3 pt-1">
-                                            <Button disabled={processing}
-                                                    className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5"
-                                                    data-test="update-profile-button">
-                                                {processing ? t('profile.saving') : t('profile.save')}
+                                            <Button
+                                                disabled={processing}
+                                                className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                                                data-test="update-profile-button"
+                                            >
+                                                {processing
+                                                    ? t('profile.saving')
+                                                    : t('profile.save')}
                                             </Button>
                                             <Transition
                                                 show={recentlySuccessful}
@@ -329,8 +527,9 @@ export default function Profile({
                                                 leave="transition ease-in-out duration-200"
                                                 leaveTo="opacity-0"
                                             >
-                                                <p className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
-                                                    <Check size={13}/>{t('profile.saved')}
+                                                <p className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+                                                    <Check size={13} />
+                                                    {t('profile.saved')}
                                                 </p>
                                             </Transition>
                                         </div>
@@ -339,7 +538,6 @@ export default function Profile({
                             </Form>
                         </div>
                     </div>
-
                 </div>
             </div>
         </AppLayout>

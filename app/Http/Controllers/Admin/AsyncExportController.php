@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\AsyncCertificateExportJob;
 use App\Models\ReportExecution;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
@@ -27,17 +28,17 @@ class AsyncExportController extends Controller
             ->limit(50)
             ->get()
             ->map(fn ($e) => [
-                'id'           => $e->id,
-                'format'       => $e->format,
-                'status'       => $e->status,
-                'parameters'   => $e->parameters,
-                'row_count'    => $e->row_count,
-                'file_size'    => $e->file_size,
-                'error_message'=> $e->error_message,
-                'created_at'   => $e->created_at?->format('d/m/Y H:i'),
+                'id' => $e->id,
+                'format' => $e->format,
+                'status' => $e->status,
+                'parameters' => $e->parameters,
+                'row_count' => $e->row_count,
+                'file_size' => $e->file_size,
+                'error_message' => $e->error_message,
+                'created_at' => $e->created_at?->format('d/m/Y H:i'),
                 'completed_at' => $e->completed_at?->format('d/m/Y H:i'),
-                'expires_at'   => $e->expires_at?->format('d/m/Y H:i'),
-                'is_expired'   => $e->isExpired(),
+                'expires_at' => $e->expires_at?->format('d/m/Y H:i'),
+                'is_expired' => $e->isExpired(),
                 'can_download' => $e->isCompleted() && ! $e->isExpired(),
             ]);
 
@@ -53,31 +54,31 @@ class AsyncExportController extends Controller
 
         // Créer l'entrée QUEUED
         $execution = ReportExecution::create([
-            'tenant_id'    => $user->tenant_id,
+            'tenant_id' => $user->tenant_id,
             'requested_by' => $user->id,
-            'format'       => 'CSV',
-            'status'       => ReportExecution::STATUS_QUEUED,
-            'parameters'   => array_merge(
+            'format' => 'CSV',
+            'status' => ReportExecution::STATUS_QUEUED,
+            'parameters' => array_merge(
                 $request->only(['status', 'transport_type', 'date_from', 'date_to', 'broker_id', 'search']),
                 [
                     'is_super_admin' => $user->hasRole('super_admin'),
-                    'tenant_id'      => $user->tenant_id,
+                    'tenant_id' => $user->tenant_id,
                 ]
             ),
-            'created_at'   => now(),
+            'created_at' => now(),
         ]);
 
         // Dispatcher le job
         AsyncCertificateExportJob::dispatch($execution->id);
 
         return response()->json([
-            'message'      => 'Export lancé. Vous serez notifié à la fin.',
+            'message' => 'Export lancé. Vous serez notifié à la fin.',
             'execution_id' => $execution->id,
         ]);
     }
 
     // Télécharger un export complété
-    public function download(Request $request, string $execution): Response|\Illuminate\Http\RedirectResponse
+    public function download(Request $request, string $execution): Response|RedirectResponse
     {
         $exec = ReportExecution::where('id', $execution)
             ->where('requested_by', $request->user()->id)
@@ -87,10 +88,10 @@ class AsyncExportController extends Controller
         abort_if($exec->isExpired(), 410, 'Export expiré.');
         abort_if(! Storage::exists($exec->file_path), 404, 'Fichier introuvable.');
 
-        $filename = 'certificats_' . $exec->created_at->format('Ymd_His') . '.csv';
+        $filename = 'certificats_'.$exec->created_at->format('Ymd_His').'.csv';
 
         return response()->download(
-            storage_path('app/' . $exec->file_path),
+            storage_path('app/'.$exec->file_path),
             $filename,
             ['Content-Type' => 'text/csv; charset=utf-8']
         );
@@ -104,8 +105,8 @@ class AsyncExportController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'status'       => $exec->status,
-            'row_count'    => $exec->row_count,
+            'status' => $exec->status,
+            'row_count' => $exec->row_count,
             'completed_at' => $exec->completed_at?->format('H:i'),
             'can_download' => $exec->isCompleted() && ! $exec->isExpired(),
         ]);

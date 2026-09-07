@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Broker;
 use App\Models\Certificate;
 use App\Models\Tenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,19 +24,19 @@ class CertificateReportController extends Controller
 {
     public function index(Request $request): Response
     {
-        $user     = $request->user();
-        $isSA     = $user->hasRole('super_admin');
+        $user = $request->user();
+        $isSA = $user->hasRole('super_admin');
         $tenantId = $user->tenant_id;
 
         // ── Paramètres période ────────────────────────────────────
-        $dateFrom  = $request->input('date_from',  now()->startOfMonth()->format('Y-m-d'));
-        $dateTo    = $request->input('date_to',    now()->format('Y-m-d'));
+        $dateFrom = $request->input('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo = $request->input('date_to', now()->format('Y-m-d'));
         $dateField = $request->input('date_field', 'created_at'); // created_at | issued_at | voyage_date
-        $status    = $request->input('status',     'ALL');
+        $status = $request->input('status', 'ALL');
         $transport = $request->input('transport');
-        $brokerId  = $request->input('broker_id');
+        $brokerId = $request->input('broker_id');
         $filterTenant = $request->input('tenant_id');
-        $search    = $request->input('search');
+        $search = $request->input('search');
 
         // ── Base période (sans filtre statut/transport) ───────────
         $periodBase = Certificate::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId))
@@ -45,7 +46,7 @@ class CertificateReportController extends Controller
             ))
             ->when($search, fn ($q) => $q->where(fn ($q) => $q
                 ->where('certificate_number', 'ilike', "%{$search}%")
-                ->orWhere('insured_name',      'ilike', "%{$search}%")
+                ->orWhere('insured_name', 'ilike', "%{$search}%")
             ));
 
         // Appliquer filtre date selon champ choisi
@@ -53,15 +54,15 @@ class CertificateReportController extends Controller
 
         // ── Stats globales période ────────────────────────────────
         $stats = [
-            'total'          => (clone $periodBase)->count(),
-            'issued'         => (clone $periodBase)->where('status', 'ISSUED')->count(),
-            'submitted'      => (clone $periodBase)->where('status', 'SUBMITTED')->count(),
-            'draft'          => (clone $periodBase)->where('status', 'DRAFT')->count(),
-            'cancelled'      => (clone $periodBase)->where('status', 'CANCELLED')->count(),
-            'total_insured'  => (float) (clone $periodBase)->sum('insured_value'),
-            'total_prime'    => (float) (clone $periodBase)->sum('prime_total'),
+            'total' => (clone $periodBase)->count(),
+            'issued' => (clone $periodBase)->where('status', 'ISSUED')->count(),
+            'submitted' => (clone $periodBase)->where('status', 'SUBMITTED')->count(),
+            'draft' => (clone $periodBase)->where('status', 'DRAFT')->count(),
+            'cancelled' => (clone $periodBase)->where('status', 'CANCELLED')->count(),
+            'total_insured' => (float) (clone $periodBase)->sum('insured_value'),
+            'total_prime' => (float) (clone $periodBase)->sum('prime_total'),
             'issued_insured' => (float) (clone $periodBase)->where('status', 'ISSUED')->sum('insured_value'),
-            'issued_prime'   => (float) (clone $periodBase)->where('status', 'ISSUED')->sum('prime_total'),
+            'issued_prime' => (float) (clone $periodBase)->where('status', 'ISSUED')->sum('prime_total'),
         ];
 
         // ── Ventilation par mode de transport ────────────────────
@@ -74,7 +75,7 @@ class CertificateReportController extends Controller
 
         // ── Ventilation par statut ────────────────────────────────
         $byStatus = (clone $periodBase)
-            ->selectRaw("status, COUNT(*) as count, SUM(insured_value) as total_value")
+            ->selectRaw('status, COUNT(*) as count, SUM(insured_value) as total_value')
             ->groupBy('status')
             ->orderByDesc('count')
             ->get()
@@ -109,31 +110,31 @@ class CertificateReportController extends Controller
 
         return Inertia::render('admin/reports/certificates', [
             'certificates' => $certificates,
-            'stats'        => $stats,
-            'byTransport'  => $byTransport,
-            'byStatus'     => $byStatus,
-            'brokers'      => $brokers,
-            'tenants'      => $tenants,
-            'filters'      => [
-                'date_from'  => $dateFrom,
-                'date_to'    => $dateTo,
+            'stats' => $stats,
+            'byTransport' => $byTransport,
+            'byStatus' => $byStatus,
+            'brokers' => $brokers,
+            'tenants' => $tenants,
+            'filters' => [
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
                 'date_field' => $dateField,
-                'status'     => $status,
-                'transport'  => $transport,
-                'broker_id'  => $brokerId,
-                'tenant_id'  => $filterTenant,
-                'search'     => $search,
+                'status' => $status,
+                'transport' => $transport,
+                'broker_id' => $brokerId,
+                'tenant_id' => $filterTenant,
+                'search' => $search,
             ],
-            'isSA'         => $isSA,
+            'isSA' => $isSA,
         ]);
     }
 
-    private function applyDateFilter(\Illuminate\Database\Eloquent\Builder $query, string $field, string $from, string $to): void
+    private function applyDateFilter(Builder $query, string $field, string $from, string $to): void
     {
         match ($field) {
             'voyage_date' => $query->whereBetween('voyage_date', [$from, $to]),
-            'issued_at'   => $query->whereDate('issued_at', '>=', $from)->whereDate('issued_at', '<=', $to),
-            default       => $query->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to),
+            'issued_at' => $query->whereDate('issued_at', '>=', $from)->whereDate('issued_at', '<=', $to),
+            default => $query->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to),
         };
     }
 }

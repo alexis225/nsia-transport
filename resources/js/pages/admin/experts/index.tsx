@@ -1,42 +1,60 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
-    Search, Plus, Eye, Edit2, Trash2,
-    ToggleLeft, ToggleRight, X,
-    ChevronLeft, ChevronRight,
-    Mail, Phone,
+    Search,
+    Plus,
+    Eye,
+    Edit2,
+    Trash2,
+    ToggleLeft,
+    ToggleRight,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Mail,
+    Phone,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
-interface Tenant { id: string; name: string; code: string; }
+interface Tenant {
+    id: string;
+    name: string;
+    code: string;
+}
 interface Expert {
-    id: string; name: string;
-    email: string | null; phone: string | null;
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
     country_code: string | null;
-    is_active: boolean; created_at: string;
+    is_active: boolean;
+    created_at: string;
     tenant: Tenant | null;
 }
 interface Paginated<T> {
-    data: T[]; current_page: number; last_page: number; total: number;
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
     experts: Paginated<Expert>;
     filters: { search?: string; status?: string };
-    isSA:    boolean;
-    can:     { create: boolean; edit: boolean; delete: boolean };
+    isSA: boolean;
+    can: { create: boolean; edit: boolean; delete: boolean };
 }
 
 const COLORS = [
-    { bg:'#EEF2FF', color:'#4338CA' },
-    { bg:'#FFF7ED', color:'#C2410C' },
-    { bg:'#FDF4FF', color:'#7E22CE' },
-    { bg:'#F0FDF4', color:'#15803D' },
-    { bg:'#ECFDF5', color:'#065F46' },
-    { bg:'#EFF6FF', color:'#1D4ED8' },
+    { bg: '#EEF2FF', color: '#4338CA' },
+    { bg: '#FFF7ED', color: '#C2410C' },
+    { bg: '#FDF4FF', color: '#7E22CE' },
+    { bg: '#F0FDF4', color: '#15803D' },
+    { bg: '#ECFDF5', color: '#065F46' },
+    { bg: '#EFF6FF', color: '#1D4ED8' },
 ];
 
 export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
@@ -49,21 +67,33 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
     ];
 
     const applyFilter = (params: Record<string, string>) =>
-        router.get('/admin/experts', { ...filters, ...params }, { preserveState: true, replace: true });
+        router.get(
+            '/admin/experts',
+            { ...filters, ...params },
+            { preserveState: true, replace: true },
+        );
 
     const handleDelete = (e: Expert) => {
-        if (confirm(t('index.confirmDelete', { name: e.name })))
+        if (confirm(t('index.confirmDelete', { name: e.name }))) {
             router.delete(route('admin.experts.destroy', { expert: e.id }));
+        }
     };
 
     const handleToggle = (e: Expert) => {
-        if (confirm(e.is_active ? t('index.confirmDeactivate', { name: e.name }) : t('index.confirmActivate', { name: e.name })))
+        if (
+            confirm(
+                e.is_active
+                    ? t('index.confirmDeactivate', { name: e.name })
+                    : t('index.confirmActivate', { name: e.name }),
+            )
+        ) {
             router.patch(route('admin.experts.toggle', { expert: e.id }));
+        }
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('index.title')}/>
+            <Head title={t('index.title')} />
             <style>{`
                 .ex-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .ex-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -108,34 +138,74 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="ex-page">
-
                     <div className="ex-hdr">
                         <div>
                             <h1 className="ex-title">{t('index.heading')}</h1>
-                            <p className="ex-sub">{t('index.count', { count: experts.total })}</p>
+                            <p className="ex-sub">
+                                {t('index.count', { count: experts.total })}
+                            </p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.experts.create')}>
-                                <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> {t('index.newExpert')}
+                                <Button className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]">
+                                    <Plus size={15} /> {t('index.newExpert')}
                                 </Button>
                             </Link>
                         )}
                     </div>
 
                     <div className="ex-toolbar">
-                        <form className="ex-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page: '1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.searchPlaceholder')}/>
-                            <button type="submit"><Search size={14}/></button>
+                        <form
+                            className="ex-search"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                applyFilter({ search, page: '1' });
+                            }}
+                        >
+                            <input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={t('index.searchPlaceholder')}
+                            />
+                            <button type="submit">
+                                <Search size={14} />
+                            </button>
                         </form>
-                        <select className="ex-select" value={filters?.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page: '1' })}>
+                        <select
+                            className="ex-select"
+                            value={filters?.status ?? ''}
+                            onChange={(e) =>
+                                applyFilter({
+                                    status: e.target.value,
+                                    page: '1',
+                                })
+                            }
+                        >
                             <option value="">{t('index.statusAll')}</option>
-                            <option value="active">{t('index.statusActive')}</option>
-                            <option value="inactive">{t('index.statusInactive')}</option>
+                            <option value="active">
+                                {t('index.statusActive')}
+                            </option>
+                            <option value="inactive">
+                                {t('index.statusInactive')}
+                            </option>
                         </select>
                         {(filters?.search || filters?.status) && (
-                            <button onClick={() => router.get('/admin/experts')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> {t('index.clear')}
+                            <button
+                                onClick={() => router.get('/admin/experts')}
+                                style={{
+                                    padding: '9px 12px',
+                                    background: 'none',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 8,
+                                    cursor: 'pointer',
+                                    color: '#94a3b8',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    fontSize: 12,
+                                }}
+                            >
+                                <X size={12} /> {t('index.clear')}
                             </button>
                         )}
                     </div>
@@ -151,7 +221,11 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
                                             <th>{t('index.table.expert')}</th>
                                             <th>{t('index.table.contact')}</th>
                                             <th>{t('index.table.country')}</th>
-                                            {isSA && <th>{t('index.table.tenant')}</th>}
+                                            {isSA && (
+                                                <th>
+                                                    {t('index.table.tenant')}
+                                                </th>
+                                            )}
                                             <th>{t('index.table.status')}</th>
                                             <th>{t('index.table.actions')}</th>
                                         </tr>
@@ -159,53 +233,215 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
                                     <tbody>
                                         {experts.data.map((exp, i) => {
                                             const c = COLORS[i % COLORS.length];
-                                            const initials = exp.name.slice(0, 2).toUpperCase();
+                                            const initials = exp.name
+                                                .slice(0, 2)
+                                                .toUpperCase();
+
                                             return (
                                                 <tr key={exp.id}>
                                                     <td>
-                                                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                                            <div className="ex-avatar" style={{ background: c.bg, color: c.color }}>{initials}</div>
-                                                            <div className="ex-name">{exp.name}</div>
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 10,
+                                                            }}
+                                                        >
+                                                            <div
+                                                                className="ex-avatar"
+                                                                style={{
+                                                                    background:
+                                                                        c.bg,
+                                                                    color: c.color,
+                                                                }}
+                                                            >
+                                                                {initials}
+                                                            </div>
+                                                            <div className="ex-name">
+                                                                {exp.name}
+                                                            </div>
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div className="contact-info">
-                                                            {exp.email && <div className="contact-row"><Mail size={10}/>{exp.email}</div>}
-                                                            {exp.phone && <div className="contact-row"><Phone size={10}/>{exp.phone}</div>}
-                                                            {!exp.email && !exp.phone && <span style={{ color:'#cbd5e1' }}>—</span>}
+                                                            {exp.email && (
+                                                                <div className="contact-row">
+                                                                    <Mail
+                                                                        size={
+                                                                            10
+                                                                        }
+                                                                    />
+                                                                    {exp.email}
+                                                                </div>
+                                                            )}
+                                                            {exp.phone && (
+                                                                <div className="contact-row">
+                                                                    <Phone
+                                                                        size={
+                                                                            10
+                                                                        }
+                                                                    />
+                                                                    {exp.phone}
+                                                                </div>
+                                                            )}
+                                                            {!exp.email &&
+                                                                !exp.phone && (
+                                                                    <span
+                                                                        style={{
+                                                                            color: '#cbd5e1',
+                                                                        }}
+                                                                    >
+                                                                        —
+                                                                    </span>
+                                                                )}
                                                         </div>
                                                     </td>
-                                                    <td style={{ fontSize:12, color:'#64748b' }}>
-                                                        {exp.country_code ?? <span style={{ color:'#cbd5e1' }}>—</span>}
+                                                    <td
+                                                        style={{
+                                                            fontSize: 12,
+                                                            color: '#64748b',
+                                                        }}
+                                                    >
+                                                        {exp.country_code ?? (
+                                                            <span
+                                                                style={{
+                                                                    color: '#cbd5e1',
+                                                                }}
+                                                            >
+                                                                —
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     {isSA && (
-                                                        <td style={{ fontSize:12, color:'#64748b' }}>
-                                                            {exp.tenant?.name ?? '—'}
+                                                        <td
+                                                            style={{
+                                                                fontSize: 12,
+                                                                color: '#64748b',
+                                                            }}
+                                                        >
+                                                            {exp.tenant?.name ??
+                                                                '—'}
                                                         </td>
                                                     )}
                                                     <td>
-                                                        {exp.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{tc('states.active')}</span>
-                                                            : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{tc('states.inactive')}</span>}
+                                                        {exp.is_active ? (
+                                                            <span className="s-active">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#22c55e',
+                                                                    }}
+                                                                />
+                                                                {tc(
+                                                                    'states.active',
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="s-inactive">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#94a3b8',
+                                                                    }}
+                                                                />
+                                                                {tc(
+                                                                    'states.inactive',
+                                                                )}
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td>
                                                         <div className="actions">
-                                                            <Link href={route('admin.experts.show', { expert: exp.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> {t('index.view')}
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.experts.show',
+                                                                    {
+                                                                        expert: exp.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-act btn-view"
+                                                            >
+                                                                <Eye
+                                                                    size={12}
+                                                                />{' '}
+                                                                {t(
+                                                                    'index.view',
+                                                                )}
                                                             </Link>
                                                             {can.edit && (
-                                                                <Link href={route('admin.experts.edit', { expert: exp.id })} className="btn-act btn-edit">
-                                                                    <Edit2 size={12}/> {t('index.edit')}
+                                                                <Link
+                                                                    href={route(
+                                                                        'admin.experts.edit',
+                                                                        {
+                                                                            expert: exp.id,
+                                                                        },
+                                                                    )}
+                                                                    className="btn-act btn-edit"
+                                                                >
+                                                                    <Edit2
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />{' '}
+                                                                    {t(
+                                                                        'index.edit',
+                                                                    )}
                                                                 </Link>
                                                             )}
                                                             {can.edit && (
-                                                                <button className={`btn-act ${exp.is_active ? 'btn-on' : 'btn-off'}`} onClick={() => handleToggle(exp)}>
-                                                                    {exp.is_active ? <><ToggleLeft size={12}/> {t('index.deactivate')}</> : <><ToggleRight size={12}/> {t('index.activate')}</>}
+                                                                <button
+                                                                    className={`btn-act ${exp.is_active ? 'btn-on' : 'btn-off'}`}
+                                                                    onClick={() =>
+                                                                        handleToggle(
+                                                                            exp,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {exp.is_active ? (
+                                                                        <>
+                                                                            <ToggleLeft
+                                                                                size={
+                                                                                    12
+                                                                                }
+                                                                            />{' '}
+                                                                            {t(
+                                                                                'index.deactivate',
+                                                                            )}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <ToggleRight
+                                                                                size={
+                                                                                    12
+                                                                                }
+                                                                            />{' '}
+                                                                            {t(
+                                                                                'index.activate',
+                                                                            )}
+                                                                        </>
+                                                                    )}
                                                                 </button>
                                                             )}
                                                             {can.delete && (
-                                                                <button className="btn-act btn-del" onClick={() => handleDelete(exp)}>
-                                                                    <Trash2 size={12}/> {t('index.delete')}
+                                                                <button
+                                                                    className="btn-act btn-del"
+                                                                    onClick={() =>
+                                                                        handleDelete(
+                                                                            exp,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Trash2
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />{' '}
+                                                                    {t(
+                                                                        'index.delete',
+                                                                    )}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -218,19 +454,73 @@ export default function ExpertsIndex({ experts, filters, isSA, can }: Props) {
 
                                 {experts.last_page > 1 && (
                                     <div className="ex-pagination">
-                                        <span className="ex-pg-info">{t('index.pageInfo', { current: experts.current_page, last: experts.last_page, total: experts.total })}</span>
+                                        <span className="ex-pg-info">
+                                            {t('index.pageInfo', {
+                                                current: experts.current_page,
+                                                last: experts.last_page,
+                                                total: experts.total,
+                                            })}
+                                        </span>
                                         <div className="ex-pg-links">
-                                            <button className="pg-btn" disabled={experts.current_page === 1} onClick={() => applyFilter({ page: String(experts.current_page - 1) })}><ChevronLeft size={13}/></button>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    experts.current_page === 1
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            experts.current_page -
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronLeft size={13} />
+                                            </button>
                                             {experts.links.map((link, i) => {
-                                                if (i === 0 || i === experts.links.length - 1) return null;
+                                                if (
+                                                    i === 0 ||
+                                                    i ===
+                                                        experts.links.length - 1
+                                                ) {
+                                                    return null;
+                                                }
+
                                                 return (
-                                                    <button key={`p-${i}`} className={`pg-btn ${link.active ? 'act' : ''}`}
-                                                            onClick={() => link.url && applyFilter({ page: link.label })}
-                                                            disabled={!link.url}
-                                                            dangerouslySetInnerHTML={{ __html: link.label }}/>
+                                                    <button
+                                                        key={`p-${i}`}
+                                                        className={`pg-btn ${link.active ? 'act' : ''}`}
+                                                        onClick={() =>
+                                                            link.url &&
+                                                            applyFilter({
+                                                                page: link.label,
+                                                            })
+                                                        }
+                                                        disabled={!link.url}
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: link.label,
+                                                        }}
+                                                    />
                                                 );
                                             })}
-                                            <button className="pg-btn" disabled={experts.current_page === experts.last_page} onClick={() => applyFilter({ page: String(experts.current_page + 1) })}><ChevronRight size={13}/></button>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    experts.current_page ===
+                                                    experts.last_page
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            experts.current_page +
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronRight size={13} />
+                                            </button>
                                         </div>
                                     </div>
                                 )}

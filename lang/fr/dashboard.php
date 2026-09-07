@@ -9,12 +9,12 @@
 return [
     'kpis' => [
         'certificates_issued' => 'Certificats émis',
-        'premiums_issued'     => 'Primes émises',
-        'contracts_active'    => 'Contrats actifs',
-        'brokers_active'      => 'Courtiers actifs',
+        'premiums_issued' => 'Primes émises',
+        'contracts_active' => 'Contrats actifs',
+        'brokers_active' => 'Courtiers actifs',
     ],
     'periods' => [
         'this_month' => 'Ce mois',
-        'total'      => 'Total',
+        'total' => 'Total',
     ],
 ];

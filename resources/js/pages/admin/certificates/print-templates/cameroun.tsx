@@ -14,6 +14,16 @@ interface Props {
     positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateCameroun({ certificate, calibrate, positionsOverride }: Props) {
-    return <StubOverlay certificate={certificate} positions={positionsOverride ?? CAMEROUN_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateCameroun({
+    certificate,
+    calibrate,
+    positionsOverride,
+}: Props) {
+    return (
+        <StubOverlay
+            certificate={certificate}
+            positions={positionsOverride ?? CAMEROUN_POSITIONS}
+            calibrate={calibrate}
+        />
+    );
 }

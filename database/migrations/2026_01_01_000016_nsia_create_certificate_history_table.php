@@ -28,7 +28,7 @@ return new class extends Migration
             $table->uuid('certificate_id')->index();
 
             $table->string('action', 50); // CREATED | UPDATED | SUBMITTED | APPROVED |
-                                          // ISSUED | CANCELLED | DUPLICATED | PDF_GENERATED
+            // ISSUED | CANCELLED | DUPLICATED | PDF_GENERATED
 
             $table->json('old_data')->nullable();
             $table->json('new_data')->nullable();
@@ -37,9 +37,9 @@ return new class extends Migration
             $table->json('changed_fields')->nullable()->default('[]'); // TEXT[] remplacé par JSONB (cast 'array' dans le modèle)
 
             $table->foreignUuid('performed_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             $table->timestamp('performed_at')->useCurrent();
             $table->ipAddress('ip_address')->nullable();

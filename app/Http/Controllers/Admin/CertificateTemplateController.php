@@ -31,9 +31,9 @@ class CertificateTemplateController extends Controller
         )->orderBy('name')->get(['id', 'name', 'code']);
 
         return Inertia::render('admin/certificate-templates/index', [
-            'templates'              => $templates,
+            'templates' => $templates,
             'tenantsWithoutTemplate' => $tenantsWithoutTemplate,
-            'types'                  => CertificateTemplate::TYPES,
+            'types' => CertificateTemplate::TYPES,
         ]);
     }
 
@@ -46,8 +46,8 @@ class CertificateTemplateController extends Controller
         )->orderBy('name')->get(['id', 'name', 'code']);
 
         return Inertia::render('admin/certificate-templates/create', [
-            'tenants'         => $tenants,
-            'types'           => CertificateTemplate::TYPES,
+            'tenants' => $tenants,
+            'types' => CertificateTemplate::TYPES,
             'defaultTenantId' => $request->query('tenant_id'),
         ]);
     }
@@ -68,7 +68,7 @@ class CertificateTemplateController extends Controller
 
         $template = CertificateTemplate::create([
             ...$validated,
-            'logo_path'  => $logoPath,
+            'logo_path' => $logoPath,
             'created_by' => $request->user()->id,
         ]);
 
@@ -81,7 +81,7 @@ class CertificateTemplateController extends Controller
     private function decodeFormData(Request $request): void
     {
         // Booléens — FormData envoie "true"/"false" comme strings
-        foreach (['is_bilingual','has_container_options','has_flight_number','has_vessel_name','has_currency_rate','is_active'] as $bool) {
+        foreach (['is_bilingual', 'has_container_options', 'has_flight_number', 'has_vessel_name', 'has_currency_rate', 'is_active'] as $bool) {
             if ($request->has($bool)) {
                 $request->merge([$bool => filter_var($request->input($bool), FILTER_VALIDATE_BOOLEAN)]);
             }
@@ -123,8 +123,8 @@ class CertificateTemplateController extends Controller
 
         return Inertia::render('admin/certificate-templates/edit', [
             'template' => $certificateTemplate,
-            'tenants'  => Tenant::orderBy('name')->get(['id', 'name', 'code']),
-            'types'    => CertificateTemplate::TYPES,
+            'tenants' => Tenant::orderBy('name')->get(['id', 'name', 'code']),
+            'types' => CertificateTemplate::TYPES,
             'tenantsWithOtherTemplate' => $tenantsWithOtherTemplate,
         ]);
     }
@@ -185,42 +185,42 @@ class CertificateTemplateController extends Controller
             // ignore la ligne en cours d'édition pour permettre de garder
             // la même filiale, mais bloque la réassignation vers une
             // filiale déjà associée à un AUTRE modèle.
-            'tenant_id'              => ['required', 'uuid', 'exists:tenants,id',
+            'tenant_id' => ['required', 'uuid', 'exists:tenants,id',
                 Rule::unique('certificate_templates', 'tenant_id')->ignore($ignoreId)],
-            'name'                   => ['required', 'string', 'max:150'],
-            'code'                   => ['required', 'string', 'max:20',
+            'name' => ['required', 'string', 'max:150'],
+            'code' => ['required', 'string', 'max:20',
                 Rule::unique('certificate_templates', 'code')->ignore($ignoreId)],
-            'type'                   => ['required', Rule::in(array_keys(CertificateTemplate::TYPES))],
-            'company_name'           => ['required', 'string', 'max:150'],
-            'company_address'        => ['nullable', 'string', 'max:255'],
-            'company_phone'          => ['nullable', 'string', 'max:100'],
-            'company_email'          => ['nullable', 'email'],
-            'company_website'        => ['nullable', 'string', 'max:150'],
-            'company_rccm'           => ['nullable', 'string', 'max:100'],
-            'company_capital'        => ['nullable', 'string', 'max:100'],
-            'legal_framework'        => ['nullable', 'string'],
-            'police_prefix'          => ['nullable', 'string', 'max:20'],
-            'currency_code'          => ['required', 'size:3'],
-            'city'                   => ['nullable', 'string', 'max:100'],
-            'is_bilingual'           => ['boolean'],
-            'has_container_options'  => ['boolean'],
-            'has_flight_number'      => ['boolean'],
-            'has_vessel_name'        => ['boolean'],
-            'has_currency_rate'      => ['boolean'],
-            'prime_breakdown_lines'  => ['nullable', 'array'],
-            'prime_breakdown_lines.*.key'      => ['required', 'string'],
-            'prime_breakdown_lines.*.label'    => ['required', 'string'],
+            'type' => ['required', Rule::in(array_keys(CertificateTemplate::TYPES))],
+            'company_name' => ['required', 'string', 'max:150'],
+            'company_address' => ['nullable', 'string', 'max:255'],
+            'company_phone' => ['nullable', 'string', 'max:100'],
+            'company_email' => ['nullable', 'email'],
+            'company_website' => ['nullable', 'string', 'max:150'],
+            'company_rccm' => ['nullable', 'string', 'max:100'],
+            'company_capital' => ['nullable', 'string', 'max:100'],
+            'legal_framework' => ['nullable', 'string'],
+            'police_prefix' => ['nullable', 'string', 'max:20'],
+            'currency_code' => ['required', 'size:3'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'is_bilingual' => ['boolean'],
+            'has_container_options' => ['boolean'],
+            'has_flight_number' => ['boolean'],
+            'has_vessel_name' => ['boolean'],
+            'has_currency_rate' => ['boolean'],
+            'prime_breakdown_lines' => ['nullable', 'array'],
+            'prime_breakdown_lines.*.key' => ['required', 'string'],
+            'prime_breakdown_lines.*.label' => ['required', 'string'],
             'prime_breakdown_lines.*.label_en' => ['nullable', 'string'],
-            'footer_text'            => ['nullable', 'string'],
-            'claims_text'            => ['nullable', 'string'],
-            'conditions_text'        => ['nullable', 'string'],
-            'number_prefix'          => ['nullable', 'string', 'max:10'],
-            'number_padding'         => ['integer', 'min:4', 'max:10'],
-            'is_active'              => ['boolean'],
-            'logo'                   => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
+            'footer_text' => ['nullable', 'string'],
+            'claims_text' => ['nullable', 'string'],
+            'conditions_text' => ['nullable', 'string'],
+            'number_prefix' => ['nullable', 'string', 'max:10'],
+            'number_padding' => ['integer', 'min:4', 'max:10'],
+            'is_active' => ['boolean'],
+            'logo' => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:2048'],
         ], [
             'tenant_id.unique' => "Cette filiale a déjà un modèle actif — libérez-le (suppression ou réassignation) avant d'en réassigner un nouveau.",
-            'code.unique'      => "Ce code de modèle est déjà utilisé par un autre modèle.",
+            'code.unique' => 'Ce code de modèle est déjà utilisé par un autre modèle.',
         ]);
     }
 }

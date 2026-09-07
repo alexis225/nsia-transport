@@ -1,87 +1,243 @@
-import { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import type { BreadcrumbItem } from '@/types';
 import {
-    Search, Plus, Eye, Edit2, Trash2,
-    UserX, UserCheck, X, ChevronLeft,
-    ChevronRight, AlertCircle, Loader2, Filter,
+    Search,
+    Plus,
+    Eye,
+    Edit2,
+    Trash2,
+    UserX,
+    UserCheck,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    AlertCircle,
+    Loader2,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
-interface Role { name: string; }
+interface Role {
+    name: string;
+}
 interface User {
-    id: string; first_name: string; last_name: string;
-    email: string; phone: string | null; is_active: boolean;
-    blocked_at: string | null; blocked_reason: string | null;
-    last_login_at: string | null; created_at: string;
-    roles: Role[]; tenant: { name: string } | null;
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string | null;
+    is_active: boolean;
+    blocked_at: string | null;
+    blocked_reason: string | null;
+    last_login_at: string | null;
+    created_at: string;
+    roles: Role[];
+    tenant: { name: string } | null;
 }
 interface Paginated<T> {
-    data: T[]; current_page: number; last_page: number;
-    total: number; per_page: number;
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
+    per_page: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
     users: Paginated<User>;
     filters: { search?: string; role?: string; status?: string };
     roles: string[];
-    can: { create: boolean; edit: boolean; block: boolean; unblock: boolean; delete: boolean };
+    can: {
+        create: boolean;
+        edit: boolean;
+        block: boolean;
+        unblock: boolean;
+        delete: boolean;
+    };
 }
 
 const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
-    super_admin:         { bg: '#EEF2FF', color: '#4338CA' },
-    admin_filiale:       { bg: '#ECFDF5', color: '#065F46' },
-    souscripteur:        { bg: '#EFF6FF', color: '#1D4ED8' },
-    courtier_local:      { bg: '#FFF7ED', color: '#C2410C' },
+    super_admin: { bg: '#EEF2FF', color: '#4338CA' },
+    admin_filiale: { bg: '#ECFDF5', color: '#065F46' },
+    souscripteur: { bg: '#EFF6FF', color: '#1D4ED8' },
+    courtier_local: { bg: '#FFF7ED', color: '#C2410C' },
     partenaire_etranger: { bg: '#FDF4FF', color: '#7E22CE' },
-    client:              { bg: '#F9FAFB', color: '#374151' },
+    client: { bg: '#F9FAFB', color: '#374151' },
 };
 
 // ── Modal blocage ─────────────────────────────────────────────
 function BlockModal({ user, onClose }: { user: User; onClose: () => void }) {
     const { t } = useTranslation('users');
     const { t: tc } = useTranslation('common');
-    const { data, setData, patch, processing, errors, reset } = useForm({ reason: '' });
+    const { data, setData, patch, processing, errors, reset } = useForm({
+        reason: '',
+    });
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         patch(route('admin.users.block', { user: user.id }), {
-            onSuccess: () => { reset(); onClose(); },
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
         });
     };
+
     return (
-        <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
-            <div style={{ background:'#fff', borderRadius:14, width:'100%', maxWidth:440, border:'1.5px solid #e2e8f0', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
-                <div style={{ padding:'18px 22px', borderBottom:'1px solid #f1f5f9', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div style={{ width:36, height:36, background:'#fef2f2', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                            <UserX size={17} color="#dc2626"/>
+        <div
+            style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 50,
+                background: 'rgba(15,23,42,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+            }}
+        >
+            <div
+                style={{
+                    background: '#fff',
+                    borderRadius: 14,
+                    width: '100%',
+                    maxWidth: 440,
+                    border: '1.5px solid #e2e8f0',
+                    boxShadow: '0 24px 64px rgba(0,0,0,.15)',
+                }}
+            >
+                <div
+                    style={{
+                        padding: '18px 22px',
+                        borderBottom: '1px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: 36,
+                                height: 36,
+                                background: '#fef2f2',
+                                borderRadius: 9,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <UserX size={17} color="#dc2626" />
                         </div>
                         <div>
-                            <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{t('index.blockModal.title')}</p>
-                            <p style={{ fontSize:12, color:'#94a3b8' }}>{user.first_name} {user.last_name}</p>
+                            <p
+                                style={{
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    color: '#1e293b',
+                                }}
+                            >
+                                {t('index.blockModal.title')}
+                            </p>
+                            <p style={{ fontSize: 12, color: '#94a3b8' }}>
+                                {user.first_name} {user.last_name}
+                            </p>
                         </div>
                     </div>
-                    <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#94a3b8',
+                        }}
+                    >
+                        <X size={17} />
+                    </button>
                 </div>
-                <form onSubmit={submit} style={{ padding:'20px 22px' }}>
-                    <div style={{ marginBottom:16 }}>
-                        <label style={{ display:'block', fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>
+                <form onSubmit={submit} style={{ padding: '20px 22px' }}>
+                    <div style={{ marginBottom: 16 }}>
+                        <label
+                            style={{
+                                display: 'block',
+                                fontSize: 10.5,
+                                fontWeight: 600,
+                                color: '#64748b',
+                                textTransform: 'uppercase',
+                                letterSpacing: '.08em',
+                                marginBottom: 6,
+                            }}
+                        >
                             {t('index.blockModal.reasonLabel')}
                         </label>
                         <textarea
-                            value={data.reason} onChange={e => setData('reason', e.target.value)}
-                            rows={3} placeholder={t('index.blockModal.reasonPlaceholder')}
-                            style={{ width:'100%', padding:'10px 12px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:`1.5px solid ${errors.reason ? '#ef4444' : '#e2e8f0'}`, borderRadius:9, outline:'none', resize:'vertical', boxSizing:'border-box' }}
+                            value={data.reason}
+                            onChange={(e) => setData('reason', e.target.value)}
+                            rows={3}
+                            placeholder={t(
+                                'index.blockModal.reasonPlaceholder',
+                            )}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                fontSize: 13,
+                                fontFamily: 'inherit',
+                                color: '#1e293b',
+                                background: '#f8fafc',
+                                border: `1.5px solid ${errors.reason ? '#ef4444' : '#e2e8f0'}`,
+                                borderRadius: 9,
+                                outline: 'none',
+                                resize: 'vertical',
+                                boxSizing: 'border-box',
+                            }}
                         />
-                        {errors.reason && <p style={{ fontSize:11, color:'#ef4444', marginTop:4, display:'flex', alignItems:'center', gap:4 }}><AlertCircle size={11}/>{errors.reason}</p>}
+                        {errors.reason && (
+                            <p
+                                style={{
+                                    fontSize: 11,
+                                    color: '#ef4444',
+                                    marginTop: 4,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                }}
+                            >
+                                <AlertCircle size={11} />
+                                {errors.reason}
+                            </p>
+                        )}
                     </div>
-                    <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button type="button" variant="outline" onClick={onClose}>{tc('actions.cancel')}</Button>
-                        <Button type="submit" disabled={processing} className="bg-red-600 hover:bg-red-700 text-white">
-                            {processing ? <Loader2 size={14} className="animate-spin"/> : <UserX size={14}/>}
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: 8,
+                            justifyContent: 'flex-end',
+                        }}
+                    >
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onClose}
+                        >
+                            {tc('actions.cancel')}
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                            className="bg-red-600 text-white hover:bg-red-700"
+                        >
+                            {processing ? (
+                                <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                                <UserX size={14} />
+                            )}
                             {t('index.blockModal.confirm')}
                         </Button>
                     </div>
@@ -100,26 +256,51 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
     ];
 
     const [blockTarget, setBlockTarget] = useState<User | null>(null);
-    const [search,      setSearch]      = useState(filters.search ?? '');
+    const [search, setSearch] = useState(filters.search ?? '');
 
     const applyFilter = (params: Record<string, string>) =>
-        router.get('/admin/users', { ...filters, ...params }, { preserveState:true, replace:true });
+        router.get(
+            '/admin/users',
+            { ...filters, ...params },
+            { preserveState: true, replace: true },
+        );
 
     const handleUnblock = (user: User) => {
-        if (confirm(t('index.confirmUnblock', { name: `${user.first_name} ${user.last_name}` })))
+        if (
+            confirm(
+                t('index.confirmUnblock', {
+                    name: `${user.first_name} ${user.last_name}`,
+                }),
+            )
+        ) {
             router.patch(route('admin.users.unblock', { user: user.id }));
+        }
     };
 
     const handleDelete = (user: User) => {
-        if (confirm(t('index.confirmDelete', { name: `${user.first_name} ${user.last_name}` })))
+        if (
+            confirm(
+                t('index.confirmDelete', {
+                    name: `${user.first_name} ${user.last_name}`,
+                }),
+            )
+        ) {
             router.delete(route('admin.users.destroy', { user: user.id }));
+        }
     };
 
-    const fmt = (d: string | null) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+    const fmt = (d: string | null) =>
+        d
+            ? new Date(d).toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+              })
+            : '—';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('index.title')}/>
+            <Head title={t('index.title')} />
             <style>{`
                 .u-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .u-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -164,17 +345,18 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="u-page">
-
                     {/* Header */}
                     <div className="u-hdr">
                         <div>
                             <h1 className="u-title">{t('index.heading')}</h1>
-                            <p className="u-sub">{t('index.count', { count: users.total })}</p>
+                            <p className="u-sub">
+                                {t('index.count', { count: users.total })}
+                            </p>
                         </div>
                         {can.create && (
                             <Link href={route('admin.users.create')}>
-                                <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                    <Plus size={15}/> {t('index.newUser')}
+                                <Button className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]">
+                                    <Plus size={15} /> {t('index.newUser')}
                                 </Button>
                             </Link>
                         )}
@@ -182,22 +364,75 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
 
                     {/* Toolbar */}
                     <div className="u-toolbar">
-                        <form className="u-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.search.placeholder')}/>
-                            <button type="submit"><Search size={14}/></button>
+                        <form
+                            className="u-search"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                applyFilter({ search, page: '1' });
+                            }}
+                        >
+                            <input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={t('index.search.placeholder')}
+                            />
+                            <button type="submit">
+                                <Search size={14} />
+                            </button>
                         </form>
-                        <select className="u-select" value={filters.role ?? ''} onChange={e => applyFilter({ role: e.target.value, page:'1' })}>
-                            <option value="">{t('index.filters.allRoles')}</option>
-                            {roles.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
+                        <select
+                            className="u-select"
+                            value={filters.role ?? ''}
+                            onChange={(e) =>
+                                applyFilter({ role: e.target.value, page: '1' })
+                            }
+                        >
+                            <option value="">
+                                {t('index.filters.allRoles')}
+                            </option>
+                            {roles.map((r) => (
+                                <option key={r} value={r}>
+                                    {r.replace(/_/g, ' ')}
+                                </option>
+                            ))}
                         </select>
-                        <select className="u-select" value={filters.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page:'1' })}>
-                            <option value="">{t('index.filters.allStatuses')}</option>
-                            <option value="active">{t('index.filters.active')}</option>
-                            <option value="blocked">{t('index.filters.blocked')}</option>
+                        <select
+                            className="u-select"
+                            value={filters.status ?? ''}
+                            onChange={(e) =>
+                                applyFilter({
+                                    status: e.target.value,
+                                    page: '1',
+                                })
+                            }
+                        >
+                            <option value="">
+                                {t('index.filters.allStatuses')}
+                            </option>
+                            <option value="active">
+                                {t('index.filters.active')}
+                            </option>
+                            <option value="blocked">
+                                {t('index.filters.blocked')}
+                            </option>
                         </select>
                         {(filters.search || filters.role || filters.status) && (
-                            <button onClick={() => router.get('/admin/users')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> {t('index.filters.clear')}
+                            <button
+                                onClick={() => router.get('/admin/users')}
+                                style={{
+                                    padding: '9px 12px',
+                                    background: 'none',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 8,
+                                    cursor: 'pointer',
+                                    color: '#94a3b8',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    fontSize: 12,
+                                }}
+                            >
+                                <X size={12} /> {t('index.filters.clear')}
                             </button>
                         )}
                     </div>
@@ -215,51 +450,253 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
                                             <th>{t('index.table.role')}</th>
                                             <th>{t('index.table.tenant')}</th>
                                             <th>{t('index.table.status')}</th>
-                                            <th>{t('index.table.lastLogin')}</th>
+                                            <th>
+                                                {t('index.table.lastLogin')}
+                                            </th>
                                             <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {users.data.map((user, i) => {
-                                            const initials = `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
-                                            const colors   = ['#EEF2FF','#ECFDF5','#FFF7ED','#EFF6FF','#FDF4FF'];
-                                            const fgColors = ['#4338CA','#065F46','#C2410C','#1D4ED8','#7E22CE'];
-                                            const ci       = i % colors.length;
-                                            const role     = user.roles?.[0]?.name ?? '';
-                                            const rc       = ROLE_COLORS[role] ?? { bg:'#f1f5f9', color:'#64748b' };
+                                            const initials =
+                                                `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
+                                            const colors = [
+                                                '#EEF2FF',
+                                                '#ECFDF5',
+                                                '#FFF7ED',
+                                                '#EFF6FF',
+                                                '#FDF4FF',
+                                            ];
+                                            const fgColors = [
+                                                '#4338CA',
+                                                '#065F46',
+                                                '#C2410C',
+                                                '#1D4ED8',
+                                                '#7E22CE',
+                                            ];
+                                            const ci = i % colors.length;
+                                            const role =
+                                                user.roles?.[0]?.name ?? '';
+                                            const rc = ROLE_COLORS[role] ?? {
+                                                bg: '#f1f5f9',
+                                                color: '#64748b',
+                                            };
 
                                             return (
                                                 <tr key={user.id}>
                                                     <td>
-                                                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                                            <div className="u-avatar" style={{ background: colors[ci], color: fgColors[ci] }}>{initials}</div>
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 10,
+                                                            }}
+                                                        >
+                                                            <div
+                                                                className="u-avatar"
+                                                                style={{
+                                                                    background:
+                                                                        colors[
+                                                                            ci
+                                                                        ],
+                                                                    color: fgColors[
+                                                                        ci
+                                                                    ],
+                                                                }}
+                                                            >
+                                                                {initials}
+                                                            </div>
                                                             <div>
-                                                                <div className="u-name">{user.first_name} {user.last_name}</div>
-                                                                <div className="u-email">{user.email}</div>
+                                                                <div className="u-name">
+                                                                    {
+                                                                        user.first_name
+                                                                    }{' '}
+                                                                    {
+                                                                        user.last_name
+                                                                    }
+                                                                </div>
+                                                                <div className="u-email">
+                                                                    {user.email}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        {role
-                                                            ? <span style={{ padding:'3px 8px', borderRadius:10, fontSize:11, fontWeight:500, background:rc.bg, color:rc.color }}>{role.replace(/_/g,' ')}</span>
-                                                            : <span style={{ color:'#cbd5e1', fontSize:12 }}>—</span>
-                                                        }
+                                                        {role ? (
+                                                            <span
+                                                                style={{
+                                                                    padding:
+                                                                        '3px 8px',
+                                                                    borderRadius: 10,
+                                                                    fontSize: 11,
+                                                                    fontWeight: 500,
+                                                                    background:
+                                                                        rc.bg,
+                                                                    color: rc.color,
+                                                                }}
+                                                            >
+                                                                {role.replace(
+                                                                    /_/g,
+                                                                    ' ',
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            <span
+                                                                style={{
+                                                                    color: '#cbd5e1',
+                                                                    fontSize: 12,
+                                                                }}
+                                                            >
+                                                                —
+                                                            </span>
+                                                        )}
                                                     </td>
-                                                    <td style={{ fontSize:12, color:'#64748b' }}>{user.tenant?.name ?? '—'}</td>
+                                                    <td
+                                                        style={{
+                                                            fontSize: 12,
+                                                            color: '#64748b',
+                                                        }}
+                                                    >
+                                                        {user.tenant?.name ??
+                                                            '—'}
+                                                    </td>
                                                     <td>
-                                                        {user.is_active
-                                                            ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{t('index.status.active')}</span>
-                                                            : <span className="s-blocked"><span className="s-dot" style={{ background:'#ef4444' }}/>{t('index.status.blocked')}</span>
-                                                        }
+                                                        {user.is_active ? (
+                                                            <span className="s-active">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#22c55e',
+                                                                    }}
+                                                                />
+                                                                {t(
+                                                                    'index.status.active',
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="s-blocked">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#ef4444',
+                                                                    }}
+                                                                />
+                                                                {t(
+                                                                    'index.status.blocked',
+                                                                )}
+                                                            </span>
+                                                        )}
                                                     </td>
-                                                    <td style={{ fontSize:12, color:'#94a3b8' }}>{fmt(user.last_login_at)}</td>
+                                                    <td
+                                                        style={{
+                                                            fontSize: 12,
+                                                            color: '#94a3b8',
+                                                        }}
+                                                    >
+                                                        {fmt(
+                                                            user.last_login_at,
+                                                        )}
+                                                    </td>
                                                     <td>
                                                         <div className="actions">
-                                                            <Link href={route('admin.users.show', { user: user.id })} className="btn-act btn-view"><Eye size={12}/> {t('index.actions.view')}</Link>
-                                                            {can.edit && <Link href={route('admin.users.edit', { user: user.id })} className="btn-act btn-edit"><Edit2 size={12}/> {t('index.actions.edit')}</Link>}
-                                                            {can.block && user.is_active && <button className="btn-act btn-block" onClick={() => setBlockTarget(user)}><UserX size={12}/> {t('index.actions.block')}</button>}
-                                                            {can.unblock && !user.is_active && <button className="btn-act btn-unblock" onClick={() => handleUnblock(user)}><UserCheck size={12}/> {t('index.actions.unblock')}</button>}
-                                                            {can.delete && <button className="btn-act btn-del" onClick={() => handleDelete(user)}><Trash2 size={12}/> {t('index.actions.delete')}</button>}
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.users.show',
+                                                                    {
+                                                                        user: user.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-act btn-view"
+                                                            >
+                                                                <Eye
+                                                                    size={12}
+                                                                />{' '}
+                                                                {t(
+                                                                    'index.actions.view',
+                                                                )}
+                                                            </Link>
+                                                            {can.edit && (
+                                                                <Link
+                                                                    href={route(
+                                                                        'admin.users.edit',
+                                                                        {
+                                                                            user: user.id,
+                                                                        },
+                                                                    )}
+                                                                    className="btn-act btn-edit"
+                                                                >
+                                                                    <Edit2
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />{' '}
+                                                                    {t(
+                                                                        'index.actions.edit',
+                                                                    )}
+                                                                </Link>
+                                                            )}
+                                                            {can.block &&
+                                                                user.is_active && (
+                                                                    <button
+                                                                        className="btn-act btn-block"
+                                                                        onClick={() =>
+                                                                            setBlockTarget(
+                                                                                user,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <UserX
+                                                                            size={
+                                                                                12
+                                                                            }
+                                                                        />{' '}
+                                                                        {t(
+                                                                            'index.actions.block',
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            {can.unblock &&
+                                                                !user.is_active && (
+                                                                    <button
+                                                                        className="btn-act btn-unblock"
+                                                                        onClick={() =>
+                                                                            handleUnblock(
+                                                                                user,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <UserCheck
+                                                                            size={
+                                                                                12
+                                                                            }
+                                                                        />{' '}
+                                                                        {t(
+                                                                            'index.actions.unblock',
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            {can.delete && (
+                                                                <button
+                                                                    className="btn-act btn-del"
+                                                                    onClick={() =>
+                                                                        handleDelete(
+                                                                            user,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Trash2
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />{' '}
+                                                                    {t(
+                                                                        'index.actions.delete',
+                                                                    )}
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -270,13 +707,65 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
 
                                 {users.last_page > 1 && (
                                     <div className="u-pagination">
-                                        <span className="u-pg-info">{t('index.pagination.info', { current: users.current_page, last: users.last_page, total: users.total })}</span>
+                                        <span className="u-pg-info">
+                                            {t('index.pagination.info', {
+                                                current: users.current_page,
+                                                last: users.last_page,
+                                                total: users.total,
+                                            })}
+                                        </span>
                                         <div className="u-pg-links">
-                                            <button className="pg-btn" disabled={users.current_page === 1} onClick={() => applyFilter({ page: String(users.current_page - 1) })}><ChevronLeft size={13}/></button>
-                                            {users.links.slice(1,-1).map((link, i) => (
-                                                <button key={i} className={`pg-btn ${link.active ? 'act' : ''}`} onClick={() => link.url && applyFilter({ page: link.label })} disabled={!link.url} dangerouslySetInnerHTML={{ __html: link.label }}/>
-                                            ))}
-                                            <button className="pg-btn" disabled={users.current_page === users.last_page} onClick={() => applyFilter({ page: String(users.current_page + 1) })}><ChevronRight size={13}/></button>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    users.current_page === 1
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            users.current_page -
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronLeft size={13} />
+                                            </button>
+                                            {users.links
+                                                .slice(1, -1)
+                                                .map((link, i) => (
+                                                    <button
+                                                        key={i}
+                                                        className={`pg-btn ${link.active ? 'act' : ''}`}
+                                                        onClick={() =>
+                                                            link.url &&
+                                                            applyFilter({
+                                                                page: link.label,
+                                                            })
+                                                        }
+                                                        disabled={!link.url}
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: link.label,
+                                                        }}
+                                                    />
+                                                ))}
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    users.current_page ===
+                                                    users.last_page
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            users.current_page +
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronRight size={13} />
+                                            </button>
                                         </div>
                                     </div>
                                 )}
@@ -286,7 +775,12 @@ export default function UsersIndex({ users, filters, roles, can }: Props) {
                 </div>
             </div>
 
-            {blockTarget && <BlockModal user={blockTarget} onClose={() => setBlockTarget(null)}/>}
+            {blockTarget && (
+                <BlockModal
+                    user={blockTarget}
+                    onClose={() => setBlockTarget(null)}
+                />
+            )}
         </AppLayout>
     );
 }

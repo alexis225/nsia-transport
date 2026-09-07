@@ -21,19 +21,19 @@ return new class extends Migration
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             $table->foreignUuid('report_id')
-                  ->nullable()   // NULL = export ad-hoc sans template enregistré
-                  ->constrained('report_definitions')
-                  ->nullOnDelete();
+                ->nullable()   // NULL = export ad-hoc sans template enregistré
+                ->constrained('report_definitions')
+                ->nullOnDelete();
 
             $table->foreignUuid('tenant_id')
-                  ->nullable()
-                  ->constrained('tenants')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('tenants')
+                ->nullOnDelete();
 
             $table->foreignUuid('requested_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             // Paramètres de filtrage appliqués au moment de l'export
             $table->json('parameters')->default('{}');

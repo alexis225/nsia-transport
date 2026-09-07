@@ -24,11 +24,11 @@ return new class extends Migration
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             $table->foreignUuid('contract_id')
-                  ->constrained('insurance_contracts')
-                  ->cascadeOnDelete();
+                ->constrained('insurance_contracts')
+                ->cascadeOnDelete();
 
             $table->foreignUuid('tenant_id')
-                  ->constrained('tenants');
+                ->constrained('tenants');
 
             // ── Numérotation ──────────────────────────────────
             $table->string('amendment_number', 30); // ex: AV-CI-OP-2024-000001-001
@@ -48,11 +48,11 @@ return new class extends Migration
 
             // ── Workflow ──────────────────────────────────────
             $table->foreignUuid('submitted_by')->nullable()
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->timestamp('submitted_at')->nullable();
 
             $table->foreignUuid('reviewed_by')->nullable()
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->timestamp('reviewed_at')->nullable();
             $table->text('review_notes')->nullable();
 
@@ -60,7 +60,7 @@ return new class extends Migration
 
             // ── Méta ──────────────────────────────────────────
             $table->foreignUuid('created_by')->nullable()
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->timestamps();
 
             $table->unique(['contract_id', 'sequence']);

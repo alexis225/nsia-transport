@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Certificate extends Model
 {
-    use HasUuids, HasFactory, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'tenant_id', 'contract_id', 'template_id',
@@ -43,38 +44,49 @@ class Certificate extends Model
     ];
 
     protected $casts = [
-        'voyage_date'       => 'date',
-        'submitted_at'      => 'datetime',
-        'issued_at'         => 'datetime',
-        'cancelled_at'      => 'datetime',
-        'rejected_at'       => 'datetime',
-        'replaced_at'       => 'datetime',
-        'pdf_generated_at'  => 'datetime',
-        'expedition_items'  => 'array',
-        'prime_breakdown'   => 'array',
-        'insured_value'     => 'decimal:2',
-        'rate_divers'       => 'decimal:4',
-        'rate_surprime'     => 'decimal:4',
-        'prime_total'       => 'decimal:2',
-        'prime_nette'       => 'decimal:2',
-        'exchange_rate'     => 'decimal:6',
-        'reissued_at'       => 'datetime',
+        'voyage_date' => 'date',
+        'submitted_at' => 'datetime',
+        'issued_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'replaced_at' => 'datetime',
+        'pdf_generated_at' => 'datetime',
+        'expedition_items' => 'array',
+        'prime_breakdown' => 'array',
+        'insured_value' => 'decimal:2',
+        'rate_divers' => 'decimal:4',
+        'rate_surprime' => 'decimal:4',
+        'prime_total' => 'decimal:2',
+        'prime_nette' => 'decimal:2',
+        'exchange_rate' => 'decimal:6',
+        'reissued_at' => 'datetime',
     ];
 
     // ── Constantes ────────────────────────────────────────────
-    const STATUS_DRAFT     = 'DRAFT';     // Stocké
+    const STATUS_DRAFT = 'DRAFT';     // Stocké
+
     const STATUS_SUBMITTED = 'SUBMITTED'; // Soumis
-    const STATUS_REJECTED  = 'REJECTED';  // Rejeté
-    const STATUS_ISSUED    = 'ISSUED';    // Approuvé
-    const STATUS_REPLACED  = 'REPLACED';  // Remplacé
+
+    const STATUS_REJECTED = 'REJECTED';  // Rejeté
+
+    const STATUS_ISSUED = 'ISSUED';    // Approuvé
+
+    const STATUS_REPLACED = 'REPLACED';  // Remplacé
+
     const STATUS_CANCELLED = 'CANCELLED'; // Annulé
 
-    const TRANSPORT_SEA       = 'SEA';
-    const TRANSPORT_AIR       = 'AIR';
-    const TRANSPORT_ROAD      = 'ROAD';
-    const TRANSPORT_RAIL      = 'RAIL';
-    const TRANSPORT_MULTIMODAL= 'MULTIMODAL';
-    const DOC_TYPE_ORIGINAL  = 'original';
+    const TRANSPORT_SEA = 'SEA';
+
+    const TRANSPORT_AIR = 'AIR';
+
+    const TRANSPORT_ROAD = 'ROAD';
+
+    const TRANSPORT_RAIL = 'RAIL';
+
+    const TRANSPORT_MULTIMODAL = 'MULTIMODAL';
+
+    const DOC_TYPE_ORIGINAL = 'original';
+
     const DOC_TYPE_DUPLICATA = 'duplicata';
 
     // ── Relations ────────────────────────────────────────────
@@ -118,17 +130,17 @@ class Certificate extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-        // ── Relations duplicata — US-032 ──────────────────────────
+    // ── Relations duplicata — US-032 ──────────────────────────
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Certificate::class, 'parent_id');
     }
- 
+
     public function duplicates(): HasMany
     {
         return $this->hasMany(Certificate::class, 'parent_id');
     }
- 
+
     public function reissuedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reissued_by');
@@ -143,42 +155,92 @@ class Certificate extends Model
     }
 
     // L'ANCIEN certificat que celui-ci remplace (sur le NOUVEAU certificat).
-    public function replaces(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function replaces(): HasOne
     {
         return $this->hasOne(Certificate::class, 'replaced_by_certificate_id');
     }
 
     // ── Scopes ───────────────────────────────────────────────
-    public function scopeIssued($query)    { return $query->where('status', self::STATUS_ISSUED); }
-    public function scopePending($query)   { return $query->where('status', self::STATUS_SUBMITTED); }
-    public function scopeForTenant($query, string $tenantId) { return $query->where('tenant_id', $tenantId); }
+    public function scopeIssued($query)
+    {
+        return $query->where('status', self::STATUS_ISSUED);
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_SUBMITTED);
+    }
+
+    public function scopeForTenant($query, string $tenantId)
+    {
+        return $query->where('tenant_id', $tenantId);
+    }
 
     // ── Helpers ───────────────────────────────────────────────
-    public function isDraft(): bool     { return $this->status === self::STATUS_DRAFT; }
-    public function isSubmitted(): bool { return $this->status === self::STATUS_SUBMITTED; }
-    public function isRejected(): bool  { return $this->status === self::STATUS_REJECTED; }
-    public function isIssued(): bool    { return $this->status === self::STATUS_ISSUED; }
-    public function isReplaced(): bool  { return $this->status === self::STATUS_REPLACED; }
-    public function isCancelled(): bool { return $this->status === self::STATUS_CANCELLED; }
-    public function hasPdf(): bool      { return ! empty($this->pdf_path); }
-    public function isDuplicate(): bool { return $this->document_type === self::DOC_TYPE_DUPLICATA; }
-    public function isOriginal(): bool  { return $this->document_type === self::DOC_TYPE_ORIGINAL; }
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function isSubmitted(): bool
+    {
+        return $this->status === self::STATUS_SUBMITTED;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function isIssued(): bool
+    {
+        return $this->status === self::STATUS_ISSUED;
+    }
+
+    public function isReplaced(): bool
+    {
+        return $this->status === self::STATUS_REPLACED;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    public function hasPdf(): bool
+    {
+        return ! empty($this->pdf_path);
+    }
+
+    public function isDuplicate(): bool
+    {
+        return $this->document_type === self::DOC_TYPE_DUPLICATA;
+    }
+
+    public function isOriginal(): bool
+    {
+        return $this->document_type === self::DOC_TYPE_ORIGINAL;
+    }
 
     /**
-    * Numéro du duplicata : ex: N°041260-D1
-    */
+     * Numéro du duplicata : ex: N°041260-D1
+     */
     public function getDuplicateNumber(int $index = 1): string
     {
         $base = $this->isOriginal() ? $this->certificate_number : $this->parent?->certificate_number;
-        return ($base ?? $this->certificate_number) . '-D' . $index;
+
+        return ($base ?? $this->certificate_number).'-D'.$index;
     }
- 
+
     /**
      * Calcule le total du décompte de prime
      */
     public function computePrimeTotal(): float
     {
-        if (empty($this->prime_breakdown)) return 0;
+        if (empty($this->prime_breakdown)) {
+            return 0;
+        }
+
         return collect($this->prime_breakdown)->sum('amount');
     }
 
@@ -189,6 +251,7 @@ class Certificate extends Model
     {
         $template->increment('last_number');
         $num = str_pad($template->last_number, $template->number_padding, '0', STR_PAD_LEFT);
-        return ($template->number_prefix ?? 'N°') . $num;
+
+        return ($template->number_prefix ?? 'N°').$num;
     }
 }

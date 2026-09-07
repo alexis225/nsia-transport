@@ -22,8 +22,8 @@ return new class extends Migration
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             $table->foreignUuid('certificate_request_id')
-                  ->constrained('certificate_requests')
-                  ->cascadeOnDelete();
+                ->constrained('certificate_requests')
+                ->cascadeOnDelete();
 
             $table->string('file_path', 255);
             $table->string('file_original_name', 255);

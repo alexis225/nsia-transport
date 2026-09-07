@@ -12,12 +12,12 @@ class TenantFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'                      => 'NSIA ' . fake()->country(),
-            'code'                      => strtoupper(fake()->unique()->lexify('??')),
-            'country_code'              => fake()->countryCode(),
-            'currency_code'             => 'XOF',
-            'is_active'                 => true,
-            'settings'                  => json_encode([]),
+            'name' => 'NSIA '.fake()->country(),
+            'code' => strtoupper(fake()->unique()->lexify('??')),
+            'country_code' => fake()->countryCode(),
+            'currency_code' => 'XOF',
+            'is_active' => true,
+            'settings' => json_encode([]),
             'subscription_limit_config' => json_encode(['nn300_limit' => 1000000]),
         ];
     }

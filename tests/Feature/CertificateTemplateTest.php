@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Services\CertificatePrePrintedService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
@@ -28,38 +29,40 @@ function makeTplSuperAdmin(): User
 {
     $user = User::factory()->create(['tenant_id' => null, 'is_active' => true]);
     $user->assignRole('super_admin');
+
     return $user;
 }
 
 function makeTplAdminFiliale(?string $tenantId = null): User
 {
     $tenant = $tenantId ? Tenant::find($tenantId) : Tenant::factory()->create();
-    $user   = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_active' => true]);
     $user->assignRole('admin_filiale');
+
     return $user;
 }
 
 function makeTplTemplate(Tenant $tenant, array $overrides = []): CertificateTemplate
 {
     return CertificateTemplate::create(array_merge([
-        'tenant_id'    => $tenant->id,
-        'name'         => 'Modèle Test',
-        'code'         => strtoupper(Illuminate\Support\Str::random(6)),
-        'type'         => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
+        'tenant_id' => $tenant->id,
+        'name' => 'Modèle Test',
+        'code' => strtoupper(Str::random(6)),
+        'type' => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
         'company_name' => 'NSIA Test',
         'currency_code' => 'XOF',
-        'is_active'    => true,
+        'is_active' => true,
     ], $overrides));
 }
 
 function makeTplValidPayload(string $tenantId, array $overrides = []): array
 {
     return array_merge([
-        'tenant_id'     => $tenantId,
-        'name'          => 'Ordre d\'assurance NSIA Test',
-        'code'          => strtoupper(Illuminate\Support\Str::random(6)),
-        'type'          => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
-        'company_name'  => 'NSIA Test',
+        'tenant_id' => $tenantId,
+        'name' => 'Ordre d\'assurance NSIA Test',
+        'code' => strtoupper(Str::random(6)),
+        'type' => CertificateTemplate::TYPE_CERTIFICAT_ASSURANCE,
+        'company_name' => 'NSIA Test',
         'currency_code' => 'XOF',
         'number_padding' => 6,
     ], $overrides);
@@ -67,9 +70,10 @@ function makeTplValidPayload(string $tenantId, array $overrides = []): array
 
 function makeTplCallPrintMethod(string $method, mixed ...$args): mixed
 {
-    $service = new CertificatePrePrintedService();
-    $ref     = new ReflectionMethod($service, $method);
+    $service = new CertificatePrePrintedService;
+    $ref = new ReflectionMethod($service, $method);
     $ref->setAccessible(true);
+
     return $ref->invoke($service, ...$args);
 }
 
@@ -89,7 +93,7 @@ it('admin_filiale ne peut pas accéder aux modèles de certificats (rôle super_
 
 it('super_admin liste les modèles de certificats', function () {
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
+    $tenant = Tenant::factory()->create();
     makeTplTemplate($tenant);
 
     $this->actingAs($superAdmin)
@@ -103,7 +107,7 @@ it('super_admin liste les modèles de certificats', function () {
         );
 });
 
-it("super_admin garde accès même si le module certificate_templates est désactivé pour la filiale visée", function () {
+it('super_admin garde accès même si le module certificate_templates est désactivé pour la filiale visée', function () {
     // EnsureModuleEnabled court-circuite systématiquement pour super_admin
     // (tenant_id null) — cf. app/Http/Middleware/EnsureModuleEnabled.php.
     $superAdmin = makeTplSuperAdmin();
@@ -118,7 +122,7 @@ it("super_admin garde accès même si le module certificate_templates est désac
 
 it('super_admin peut créer un modèle de certificat pour une filiale', function () {
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
+    $tenant = Tenant::factory()->create();
 
     $payload = makeTplValidPayload($tenant->id, ['code' => 'NEWCODE']);
 
@@ -130,15 +134,15 @@ it('super_admin peut créer un modèle de certificat pour une filiale', function
 
     $this->assertDatabaseHas('certificate_templates', [
         'tenant_id' => $tenant->id,
-        'code'      => 'NEWCODE',
+        'code' => 'NEWCODE',
         'created_by' => $superAdmin->id,
     ]);
 });
 
 it('le code du modèle doit être unique (toutes filiales confondues)', function () {
     $superAdmin = makeTplSuperAdmin();
-    $tenantA    = Tenant::factory()->create();
-    $tenantB    = Tenant::factory()->create();
+    $tenantA = Tenant::factory()->create();
+    $tenantB = Tenant::factory()->create();
 
     makeTplTemplate($tenantA, ['code' => 'DUPCODE']);
 
@@ -151,7 +155,7 @@ it('le code du modèle doit être unique (toutes filiales confondues)', function
 
 it("une filiale ne peut avoir qu'un seul modèle actif (contrainte tenant_id unique)", function () {
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
+    $tenant = Tenant::factory()->create();
 
     makeTplTemplate($tenant, ['code' => 'FIRSTCODE']);
 
@@ -164,7 +168,7 @@ it("une filiale ne peut avoir qu'un seul modèle actif (contrainte tenant_id uni
 
 it('le type du modèle doit être une valeur autorisée', function () {
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
+    $tenant = Tenant::factory()->create();
 
     $payload = makeTplValidPayload($tenant->id, ['type' => 'type_inexistant']);
 
@@ -177,8 +181,8 @@ it('le type du modèle doit être une valeur autorisée', function () {
 
 it('super_admin peut modifier un modèle existant', function () {
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
-    $template   = makeTplTemplate($tenant, ['code' => 'EDITME', 'name' => 'Ancien nom']);
+    $tenant = Tenant::factory()->create();
+    $template = makeTplTemplate($tenant, ['code' => 'EDITME', 'name' => 'Ancien nom']);
 
     $payload = makeTplValidPayload($tenant->id, ['code' => 'EDITME', 'name' => 'Nouveau nom']);
 
@@ -191,8 +195,8 @@ it('super_admin peut modifier un modèle existant', function () {
 
 it('super_admin peut supprimer un modèle de certificat', function () {
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
-    $template   = makeTplTemplate($tenant);
+    $tenant = Tenant::factory()->create();
+    $template = makeTplTemplate($tenant);
 
     $this->actingAs($superAdmin)
         ->delete("/admin/certificate-templates/{$template->id}")
@@ -206,8 +210,8 @@ it('super_admin peut supprimer un modèle de certificat', function () {
 it('super_admin peut uploader un logo pour un modèle de certificat', function () {
     Storage::fake('public');
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
-    $template   = makeTplTemplate($tenant);
+    $tenant = Tenant::factory()->create();
+    $template = makeTplTemplate($tenant);
 
     $logo = UploadedFile::fake()->image('logo.png', 100, 100);
 
@@ -223,8 +227,8 @@ it('super_admin peut uploader un logo pour un modèle de certificat', function (
 it("l'upload du logo rejette un fichier qui n'est pas une image", function () {
     Storage::fake('public');
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
-    $template   = makeTplTemplate($tenant);
+    $tenant = Tenant::factory()->create();
+    $template = makeTplTemplate($tenant);
 
     $notImage = UploadedFile::fake()->create('document.pdf', 20, 'application/pdf');
 
@@ -250,8 +254,8 @@ it("l'upload du logo rejette un fichier qui n'est pas une image", function () {
 it('super_admin peut supprimer le logo d\'un modèle de certificat', function () {
     Storage::fake('public');
     $superAdmin = makeTplSuperAdmin();
-    $tenant     = Tenant::factory()->create();
-    $template   = makeTplTemplate($tenant, ['logo_path' => 'logos/certificates/existing.png']);
+    $tenant = Tenant::factory()->create();
+    $template = makeTplTemplate($tenant, ['logo_path' => 'logos/certificates/existing.png']);
     Storage::disk('public')->put($template->logo_path, 'contenu-test');
 
     $this->actingAs($superAdmin)
@@ -319,8 +323,8 @@ it('super_admin peut réinitialiser (supprimer) la surcharge de positions d\'un 
     $superAdmin = makeTplSuperAdmin();
     CertificatePrintTemplate::create([
         'template_id' => 'test_reset',
-        'positions'   => [['key' => 'foo', 'top' => 1, 'left' => 1]],
-        'updated_by'  => $superAdmin->id,
+        'positions' => [['key' => 'foo', 'top' => 1, 'left' => 1]],
+        'updated_by' => $superAdmin->id,
     ]);
 
     $this->actingAs($superAdmin)
@@ -380,10 +384,10 @@ it('resolveLayout retourne la configuration codée en dur quand aucune surcharge
         ->and($result['policy_number']['left'])->toBe(154.6);
 });
 
-it("resolveLayout privilégie la surcharge enregistrée en base sur la configuration codée en dur", function () {
+it('resolveLayout privilégie la surcharge enregistrée en base sur la configuration codée en dur', function () {
     CertificatePrintTemplate::create([
         'template_id' => 'test_override_priority',
-        'positions'   => [['key' => 'policy_number', 'top' => 1.0, 'left' => 2.0]],
+        'positions' => [['key' => 'policy_number', 'top' => 1.0, 'left' => 2.0]],
     ]);
 
     $result = makeTplCallPrintMethod('resolveLayout', 'test_override_priority');

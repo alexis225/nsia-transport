@@ -21,11 +21,11 @@ return new class extends Migration
     {
         Schema::table('certificate_requests', function (Blueprint $table) {
             $table->foreignUuid('assigned_to')->nullable()->after('created_by')
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->timestamp('assigned_at')->nullable()->after('assigned_to');
 
             $table->foreignUuid('certificate_id')->nullable()->after('review_notes')
-                  ->constrained('certificates')->nullOnDelete();
+                ->constrained('certificates')->nullOnDelete();
         });
     }
 

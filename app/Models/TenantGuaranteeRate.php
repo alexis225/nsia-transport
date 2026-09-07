@@ -30,13 +30,14 @@ class TenantGuaranteeRate extends Model
     protected function casts(): array
     {
         return [
-            'min_rate_pct'           => 'decimal:4',
+            'min_rate_pct' => 'decimal:4',
             'min_accessories_amount' => 'decimal:2',
-            'min_net_premium'        => 'decimal:2',
+            'min_net_premium' => 'decimal:2',
         ];
     }
 
-    const COVERAGE_FAP_SAUF     = 'FAP_SAUF';
+    const COVERAGE_FAP_SAUF = 'FAP_SAUF';
+
     const COVERAGE_TOUS_RISQUES = 'TOUS_RISQUES';
 
     public function tenant(): BelongsTo
@@ -52,7 +53,9 @@ class TenantGuaranteeRate extends Model
      */
     public static function minimumsFor(string $tenantId, ?string $coverageType): ?self
     {
-        if ($coverageType === null) return null;
+        if ($coverageType === null) {
+            return null;
+        }
 
         $lookup = $coverageType === InsuranceContract::COVERAGE_FAP_ABSOLUE
             ? self::COVERAGE_TOUS_RISQUES

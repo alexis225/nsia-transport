@@ -11,6 +11,7 @@
 use App\Models\AuditLog;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
@@ -43,12 +44,12 @@ function makeAudUser(string $role, array $permissions = [], ?string $tenantId = 
 function makeAudLog(array $overrides = []): AuditLog
 {
     return AuditLog::create(array_merge([
-        'tenant_id'   => null,
-        'user_id'     => null,
-        'action'      => 'test.action',
+        'tenant_id' => null,
+        'user_id' => null,
+        'action' => 'test.action',
         'entity_type' => 'Test',
-        'entity_id'   => (string) \Illuminate\Support\Str::uuid(),
-        'severity'    => AuditLog::SEVERITY_INFO,
+        'entity_id' => (string) Str::uuid(),
+        'severity' => AuditLog::SEVERITY_INFO,
     ], $overrides));
 }
 
@@ -102,7 +103,7 @@ it('super_admin voit la liste des audit logs (toutes filiales)', function () {
 
 it('affiche le détail d\'un log de sa propre filiale', function () {
     $user = makeAudUser('admin_filiale', ['audit_logs.view']);
-    $log  = makeAudLog(['tenant_id' => $user->tenant_id, 'action' => 'certificate.issue']);
+    $log = makeAudLog(['tenant_id' => $user->tenant_id, 'action' => 'certificate.issue']);
 
     $this->actingAs($user)
         ->get("/admin/audit-logs/{$log->id}")
@@ -115,7 +116,7 @@ it('affiche le détail d\'un log de sa propre filiale', function () {
 
 it('refuse le détail d\'un log d\'une autre filiale', function () {
     $user = makeAudUser('admin_filiale', ['audit_logs.view']);
-    $log  = makeAudLog(['tenant_id' => Tenant::factory()->create()->id]);
+    $log = makeAudLog(['tenant_id' => Tenant::factory()->create()->id]);
 
     $this->actingAs($user)
         ->get("/admin/audit-logs/{$log->id}")
@@ -124,7 +125,7 @@ it('refuse le détail d\'un log d\'une autre filiale', function () {
 
 it('super_admin peut voir le détail d\'un log de n\'importe quelle filiale', function () {
     $user = makeAudUser('super_admin');
-    $log  = makeAudLog(['tenant_id' => Tenant::factory()->create()->id]);
+    $log = makeAudLog(['tenant_id' => Tenant::factory()->create()->id]);
 
     $this->actingAs($user)
         ->get("/admin/audit-logs/{$log->id}")

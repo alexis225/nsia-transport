@@ -35,10 +35,10 @@ class TaxRule extends Model
     protected function casts(): array
     {
         return [
-            'rate_pct'       => 'decimal:2',
+            'rate_pct' => 'decimal:2',
             'effective_date' => 'date',
-            'end_date'       => 'date',
-            'is_active'      => 'boolean',
+            'end_date' => 'date',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -46,16 +46,31 @@ class TaxRule extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true)
-                     ->where('effective_date', '<=', now())
-                     ->where(fn ($q) => $q->whereNull('end_date')
-                                          ->orWhere('end_date', '>=', now()));
+            ->where('effective_date', '<=', now())
+            ->where(fn ($q) => $q->whereNull('end_date')
+                ->orWhere('end_date', '>=', now()));
     }
 
     // ── Relations ────────────────────────────────────────────
-    public function tenant(): BelongsTo        { return $this->belongsTo(Tenant::class); }
-    public function transportMode(): BelongsTo { return $this->belongsTo(TransportMode::class); }
-    public function country(): BelongsTo       { return $this->belongsTo(Country::class, 'country_code', 'code'); }
-    public function createdByUser(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function transportMode(): BelongsTo
+    {
+        return $this->belongsTo(TransportMode::class);
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_code', 'code');
+    }
+
+    public function createdByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     /**
      * Résout le taux applicable pour une filiale / mode de transport /
@@ -69,8 +84,8 @@ class TaxRule extends Model
      * besoin que d'une seule ligne de niveau 3.
      */
     public static function findApplicable(
-        string  $tenantId,
-        ?int    $transportModeId,
+        string $tenantId,
+        ?int $transportModeId,
         ?string $countryCode,
         ?string $date = null
     ): ?self {
@@ -86,14 +101,18 @@ class TaxRule extends Model
             $exact = $base()->where('transport_mode_id', $transportModeId)
                 ->where('country_code', $countryCode)
                 ->first();
-            if ($exact) return $exact;
+            if ($exact) {
+                return $exact;
+            }
         }
 
         if ($transportModeId) {
             $byMode = $base()->where('transport_mode_id', $transportModeId)
                 ->whereNull('country_code')
                 ->first();
-            if ($byMode) return $byMode;
+            if ($byMode) {
+                return $byMode;
+            }
         }
 
         return $base()->whereNull('transport_mode_id')->whereNull('country_code')->first();

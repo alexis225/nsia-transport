@@ -12,7 +12,10 @@ declare global {
     interface Window {
         grecaptcha?: {
             ready: (callback: () => void) => void;
-            execute: (siteKey: string, options: { action: string }) => Promise<string>;
+            execute: (
+                siteKey: string,
+                options: { action: string },
+            ) => Promise<string>;
         };
     }
 }
@@ -33,7 +36,8 @@ function loadScript(siteKey: string): Promise<void> {
             script.async = true;
             script.defer = true;
             script.onload = () => resolve();
-            script.onerror = () => reject(new Error('reCAPTCHA script failed to load'));
+            script.onerror = () =>
+                reject(new Error('reCAPTCHA script failed to load'));
             document.head.appendChild(script);
         });
     }
@@ -42,7 +46,9 @@ function loadScript(siteKey: string): Promise<void> {
 }
 
 /** Génère un token reCAPTCHA v3 pour l'action donnée, ou `null` si non configuré/indisponible. */
-export async function getRecaptchaToken(action: string): Promise<string | null> {
+export async function getRecaptchaToken(
+    action: string,
+): Promise<string | null> {
     if (!SITE_KEY) {
         return null;
     }

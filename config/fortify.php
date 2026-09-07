@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\VerifyRecaptcha;
 use Laravel\Fortify\Features;
 
 return [
@@ -105,7 +106,7 @@ return [
     // Fortify mais s'auto-limite à login.store/register.store/password.email
     // (voir le middleware) — pas de risque d'affecter 2FA, vérification
     // email, etc.
-    'middleware' => ['web', \App\Http\Middleware\VerifyRecaptcha::class],
+    'middleware' => ['web', VerifyRecaptcha::class],
 
     /*
     |--------------------------------------------------------------------------

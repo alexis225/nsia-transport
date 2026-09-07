@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
- 
+
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,33 +9,35 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ApprovalWorkflowConfig extends Model
 {
-    protected $table    = 'approval_workflows';
+    protected $table = 'approval_workflows';
+
     use HasUuids;
- 
+
     protected $fillable = [
         'tenant_id', 'name', 'entity_type',
         'trigger_condition', 'steps_config', 'is_active',
     ];
- 
+
     protected $casts = [
         'trigger_condition' => 'array',
-        'steps_config'      => 'array',
-        'is_active'         => 'boolean',
+        'steps_config' => 'array',
+        'is_active' => 'boolean',
     ];
- 
+
     const ENTITY_CERTIFICATE = 'CERTIFICATE';
-    const ENTITY_CONTRACT    = 'CONTRACT';
- 
+
+    const ENTITY_CONTRACT = 'CONTRACT';
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
- 
+
     public function requests(): HasMany
     {
         return $this->hasMany(ApprovalRequest::class, 'workflow_id');
     }
- 
+
     /**
      * Trouve le workflow actif applicable à un certificat
      */
@@ -55,7 +57,7 @@ class ApprovalWorkflowConfig extends Model
                 );
             });
     }
- 
+
     /**
      * Évalue la trigger_condition JSON contre le certificat
      */
@@ -65,41 +67,49 @@ class ApprovalWorkflowConfig extends Model
         InsuranceContract $contract
     ): bool {
         // NULL = toujours déclenché
-        if (empty($condition)) return true;
- 
+        if (empty($condition)) {
+            return true;
+        }
+
         // Condition : % du plein du contrat (plafond assurable par certificat)
         if (isset($condition['insured_value_pct_of_contract'])) {
             $contractValue = (float) $contract->plein;
-            if ($contractValue <= 0) return false;
- 
+            if ($contractValue <= 0) {
+                return false;
+            }
+
             $pct = ((float) $certificate->insured_value / $contractValue) * 100;
- 
+
             foreach ($condition['insured_value_pct_of_contract'] as $op => $threshold) {
                 // Utiliser le seuil du contrat si défini, sinon celui du workflow
                 $effectiveThreshold = $contract->escalade_threshold_pct ?? $threshold;
                 $result = match ($op) {
-                    '>'  => $pct > $effectiveThreshold,
+                    '>' => $pct > $effectiveThreshold,
                     '>=' => $pct >= $effectiveThreshold,
-                    '<'  => $pct < $effectiveThreshold,
+                    '<' => $pct < $effectiveThreshold,
                     '<=' => $pct <= $effectiveThreshold,
                     default => false,
                 };
-                if (! $result) return false;
+                if (! $result) {
+                    return false;
+                }
             }
         }
- 
+
         // Condition : valeur absolue
         if (isset($condition['insured_value'])) {
             $value = (float) $certificate->insured_value;
             foreach ($condition['insured_value'] as $op => $threshold) {
                 $result = match ($op) {
-                    '>'  => $value > $threshold,
+                    '>' => $value > $threshold,
                     '>=' => $value >= $threshold,
-                    '<'  => $value < $threshold,
+                    '<' => $value < $threshold,
                     '<=' => $value <= $threshold,
                     default => false,
                 };
-                if (! $result) return false;
+                if (! $result) {
+                    return false;
+                }
             }
         }
 
@@ -117,7 +127,7 @@ class ApprovalWorkflowConfig extends Model
 
         return true;
     }
- 
+
     /**
      * Retourne le step config pour un numéro de step donné
      */
@@ -126,7 +136,7 @@ class ApprovalWorkflowConfig extends Model
         return collect($this->steps_config)
             ->firstWhere('step', $step);
     }
- 
+
     /**
      * Nombre total d'étapes
      */

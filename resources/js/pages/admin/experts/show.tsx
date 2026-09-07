@@ -1,21 +1,36 @@
 import { Head, Link, router } from '@inertiajs/react';
+import {
+    Edit2,
+    ArrowLeft,
+    ToggleLeft,
+    ToggleRight,
+    Mail,
+    Phone,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Edit2, ArrowLeft, ToggleLeft, ToggleRight, Mail, Phone } from 'lucide-react';
 
-interface Tenant { id: string; name: string; code: string; }
+interface Tenant {
+    id: string;
+    name: string;
+    code: string;
+}
 interface Expert {
-    id: string; name: string;
-    email: string | null; phone: string | null;
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
     country_code: string | null;
     is_active: boolean;
     created_at: string;
     updated_at: string;
     tenant: Tenant | null;
 }
-interface Props { expert: Expert; }
+interface Props {
+    expert: Expert;
+}
 
 export default function ExpertsShow({ expert }: Props) {
     const { t } = useTranslation('experts');
@@ -26,15 +41,22 @@ export default function ExpertsShow({ expert }: Props) {
     ];
 
     const handleToggle = () => {
-        if (confirm(expert.is_active ? t('show.confirmDeactivate', { name: expert.name }) : t('show.confirmActivate', { name: expert.name })))
+        if (
+            confirm(
+                expert.is_active
+                    ? t('show.confirmDeactivate', { name: expert.name })
+                    : t('show.confirmActivate', { name: expert.name }),
+            )
+        ) {
             router.patch(route('admin.experts.toggle', { expert: expert.id }));
+        }
     };
 
     const initials = expert.name.slice(0, 2).toUpperCase();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${expert.name} — NSIA Transport`}/>
+            <Head title={`${expert.name} — NSIA Transport`} />
             <style>{`
                 .es-wrap{width:100%;max-width:720px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .es-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
@@ -60,72 +82,160 @@ export default function ExpertsShow({ expert }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="es-wrap">
-
                     <div className="es-hero">
                         <div className="es-avatar">{initials}</div>
                         <div className="es-hero-info">
                             <div className="es-hero-name">{expert.name}</div>
                             <div className="es-hero-sub">
-                                {expert.is_active
-                                    ? <span style={{ color:'#86efac' }}>{'● '}{tc('states.active')}</span>
-                                    : <span style={{ color:'rgba(255,255,255,0.4)' }}>{'● '}{tc('states.inactive')}</span>}
+                                {expert.is_active ? (
+                                    <span style={{ color: '#86efac' }}>
+                                        {'● '}
+                                        {tc('states.active')}
+                                    </span>
+                                ) : (
+                                    <span
+                                        style={{
+                                            color: 'rgba(255,255,255,0.4)',
+                                        }}
+                                    >
+                                        {'● '}
+                                        {tc('states.inactive')}
+                                    </span>
+                                )}
                             </div>
                         </div>
                         <div className="es-hero-actions">
-                            <Link href={route('admin.experts.edit', { expert: expert.id })}>
-                                <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border-white/20 border h-8 px-3">
-                                    <Edit2 size={13}/> {t('show.edit')}
+                            <Link
+                                href={route('admin.experts.edit', {
+                                    expert: expert.id,
+                                })}
+                            >
+                                <Button
+                                    size="sm"
+                                    className="h-8 border border-white/20 bg-white/10 px-3 text-white hover:bg-white/20"
+                                >
+                                    <Edit2 size={13} /> {t('show.edit')}
                                 </Button>
                             </Link>
-                            <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-8 px-3" onClick={handleToggle}>
-                                {expert.is_active ? <><ToggleLeft size={13}/> {t('show.deactivate')}</> : <><ToggleRight size={13}/> {t('show.activate')}</>}
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 border-white/20 bg-white/10 px-3 text-white hover:bg-white/20"
+                                onClick={handleToggle}
+                            >
+                                {expert.is_active ? (
+                                    <>
+                                        <ToggleLeft size={13} />{' '}
+                                        {t('show.deactivate')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <ToggleRight size={13} />{' '}
+                                        {t('show.activate')}
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
 
                     <div className="es-card">
-                        <div className="es-card-hdr"><div className="es-card-ttl">{t('show.title')}</div></div>
+                        <div className="es-card-hdr">
+                            <div className="es-card-ttl">{t('show.title')}</div>
+                        </div>
                         <div className="es-grid">
                             <div className="es-field">
-                                <div className="es-field-label">{t('show.fields.name')}</div>
-                                <div className="es-field-value">{expert.name}</div>
-                            </div>
-                            <div className="es-field">
-                                <div className="es-field-label">{t('show.fields.country')}</div>
-                                <div className="es-field-value">{expert.country_code ?? '—'}</div>
-                            </div>
-                            <div className="es-field">
-                                <div className="es-field-label">{t('show.fields.email')}</div>
+                                <div className="es-field-label">
+                                    {t('show.fields.name')}
+                                </div>
                                 <div className="es-field-value">
-                                    {expert.email
-                                        ? <div className="contact-row"><Mail size={13} color="#64748b"/>{expert.email}</div>
-                                        : '—'}
+                                    {expert.name}
                                 </div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">{t('show.fields.phone')}</div>
+                                <div className="es-field-label">
+                                    {t('show.fields.country')}
+                                </div>
                                 <div className="es-field-value">
-                                    {expert.phone
-                                        ? <div className="contact-row"><Phone size={13} color="#64748b"/>{expert.phone}</div>
-                                        : '—'}
+                                    {expert.country_code ?? '—'}
                                 </div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">{t('show.fields.tenant')}</div>
-                                <div className="es-field-value">{expert.tenant?.name ?? '—'}</div>
-                            </div>
-                            <div className="es-field">
-                                <div className="es-field-label">{t('show.fields.status')}</div>
+                                <div className="es-field-label">
+                                    {t('show.fields.email')}
+                                </div>
                                 <div className="es-field-value">
-                                    {expert.is_active
-                                        ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{tc('states.active')}</span>
-                                        : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{tc('states.inactive')}</span>}
+                                    {expert.email ? (
+                                        <div className="contact-row">
+                                            <Mail size={13} color="#64748b" />
+                                            {expert.email}
+                                        </div>
+                                    ) : (
+                                        '—'
+                                    )}
                                 </div>
                             </div>
                             <div className="es-field">
-                                <div className="es-field-label">{t('show.fields.createdAt')}</div>
-                                <div className="es-field-value" style={{ fontSize:12, color:'#64748b' }}>
-                                    {new Date(expert.created_at).toLocaleDateString('fr-FR')}
+                                <div className="es-field-label">
+                                    {t('show.fields.phone')}
+                                </div>
+                                <div className="es-field-value">
+                                    {expert.phone ? (
+                                        <div className="contact-row">
+                                            <Phone size={13} color="#64748b" />
+                                            {expert.phone}
+                                        </div>
+                                    ) : (
+                                        '—'
+                                    )}
+                                </div>
+                            </div>
+                            <div className="es-field">
+                                <div className="es-field-label">
+                                    {t('show.fields.tenant')}
+                                </div>
+                                <div className="es-field-value">
+                                    {expert.tenant?.name ?? '—'}
+                                </div>
+                            </div>
+                            <div className="es-field">
+                                <div className="es-field-label">
+                                    {t('show.fields.status')}
+                                </div>
+                                <div className="es-field-value">
+                                    {expert.is_active ? (
+                                        <span className="s-active">
+                                            <span
+                                                className="s-dot"
+                                                style={{
+                                                    background: '#22c55e',
+                                                }}
+                                            />
+                                            {tc('states.active')}
+                                        </span>
+                                    ) : (
+                                        <span className="s-inactive">
+                                            <span
+                                                className="s-dot"
+                                                style={{
+                                                    background: '#94a3b8',
+                                                }}
+                                            />
+                                            {tc('states.inactive')}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="es-field">
+                                <div className="es-field-label">
+                                    {t('show.fields.createdAt')}
+                                </div>
+                                <div
+                                    className="es-field-value"
+                                    style={{ fontSize: 12, color: '#64748b' }}
+                                >
+                                    {new Date(
+                                        expert.created_at,
+                                    ).toLocaleDateString('fr-FR')}
                                 </div>
                             </div>
                         </div>
@@ -134,7 +244,7 @@ export default function ExpertsShow({ expert }: Props) {
                     <div>
                         <Link href={route('admin.experts.index')}>
                             <Button variant="outline" size="sm" className="h-9">
-                                <ArrowLeft size={13}/> {t('show.backToList')}
+                                <ArrowLeft size={13} /> {t('show.backToList')}
                             </Button>
                         </Link>
                     </div>

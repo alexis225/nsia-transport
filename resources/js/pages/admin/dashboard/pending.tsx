@@ -1,71 +1,136 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem } from '@/types';
 import {
-    Clock, CheckCircle, XCircle, Award,
-    FileText, ChevronLeft, ChevronRight,
-    AlertTriangle, TrendingUp, Calendar,
-    User, Ship, Plane, Truck, X,
+    Clock,
+    CheckCircle,
+    Award,
+    FileText,
+    ChevronLeft,
+    ChevronRight,
+    AlertTriangle,
+    TrendingUp,
+    Calendar,
+    User,
+    Ship,
+    Plane,
+    Truck,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 interface Certificate {
-    id: string; certificate_number: string; status: string;
-    insured_name: string; voyage_date: string;
-    voyage_from: string; voyage_to: string;
-    transport_type: string | null; insured_value: string; currency_code: string;
+    id: string;
+    certificate_number: string;
+    status: string;
+    insured_name: string;
+    voyage_date: string;
+    voyage_from: string;
+    voyage_to: string;
+    transport_type: string | null;
+    insured_value: string;
+    currency_code: string;
     submitted_at: string | null;
     contract: { contract_number: string; insured_name: string } | null;
-    tenant:   { name: string; code: string } | null;
+    tenant: { name: string; code: string } | null;
     template: { name: string; type: string } | null;
     submitted_by: { first_name: string; last_name: string } | null;
 }
 interface RecentCertificate {
-    id: string; certificate_number: string;
-    insured_name: string; insured_value: string; currency_code: string;
+    id: string;
+    certificate_number: string;
+    insured_name: string;
+    insured_value: string;
+    currency_code: string;
     issued_at: string | null;
     contract: { contract_number: string } | null;
     issued_by: { first_name: string; last_name: string } | null;
 }
 interface ExpiringContract {
-    id: string; contract_number: string; insured_name: string; expiry_date: string;
+    id: string;
+    contract_number: string;
+    insured_name: string;
+    expiry_date: string;
     tenant: { name: string; code: string } | null;
 }
 interface Paginated<T> {
-    data: T[]; current_page: number; last_page: number; total: number;
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
-    pending:             Paginated<Certificate>;
-    stats:               { submitted: number; issued_today: number; issued_week: number; issued_month: number; draft: number; cancelled_month: number; };
-    avgProcessingHours:  number | null;
-    recentIssued:        RecentCertificate[];
-    expiringContracts:   ExpiringContract[];
-    filters:             { tenant_id?: string };
-    isSA:                boolean;
-    can:                 { validate: boolean };
+    pending: Paginated<Certificate>;
+    stats: {
+        submitted: number;
+        issued_today: number;
+        issued_week: number;
+        issued_month: number;
+        draft: number;
+        cancelled_month: number;
+    };
+    avgProcessingHours: number | null;
+    recentIssued: RecentCertificate[];
+    expiringContracts: ExpiringContract[];
+    filters: { tenant_id?: string };
+    isSA: boolean;
+    can: { validate: boolean };
 }
 
 const TRANSPORT_ICONS: Record<string, any> = {
-    SEA: Ship, AIR: Plane, ROAD: Truck, RAIL: Truck,
+    SEA: Ship,
+    AIR: Plane,
+    ROAD: Truck,
+    RAIL: Truck,
 };
 
-const fmt    = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
-const fmtDt  = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+const fmtDt = (d: string) =>
+    new Date(d).toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 
-function waitingTime(submittedAt: string | null): { label: string; color: string } {
-    if (!submittedAt) return { label: '—', color: '#94a3b8' };
+function waitingTime(submittedAt: string | null): {
+    label: string;
+    color: string;
+} {
+    if (!submittedAt) {
+        return { label: '—', color: '#94a3b8' };
+    }
+
     const hours = (Date.now() - new Date(submittedAt).getTime()) / 36e5;
-    if (hours < 2)  return { label: `${Math.round(hours * 60)}min`, color: '#15803d' };
-    if (hours < 24) return { label: `${Math.round(hours)}h`,        color: '#92400e' };
-    return { label: `${Math.round(hours / 24)}j`,                   color: '#dc2626' };
+
+    if (hours < 2) {
+        return { label: `${Math.round(hours * 60)}min`, color: '#15803d' };
+    }
+
+    if (hours < 24) {
+        return { label: `${Math.round(hours)}h`, color: '#92400e' };
+    }
+
+    return { label: `${Math.round(hours / 24)}j`, color: '#dc2626' };
 }
 
 export default function PendingDashboard({
-    pending, stats, avgProcessingHours, recentIssued, expiringContracts, filters, isSA, can,
+    pending,
+    stats,
+    avgProcessingHours,
+    recentIssued,
+    expiringContracts,
+    filters,
+    isSA,
 }: Props) {
     const { t } = useTranslation('dashboard');
+    // eslint-disable-next-line react-hooks/purity -- horodatage d'affichage uniquement (jours restants avant expiration), pas de logique de rendu qui en depend
+    const now = Date.now();
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('pending.breadcrumbHome'), href: route('admin.dashboard') },
@@ -73,11 +138,15 @@ export default function PendingDashboard({
     ];
 
     const applyFilter = (params: Record<string, string>) =>
-        router.get(route('admin.dashboard.pending'), { ...filters, ...params }, { preserveState:true, replace:true });
+        router.get(
+            route('admin.dashboard.pending'),
+            { ...filters, ...params },
+            { preserveState: true, replace: true },
+        );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('pending.headTitle')}/>
+            <Head title={t('pending.headTitle')} />
             <style>{`
                 .pd-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .pd-title{font-size:18px;font-weight:600;color:#1e293b;}
@@ -147,7 +216,6 @@ export default function PendingDashboard({
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="pd-page">
-
                     {/* Header */}
                     <div>
                         <h1 className="pd-title">{t('pending.heading')}</h1>
@@ -156,136 +224,372 @@ export default function PendingDashboard({
 
                     {/* KPIs */}
                     <div className="kpi-grid">
-                        <div className={`kpi-card ${stats.submitted > 0 ? 'urgent' : ''}`}>
-                            <div className="kpi-val" style={{ color: stats.submitted > 0 ? '#dc2626' : '#1e293b' }}>
+                        <div
+                            className={`kpi-card ${stats.submitted > 0 ? 'urgent' : ''}`}
+                        >
+                            <div
+                                className="kpi-val"
+                                style={{
+                                    color:
+                                        stats.submitted > 0
+                                            ? '#dc2626'
+                                            : '#1e293b',
+                                }}
+                            >
                                 {stats.submitted}
                             </div>
-                            <div className="kpi-lbl">{t('pending.kpis.pending')}</div>
+                            <div className="kpi-lbl">
+                                {t('pending.kpis.pending')}
+                            </div>
                         </div>
                         <div className="kpi-card">
-                            <div className="kpi-val" style={{ color:'#15803d' }}>{stats.issued_today}</div>
-                            <div className="kpi-lbl">{t('pending.kpis.issuedToday')}</div>
+                            <div
+                                className="kpi-val"
+                                style={{ color: '#15803d' }}
+                            >
+                                {stats.issued_today}
+                            </div>
+                            <div className="kpi-lbl">
+                                {t('pending.kpis.issuedToday')}
+                            </div>
                         </div>
                         <div className="kpi-card">
-                            <div className="kpi-val" style={{ color:'#1d4ed8' }}>{stats.issued_week}</div>
-                            <div className="kpi-lbl">{t('pending.kpis.issuedWeek')}</div>
+                            <div
+                                className="kpi-val"
+                                style={{ color: '#1d4ed8' }}
+                            >
+                                {stats.issued_week}
+                            </div>
+                            <div className="kpi-lbl">
+                                {t('pending.kpis.issuedWeek')}
+                            </div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val">{stats.issued_month}</div>
-                            <div className="kpi-lbl">{t('pending.kpis.issuedMonth')}</div>
+                            <div className="kpi-lbl">
+                                {t('pending.kpis.issuedMonth')}
+                            </div>
                         </div>
                         <div className="kpi-card">
-                            <div className="kpi-val" style={{ color:'#64748b' }}>{stats.draft}</div>
-                            <div className="kpi-lbl">{t('pending.kpis.draft')}</div>
+                            <div
+                                className="kpi-val"
+                                style={{ color: '#64748b' }}
+                            >
+                                {stats.draft}
+                            </div>
+                            <div className="kpi-lbl">
+                                {t('pending.kpis.draft')}
+                            </div>
                         </div>
                         <div className="kpi-card">
                             <div className="kpi-val">
-                                {avgProcessingHours !== null ? `${avgProcessingHours}h` : '—'}
+                                {avgProcessingHours !== null
+                                    ? `${avgProcessingHours}h`
+                                    : '—'}
                             </div>
-                            <div className="kpi-lbl">{t('pending.kpis.avgDelay')}</div>
+                            <div className="kpi-lbl">
+                                {t('pending.kpis.avgDelay')}
+                            </div>
                         </div>
                     </div>
 
                     {/* Layout 2 colonnes */}
                     <div className="pd-layout">
-
                         {/* Colonne gauche — Table en attente */}
                         <div className="pd-card">
                             <div className="pd-card-hdr">
                                 <div className="pd-card-ttl">
-                                    <Clock size={15} color="#f59e0b"/>
+                                    <Clock size={15} color="#f59e0b" />
                                     {t('pending.table.title')}
                                     {stats.submitted > 0 && (
-                                        <span style={{ background:'#fef2f2', color:'#dc2626', borderRadius:10, fontSize:11, padding:'1px 7px', fontWeight:600 }}>
+                                        <span
+                                            style={{
+                                                background: '#fef2f2',
+                                                color: '#dc2626',
+                                                borderRadius: 10,
+                                                fontSize: 11,
+                                                padding: '1px 7px',
+                                                fontWeight: 600,
+                                            }}
+                                        >
                                             {stats.submitted}
                                         </span>
                                     )}
                                 </div>
-                                <Link href={route('admin.certificates.index') + '?status=SUBMITTED'}
-                                      style={{ fontSize:11, color:'#1d4ed8', textDecoration:'none' }}>
+                                <Link
+                                    href={
+                                        route('admin.certificates.index') +
+                                        '?status=SUBMITTED'
+                                    }
+                                    style={{
+                                        fontSize: 11,
+                                        color: '#1d4ed8',
+                                        textDecoration: 'none',
+                                    }}
+                                >
                                     {t('pending.table.seeAll')}
                                 </Link>
                             </div>
 
                             {pending.data.length === 0 ? (
                                 <div className="pd-empty">
-                                    <CheckCircle size={32} color="#bbf7d0" style={{ marginBottom:8 }}/>
-                                    <div style={{ fontWeight:500, color:'#15803d' }}>{t('pending.table.emptyTitle')}</div>
-                                    <div style={{ fontSize:11, marginTop:4 }}>{t('pending.table.emptyText')}</div>
+                                    <CheckCircle
+                                        size={32}
+                                        color="#bbf7d0"
+                                        style={{ marginBottom: 8 }}
+                                    />
+                                    <div
+                                        style={{
+                                            fontWeight: 500,
+                                            color: '#15803d',
+                                        }}
+                                    >
+                                        {t('pending.table.emptyTitle')}
+                                    </div>
+                                    <div style={{ fontSize: 11, marginTop: 4 }}>
+                                        {t('pending.table.emptyText')}
+                                    </div>
                                 </div>
                             ) : (
                                 <>
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>{t('pending.table.number')}</th>
-                                                <th>{t('pending.table.insured')}</th>
-                                                <th>{t('pending.table.voyage')}</th>
-                                                <th>{t('pending.table.value')}</th>
-                                                <th>{t('pending.table.submittedBy')}</th>
-                                                <th>{t('pending.table.waiting')}</th>
-                                                <th>{t('pending.table.actions')}</th>
+                                                <th>
+                                                    {t('pending.table.number')}
+                                                </th>
+                                                <th>
+                                                    {t('pending.table.insured')}
+                                                </th>
+                                                <th>
+                                                    {t('pending.table.voyage')}
+                                                </th>
+                                                <th>
+                                                    {t('pending.table.value')}
+                                                </th>
+                                                <th>
+                                                    {t(
+                                                        'pending.table.submittedBy',
+                                                    )}
+                                                </th>
+                                                <th>
+                                                    {t('pending.table.waiting')}
+                                                </th>
+                                                <th>
+                                                    {t('pending.table.actions')}
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {pending.data.map(cert => {
-                                                const wait = waitingTime(cert.submitted_at);
-                                                const TransIcon = TRANSPORT_ICONS[cert.transport_type ?? ''] ?? Award;
+                                            {pending.data.map((cert) => {
+                                                const wait = waitingTime(
+                                                    cert.submitted_at,
+                                                );
+                                                const TransIcon =
+                                                    TRANSPORT_ICONS[
+                                                        cert.transport_type ??
+                                                            ''
+                                                    ] ?? Award;
+
                                                 return (
                                                     <tr key={cert.id}>
                                                         <td>
-                                                            <div className="cert-num">{cert.certificate_number}</div>
-                                                            <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                                {cert.contract?.contract_number}
+                                                            <div className="cert-num">
+                                                                {
+                                                                    cert.certificate_number
+                                                                }
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                {
+                                                                    cert
+                                                                        .contract
+                                                                        ?.contract_number
+                                                                }
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontWeight:500, color:'#1e293b', maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                                                                {cert.insured_name}
+                                                            <div
+                                                                style={{
+                                                                    fontWeight: 500,
+                                                                    color: '#1e293b',
+                                                                    maxWidth: 140,
+                                                                    overflow:
+                                                                        'hidden',
+                                                                    textOverflow:
+                                                                        'ellipsis',
+                                                                    whiteSpace:
+                                                                        'nowrap',
+                                                                }}
+                                                            >
+                                                                {
+                                                                    cert.insured_name
+                                                                }
                                                             </div>
-                                                            {isSA && cert.tenant && (
-                                                                <div style={{ fontSize:10, color:'#94a3b8' }}>{cert.tenant.code}</div>
-                                                            )}
+                                                            {isSA &&
+                                                                cert.tenant && (
+                                                                    <div
+                                                                        style={{
+                                                                            fontSize: 10,
+                                                                            color: '#94a3b8',
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            cert
+                                                                                .tenant
+                                                                                .code
+                                                                        }
+                                                                    </div>
+                                                                )}
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontSize:11, color:'#475569', display:'flex', alignItems:'center', gap:4 }}>
-                                                                <TransIcon size={10}/>
-                                                                {cert.voyage_from}
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: '#475569',
+                                                                    display:
+                                                                        'flex',
+                                                                    alignItems:
+                                                                        'center',
+                                                                    gap: 4,
+                                                                }}
+                                                            >
+                                                                <TransIcon
+                                                                    size={10}
+                                                                />
+                                                                {
+                                                                    cert.voyage_from
+                                                                }
                                                             </div>
-                                                            <div style={{ fontSize:10, color:'#94a3b8' }}>→ {cert.voyage_to}</div>
-                                                            <div style={{ fontSize:10, color:'#94a3b8', display:'flex', alignItems:'center', gap:3 }}>
-                                                                <Calendar size={9}/>{fmt(cert.voyage_date)}
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                →{' '}
+                                                                {cert.voyage_to}
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                    display:
+                                                                        'flex',
+                                                                    alignItems:
+                                                                        'center',
+                                                                    gap: 3,
+                                                                }}
+                                                            >
+                                                                <Calendar
+                                                                    size={9}
+                                                                />
+                                                                {fmt(
+                                                                    cert.voyage_date,
+                                                                )}
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <div style={{ fontFamily:'monospace', fontSize:11, fontWeight:500 }}>
-                                                                {parseFloat(cert.insured_value).toLocaleString('fr-FR')}
+                                                            <div
+                                                                style={{
+                                                                    fontFamily:
+                                                                        'monospace',
+                                                                    fontSize: 11,
+                                                                    fontWeight: 500,
+                                                                }}
+                                                            >
+                                                                {parseFloat(
+                                                                    cert.insured_value,
+                                                                ).toLocaleString(
+                                                                    'fr-FR',
+                                                                )}
                                                             </div>
-                                                            <div style={{ fontSize:10, color:'#94a3b8' }}>{cert.currency_code}</div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                {
+                                                                    cert.currency_code
+                                                                }
+                                                            </div>
                                                         </td>
                                                         <td>
                                                             {cert.submitted_by && (
-                                                                <div style={{ fontSize:11, color:'#64748b', display:'flex', alignItems:'center', gap:4 }}>
-                                                                    <User size={10}/>
-                                                                    {cert.submitted_by.first_name} {cert.submitted_by.last_name.charAt(0)}.
+                                                                <div
+                                                                    style={{
+                                                                        fontSize: 11,
+                                                                        color: '#64748b',
+                                                                        display:
+                                                                            'flex',
+                                                                        alignItems:
+                                                                            'center',
+                                                                        gap: 4,
+                                                                    }}
+                                                                >
+                                                                    <User
+                                                                        size={
+                                                                            10
+                                                                        }
+                                                                    />
+                                                                    {
+                                                                        cert
+                                                                            .submitted_by
+                                                                            .first_name
+                                                                    }{' '}
+                                                                    {cert.submitted_by.last_name.charAt(
+                                                                        0,
+                                                                    )}
+                                                                    .
                                                                 </div>
                                                             )}
                                                             {cert.submitted_at && (
-                                                                <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                                    {fmtDt(cert.submitted_at)}
+                                                                <div
+                                                                    style={{
+                                                                        fontSize: 10,
+                                                                        color: '#94a3b8',
+                                                                    }}
+                                                                >
+                                                                    {fmtDt(
+                                                                        cert.submitted_at,
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         </td>
                                                         <td>
-                                                            <span className="wait-badge"
-                                                                  style={{ background: `${wait.color}18`, color: wait.color }}>
+                                                            <span
+                                                                className="wait-badge"
+                                                                style={{
+                                                                    background: `${wait.color}18`,
+                                                                    color: wait.color,
+                                                                }}
+                                                            >
                                                                 {wait.label}
                                                             </span>
                                                         </td>
                                                         <td>
-                                                            <div style={{ display:'flex', gap:5 }}>
-                                                                <Link href={route('admin.certificates.show', { certificate: cert.id })}
-                                                                      className="btn-act btn-view">
+                                                            <div
+                                                                style={{
+                                                                    display:
+                                                                        'flex',
+                                                                    gap: 5,
+                                                                }}
+                                                            >
+                                                                <Link
+                                                                    href={route(
+                                                                        'admin.certificates.show',
+                                                                        {
+                                                                            certificate:
+                                                                                cert.id,
+                                                                        },
+                                                                    )}
+                                                                    className="btn-act btn-view"
+                                                                >
                                                                     Traiter →
                                                                 </Link>
                                                             </div>
@@ -299,26 +603,78 @@ export default function PendingDashboard({
                                     {pending.last_page > 1 && (
                                         <div className="pd-pagination">
                                             <span className="pd-pg-info">
-                                                Page {pending.current_page}/{pending.last_page} · {pending.total} en attente
+                                                Page {pending.current_page}/
+                                                {pending.last_page} ·{' '}
+                                                {pending.total} en attente
                                             </span>
                                             <div className="pd-pg-links">
-                                                <button className="pg-btn" disabled={pending.current_page === 1}
-                                                        onClick={() => applyFilter({ page: String(pending.current_page - 1) })}>
-                                                    <ChevronLeft size={13}/>
+                                                <button
+                                                    className="pg-btn"
+                                                    disabled={
+                                                        pending.current_page ===
+                                                        1
+                                                    }
+                                                    onClick={() =>
+                                                        applyFilter({
+                                                            page: String(
+                                                                pending.current_page -
+                                                                    1,
+                                                            ),
+                                                        })
+                                                    }
+                                                >
+                                                    <ChevronLeft size={13} />
                                                 </button>
-                                                {pending.links.map((link, i) => {
-                                                    if (i === 0 || i === pending.links.length - 1) return null;
-                                                    return (
-                                                        <button key={`p-${i}`}
+                                                {pending.links.map(
+                                                    (link, i) => {
+                                                        if (
+                                                            i === 0 ||
+                                                            i ===
+                                                                pending.links
+                                                                    .length -
+                                                                    1
+                                                        ) {
+                                                            return null;
+                                                        }
+
+                                                        return (
+                                                            <button
+                                                                key={`p-${i}`}
                                                                 className={`pg-btn ${link.active ? 'act' : ''}`}
-                                                                onClick={() => link.url && applyFilter({ page: link.label })}
-                                                                disabled={!link.url}
-                                                                dangerouslySetInnerHTML={{ __html: link.label }}/>
-                                                    );
-                                                })}
-                                                <button className="pg-btn" disabled={pending.current_page === pending.last_page}
-                                                        onClick={() => applyFilter({ page: String(pending.current_page + 1) })}>
-                                                    <ChevronRight size={13}/>
+                                                                onClick={() =>
+                                                                    link.url &&
+                                                                    applyFilter(
+                                                                        {
+                                                                            page: link.label,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    !link.url
+                                                                }
+                                                                dangerouslySetInnerHTML={{
+                                                                    __html: link.label,
+                                                                }}
+                                                            />
+                                                        );
+                                                    },
+                                                )}
+                                                <button
+                                                    className="pg-btn"
+                                                    disabled={
+                                                        pending.current_page ===
+                                                        pending.last_page
+                                                    }
+                                                    onClick={() =>
+                                                        applyFilter({
+                                                            page: String(
+                                                                pending.current_page +
+                                                                    1,
+                                                            ),
+                                                        })
+                                                    }
+                                                >
+                                                    <ChevronRight size={13} />
                                                 </button>
                                             </div>
                                         </div>
@@ -332,39 +688,95 @@ export default function PendingDashboard({
                             {/* Émissions récentes */}
                             <div className="side-card">
                                 <div className="side-hdr">
-                                    <CheckCircle size={14} color="#15803d"/>
+                                    <CheckCircle size={14} color="#15803d" />
                                     Émissions récentes
                                 </div>
                                 <div className="side-body">
                                     {recentIssued.length === 0 ? (
-                                        <div style={{ fontSize:12, color:'#94a3b8', textAlign:'center', padding:'12px 0' }}>
+                                        <div
+                                            style={{
+                                                fontSize: 12,
+                                                color: '#94a3b8',
+                                                textAlign: 'center',
+                                                padding: '12px 0',
+                                            }}
+                                        >
                                             Aucune émission récente
                                         </div>
-                                    ) : recentIssued.map(c => (
-                                        <div key={c.id} className="recent-row">
-                                            <div>
-                                                <Link href={route('admin.certificates.show', { certificate: c.id })}
-                                                      style={{ textDecoration:'none' }}>
-                                                    <div className="recent-num">{c.certificate_number}</div>
-                                                </Link>
-                                                <div className="recent-name">{c.insured_name}</div>
-                                                {c.issued_by && (
-                                                    <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                        par {c.issued_by.first_name} {c.issued_by.last_name.charAt(0)}.
+                                    ) : (
+                                        recentIssued.map((c) => (
+                                            <div
+                                                key={c.id}
+                                                className="recent-row"
+                                            >
+                                                <div>
+                                                    <Link
+                                                        href={route(
+                                                            'admin.certificates.show',
+                                                            {
+                                                                certificate:
+                                                                    c.id,
+                                                            },
+                                                        )}
+                                                        style={{
+                                                            textDecoration:
+                                                                'none',
+                                                        }}
+                                                    >
+                                                        <div className="recent-num">
+                                                            {
+                                                                c.certificate_number
+                                                            }
+                                                        </div>
+                                                    </Link>
+                                                    <div className="recent-name">
+                                                        {c.insured_name}
                                                     </div>
-                                                )}
-                                            </div>
-                                            <div className="recent-val">
-                                                {parseFloat(c.insured_value).toLocaleString('fr-FR')}
-                                                <div style={{ fontSize:10, color:'#94a3b8' }}>{c.currency_code}</div>
-                                                {c.issued_at && (
-                                                    <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                        {fmtDt(c.issued_at)}
+                                                    {c.issued_by && (
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#94a3b8',
+                                                            }}
+                                                        >
+                                                            par{' '}
+                                                            {
+                                                                c.issued_by
+                                                                    .first_name
+                                                            }{' '}
+                                                            {c.issued_by.last_name.charAt(
+                                                                0,
+                                                            )}
+                                                            .
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="recent-val">
+                                                    {parseFloat(
+                                                        c.insured_value,
+                                                    ).toLocaleString('fr-FR')}
+                                                    <div
+                                                        style={{
+                                                            fontSize: 10,
+                                                            color: '#94a3b8',
+                                                        }}
+                                                    >
+                                                        {c.currency_code}
                                                     </div>
-                                                )}
+                                                    {c.issued_at && (
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#94a3b8',
+                                                            }}
+                                                        >
+                                                            {fmtDt(c.issued_at)}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    )}
                                 </div>
                             </div>
 
@@ -372,28 +784,68 @@ export default function PendingDashboard({
                             {expiringContracts.length > 0 && (
                                 <div className="side-card">
                                     <div className="side-hdr">
-                                        <AlertTriangle size={14} color="#f59e0b"/>
+                                        <AlertTriangle
+                                            size={14}
+                                            color="#f59e0b"
+                                        />
                                         Contrats expirant bientôt
                                     </div>
                                     <div className="side-body">
-                                        {expiringContracts.map(c => {
+                                        {expiringContracts.map((c) => {
                                             const daysLeft = Math.ceil(
-                                                (new Date(c.expiry_date).getTime() - Date.now()) / 864e5
+                                                (new Date(
+                                                    c.expiry_date,
+                                                ).getTime() -
+                                                    now) /
+                                                    864e5,
                                             );
+
                                             return (
-                                                <div key={c.id} className="expiry-row">
+                                                <div
+                                                    key={c.id}
+                                                    className="expiry-row"
+                                                >
                                                     <div>
-                                                        <div className="expiry-num">{c.contract_number}</div>
-                                                        <div style={{ fontSize:10, color:'#64748b', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                                        <div className="expiry-num">
+                                                            {c.contract_number}
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#64748b',
+                                                                maxWidth: 150,
+                                                                overflow:
+                                                                    'hidden',
+                                                                textOverflow:
+                                                                    'ellipsis',
+                                                                whiteSpace:
+                                                                    'nowrap',
+                                                            }}
+                                                        >
                                                             {c.insured_name}
                                                         </div>
                                                         {isSA && c.tenant && (
-                                                            <div style={{ fontSize:10, color:'#94a3b8' }}>{c.tenant.code}</div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                {c.tenant.code}
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    <div style={{ textAlign:'right' }}>
-                                                        <div className="expiry-date">{fmt(c.expiry_date)}</div>
-                                                        <span className="days-left">J-{daysLeft}</span>
+                                                    <div
+                                                        style={{
+                                                            textAlign: 'right',
+                                                        }}
+                                                    >
+                                                        <div className="expiry-date">
+                                                            {fmt(c.expiry_date)}
+                                                        </div>
+                                                        <span className="days-left">
+                                                            J-{daysLeft}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             );
@@ -403,28 +855,77 @@ export default function PendingDashboard({
                             )}
 
                             {/* Lien accès rapide */}
-                            <div style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:10, padding:'12px 14px' }}>
-                                <div style={{ fontSize:12, fontWeight:600, color:'#1d4ed8', marginBottom:8 }}>
+                            <div
+                                style={{
+                                    background: '#eff6ff',
+                                    border: '1px solid #bfdbfe',
+                                    borderRadius: 10,
+                                    padding: '12px 14px',
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        color: '#1d4ed8',
+                                        marginBottom: 8,
+                                    }}
+                                >
                                     Accès rapide
                                 </div>
-                                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                                    <Link href={route('admin.certificates.create')}
-                                          style={{ fontSize:12, color:'#1d4ed8', textDecoration:'none', display:'flex', alignItems:'center', gap:5 }}>
-                                        <Award size={12}/> Nouveau certificat
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 6,
+                                    }}
+                                >
+                                    <Link
+                                        href={route(
+                                            'admin.certificates.create',
+                                        )}
+                                        style={{
+                                            fontSize: 12,
+                                            color: '#1d4ed8',
+                                            textDecoration: 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 5,
+                                        }}
+                                    >
+                                        <Award size={12} /> Nouveau certificat
                                     </Link>
-                                    <Link href={route('admin.certificates.index')}
-                                          style={{ fontSize:12, color:'#1d4ed8', textDecoration:'none', display:'flex', alignItems:'center', gap:5 }}>
-                                        <FileText size={12}/> Tous les certificats
+                                    <Link
+                                        href={route('admin.certificates.index')}
+                                        style={{
+                                            fontSize: 12,
+                                            color: '#1d4ed8',
+                                            textDecoration: 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 5,
+                                        }}
+                                    >
+                                        <FileText size={12} /> Tous les
+                                        certificats
                                     </Link>
-                                    <Link href={route('admin.contracts.index')}
-                                          style={{ fontSize:12, color:'#1d4ed8', textDecoration:'none', display:'flex', alignItems:'center', gap:5 }}>
-                                        <TrendingUp size={12}/> Contrats actifs
+                                    <Link
+                                        href={route('admin.contracts.index')}
+                                        style={{
+                                            fontSize: 12,
+                                            color: '#1d4ed8',
+                                            textDecoration: 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 5,
+                                        }}
+                                    >
+                                        <TrendingUp size={12} /> Contrats actifs
                                     </Link>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </AppLayout>

@@ -17,12 +17,12 @@ return new class extends Migration
     {
         Schema::create('contract_coinsurers', function (Blueprint $table) {
             $table->foreignUuid('contract_id')
-                  ->constrained('insurance_contracts')
-                  ->cascadeOnDelete();
+                ->constrained('insurance_contracts')
+                ->cascadeOnDelete();
 
             $table->foreignUuid('coinsurer_id')
-                  ->constrained('coinsurers')
-                  ->cascadeOnDelete();
+                ->constrained('coinsurers')
+                ->cascadeOnDelete();
 
             $table->decimal('share_rate', 5, 2); // % de participation sur ce contrat
 

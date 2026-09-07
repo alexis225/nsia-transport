@@ -1,13 +1,18 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { Edit2, ArrowLeft, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Edit2, ArrowLeft, ToggleLeft, ToggleRight, Users2 } from 'lucide-react';
 
-interface Tenant { id: string; name: string; code: string; }
+interface Tenant {
+    id: string;
+    name: string;
+    code: string;
+}
 interface Coinsurer {
-    id: string; name: string;
+    id: string;
+    name: string;
     country_code: string | null;
     address: string | null;
     email: string | null;
@@ -17,7 +22,9 @@ interface Coinsurer {
     updated_at: string;
     tenant: Tenant | null;
 }
-interface Props { coinsurer: Coinsurer; }
+interface Props {
+    coinsurer: Coinsurer;
+}
 
 export default function CoinsurersShow({ coinsurer }: Props) {
     const { t } = useTranslation('coinsurers');
@@ -31,15 +38,19 @@ export default function CoinsurersShow({ coinsurer }: Props) {
         const msg = coinsurer.is_active
             ? t('show.confirmDeactivate', { name: coinsurer.name })
             : t('show.confirmActivate', { name: coinsurer.name });
-        if (confirm(msg))
-            router.patch(route('admin.coinsurers.toggle', { coinsurer: coinsurer.id }));
+
+        if (confirm(msg)) {
+            router.patch(
+                route('admin.coinsurers.toggle', { coinsurer: coinsurer.id }),
+            );
+        }
     };
 
     const initials = coinsurer.name.slice(0, 2).toUpperCase();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${coinsurer.name} — NSIA Transport`}/>
+            <Head title={`${coinsurer.name} — NSIA Transport`} />
             <style>{`
                 .cs-wrap{width:100%;max-width:720px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .cs-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
@@ -64,68 +75,154 @@ export default function CoinsurersShow({ coinsurer }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="cs-wrap">
-
                     <div className="cs-hero">
                         <div className="cs-avatar">{initials}</div>
                         <div className="cs-hero-info">
                             <div className="cs-hero-name">{coinsurer.name}</div>
                             <div className="cs-hero-sub">
-                                {coinsurer.is_active
-                                    ? <span style={{ color:'#86efac' }}>{'● '}{tc('states.active')}</span>
-                                    : <span style={{ color:'rgba(255,255,255,0.4)' }}>{'● '}{tc('states.inactive')}</span>}
+                                {coinsurer.is_active ? (
+                                    <span style={{ color: '#86efac' }}>
+                                        {'● '}
+                                        {tc('states.active')}
+                                    </span>
+                                ) : (
+                                    <span
+                                        style={{
+                                            color: 'rgba(255,255,255,0.4)',
+                                        }}
+                                    >
+                                        {'● '}
+                                        {tc('states.inactive')}
+                                    </span>
+                                )}
                             </div>
                         </div>
                         <div className="cs-hero-actions">
-                            <Link href={route('admin.coinsurers.edit', { coinsurer: coinsurer.id })}>
-                                <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border-white/20 border h-8 px-3">
-                                    <Edit2 size={13}/> {t('show.edit')}
+                            <Link
+                                href={route('admin.coinsurers.edit', {
+                                    coinsurer: coinsurer.id,
+                                })}
+                            >
+                                <Button
+                                    size="sm"
+                                    className="h-8 border border-white/20 bg-white/10 px-3 text-white hover:bg-white/20"
+                                >
+                                    <Edit2 size={13} /> {t('show.edit')}
                                 </Button>
                             </Link>
-                            <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-8 px-3" onClick={handleToggle}>
-                                {coinsurer.is_active ? <><ToggleLeft size={13}/> {t('show.deactivate')}</> : <><ToggleRight size={13}/> {t('show.activate')}</>}
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 border-white/20 bg-white/10 px-3 text-white hover:bg-white/20"
+                                onClick={handleToggle}
+                            >
+                                {coinsurer.is_active ? (
+                                    <>
+                                        <ToggleLeft size={13} />{' '}
+                                        {t('show.deactivate')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <ToggleRight size={13} />{' '}
+                                        {t('show.activate')}
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
 
                     <div className="cs-card">
-                        <div className="cs-card-hdr"><div className="cs-card-ttl">{t('show.title')}</div></div>
+                        <div className="cs-card-hdr">
+                            <div className="cs-card-ttl">{t('show.title')}</div>
+                        </div>
                         <div className="cs-grid">
                             <div className="cs-field">
-                                <div className="cs-field-label">{t('show.fields.name')}</div>
-                                <div className="cs-field-value">{coinsurer.name}</div>
-                            </div>
-                            <div className="cs-field">
-                                <div className="cs-field-label">{t('show.fields.country')}</div>
-                                <div className="cs-field-value">{coinsurer.country_code ?? '—'}</div>
-                            </div>
-                            <div className="cs-field">
-                                <div className="cs-field-label">{t('show.fields.email')}</div>
-                                <div className="cs-field-value">{coinsurer.email ?? '—'}</div>
-                            </div>
-                            <div className="cs-field">
-                                <div className="cs-field-label">{t('show.fields.phone')}</div>
-                                <div className="cs-field-value">{coinsurer.phone ?? '—'}</div>
-                            </div>
-                            <div className="cs-field">
-                                <div className="cs-field-label">{t('show.fields.address')}</div>
-                                <div className="cs-field-value">{coinsurer.address ?? '—'}</div>
-                            </div>
-                            <div className="cs-field">
-                                <div className="cs-field-label">{t('show.fields.tenant')}</div>
-                                <div className="cs-field-value">{coinsurer.tenant?.name ?? '—'}</div>
-                            </div>
-                            <div className="cs-field">
-                                <div className="cs-field-label">{t('show.fields.status')}</div>
+                                <div className="cs-field-label">
+                                    {t('show.fields.name')}
+                                </div>
                                 <div className="cs-field-value">
-                                    {coinsurer.is_active
-                                        ? <span className="s-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{tc('states.active')}</span>
-                                        : <span className="s-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{tc('states.inactive')}</span>}
+                                    {coinsurer.name}
                                 </div>
                             </div>
                             <div className="cs-field">
-                                <div className="cs-field-label">{t('show.fields.createdAt')}</div>
-                                <div className="cs-field-value" style={{ fontSize:12, color:'#64748b' }}>
-                                    {new Date(coinsurer.created_at).toLocaleDateString('fr-FR')}
+                                <div className="cs-field-label">
+                                    {t('show.fields.country')}
+                                </div>
+                                <div className="cs-field-value">
+                                    {coinsurer.country_code ?? '—'}
+                                </div>
+                            </div>
+                            <div className="cs-field">
+                                <div className="cs-field-label">
+                                    {t('show.fields.email')}
+                                </div>
+                                <div className="cs-field-value">
+                                    {coinsurer.email ?? '—'}
+                                </div>
+                            </div>
+                            <div className="cs-field">
+                                <div className="cs-field-label">
+                                    {t('show.fields.phone')}
+                                </div>
+                                <div className="cs-field-value">
+                                    {coinsurer.phone ?? '—'}
+                                </div>
+                            </div>
+                            <div className="cs-field">
+                                <div className="cs-field-label">
+                                    {t('show.fields.address')}
+                                </div>
+                                <div className="cs-field-value">
+                                    {coinsurer.address ?? '—'}
+                                </div>
+                            </div>
+                            <div className="cs-field">
+                                <div className="cs-field-label">
+                                    {t('show.fields.tenant')}
+                                </div>
+                                <div className="cs-field-value">
+                                    {coinsurer.tenant?.name ?? '—'}
+                                </div>
+                            </div>
+                            <div className="cs-field">
+                                <div className="cs-field-label">
+                                    {t('show.fields.status')}
+                                </div>
+                                <div className="cs-field-value">
+                                    {coinsurer.is_active ? (
+                                        <span className="s-active">
+                                            <span
+                                                className="s-dot"
+                                                style={{
+                                                    background: '#22c55e',
+                                                }}
+                                            />
+                                            {tc('states.active')}
+                                        </span>
+                                    ) : (
+                                        <span className="s-inactive">
+                                            <span
+                                                className="s-dot"
+                                                style={{
+                                                    background: '#94a3b8',
+                                                }}
+                                            />
+                                            {tc('states.inactive')}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="cs-field">
+                                <div className="cs-field-label">
+                                    {t('show.fields.createdAt')}
+                                </div>
+                                <div
+                                    className="cs-field-value"
+                                    style={{ fontSize: 12, color: '#64748b' }}
+                                >
+                                    {new Date(
+                                        coinsurer.created_at,
+                                    ).toLocaleDateString('fr-FR')}
                                 </div>
                             </div>
                         </div>
@@ -134,7 +231,7 @@ export default function CoinsurersShow({ coinsurer }: Props) {
                     <div>
                         <Link href={route('admin.coinsurers.index')}>
                             <Button variant="outline" size="sm" className="h-9">
-                                <ArrowLeft size={13}/> {t('show.backToList')}
+                                <ArrowLeft size={13} /> {t('show.backToList')}
                             </Button>
                         </Link>
                     </div>

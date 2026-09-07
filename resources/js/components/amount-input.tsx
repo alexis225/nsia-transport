@@ -1,5 +1,5 @@
-import { useRef  } from 'react';
-import type {ChangeEvent} from 'react';
+import { useRef } from 'react';
+import type { ChangeEvent } from 'react';
 import { Input } from '@/components/ui/input';
 
 // Formate un montant brut ("10000000.5", séparateur décimal '.') en
@@ -10,15 +10,19 @@ function formatAmount(raw: string): string {
     }
 
     const [intPart, decPart] = raw.split('.');
-    const grouped = (intPart ?? '').replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    const grouped = (intPart ?? '')
+        .replace(/\D/g, '')
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-    return decPart !== undefined ? `${grouped},${decPart.replace(/\D/g, '')}` : grouped;
+    return decPart !== undefined
+        ? `${grouped},${decPart.replace(/\D/g, '')}`
+        : grouped;
 }
 
 // Retire les séparateurs de saisie pour ne garder que la valeur numérique
 // brute (point comme séparateur décimal — format attendu par le backend).
 function unformatAmount(formatted: string): string {
-    const cleaned  = formatted.replace(/[^\d,]/g, '');
+    const cleaned = formatted.replace(/[^\d,]/g, '');
     const [intPart, ...decParts] = cleaned.split(',');
 
     return decParts.length > 0 ? `${intPart}.${decParts.join('')}` : intPart;
@@ -38,15 +42,22 @@ interface AmountInputProps {
 
 // Champ montant avec séparateurs de milliers en cours de saisie. La valeur
 // transmise à `onChange` reste une chaîne numérique brute (ex: "10000000").
-export function AmountInput({ value, onChange, className, placeholder, id, variant = 'default' }: AmountInputProps) {
+export function AmountInput({
+    value,
+    onChange,
+    className,
+    placeholder,
+    id,
+    variant = 'default',
+}: AmountInputProps) {
     const ref = useRef<HTMLInputElement>(null);
     const displayValue = formatAmount(value);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const input      = e.target;
-        const cursor     = input.selectionStart ?? input.value.length;
+        const input = e.target;
+        const cursor = input.selectionStart ?? input.value.length;
         const prevLength = input.value.length;
-        const raw        = unformatAmount(input.value);
+        const raw = unformatAmount(input.value);
 
         onChange(raw);
 
@@ -56,7 +67,7 @@ export function AmountInput({ value, onChange, className, placeholder, id, varia
             }
 
             const newLength = formatAmount(raw).length;
-            const newPos    = Math.max(0, cursor + (newLength - prevLength));
+            const newPos = Math.max(0, cursor + (newLength - prevLength));
 
             ref.current.setSelectionRange(newPos, newPos);
         });

@@ -18,10 +18,10 @@ class PartnerDashboardController extends Controller
 
         if (! $broker) {
             return Inertia::render('partner/dashboard', [
-                'broker'            => null,
-                'counts'            => null,
+                'broker' => null,
+                'counts' => null,
                 'certificateCounts' => null,
-                'notifications'     => $notifications,
+                'notifications' => $notifications,
             ]);
         }
 
@@ -36,14 +36,14 @@ class PartnerDashboardController extends Controller
             'broker' => $broker->only(['id', 'name', 'code', 'type']),
             'tenant' => $broker->tenant?->only(['id', 'name', 'code']),
             'counts' => [
-                'pending'    => $counts['PENDING'] ?? 0,
-                'in_review'  => $counts['IN_REVIEW'] ?? 0,
-                'approved'   => $counts['APPROVED'] ?? 0,
-                'rejected'   => $counts['REJECTED'] ?? 0,
+                'pending' => $counts['PENDING'] ?? 0,
+                'in_review' => $counts['IN_REVIEW'] ?? 0,
+                'approved' => $counts['APPROVED'] ?? 0,
+                'rejected' => $counts['REJECTED'] ?? 0,
             ],
             'certificateCounts' => [
                 'issued' => (clone $certificateRequestsBase)->whereNotNull('certificate_id')->count(),
-                'guce'   => (clone $certificateRequestsBase)->whereNotNull('guce_certificate_id')->count(),
+                'guce' => (clone $certificateRequestsBase)->whereNotNull('guce_certificate_id')->count(),
             ],
             'notifications' => $notifications,
         ]);
@@ -58,10 +58,10 @@ class PartnerDashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(fn (Notification $n) => [
-                'id'    => $n->id,
+                'id' => $n->id,
                 'title' => $n->data['title'] ?? 'Notification',
-                'body'  => $n->data['body']  ?? '',
-                'url'   => $n->data['url']   ?? null,
+                'body' => $n->data['body'] ?? '',
+                'url' => $n->data['url'] ?? null,
             ]);
     }
 }

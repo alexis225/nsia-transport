@@ -42,7 +42,7 @@ class CertificateRequestController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('insured_name', 'ilike', "%{$search}%")
-                  ->orWhereHas('broker', fn ($b) => $b->where('name', 'ilike', "%{$search}%"));
+                    ->orWhereHas('broker', fn ($b) => $b->where('name', 'ilike', "%{$search}%"));
             });
         }
 
@@ -65,16 +65,16 @@ class CertificateRequestController extends Controller
 
         return Inertia::render('admin/certificate-requests/index', [
             'certificateRequests' => $certificateRequests,
-            'filters'             => $request->only(['status', 'search']),
-            'counts'              => [
-                'PENDING'        => $counts['PENDING'] ?? 0,
-                'IN_REVIEW'      => $counts['IN_REVIEW'] ?? 0,
+            'filters' => $request->only(['status', 'search']),
+            'counts' => [
+                'PENDING' => $counts['PENDING'] ?? 0,
+                'IN_REVIEW' => $counts['IN_REVIEW'] ?? 0,
                 'INFO_REQUESTED' => $counts['INFO_REQUESTED'] ?? 0,
-                'COMPLETED'      => $counts['COMPLETED'] ?? 0,
-                'APPROVED'       => $counts['APPROVED'] ?? 0,
-                'FULFILLED'      => $counts['FULFILLED'] ?? 0,
-                'CLOSED'         => $counts['CLOSED'] ?? 0,
-                'REJECTED'       => $counts['REJECTED'] ?? 0,
+                'COMPLETED' => $counts['COMPLETED'] ?? 0,
+                'APPROVED' => $counts['APPROVED'] ?? 0,
+                'FULFILLED' => $counts['FULFILLED'] ?? 0,
+                'CLOSED' => $counts['CLOSED'] ?? 0,
+                'REJECTED' => $counts['REJECTED'] ?? 0,
             ],
         ]);
     }
@@ -110,8 +110,8 @@ class CertificateRequestController extends Controller
         }
 
         return Inertia::render('admin/certificate-requests/show', [
-            'certificateRequest'        => $certificateRequest,
-            'availableCertificates'     => $availableCertificates,
+            'certificateRequest' => $certificateRequest,
+            'availableCertificates' => $availableCertificates,
             'availableGuceCertificates' => $availableGuceCertificates,
         ]);
     }
@@ -124,7 +124,7 @@ class CertificateRequestController extends Controller
         abort_if($certificateRequest->status !== CertificateRequest::STATUS_PENDING, 422, 'Cette demande a déjà été prise en charge.');
 
         $certificateRequest->update([
-            'status'      => CertificateRequest::STATUS_IN_REVIEW,
+            'status' => CertificateRequest::STATUS_IN_REVIEW,
             'assigned_to' => Auth::id(),
             'assigned_at' => now(),
         ]);
@@ -134,11 +134,11 @@ class CertificateRequestController extends Controller
                 $certificateRequest->createdBy,
                 Notification::TYPE_CERT_REQUEST_IN_REVIEW,
                 'Demande en cours de traitement',
-                "Votre demande" . ($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '') . ' est en cours de traitement.',
+                'Votre demande'.($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '').' est en cours de traitement.',
                 [
-                    'icon'  => 'clock',
+                    'icon' => 'clock',
                     'color' => 'info',
-                    'url'   => route('partner.certificate-requests.show', $certificateRequest),
+                    'url' => route('partner.certificate-requests.show', $certificateRequest),
                 ]
             );
         }
@@ -166,9 +166,9 @@ class CertificateRequestController extends Controller
         ]);
 
         $certificateRequest->update([
-            'status'              => CertificateRequest::STATUS_INFO_REQUESTED,
-            'info_requested_at'   => now(),
-            'info_request_notes'  => $validated['info_request_notes'],
+            'status' => CertificateRequest::STATUS_INFO_REQUESTED,
+            'info_requested_at' => now(),
+            'info_request_notes' => $validated['info_request_notes'],
         ]);
 
         if ($certificateRequest->createdBy) {
@@ -176,11 +176,11 @@ class CertificateRequestController extends Controller
                 $certificateRequest->createdBy,
                 Notification::TYPE_CERT_REQUEST_INFO_REQUESTED,
                 'Complément demandé sur votre demande',
-                "Merci de compléter votre demande" . ($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '') . " : {$validated['info_request_notes']}",
+                'Merci de compléter votre demande'.($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '')." : {$validated['info_request_notes']}",
                 [
-                    'icon'  => 'file-question',
+                    'icon' => 'file-question',
                     'color' => 'warning',
-                    'url'   => route('partner.certificate-requests.show', $certificateRequest),
+                    'url' => route('partner.certificate-requests.show', $certificateRequest),
                 ]
             );
         }
@@ -196,7 +196,7 @@ class CertificateRequestController extends Controller
         abort_if($certificateRequest->status !== CertificateRequest::STATUS_FULFILLED, 422, 'Seule une demande dont le certificat a été émis peut être clôturée.');
 
         $certificateRequest->update([
-            'status'    => CertificateRequest::STATUS_CLOSED,
+            'status' => CertificateRequest::STATUS_CLOSED,
             'closed_at' => now(),
         ]);
 
@@ -218,9 +218,9 @@ class CertificateRequestController extends Controller
         ]);
 
         $certificateRequest->update([
-            'status'       => CertificateRequest::STATUS_APPROVED,
-            'reviewed_by'  => Auth::id(),
-            'reviewed_at'  => now(),
+            'status' => CertificateRequest::STATUS_APPROVED,
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
             'review_notes' => $validated['review_notes'] ?? null,
         ]);
 
@@ -242,9 +242,9 @@ class CertificateRequestController extends Controller
         ]);
 
         $certificateRequest->update([
-            'status'       => CertificateRequest::STATUS_REJECTED,
-            'reviewed_by'  => Auth::id(),
-            'reviewed_at'  => now(),
+            'status' => CertificateRequest::STATUS_REJECTED,
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
             'review_notes' => $validated['review_notes'],
         ]);
 
@@ -253,11 +253,11 @@ class CertificateRequestController extends Controller
                 $certificateRequest->createdBy,
                 Notification::TYPE_CERT_REQUEST_REJECTED,
                 'Demande de certificat rejetée',
-                "Votre demande" . ($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '') . " a été rejetée : {$validated['review_notes']}",
+                'Votre demande'.($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '')." a été rejetée : {$validated['review_notes']}",
                 [
-                    'icon'  => 'x-circle',
+                    'icon' => 'x-circle',
                     'color' => 'danger',
-                    'url'   => route('partner.certificate-requests.show', $certificateRequest),
+                    'url' => route('partner.certificate-requests.show', $certificateRequest),
                 ]
             );
         }
@@ -274,7 +274,7 @@ class CertificateRequestController extends Controller
         abort_if($certificateRequest->status !== CertificateRequest::STATUS_APPROVED, 422, 'Seule une demande approuvée peut être rattachée à un certificat.');
 
         $validated = $request->validate([
-            'certificate_id'      => ['required_without:guce_certificate_id', 'nullable', 'uuid', 'exists:certificates,id'],
+            'certificate_id' => ['required_without:guce_certificate_id', 'nullable', 'uuid', 'exists:certificates,id'],
             'guce_certificate_id' => ['required_without:certificate_id', 'nullable', 'uuid', 'exists:guce_certificates,id'],
         ]);
 
@@ -299,11 +299,11 @@ class CertificateRequestController extends Controller
                 $certificateRequest->createdBy,
                 Notification::TYPE_CERT_ISSUED,
                 'Certificat disponible',
-                "Le certificat N° {$certificateNumber} lié à votre demande" . ($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '') . " est maintenant disponible.",
+                "Le certificat N° {$certificateNumber} lié à votre demande".($certificateRequest->insured_name ? " ({$certificateRequest->insured_name})" : '').' est maintenant disponible.',
                 [
-                    'icon'  => 'check-circle',
+                    'icon' => 'check-circle',
                     'color' => 'success',
-                    'url'   => route('partner.certificate-requests.show', $certificateRequest),
+                    'url' => route('partner.certificate-requests.show', $certificateRequest),
                 ]
             );
         }

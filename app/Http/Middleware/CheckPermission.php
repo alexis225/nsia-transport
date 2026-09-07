@@ -29,7 +29,7 @@ class CheckPermission
             if ($request->wantsJson() || $request->header('X-Inertia')) {
                 return response()->json([
                     'message' => 'Action non autorisée.',
-                    'code'    => 'FORBIDDEN',
+                    'code' => 'FORBIDDEN',
                 ], 403);
             }
 

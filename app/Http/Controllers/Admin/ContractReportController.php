@@ -22,21 +22,21 @@ class ContractReportController extends Controller
 {
     public function index(Request $request): Response
     {
-        $user     = $request->user();
-        $isSA     = $user->hasRole('super_admin');
+        $user = $request->user();
+        $isSA = $user->hasRole('super_admin');
         $tenantId = $user->tenant_id;
 
         // ── Paramètres filtres ────────────────────────────────────
-        $status       = $request->input('status',     'ALL');
-        $type         = $request->input('type');
-        $brokerId     = $request->input('broker_id');
+        $status = $request->input('status', 'ALL');
+        $type = $request->input('type');
+        $brokerId = $request->input('broker_id');
         $filterTenant = $request->input('tenant_id');
-        $search       = $request->input('search');
-        $dateFrom     = $request->input('date_from');
-        $dateTo       = $request->input('date_to');
-        $dateField    = $request->input('date_field', 'effective_date'); // effective_date | expiry_date | created_at
-        $limitMin     = $request->input('limit_min');
-        $limitMax     = $request->input('limit_max');
+        $search = $request->input('search');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+        $dateField = $request->input('date_field', 'effective_date'); // effective_date | expiry_date | created_at
+        $limitMin = $request->input('limit_min');
+        $limitMax = $request->input('limit_max');
 
         // ── Base (sans filtre statut) pour stats globales ─────────
         $base = InsuranceContract::when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId))
@@ -45,27 +45,27 @@ class ContractReportController extends Controller
             ->when($type, fn ($q) => $q->where('type', $type))
             ->when($search, fn ($q) => $q->where(fn ($q) => $q
                 ->where('contract_number', 'ilike', "%{$search}%")
-                ->orWhere('insured_name',  'ilike', "%{$search}%")
+                ->orWhere('insured_name', 'ilike', "%{$search}%")
             ))
             ->when($dateFrom, fn ($q) => $q->whereDate($dateField, '>=', $dateFrom))
-            ->when($dateTo,   fn ($q) => $q->whereDate($dateField, '<=', $dateTo))
+            ->when($dateTo, fn ($q) => $q->whereDate($dateField, '<=', $dateTo))
             ->when($limitMin, fn ($q) => $q->where('subscription_limit', '>=', $limitMin))
             ->when($limitMax, fn ($q) => $q->where('subscription_limit', '<=', $limitMax));
 
         // ── Stats globales ────────────────────────────────────────
         $stats = [
-            'total'          => (clone $base)->count(),
-            'active'         => (clone $base)->where('status', 'ACTIVE')->count(),
-            'draft'          => (clone $base)->where('status', 'DRAFT')->count(),
-            'suspended'      => (clone $base)->where('status', 'SUSPENDED')->count(),
-            'expired'        => (clone $base)->where('status', 'EXPIRED')->count(),
-            'cancelled'      => (clone $base)->where('status', 'CANCELLED')->count(),
-            'expiring_30'    => (clone $base)->where('status', 'ACTIVE')
-                                    ->whereDate('expiry_date', '<=', now()->addDays(30))->count(),
-            'expiring_7'     => (clone $base)->where('status', 'ACTIVE')
-                                    ->whereDate('expiry_date', '<=', now()->addDays(7))->count(),
-            'total_limit'    => (float) (clone $base)->where('status', 'ACTIVE')->sum('subscription_limit'),
-            'total_used'     => (float) (clone $base)->where('status', 'ACTIVE')->sum('used_limit'),
+            'total' => (clone $base)->count(),
+            'active' => (clone $base)->where('status', 'ACTIVE')->count(),
+            'draft' => (clone $base)->where('status', 'DRAFT')->count(),
+            'suspended' => (clone $base)->where('status', 'SUSPENDED')->count(),
+            'expired' => (clone $base)->where('status', 'EXPIRED')->count(),
+            'cancelled' => (clone $base)->where('status', 'CANCELLED')->count(),
+            'expiring_30' => (clone $base)->where('status', 'ACTIVE')
+                ->whereDate('expiry_date', '<=', now()->addDays(30))->count(),
+            'expiring_7' => (clone $base)->where('status', 'ACTIVE')
+                ->whereDate('expiry_date', '<=', now()->addDays(7))->count(),
+            'total_limit' => (float) (clone $base)->where('status', 'ACTIVE')->sum('subscription_limit'),
+            'total_used' => (float) (clone $base)->where('status', 'ACTIVE')->sum('used_limit'),
             'requires_approval_count' => (clone $base)->where('requires_approval', true)->count(),
         ];
 
@@ -74,7 +74,7 @@ class ContractReportController extends Controller
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $tenantId))
             ->when($isSA && $filterTenant, fn ($q) => $q->where('tenant_id', $filterTenant))
             ->where('subscription_limit', '>', 0)
-            ->selectRaw("ROUND(AVG(used_limit / subscription_limit * 100), 1) as avg_pct")
+            ->selectRaw('ROUND(AVG(used_limit / subscription_limit * 100), 1) as avg_pct')
             ->value('avg_pct');
 
         // ── Ventilation par type ──────────────────────────────────
@@ -119,26 +119,26 @@ class ContractReportController extends Controller
             : collect();
 
         return Inertia::render('admin/reports/contracts', [
-            'contracts'  => $contracts,
-            'stats'      => $stats,
-            'avgUsagePct'=> $avgUsage,
-            'byType'     => $byType,
-            'byStatus'   => $byStatus,
-            'brokers'    => $brokers,
-            'tenants'    => $tenants,
-            'filters'    => [
-                'status'     => $status,
-                'type'       => $type,
-                'broker_id'  => $brokerId,
-                'tenant_id'  => $filterTenant,
-                'search'     => $search,
-                'date_from'  => $dateFrom,
-                'date_to'    => $dateTo,
+            'contracts' => $contracts,
+            'stats' => $stats,
+            'avgUsagePct' => $avgUsage,
+            'byType' => $byType,
+            'byStatus' => $byStatus,
+            'brokers' => $brokers,
+            'tenants' => $tenants,
+            'filters' => [
+                'status' => $status,
+                'type' => $type,
+                'broker_id' => $brokerId,
+                'tenant_id' => $filterTenant,
+                'search' => $search,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
                 'date_field' => $dateField,
-                'limit_min'  => $limitMin,
-                'limit_max'  => $limitMax,
+                'limit_min' => $limitMin,
+                'limit_max' => $limitMax,
             ],
-            'isSA'       => $isSA,
+            'isSA' => $isSA,
         ]);
     }
 }

@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Incoterm extends Model
 {
-    public $timestamps   = false;
+    public $timestamps = false;
+
     public $incrementing = false;
-    protected $keyType   = 'string';
+
+    protected $keyType = 'string';
+
     protected $primaryKey = 'code';
 
     protected $fillable = ['code', 'name', 'description', 'compatible_modes'];

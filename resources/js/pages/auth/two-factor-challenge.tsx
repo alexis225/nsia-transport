@@ -1,26 +1,41 @@
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
+import {
+    Shield,
+    ShieldCheck,
+    ShieldOff,
+    KeyRound,
+    Copy,
+    Check,
+    Eye,
+    EyeOff,
+    RefreshCw,
+    Loader2,
+} from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { edit } from '@/routes/profile';
 import type { BreadcrumbItem } from '@/types';
-import {
-    Shield, ShieldCheck, ShieldOff, KeyRound,
-    Copy, Check, Eye, EyeOff, RefreshCw, AlertCircle, Loader2
-} from 'lucide-react';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 interface Props {
-    mfaEnabled:    boolean;
-    mfaPending:    boolean;
-    qrCodeSvg:     string | null;
-    secretKey:     string | null;
+    mfaEnabled: boolean;
+    mfaPending: boolean;
+    qrCodeSvg: string | null;
+    secretKey: string | null;
     recoveryCodes: string[];
-    status?:       string;
+    status?: string;
 }
 
-export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey, recoveryCodes, status }: Props) {
-    const { t }     = useTranslation('auth');
+export default function MfaSetup({
+    mfaEnabled,
+    mfaPending,
+    qrCodeSvg,
+    secretKey,
+    recoveryCodes,
+    status,
+}: Props) {
+    const { t } = useTranslation('auth');
     const { t: ts } = useTranslation('settings');
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -28,35 +43,57 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
         { title: t('mfa.breadcrumb') },
     ];
 
-    const { auth }  = usePage().props as any;
-    const user      = auth?.user;
-    const initials  = `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
-    const fullName  = user?.first_name ? `${user.first_name} ${user.last_name}` : (user?.name ?? '');
+    const { auth } = usePage().props as any;
+    const user = auth?.user;
+    const initials =
+        `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
+    const fullName = user?.first_name
+        ? `${user.first_name} ${user.last_name}`
+        : (user?.name ?? '');
 
-    const [copied,    setCopied]    = useState(false);
+    const [copied, setCopied] = useState(false);
     const [showCodes, setShowCodes] = useState(false);
-    const [code,      setCode]      = useState('');
+    const [code, setCode] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     const copySecret = () => {
-        if (secretKey) { navigator.clipboard.writeText(secretKey); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+        if (secretKey) {
+            navigator.clipboard.writeText(secretKey);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
 
-    const handleEnable    = () => router.post(route('mfa.enable'));
-    const handleDisable   = () => { if (confirm(t('mfa.confirmDisable'))) router.delete(route('mfa.disable')); };
-    const handleRegenerate= () => { if (confirm(t('mfa.recovery.confirmRegenerate'))) router.post(route('mfa.recovery-codes.regenerate')); };
+    const handleEnable = () => router.post(route('mfa.enable'));
+    const handleDisable = () => {
+        if (confirm(t('mfa.confirmDisable'))) {
+            router.delete(route('mfa.disable'));
+        }
+    };
+    const handleRegenerate = () => {
+        if (confirm(t('mfa.recovery.confirmRegenerate'))) {
+            router.post(route('mfa.recovery-codes.regenerate'));
+        }
+    };
 
     const handleConfirm = (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
-        router.post(route('two-factor.confirm'), { code }, {
-            onFinish: () => { setSubmitting(false); setCode(''); },
-        });
+        router.post(
+            route('two-factor.confirm'),
+            { code },
+            {
+                onFinish: () => {
+                    setSubmitting(false);
+                    setCode('');
+                },
+            },
+        );
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${t('mfa.title')} — NSIA Transport`}/>
+            <Head title={`${t('mfa.title')} — NSIA Transport`} />
             <style>{`
                 .mfa-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .mfa-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:26px 24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -105,51 +142,117 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="mfa-wrap">
-
                     {/* Hero */}
                     <div className="mfa-hero">
                         <div className="mfa-avatar">{initials}</div>
                         <div className="mfa-hero-info">
-                            <div className="mfa-hero-name">{fullName || t('user.fallbackName')}</div>
-                            <div className="mfa-hero-sub">{t('mfa.subtitle')}</div>
+                            <div className="mfa-hero-name">
+                                {fullName || t('user.fallbackName')}
+                            </div>
+                            <div className="mfa-hero-sub">
+                                {t('mfa.subtitle')}
+                            </div>
                         </div>
                         <div className="mfa-hero-ico">
-                            <Shield size={22} color="rgba(255,255,255,0.7)"/>
+                            <Shield size={22} color="rgba(255,255,255,0.7)" />
                         </div>
                     </div>
 
-                    {status && <div className="status-ok"><ShieldCheck size={14}/>{status}</div>}
+                    {status && (
+                        <div className="status-ok">
+                            <ShieldCheck size={14} />
+                            {status}
+                        </div>
+                    )}
 
                     {/* Statut MFA */}
                     <div className="mfa-card">
                         <div className="mfa-card-hdr">
-                            <div className="mfa-card-ico" style={{background: mfaEnabled ? '#f0fdf4' : '#eff6ff'}}>
-                                {mfaEnabled ? <ShieldCheck size={17} color="#16a34a"/> : <Shield size={17} color="#3b82f6"/>}
+                            <div
+                                className="mfa-card-ico"
+                                style={{
+                                    background: mfaEnabled
+                                        ? '#f0fdf4'
+                                        : '#eff6ff',
+                                }}
+                            >
+                                {mfaEnabled ? (
+                                    <ShieldCheck size={17} color="#16a34a" />
+                                ) : (
+                                    <Shield size={17} color="#3b82f6" />
+                                )}
                             </div>
                             <div>
-                                <div className="mfa-card-ttl">{t('mfa.cardTitle')}</div>
-                                <div className="mfa-card-sub">{t('mfa.cardSubtitle')}</div>
+                                <div className="mfa-card-ttl">
+                                    {t('mfa.cardTitle')}
+                                </div>
+                                <div className="mfa-card-sub">
+                                    {t('mfa.cardSubtitle')}
+                                </div>
                             </div>
                         </div>
                         <div className="mfa-card-body">
-
                             {/* Statut */}
                             <div className="mfa-status-row">
                                 <div className="mfa-status-left">
-                                    {mfaEnabled
-                                        ? <><ShieldCheck size={20} color="#16a34a"/><div><div className="mfa-status-label" style={{color:'#15803d'}}>{t('mfa.enabled')}</div><div className="mfa-status-desc">{t('mfa.enabledDesc')}</div></div></>
-                                        : <><ShieldOff size={20} color="#94a3b8"/><div><div className="mfa-status-label" style={{color:'#64748b'}}>{t('mfa.disabled')}</div><div className="mfa-status-desc">{t('mfa.disabledDesc')}</div></div></>
-                                    }
+                                    {mfaEnabled ? (
+                                        <>
+                                            <ShieldCheck
+                                                size={20}
+                                                color="#16a34a"
+                                            />
+                                            <div>
+                                                <div
+                                                    className="mfa-status-label"
+                                                    style={{ color: '#15803d' }}
+                                                >
+                                                    {t('mfa.enabled')}
+                                                </div>
+                                                <div className="mfa-status-desc">
+                                                    {t('mfa.enabledDesc')}
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShieldOff
+                                                size={20}
+                                                color="#94a3b8"
+                                            />
+                                            <div>
+                                                <div
+                                                    className="mfa-status-label"
+                                                    style={{ color: '#64748b' }}
+                                                >
+                                                    {t('mfa.disabled')}
+                                                </div>
+                                                <div className="mfa-status-desc">
+                                                    {t('mfa.disabledDesc')}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
-                                <span className={mfaEnabled ? 'pill-active' : 'pill-inactive'}>
-                                    {mfaEnabled ? t('mfa.pillActive') : t('mfa.pillInactive')}
+                                <span
+                                    className={
+                                        mfaEnabled
+                                            ? 'pill-active'
+                                            : 'pill-inactive'
+                                    }
+                                >
+                                    {mfaEnabled
+                                        ? t('mfa.pillActive')
+                                        : t('mfa.pillInactive')}
                                 </span>
                             </div>
 
                             {/* Idle → activer */}
                             {!mfaEnabled && !mfaPending && (
-                                <Button onClick={handleEnable} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                    <Shield size={14}/> {t('mfa.enable')}
+                                <Button
+                                    onClick={handleEnable}
+                                    className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                                >
+                                    <Shield size={14} /> {t('mfa.enable')}
                                 </Button>
                             )}
 
@@ -157,33 +260,97 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                             {mfaPending && qrCodeSvg && (
                                 <>
                                     <div className="steps">
-                                        {[t('mfa.steps.install'), t('mfa.steps.scan'), t('mfa.steps.confirm')].map((s,i) => (
-                                            <div key={i} className="step"><div className="step-num">{i+1}</div>{s}</div>
+                                        {[
+                                            t('mfa.steps.install'),
+                                            t('mfa.steps.scan'),
+                                            t('mfa.steps.confirm'),
+                                        ].map((s, i) => (
+                                            <div key={i} className="step">
+                                                <div className="step-num">
+                                                    {i + 1}
+                                                </div>
+                                                {s}
+                                            </div>
                                         ))}
                                     </div>
                                     <div className="qr-zone">
-                                        <div className="qr-box" dangerouslySetInnerHTML={{__html: qrCodeSvg}}/>
+                                        <div
+                                            className="qr-box"
+                                            dangerouslySetInnerHTML={{
+                                                __html: qrCodeSvg,
+                                            }}
+                                        />
                                         {secretKey && (
                                             <div className="secret-row">
-                                                <span className="secret-key">{secretKey}</span>
-                                                <button className="copy-btn" onClick={copySecret}>
-                                                    {copied ? <Check size={15} color="#16a34a"/> : <Copy size={15}/>}
+                                                <span className="secret-key">
+                                                    {secretKey}
+                                                </span>
+                                                <button
+                                                    className="copy-btn"
+                                                    onClick={copySecret}
+                                                >
+                                                    {copied ? (
+                                                        <Check
+                                                            size={15}
+                                                            color="#16a34a"
+                                                        />
+                                                    ) : (
+                                                        <Copy size={15} />
+                                                    )}
                                                 </button>
                                             </div>
                                         )}
                                     </div>
                                     <form onSubmit={handleConfirm}>
-                                        <label style={{fontSize:'10.5px',fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em',color:'#64748b',display:'block',marginBottom:6}}>
+                                        <label
+                                            style={{
+                                                fontSize: '10.5px',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '.08em',
+                                                color: '#64748b',
+                                                display: 'block',
+                                                marginBottom: 6,
+                                            }}
+                                        >
                                             {t('mfa.confirmationCode')}
                                         </label>
                                         <div className="confirm-row">
                                             <input
-                                                type="text" inputMode="numeric" maxLength={6}
-                                                value={code} onChange={e => setCode(e.target.value.replace(/\D/g,''))}
-                                                placeholder="000000" className="confirm-input"
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength={6}
+                                                value={code}
+                                                onChange={(e) =>
+                                                    setCode(
+                                                        e.target.value.replace(
+                                                            /\D/g,
+                                                            '',
+                                                        ),
+                                                    )
+                                                }
+                                                placeholder="000000"
+                                                className="confirm-input"
                                             />
-                                            <Button type="submit" disabled={submitting || code.length !== 6} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-auto px-5">
-                                                {submitting ? <Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/> : <Check size={14}/>}
+                                            <Button
+                                                type="submit"
+                                                disabled={
+                                                    submitting ||
+                                                    code.length !== 6
+                                                }
+                                                className="h-auto bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                                            >
+                                                {submitting ? (
+                                                    <Loader2
+                                                        size={14}
+                                                        style={{
+                                                            animation:
+                                                                'spin 1s linear infinite',
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <Check size={14} />
+                                                )}
                                                 {t('mfa.confirm')}
                                             </Button>
                                         </div>
@@ -193,8 +360,12 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
 
                             {/* Activé → désactiver */}
                             {mfaEnabled && (
-                                <Button onClick={handleDisable} variant="destructive" className="h-10 px-5">
-                                    <ShieldOff size={14}/> {t('mfa.disable')}
+                                <Button
+                                    onClick={handleDisable}
+                                    variant="destructive"
+                                    className="h-10 px-5"
+                                >
+                                    <ShieldOff size={14} /> {t('mfa.disable')}
                                 </Button>
                             )}
                         </div>
@@ -204,33 +375,64 @@ export default function MfaSetup({ mfaEnabled, mfaPending, qrCodeSvg, secretKey,
                     {mfaEnabled && (
                         <div className="mfa-card">
                             <div className="mfa-card-hdr">
-                                <div className="mfa-card-ico" style={{background:'#eff6ff'}}>
-                                    <KeyRound size={17} color="#3b82f6"/>
+                                <div
+                                    className="mfa-card-ico"
+                                    style={{ background: '#eff6ff' }}
+                                >
+                                    <KeyRound size={17} color="#3b82f6" />
                                 </div>
                                 <div>
-                                    <div className="mfa-card-ttl">{t('mfa.recovery.title')}</div>
-                                    <div className="mfa-card-sub">{t('mfa.recovery.subtitle')}</div>
+                                    <div className="mfa-card-ttl">
+                                        {t('mfa.recovery.title')}
+                                    </div>
+                                    <div className="mfa-card-sub">
+                                        {t('mfa.recovery.subtitle')}
+                                    </div>
                                 </div>
                             </div>
                             <div className="mfa-card-body">
-                                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                                    <Button variant="outline" className="h-9 px-4 text-sm" onClick={() => setShowCodes(s => !s)}>
-                                        {showCodes ? <EyeOff size={14}/> : <Eye size={14}/>}
-                                        {showCodes ? t('mfa.recovery.hide') : t('mfa.recovery.show')}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        gap: 8,
+                                        flexWrap: 'wrap',
+                                    }}
+                                >
+                                    <Button
+                                        variant="outline"
+                                        className="h-9 px-4 text-sm"
+                                        onClick={() => setShowCodes((s) => !s)}
+                                    >
+                                        {showCodes ? (
+                                            <EyeOff size={14} />
+                                        ) : (
+                                            <Eye size={14} />
+                                        )}
+                                        {showCodes
+                                            ? t('mfa.recovery.hide')
+                                            : t('mfa.recovery.show')}
                                     </Button>
-                                    <Button variant="outline" className="h-9 px-4 text-sm" onClick={handleRegenerate}>
-                                        <RefreshCw size={14}/> {t('mfa.recovery.regenerate')}
+                                    <Button
+                                        variant="outline"
+                                        className="h-9 px-4 text-sm"
+                                        onClick={handleRegenerate}
+                                    >
+                                        <RefreshCw size={14} />{' '}
+                                        {t('mfa.recovery.regenerate')}
                                     </Button>
                                 </div>
                                 {showCodes && (
                                     <div className="codes-grid">
-                                        {recoveryCodes.map((c, i) => <div key={i} className="code-item">{c}</div>)}
+                                        {recoveryCodes.map((c, i) => (
+                                            <div key={i} className="code-item">
+                                                {c}
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
                         </div>
                     )}
-
                 </div>
             </div>
         </AppLayout>

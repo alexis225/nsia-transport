@@ -1,70 +1,145 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
-    Search, Plus, Eye, Trash2, X,
-    ChevronLeft, ChevronRight, Award,
-    Calendar, Ship, Plane, Truck,
-    FileText, SlidersHorizontal, Download,
-    ChevronDown, ChevronUp,
+    Search,
+    Plus,
+    Eye,
+    Trash2,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Award,
+    Calendar,
+    Ship,
+    Plane,
+    Truck,
+    FileText,
+    SlidersHorizontal,
+    Download,
+    ChevronDown,
+    ChevronUp,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
-interface Tenant   { id: string; name: string; code: string; }
-interface Broker   { id: string; name: string; code: string; }
-interface Contract { id: string; contract_number: string; insured_name: string; }
+interface Tenant {
+    id: string;
+    name: string;
+    code: string;
+}
+interface Broker {
+    id: string;
+    name: string;
+    code: string;
+}
+interface Contract {
+    id: string;
+    contract_number: string;
+    insured_name: string;
+}
 interface Certificate {
-    id: string; certificate_number: string; status: string;
-    insured_name: string; voyage_date: string;
-    voyage_from: string; voyage_to: string;
+    id: string;
+    certificate_number: string;
+    status: string;
+    insured_name: string;
+    voyage_date: string;
+    voyage_from: string;
+    voyage_to: string;
     transport_type: string | null;
-    insured_value: string; currency_code: string;
+    insured_value: string;
+    currency_code: string;
     prime_total: string | null;
-    issued_at: string | null; created_at: string;
-    pdf_path: string | null; qr_token: string | null;
+    issued_at: string | null;
+    created_at: string;
+    pdf_path: string | null;
+    qr_token: string | null;
     contract: { contract_number: string; insured_name: string } | null;
-    tenant:   { name: string; code: string } | null;
+    tenant: { name: string; code: string } | null;
     submitted_by: { first_name: string; last_name: string } | null;
-    issued_by:    { first_name: string; last_name: string } | null;
+    issued_by: { first_name: string; last_name: string } | null;
 }
 interface Paginated<T> {
-    data: T[]; current_page: number; last_page: number; total: number; from: number; to: number;
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
+    from: number;
+    to: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
     certificates: Paginated<Certificate>;
     filters: {
-        search?: string; status?: string; transport_type?: string;
-        tenant_id?: string; broker_id?: string; contract_id?: string;
-        date_from?: string; date_to?: string;
-        issued_from?: string; issued_to?: string;
-        value_min?: string; value_max?: string;
+        search?: string;
+        status?: string;
+        transport_type?: string;
+        tenant_id?: string;
+        broker_id?: string;
+        contract_id?: string;
+        date_from?: string;
+        date_to?: string;
+        issued_from?: string;
+        issued_to?: string;
+        value_min?: string;
+        value_max?: string;
     };
-    isSA:      boolean;
-    tenants:   Tenant[];
-    brokers:   Broker[];
+    isSA: boolean;
+    tenants: Tenant[];
+    brokers: Broker[];
     contracts: Contract[];
-    stats:     { total: number; issued: number; submitted: number; draft: number; rejected: number; replaced: number; cancelled: number; };
-    can:       { create: boolean; validate: boolean; cancel: boolean; export: boolean; };
+    stats: {
+        total: number;
+        issued: number;
+        submitted: number;
+        draft: number;
+        rejected: number;
+        replaced: number;
+        cancelled: number;
+    };
+    can: {
+        create: boolean;
+        validate: boolean;
+        cancel: boolean;
+        export: boolean;
+    };
 }
 
 const STATUS_DOTS: Record<string, string> = {
-    DRAFT: '#94a3b8', SUBMITTED: '#f59e0b', REJECTED: '#ef4444', ISSUED: '#22c55e', REPLACED: '#94a3b8', CANCELLED: '#dc2626',
+    DRAFT: '#94a3b8',
+    SUBMITTED: '#f59e0b',
+    REJECTED: '#ef4444',
+    ISSUED: '#22c55e',
+    REPLACED: '#94a3b8',
+    CANCELLED: '#dc2626',
 };
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-    DRAFT:     { bg:'#f8fafc', color:'#64748b' },
-    SUBMITTED: { bg:'#fffbeb', color:'#92400e' },
-    REJECTED:  { bg:'#fef2f2', color:'#dc2626' },
-    ISSUED:    { bg:'#f0fdf4', color:'#15803d' },
-    REPLACED:  { bg:'#f1f5f9', color:'#475569' },
-    CANCELLED: { bg:'#fef2f2', color:'#991b1b' },
+    DRAFT: { bg: '#f8fafc', color: '#64748b' },
+    SUBMITTED: { bg: '#fffbeb', color: '#92400e' },
+    REJECTED: { bg: '#fef2f2', color: '#dc2626' },
+    ISSUED: { bg: '#f0fdf4', color: '#15803d' },
+    REPLACED: { bg: '#f1f5f9', color: '#475569' },
+    CANCELLED: { bg: '#fef2f2', color: '#991b1b' },
 };
 
-const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 
-export default function CertificatesIndex({ certificates, filters, isSA, tenants, brokers, contracts, stats, can }: Props) {
+export default function CertificatesIndex({
+    certificates,
+    filters,
+    isSA,
+    tenants,
+    brokers,
+    contracts,
+    stats,
+    can,
+}: Props) {
     const { t } = useTranslation('certificates');
     const { t: tc } = useTranslation('common');
 
@@ -72,22 +147,41 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
         { title: t('shared.breadcrumb'), href: '/admin/certificates' },
     ];
 
-    const [search,       setSearch]       = useState(filters?.search ?? '');
+    const [search, setSearch] = useState(filters?.search ?? '');
     const [showAdvanced, setShowAdvanced] = useState(
-        !!(filters?.transport_type || filters?.tenant_id || filters?.broker_id ||
-           filters?.issued_from || filters?.issued_to || filters?.value_min || filters?.value_max)
+        !!(
+            filters?.transport_type ||
+            filters?.tenant_id ||
+            filters?.broker_id ||
+            filters?.issued_from ||
+            filters?.issued_to ||
+            filters?.value_min ||
+            filters?.value_max
+        ),
     );
 
-    const activeFiltersCount = Object.values(filters ?? {}).filter(v => v && v !== '').length;
+    const activeFiltersCount = Object.values(filters ?? {}).filter(
+        (v) => v && v !== '',
+    ).length;
 
     const applyFilter = (params: Record<string, string>) =>
-        router.get('/admin/certificates', { ...filters, ...params, page: '1' }, { preserveState:true, replace:true });
+        router.get(
+            '/admin/certificates',
+            { ...filters, ...params, page: '1' },
+            { preserveState: true, replace: true },
+        );
 
-    const clearFilters = () => router.get('/admin/certificates', {}, { preserveState:false });
+    const clearFilters = () =>
+        router.get('/admin/certificates', {}, { preserveState: false });
 
     const handleDelete = (c: Certificate) => {
-        if (confirm(t('index.confirmDelete', { number: c.certificate_number })))
-            router.delete(route('admin.certificates.destroy', { certificate: c.id }));
+        if (
+            confirm(t('index.confirmDelete', { number: c.certificate_number }))
+        ) {
+            router.delete(
+                route('admin.certificates.destroy', { certificate: c.id }),
+            );
+        }
     };
 
     const handleExport = () => {
@@ -97,7 +191,7 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('index.title')}/>
+            <Head title={t('index.title')} />
             <style>{`
                 .cv-page{padding:4px;display:flex;flex-direction:column;gap:14px;}
                 .cv-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
@@ -163,23 +257,35 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="cv-page">
-
                     {/* Header */}
                     <div className="cv-hdr">
                         <div>
                             <h1 className="cv-title">{t('index.heading')}</h1>
-                            <p className="cv-sub">{t(certificates.total > 1 ? 'index.count_plural' : 'index.count', { count: certificates.total })}</p>
+                            <p className="cv-sub">
+                                {t(
+                                    certificates.total > 1
+                                        ? 'index.count_plural'
+                                        : 'index.count',
+                                    { count: certificates.total },
+                                )}
+                            </p>
                         </div>
-                        <div style={{ display:'flex', gap:8 }}>
+                        <div style={{ display: 'flex', gap: 8 }}>
                             {can.export && (
-                                <Button variant="outline" onClick={handleExport} className="h-10 px-4 gap-1.5">
-                                    <Download size={14}/> {t('index.exportCsv')}
+                                <Button
+                                    variant="outline"
+                                    onClick={handleExport}
+                                    className="h-10 gap-1.5 px-4"
+                                >
+                                    <Download size={14} />{' '}
+                                    {t('index.exportCsv')}
                                 </Button>
                             )}
                             {can.create && (
                                 <Link href={route('admin.certificates.create')}>
-                                    <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                        <Plus size={15}/> {t('index.newCertificate')}
+                                    <Button className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]">
+                                        <Plus size={15} />{' '}
+                                        {t('index.newCertificate')}
                                     </Button>
                                 </Link>
                             )}
@@ -190,27 +296,79 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                     <div className="stats-bar">
                         <div className="stat-card">
                             <div className="stat-value">{stats.total}</div>
-                            <div className="stat-label">{t('index.stats.total')}</div>
+                            <div className="stat-label">
+                                {t('index.stats.total')}
+                            </div>
                         </div>
-                        <div className="stat-card clickable" onClick={() => applyFilter({ status:'ISSUED' })}>
-                            <div className="stat-value" style={{ color:'#15803d' }}>{stats.issued}</div>
-                            <div className="stat-label">{t('index.stats.issued')}</div>
+                        <div
+                            className="stat-card clickable"
+                            onClick={() => applyFilter({ status: 'ISSUED' })}
+                        >
+                            <div
+                                className="stat-value"
+                                style={{ color: '#15803d' }}
+                            >
+                                {stats.issued}
+                            </div>
+                            <div className="stat-label">
+                                {t('index.stats.issued')}
+                            </div>
                         </div>
-                        <div className="stat-card clickable" onClick={() => applyFilter({ status:'SUBMITTED' })}>
-                            <div className="stat-value" style={{ color:'#92400e' }}>{stats.submitted}</div>
-                            <div className="stat-label">{t('index.stats.submitted')}</div>
+                        <div
+                            className="stat-card clickable"
+                            onClick={() => applyFilter({ status: 'SUBMITTED' })}
+                        >
+                            <div
+                                className="stat-value"
+                                style={{ color: '#92400e' }}
+                            >
+                                {stats.submitted}
+                            </div>
+                            <div className="stat-label">
+                                {t('index.stats.submitted')}
+                            </div>
                         </div>
-                        <div className="stat-card clickable" onClick={() => applyFilter({ status:'DRAFT' })}>
-                            <div className="stat-value" style={{ color:'#64748b' }}>{stats.draft}</div>
-                            <div className="stat-label">{t('index.stats.draft')}</div>
+                        <div
+                            className="stat-card clickable"
+                            onClick={() => applyFilter({ status: 'DRAFT' })}
+                        >
+                            <div
+                                className="stat-value"
+                                style={{ color: '#64748b' }}
+                            >
+                                {stats.draft}
+                            </div>
+                            <div className="stat-label">
+                                {t('index.stats.draft')}
+                            </div>
                         </div>
-                        <div className="stat-card clickable" onClick={() => applyFilter({ status:'REJECTED' })}>
-                            <div className="stat-value" style={{ color:'#dc2626' }}>{stats.rejected}</div>
-                            <div className="stat-label">{t('index.stats.rejected')}</div>
+                        <div
+                            className="stat-card clickable"
+                            onClick={() => applyFilter({ status: 'REJECTED' })}
+                        >
+                            <div
+                                className="stat-value"
+                                style={{ color: '#dc2626' }}
+                            >
+                                {stats.rejected}
+                            </div>
+                            <div className="stat-label">
+                                {t('index.stats.rejected')}
+                            </div>
                         </div>
-                        <div className="stat-card clickable" onClick={() => applyFilter({ status:'CANCELLED' })}>
-                            <div className="stat-value" style={{ color:'#991b1b' }}>{stats.cancelled}</div>
-                            <div className="stat-label">{t('index.stats.cancelled')}</div>
+                        <div
+                            className="stat-card clickable"
+                            onClick={() => applyFilter({ status: 'CANCELLED' })}
+                        >
+                            <div
+                                className="stat-value"
+                                style={{ color: '#991b1b' }}
+                            >
+                                {stats.cancelled}
+                            </div>
+                            <div className="stat-label">
+                                {t('index.stats.cancelled')}
+                            </div>
                         </div>
                     </div>
 
@@ -218,54 +376,126 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                     <div className="cv-toolbar-wrap">
                         <div className="cv-toolbar-main">
                             {/* Recherche texte */}
-                            <form className="cv-search" onSubmit={e => { e.preventDefault(); applyFilter({ search }); }}>
-                                <input value={search} onChange={e => setSearch(e.target.value)}
-                                       placeholder={t('index.search.placeholder')}/>
-                                <button type="submit"><Search size={14}/></button>
+                            <form
+                                className="cv-search"
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    applyFilter({ search });
+                                }}
+                            >
+                                <input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder={t('index.search.placeholder')}
+                                />
+                                <button type="submit">
+                                    <Search size={14} />
+                                </button>
                             </form>
 
                             {/* Statut */}
-                            <select className="cv-select" value={filters?.status ?? ''}
-                                    onChange={e => applyFilter({ status: e.target.value })}>
-                                <option value="">{t('index.filters.allStatuses')}</option>
-                                {Object.keys(STATUS_COLORS).map(k => (
-                                    <option key={k} value={k}>{tc(`certificateStatus.${k}`)}</option>
+                            <select
+                                className="cv-select"
+                                value={filters?.status ?? ''}
+                                onChange={(e) =>
+                                    applyFilter({ status: e.target.value })
+                                }
+                            >
+                                <option value="">
+                                    {t('index.filters.allStatuses')}
+                                </option>
+                                {Object.keys(STATUS_COLORS).map((k) => (
+                                    <option key={k} value={k}>
+                                        {tc(`certificateStatus.${k}`)}
+                                    </option>
                                 ))}
                             </select>
 
                             {/* Transport */}
-                            <select className="cv-select" value={filters?.transport_type ?? ''}
-                                    onChange={e => applyFilter({ transport_type: e.target.value })}>
-                                <option value="">{t('index.filters.allModes')}</option>
-                                {['SEA', 'AIR', 'ROAD', 'RAIL', 'MULTIMODAL'].map(k => (
-                                    <option key={k} value={k}>{t(`shared.transport.${k}`)}</option>
+                            <select
+                                className="cv-select"
+                                value={filters?.transport_type ?? ''}
+                                onChange={(e) =>
+                                    applyFilter({
+                                        transport_type: e.target.value,
+                                    })
+                                }
+                            >
+                                <option value="">
+                                    {t('index.filters.allModes')}
+                                </option>
+                                {[
+                                    'SEA',
+                                    'AIR',
+                                    'ROAD',
+                                    'RAIL',
+                                    'MULTIMODAL',
+                                ].map((k) => (
+                                    <option key={k} value={k}>
+                                        {t(`shared.transport.${k}`)}
+                                    </option>
                                 ))}
                             </select>
 
                             {/* Date voyage */}
-                            <input type="date" className="cv-date" value={filters?.date_from ?? ''}
-                                   onChange={e => applyFilter({ date_from: e.target.value })}
-                                   title={t('index.filters.voyageStartDate')}/>
-                            <input type="date" className="cv-date" value={filters?.date_to ?? ''}
-                                   onChange={e => applyFilter({ date_to: e.target.value })}
-                                   title={t('index.filters.voyageEndDate')}/>
+                            <input
+                                type="date"
+                                className="cv-date"
+                                value={filters?.date_from ?? ''}
+                                onChange={(e) =>
+                                    applyFilter({ date_from: e.target.value })
+                                }
+                                title={t('index.filters.voyageStartDate')}
+                            />
+                            <input
+                                type="date"
+                                className="cv-date"
+                                value={filters?.date_to ?? ''}
+                                onChange={(e) =>
+                                    applyFilter({ date_to: e.target.value })
+                                }
+                                title={t('index.filters.voyageEndDate')}
+                            />
 
                             {/* Bouton filtres avancés */}
-                            <button className={`btn-advanced ${showAdvanced ? 'active' : ''}`}
-                                    onClick={() => setShowAdvanced(v => !v)}>
-                                <SlidersHorizontal size={13}/>
+                            <button
+                                className={`btn-advanced ${showAdvanced ? 'active' : ''}`}
+                                onClick={() => setShowAdvanced((v) => !v)}
+                            >
+                                <SlidersHorizontal size={13} />
                                 {t('index.filters.advanced')}
                                 {activeFiltersCount > 2 && (
-                                    <span className="filter-badge">{activeFiltersCount - 2}</span>
+                                    <span className="filter-badge">
+                                        {activeFiltersCount - 2}
+                                    </span>
                                 )}
-                                {showAdvanced ? <ChevronUp size={12}/> : <ChevronDown size={12}/>}
+                                {showAdvanced ? (
+                                    <ChevronUp size={12} />
+                                ) : (
+                                    <ChevronDown size={12} />
+                                )}
                             </button>
 
                             {/* Effacer */}
                             {activeFiltersCount > 0 && (
-                                <button onClick={clearFilters}
-                                        style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12, height:40 }}>
-                                    <X size={12}/> {t('index.filters.clearAll')}
+                                <button
+                                    onClick={clearFilters}
+                                    style={{
+                                        padding: '9px 12px',
+                                        background: 'none',
+                                        border: '1px solid #e2e8f0',
+                                        borderRadius: 8,
+                                        cursor: 'pointer',
+                                        color: '#94a3b8',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 5,
+                                        fontSize: 12,
+                                        height: 40,
+                                    }}
+                                >
+                                    <X size={12} />{' '}
+                                    {t('index.filters.clearAll')}
                                 </button>
                             )}
                         </div>
@@ -277,13 +507,32 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                     {/* Filiale */}
                                     {isSA && (
                                         <div>
-                                            <div className="adv-label">{t('index.filters.subsidiary')}</div>
-                                            <select className="cv-select" style={{ width:'100%' }}
-                                                    value={filters?.tenant_id ?? ''}
-                                                    onChange={e => applyFilter({ tenant_id: e.target.value })}>
-                                                <option value="">{t('index.filters.allSubsidiaries')}</option>
-                                                {tenants.map(t => (
-                                                    <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
+                                            <div className="adv-label">
+                                                {t('index.filters.subsidiary')}
+                                            </div>
+                                            <select
+                                                className="cv-select"
+                                                style={{ width: '100%' }}
+                                                value={filters?.tenant_id ?? ''}
+                                                onChange={(e) =>
+                                                    applyFilter({
+                                                        tenant_id:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                            >
+                                                <option value="">
+                                                    {t(
+                                                        'index.filters.allSubsidiaries',
+                                                    )}
+                                                </option>
+                                                {tenants.map((t) => (
+                                                    <option
+                                                        key={t.id}
+                                                        value={t.id}
+                                                    >
+                                                        {t.name} ({t.code})
+                                                    </option>
                                                 ))}
                                             </select>
                                         </div>
@@ -291,27 +540,54 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
 
                                     {/* Courtier */}
                                     <div>
-                                        <div className="adv-label">{t('index.filters.broker')}</div>
-                                        <select className="cv-select" style={{ width:'100%' }}
-                                                value={filters?.broker_id ?? ''}
-                                                onChange={e => applyFilter({ broker_id: e.target.value })}>
-                                            <option value="">{t('index.filters.allBrokers')}</option>
-                                            {brokers.map(b => (
-                                                <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
+                                        <div className="adv-label">
+                                            {t('index.filters.broker')}
+                                        </div>
+                                        <select
+                                            className="cv-select"
+                                            style={{ width: '100%' }}
+                                            value={filters?.broker_id ?? ''}
+                                            onChange={(e) =>
+                                                applyFilter({
+                                                    broker_id: e.target.value,
+                                                })
+                                            }
+                                        >
+                                            <option value="">
+                                                {t('index.filters.allBrokers')}
+                                            </option>
+                                            {brokers.map((b) => (
+                                                <option key={b.id} value={b.id}>
+                                                    {b.name} ({b.code})
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
 
                                     {/* Contrat */}
                                     <div>
-                                        <div className="adv-label">{t('index.filters.contract')}</div>
-                                        <select className="cv-select" style={{ width:'100%' }}
-                                                value={filters?.contract_id ?? ''}
-                                                onChange={e => applyFilter({ contract_id: e.target.value })}>
-                                            <option value="">{t('index.filters.allContracts')}</option>
-                                            {contracts.map(c => (
+                                        <div className="adv-label">
+                                            {t('index.filters.contract')}
+                                        </div>
+                                        <select
+                                            className="cv-select"
+                                            style={{ width: '100%' }}
+                                            value={filters?.contract_id ?? ''}
+                                            onChange={(e) =>
+                                                applyFilter({
+                                                    contract_id: e.target.value,
+                                                })
+                                            }
+                                        >
+                                            <option value="">
+                                                {t(
+                                                    'index.filters.allContracts',
+                                                )}
+                                            </option>
+                                            {contracts.map((c) => (
                                                 <option key={c.id} value={c.id}>
-                                                    {c.contract_number} — {c.insured_name}
+                                                    {c.contract_number} —{' '}
+                                                    {c.insured_name}
                                                 </option>
                                             ))}
                                         </select>
@@ -321,33 +597,85 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                 <div className="adv-row-2">
                                     {/* Date émission */}
                                     <div>
-                                        <div className="adv-label">{t('index.filters.issuedDate')}</div>
+                                        <div className="adv-label">
+                                            {t('index.filters.issuedDate')}
+                                        </div>
                                         <div className="adv-date-range">
-                                            <input type="date" className="cv-date" style={{ flex:1 }}
-                                                   value={filters?.issued_from ?? ''}
-                                                   onChange={e => applyFilter({ issued_from: e.target.value })}
-                                                   placeholder={t('index.filters.from')}/>
+                                            <input
+                                                type="date"
+                                                className="cv-date"
+                                                style={{ flex: 1 }}
+                                                value={
+                                                    filters?.issued_from ?? ''
+                                                }
+                                                onChange={(e) =>
+                                                    applyFilter({
+                                                        issued_from:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                placeholder={t(
+                                                    'index.filters.from',
+                                                )}
+                                            />
                                             <span>→</span>
-                                            <input type="date" className="cv-date" style={{ flex:1 }}
-                                                   value={filters?.issued_to ?? ''}
-                                                   onChange={e => applyFilter({ issued_to: e.target.value })}
-                                                   placeholder={t('index.filters.to')}/>
+                                            <input
+                                                type="date"
+                                                className="cv-date"
+                                                style={{ flex: 1 }}
+                                                value={filters?.issued_to ?? ''}
+                                                onChange={(e) =>
+                                                    applyFilter({
+                                                        issued_to:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                placeholder={t(
+                                                    'index.filters.to',
+                                                )}
+                                            />
                                         </div>
                                     </div>
 
                                     {/* Valeur assurée */}
                                     <div>
-                                        <div className="adv-label">{t('index.filters.insuredValue')}</div>
+                                        <div className="adv-label">
+                                            {t('index.filters.insuredValue')}
+                                        </div>
                                         <div className="adv-date-range">
-                                            <input type="number" min={0} className="cv-date" style={{ flex:1 }}
-                                                   value={filters?.value_min ?? ''}
-                                                   onChange={e => applyFilter({ value_min: e.target.value })}
-                                                   placeholder={t('index.filters.min')}/>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                className="cv-date"
+                                                style={{ flex: 1 }}
+                                                value={filters?.value_min ?? ''}
+                                                onChange={(e) =>
+                                                    applyFilter({
+                                                        value_min:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                placeholder={t(
+                                                    'index.filters.min',
+                                                )}
+                                            />
                                             <span>→</span>
-                                            <input type="number" min={0} className="cv-date" style={{ flex:1 }}
-                                                   value={filters?.value_max ?? ''}
-                                                   onChange={e => applyFilter({ value_max: e.target.value })}
-                                                   placeholder={t('index.filters.max')}/>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                className="cv-date"
+                                                style={{ flex: 1 }}
+                                                value={filters?.value_max ?? ''}
+                                                onChange={(e) =>
+                                                    applyFilter({
+                                                        value_max:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                placeholder={t(
+                                                    'index.filters.max',
+                                                )}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -359,10 +687,26 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                     <div className="cv-card">
                         {certificates.data.length === 0 ? (
                             <div className="cv-empty">
-                                <Award size={32} color="#e2e8f0" style={{ marginBottom:8 }}/>
+                                <Award
+                                    size={32}
+                                    color="#e2e8f0"
+                                    style={{ marginBottom: 8 }}
+                                />
                                 <div>{t('index.empty.title')}</div>
                                 {activeFiltersCount > 0 && (
-                                    <button onClick={clearFilters} style={{ marginTop:10, padding:'6px 14px', background:'none', border:'1px solid #e2e8f0', borderRadius:7, cursor:'pointer', fontSize:12, color:'#64748b' }}>
+                                    <button
+                                        onClick={clearFilters}
+                                        style={{
+                                            marginTop: 10,
+                                            padding: '6px 14px',
+                                            background: 'none',
+                                            border: '1px solid #e2e8f0',
+                                            borderRadius: 7,
+                                            cursor: 'pointer',
+                                            fontSize: 12,
+                                            color: '#64748b',
+                                        }}
+                                    >
                                         {t('index.empty.clearFilters')}
                                     </button>
                                 )}
@@ -376,83 +720,261 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                             <th>{t('index.table.insured')}</th>
                                             <th>{t('index.table.voyage')}</th>
                                             <th>{t('index.table.date')}</th>
-                                            <th>{t('index.table.transport')}</th>
-                                            <th>{t('index.table.insuredValue')}</th>
-                                            {isSA && <th>{t('index.table.subsidiary')}</th>}
+                                            <th>
+                                                {t('index.table.transport')}
+                                            </th>
+                                            <th>
+                                                {t('index.table.insuredValue')}
+                                            </th>
+                                            {isSA && (
+                                                <th>
+                                                    {t(
+                                                        'index.table.subsidiary',
+                                                    )}
+                                                </th>
+                                            )}
                                             <th>{tc('fields.status')}</th>
                                             <th>{tc('fields.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {certificates.data.map(cert => {
-                                            const ss = STATUS_COLORS[cert.status] ?? STATUS_COLORS.DRAFT;
-                                            const dot = STATUS_DOTS[cert.status] ?? STATUS_DOTS.DRAFT;
-                                            const TransIcon = cert.transport_type === 'AIR' ? Plane : cert.transport_type === 'ROAD' ? Truck : cert.transport_type === 'RAIL' ? Truck : cert.transport_type === 'MULTIMODAL' ? FileText : Ship;
+                                        {certificates.data.map((cert) => {
+                                            const ss =
+                                                STATUS_COLORS[cert.status] ??
+                                                STATUS_COLORS.DRAFT;
+                                            const dot =
+                                                STATUS_DOTS[cert.status] ??
+                                                STATUS_DOTS.DRAFT;
+                                            const TransIcon =
+                                                cert.transport_type === 'AIR'
+                                                    ? Plane
+                                                    : cert.transport_type ===
+                                                        'ROAD'
+                                                      ? Truck
+                                                      : cert.transport_type ===
+                                                          'RAIL'
+                                                        ? Truck
+                                                        : cert.transport_type ===
+                                                            'MULTIMODAL'
+                                                          ? FileText
+                                                          : Ship;
+
                                             return (
                                                 <tr key={cert.id}>
                                                     <td>
-                                                        <div className="cert-num">{cert.certificate_number}</div>
-                                                        <div style={{ fontSize:10, color:'#94a3b8', marginTop:1 }}>
-                                                            {cert.contract?.contract_number}
+                                                        <div className="cert-num">
+                                                            {
+                                                                cert.certificate_number
+                                                            }
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#94a3b8',
+                                                                marginTop: 1,
+                                                            }}
+                                                        >
+                                                            {
+                                                                cert.contract
+                                                                    ?.contract_number
+                                                            }
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <div style={{ fontWeight:500, color:'#1e293b', maxWidth:160, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                                        <div
+                                                            style={{
+                                                                fontWeight: 500,
+                                                                color: '#1e293b',
+                                                                maxWidth: 160,
+                                                                overflow:
+                                                                    'hidden',
+                                                                textOverflow:
+                                                                    'ellipsis',
+                                                                whiteSpace:
+                                                                    'nowrap',
+                                                            }}
+                                                        >
                                                             {cert.insured_name}
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <div style={{ fontSize:12, color:'#475569', display:'flex', alignItems:'center', gap:4 }}>
-                                                            <TransIcon size={11}/>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 12,
+                                                                color: '#475569',
+                                                                display: 'flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 4,
+                                                            }}
+                                                        >
+                                                            <TransIcon
+                                                                size={11}
+                                                            />
                                                             {cert.voyage_from}
                                                         </div>
-                                                        <div style={{ fontSize:11, color:'#94a3b8' }}>→ {cert.voyage_to}</div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 11,
+                                                                color: '#94a3b8',
+                                                            }}
+                                                        >
+                                                            → {cert.voyage_to}
+                                                        </div>
                                                     </td>
                                                     <td>
-                                                        <div style={{ fontSize:11, color:'#475569', display:'flex', alignItems:'center', gap:3 }}>
-                                                            <Calendar size={10}/>{fmt(cert.voyage_date)}
+                                                        <div
+                                                            style={{
+                                                                fontSize: 11,
+                                                                color: '#475569',
+                                                                display: 'flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 3,
+                                                            }}
+                                                        >
+                                                            <Calendar
+                                                                size={10}
+                                                            />
+                                                            {fmt(
+                                                                cert.voyage_date,
+                                                            )}
                                                         </div>
                                                         {cert.issued_at && (
-                                                            <div style={{ fontSize:10, color:'#94a3b8' }}>
-                                                                {t('index.table.issuedOn', { date: fmt(cert.issued_at) })}
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: '#94a3b8',
+                                                                }}
+                                                            >
+                                                                {t(
+                                                                    'index.table.issuedOn',
+                                                                    {
+                                                                        date: fmt(
+                                                                            cert.issued_at,
+                                                                        ),
+                                                                    },
+                                                                )}
                                                             </div>
                                                         )}
                                                     </td>
                                                     <td>
                                                         {cert.transport_type && (
-                                                            <span style={{ fontSize:11, color:'#64748b' }}>
-                                                                {t(`shared.transport.${cert.transport_type}`, { defaultValue: cert.transport_type })}
+                                                            <span
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: '#64748b',
+                                                                }}
+                                                            >
+                                                                {t(
+                                                                    `shared.transport.${cert.transport_type}`,
+                                                                    {
+                                                                        defaultValue:
+                                                                            cert.transport_type,
+                                                                    },
+                                                                )}
                                                             </span>
                                                         )}
                                                     </td>
                                                     <td>
-                                                        <div style={{ fontFamily:'monospace', fontSize:12, fontWeight:500 }}>
-                                                            {parseFloat(cert.insured_value).toLocaleString('fr-FR')}
+                                                        <div
+                                                            style={{
+                                                                fontFamily:
+                                                                    'monospace',
+                                                                fontSize: 12,
+                                                                fontWeight: 500,
+                                                            }}
+                                                        >
+                                                            {parseFloat(
+                                                                cert.insured_value,
+                                                            ).toLocaleString(
+                                                                'fr-FR',
+                                                            )}
                                                         </div>
-                                                        <div style={{ fontSize:10, color:'#94a3b8' }}>{cert.currency_code}</div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 10,
+                                                                color: '#94a3b8',
+                                                            }}
+                                                        >
+                                                            {cert.currency_code}
+                                                        </div>
                                                     </td>
                                                     {isSA && (
-                                                        <td style={{ fontSize:11, color:'#64748b' }}>
+                                                        <td
+                                                            style={{
+                                                                fontSize: 11,
+                                                                color: '#64748b',
+                                                            }}
+                                                        >
                                                             {cert.tenant?.code}
                                                         </td>
                                                     )}
                                                     <td>
-                                                        <span className="status-badge" style={{ background: ss.bg, color: ss.color }}>
-                                                            <span className="s-dot" style={{ background: dot }}/>{tc(`certificateStatus.${cert.status}`)}
+                                                        <span
+                                                            className="status-badge"
+                                                            style={{
+                                                                background:
+                                                                    ss.bg,
+                                                                color: ss.color,
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className="s-dot"
+                                                                style={{
+                                                                    background:
+                                                                        dot,
+                                                                }}
+                                                            />
+                                                            {tc(
+                                                                `certificateStatus.${cert.status}`,
+                                                            )}
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <div className="actions">
-                                                            <Link href={route('admin.certificates.show', { certificate: cert.id })}
-                                                                  className="btn-act btn-view">
-                                                                <Eye size={12}/> {tc('actions.view')}
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.certificates.show',
+                                                                    {
+                                                                        certificate:
+                                                                            cert.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-act btn-view"
+                                                            >
+                                                                <Eye
+                                                                    size={12}
+                                                                />{' '}
+                                                                {tc(
+                                                                    'actions.view',
+                                                                )}
                                                             </Link>
-                                                            {can.create && ['DRAFT', 'REJECTED'].includes(cert.status) && (
-                                                                <button className="btn-act btn-del"
-                                                                        onClick={() => handleDelete(cert)}>
-                                                                    <Trash2 size={12}/> {t('index.table.delete')}
-                                                                </button>
-                                                            )}
+                                                            {can.create &&
+                                                                [
+                                                                    'DRAFT',
+                                                                    'REJECTED',
+                                                                ].includes(
+                                                                    cert.status,
+                                                                ) && (
+                                                                    <button
+                                                                        className="btn-act btn-del"
+                                                                        onClick={() =>
+                                                                            handleDelete(
+                                                                                cert,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Trash2
+                                                                            size={
+                                                                                12
+                                                                            }
+                                                                        />{' '}
+                                                                        {t(
+                                                                            'index.table.delete',
+                                                                        )}
+                                                                    </button>
+                                                                )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -465,26 +987,76 @@ export default function CertificatesIndex({ certificates, filters, isSA, tenants
                                 {certificates.last_page > 1 && (
                                     <div className="cv-pagination">
                                         <span className="cv-pg-info">
-                                            {t('index.pagination.summary', { from: certificates.from, to: certificates.to, total: certificates.total })}
+                                            {t('index.pagination.summary', {
+                                                from: certificates.from,
+                                                to: certificates.to,
+                                                total: certificates.total,
+                                            })}
                                         </span>
                                         <div className="cv-pg-links">
-                                            <button className="pg-btn" disabled={certificates.current_page === 1}
-                                                    onClick={() => applyFilter({ page: String(certificates.current_page - 1) })}>
-                                                <ChevronLeft size={13}/>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    certificates.current_page ===
+                                                    1
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            certificates.current_page -
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronLeft size={13} />
                                             </button>
-                                            {certificates.links.map((link, i) => {
-                                                if (i === 0 || i === certificates.links.length - 1) return null;
-                                                return (
-                                                    <button key={`p-${i}`}
+                                            {certificates.links.map(
+                                                (link, i) => {
+                                                    if (
+                                                        i === 0 ||
+                                                        i ===
+                                                            certificates.links
+                                                                .length -
+                                                                1
+                                                    ) {
+                                                        return null;
+                                                    }
+
+                                                    return (
+                                                        <button
+                                                            key={`p-${i}`}
                                                             className={`pg-btn ${link.active ? 'act' : ''}`}
-                                                            onClick={() => link.url && applyFilter({ page: link.label })}
+                                                            onClick={() =>
+                                                                link.url &&
+                                                                applyFilter({
+                                                                    page: link.label,
+                                                                })
+                                                            }
                                                             disabled={!link.url}
-                                                            dangerouslySetInnerHTML={{ __html: link.label }}/>
-                                                );
-                                            })}
-                                            <button className="pg-btn" disabled={certificates.current_page === certificates.last_page}
-                                                    onClick={() => applyFilter({ page: String(certificates.current_page + 1) })}>
-                                                <ChevronRight size={13}/>
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: link.label,
+                                                            }}
+                                                        />
+                                                    );
+                                                },
+                                            )}
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    certificates.current_page ===
+                                                    certificates.last_page
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            certificates.current_page +
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronRight size={13} />
                                             </button>
                                         </div>
                                     </div>

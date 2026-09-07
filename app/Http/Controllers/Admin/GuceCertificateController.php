@@ -29,9 +29,9 @@ class GuceCertificateController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('guce_reference', 'ilike', "%{$search}%")
-                  ->orWhere('certificate_number', 'ilike', "%{$search}%")
-                  ->orWhere('policy_number', 'ilike', "%{$search}%")
-                  ->orWhere('insured_name', 'ilike', "%{$search}%");
+                    ->orWhere('certificate_number', 'ilike', "%{$search}%")
+                    ->orWhere('policy_number', 'ilike', "%{$search}%")
+                    ->orWhere('insured_name', 'ilike', "%{$search}%");
             });
         }
 
@@ -76,43 +76,43 @@ class GuceCertificateController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'guce_reference'     => 'required|string|max:100|unique:guce_certificates,guce_reference',
+            'guce_reference' => 'required|string|max:100|unique:guce_certificates,guce_reference',
             'certificate_number' => 'required|string|max:100',
-            'policy_number'      => 'nullable|string|max:100',
-            'fdi_reference'      => 'nullable|string|max:100',
-            'insured_name'       => 'required|string|max:255',
-            'insured_address'    => 'nullable|string|max:500',
-            'cargo_description'  => 'nullable|string|max:1000',
-            'weight'             => 'nullable|string|max:50',
-            'marks'              => 'nullable|string|max:255',
-            'vessel'             => 'nullable|string|max:255',
-            'origin'             => 'nullable|string|max:255',
-            'destination'        => 'nullable|string|max:255',
-            'transit_date'       => 'nullable|date',
-            'insured_value'      => 'nullable|numeric|min:0',
-            'currency'           => 'nullable|string|max:10',
-            'net_premium'        => 'nullable|numeric|min:0',
-            'total_premium'      => 'nullable|numeric|min:0',
-            'notes'              => 'nullable|string|max:2000',
-            'file'               => 'required|file|mimes:pdf,doc,docx|max:10240',
+            'policy_number' => 'nullable|string|max:100',
+            'fdi_reference' => 'nullable|string|max:100',
+            'insured_name' => 'required|string|max:255',
+            'insured_address' => 'nullable|string|max:500',
+            'cargo_description' => 'nullable|string|max:1000',
+            'weight' => 'nullable|string|max:50',
+            'marks' => 'nullable|string|max:255',
+            'vessel' => 'nullable|string|max:255',
+            'origin' => 'nullable|string|max:255',
+            'destination' => 'nullable|string|max:255',
+            'transit_date' => 'nullable|date',
+            'insured_value' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|max:10',
+            'net_premium' => 'nullable|numeric|min:0',
+            'total_premium' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:2000',
+            'file' => 'required|file|mimes:pdf,doc,docx|max:10240',
         ], [
-            'guce_reference.unique'  => 'Cette référence GUCE est déjà enregistrée.',
-            'file.mimes'             => 'Le fichier doit être au format PDF, DOC ou DOCX.',
-            'file.max'               => 'Le fichier ne doit pas dépasser 10 Mo.',
+            'guce_reference.unique' => 'Cette référence GUCE est déjà enregistrée.',
+            'file.mimes' => 'Le fichier doit être au format PDF, DOC ou DOCX.',
+            'file.max' => 'Le fichier ne doit pas dépasser 10 Mo.',
         ]);
 
         $file = $request->file('file');
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
         $path = $file->storeAs('guce-certificates', $filename, 'private');
 
         GuceCertificate::create([
             ...$validated,
-            'tenant_id'         => Auth::user()->tenant_id,
-            'imported_by'       => Auth::id(),
-            'file_path'         => $path,
+            'tenant_id' => Auth::user()->tenant_id,
+            'imported_by' => Auth::id(),
+            'file_path' => $path,
             'file_original_name' => $file->getClientOriginalName(),
-            'file_mime_type'    => $file->getMimeType(),
-            'currency'          => $validated['currency'] ?? 'XOF',
+            'file_mime_type' => $file->getMimeType(),
+            'currency' => $validated['currency'] ?? 'XOF',
         ]);
 
         return redirect()

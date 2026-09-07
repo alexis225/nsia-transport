@@ -14,6 +14,7 @@ use App\Models\Currency;
 use App\Models\InsuranceContract;
 use App\Models\Notification;
 use App\Models\TaxRule;
+use App\Models\Tenant;
 use App\Models\TenantGuaranteeRate;
 use App\Models\TransportMode;
 use App\Models\User;
@@ -28,9 +29,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use InvalidArgumentException;
 use Inertia\Inertia;
 use Inertia\Response;
+use InvalidArgumentException;
 use Throwable;
 
 /**
@@ -44,83 +45,81 @@ use Throwable;
  */
 class CertificateController extends Controller
 {
-    public function index(Request $request): Response{
+    public function index(Request $request): Response
+    {
         $user = $request->user();
         $isSA = $user->hasRole('super_admin');
-    
+
         $query = Certificate::with([
-                'tenant:id,name,code',
-                'contract:id,contract_number,insured_name',
-                'submittedBy:id,first_name,last_name',
-                'issuedBy:id,first_name,last_name',
-            ])
+            'tenant:id,name,code',
+            'contract:id,contract_number,insured_name',
+            'submittedBy:id,first_name,last_name',
+            'issuedBy:id,first_name,last_name',
+        ])
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id));
-    
+
         // ── Filtres de base ───────────────────────────────────────
-        $query->when($request->search, fn ($q) =>
-            $q->where(fn ($q) =>
-                $q->where('certificate_number', 'ilike', "%{$request->search}%")
-                ->orWhere('insured_name',      'ilike', "%{$request->search}%")
-                ->orWhere('voyage_from',        'ilike', "%{$request->search}%")
-                ->orWhere('voyage_to',          'ilike', "%{$request->search}%")
-                ->orWhere('policy_number',      'ilike', "%{$request->search}%")
-            )
+        $query->when($request->search, fn ($q) => $q->where(fn ($q) => $q->where('certificate_number', 'ilike', "%{$request->search}%")
+            ->orWhere('insured_name', 'ilike', "%{$request->search}%")
+            ->orWhere('voyage_from', 'ilike', "%{$request->search}%")
+            ->orWhere('voyage_to', 'ilike', "%{$request->search}%")
+            ->orWhere('policy_number', 'ilike', "%{$request->search}%")
         )
-        ->when($request->status,         fn ($q) => $q->where('status', $request->status))
-        ->when($request->transport_type, fn ($q) => $q->where('transport_type', $request->transport_type))
-        ->when($request->contract_id,    fn ($q) => $q->where('contract_id', $request->contract_id))
-        ->when($request->date_from,      fn ($q) => $q->where('voyage_date', '>=', $request->date_from))
-        ->when($request->date_to,        fn ($q) => $q->where('voyage_date', '<=', $request->date_to));
-    
+        )
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->transport_type, fn ($q) => $q->where('transport_type', $request->transport_type))
+            ->when($request->contract_id, fn ($q) => $q->where('contract_id', $request->contract_id))
+            ->when($request->date_from, fn ($q) => $q->where('voyage_date', '>=', $request->date_from))
+            ->when($request->date_to, fn ($q) => $q->where('voyage_date', '<=', $request->date_to));
+
         // ── Filtres avancés ───────────────────────────────────────
         $query->when($request->tenant_id && $isSA, fn ($q) => $q->where('tenant_id', $request->tenant_id))
             ->when($request->issued_from, fn ($q) => $q->where('issued_at', '>=', $request->issued_from))
-            ->when($request->issued_to,   fn ($q) => $q->where('issued_at', '<=', $request->issued_to))
-            ->when($request->value_min,   fn ($q) => $q->where('insured_value', '>=', $request->value_min))
-            ->when($request->value_max,   fn ($q) => $q->where('insured_value', '<=', $request->value_max))
-            ->when($request->broker_id,   fn ($q) =>
-                $q->whereHas('contract', fn ($q) =>
-                    $q->where('broker_id', $request->broker_id)
-                )
+            ->when($request->issued_to, fn ($q) => $q->where('issued_at', '<=', $request->issued_to))
+            ->when($request->value_min, fn ($q) => $q->where('insured_value', '>=', $request->value_min))
+            ->when($request->value_max, fn ($q) => $q->where('insured_value', '<=', $request->value_max))
+            ->when($request->broker_id, fn ($q) => $q->whereHas('contract', fn ($q) => $q->where('broker_id', $request->broker_id)
+            )
             );
-    
+
         // ── Stats pour la barre de résumé ─────────────────────────
         $statsQuery = Certificate::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id));
         $stats = [
-            'total'     => $statsQuery->count(),
-            'issued'    => $statsQuery->where('status', Certificate::STATUS_ISSUED)->count(),
+            'total' => $statsQuery->count(),
+            'issued' => $statsQuery->where('status', Certificate::STATUS_ISSUED)->count(),
             'submitted' => (clone $statsQuery)->where('status', Certificate::STATUS_SUBMITTED)->count(),
-            'draft'     => (clone $statsQuery)->where('status', Certificate::STATUS_DRAFT)->count(),
-            'rejected'  => (clone $statsQuery)->where('status', Certificate::STATUS_REJECTED)->count(),
-            'replaced'  => (clone $statsQuery)->where('status', Certificate::STATUS_REPLACED)->count(),
+            'draft' => (clone $statsQuery)->where('status', Certificate::STATUS_DRAFT)->count(),
+            'rejected' => (clone $statsQuery)->where('status', Certificate::STATUS_REJECTED)->count(),
+            'replaced' => (clone $statsQuery)->where('status', Certificate::STATUS_REPLACED)->count(),
             'cancelled' => (clone $statsQuery)->where('status', Certificate::STATUS_CANCELLED)->count(),
         ];
-    
+
         $certificates = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
-    
+
         // ── Données pour les selects ───────────────────────────────
-        $tenants = $isSA ? \App\Models\Tenant::orderBy('name')->get(['id','name','code']) : collect();
+        $tenants = $isSA ? Tenant::orderBy('name')->get(['id', 'name', 'code']) : collect();
         $brokers = Broker::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                        ->orderBy('name')->get(['id','name','code']);
+            ->orderBy('name')->get(['id', 'name', 'code']);
         $contracts = InsuranceContract::when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-                        ->orderBy('contract_number')->get(['id','contract_number','insured_name']);
+            ->orderBy('contract_number')->get(['id', 'contract_number', 'insured_name']);
+
         return Inertia::render('admin/certificates/index', [
             'certificates' => $certificates,
-            'filters'      => $request->only([
+            'filters' => $request->only([
                 'search', 'status', 'transport_type', 'tenant_id', 'broker_id',
                 'contract_id', 'date_from', 'date_to', 'issued_from', 'issued_to',
                 'value_min', 'value_max',
             ]),
-            'isSA'      => $isSA,
-            'tenants'   => $tenants,
-            'brokers'   => $brokers,
+            'isSA' => $isSA,
+            'tenants' => $tenants,
+            'brokers' => $brokers,
             'contracts' => $contracts,
-            'stats'     => $stats,
-            'can'       => [
-                'create'   => $user->can('certificates.create'),
+            'stats' => $stats,
+            'can' => [
+                'create' => $user->can('certificates.create'),
                 'validate' => $user->can('certificates.validate'),
-                'cancel'   => $user->can('certificates.cancel'),
-                'export'   => $user->can('certificates.view'),
+                'cancel' => $user->can('certificates.cancel'),
+                'export' => $user->can('certificates.view'),
             ],
         ]);
     }
@@ -133,11 +132,11 @@ class CertificateController extends Controller
 
         // Contrats actifs disponibles
         $contracts = InsuranceContract::with([
-                'tenant:id,name,code',
-                'broker:id,name,code,commission_rate',
-                'subscriber:id,first_name,last_name',
-                'transportMode:id,code,name_fr',
-            ])
+            'tenant:id,name,code',
+            'broker:id,name,code,commission_rate',
+            'subscriber:id,first_name,last_name',
+            'transportMode:id,code,name_fr',
+        ])
             // Certificats non annulés déjà émis sous ce contrat — permet de
             // détecter côté front qu'un contrat "Au voyage" est déjà utilisé.
             ->withCount(['certificates as active_certificates_count' => function ($q) {
@@ -147,21 +146,21 @@ class CertificateController extends Controller
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
             ->orderBy('contract_number')
             ->get(['id', 'contract_number', 'insured_name', 'insured_address', 'insured_email', 'insured_phone',
-                   'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
-                   'transport_mode_id', 'conditioning_types',
-                   'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
-                   'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
+                    'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
+                    'transport_mode_id', 'conditioning_types',
+                    'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
+                    'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
 
         // Pré-sélection contrat depuis query string — mêmes relations/colonnes
         // que la liste ci-dessus pour que le front reçoive une forme identique.
         $selectedContract = null;
         if ($request->contract_id) {
             $selectedContract = InsuranceContract::with([
-                    'tenant:id,name,code',
-                    'broker:id,name,code,commission_rate',
-                    'subscriber:id,first_name,last_name',
-                    'transportMode:id,code,name_fr',
-                ])
+                'tenant:id,name,code',
+                'broker:id,name,code,commission_rate',
+                'subscriber:id,first_name,last_name',
+                'transportMode:id,code,name_fr',
+            ])
                 ->withCount(['certificates as active_certificates_count' => function ($q) {
                     $q->where('status', '!=', Certificate::STATUS_CANCELLED);
                 }])
@@ -169,11 +168,11 @@ class CertificateController extends Controller
         }
 
         return Inertia::render('admin/certificates/create', [
-            'countries'        => Country::orderBy('name_fr')->get(['code', 'name_fr']),
-            'currencies'       => Currency::active()->orderBy('code')->get(['code', 'name', 'symbol']),
-            'contracts'        => $contracts,
+            'countries' => Country::orderBy('name_fr')->get(['code', 'name_fr']),
+            'currencies' => Currency::active()->orderBy('code')->get(['code', 'name', 'symbol']),
+            'contracts' => $contracts,
             'selectedContract' => $selectedContract,
-            'defaultTenantId'  => $user->tenant_id,
+            'defaultTenantId' => $user->tenant_id,
         ]);
     }
 
@@ -182,19 +181,19 @@ class CertificateController extends Controller
     {
         $request->validate([
             'from' => ['required', 'string', 'size:3'],
-            'to'   => ['required', 'string', 'size:3'],
+            'to' => ['required', 'string', 'size:3'],
         ]);
 
         try {
             $rate = $exchangeRates->dailyRate(strtoupper($request->from), strtoupper($request->to));
 
             if ($rate === null) {
-                return response()->json(['success' => false, 'message' => "Taux indisponible — merci de le saisir manuellement."], 422);
+                return response()->json(['success' => false, 'message' => 'Taux indisponible — merci de le saisir manuellement.'], 422);
             }
 
             return response()->json(['success' => true, 'rate' => $rate]);
         } catch (Throwable) {
-            return response()->json(['success' => false, 'message' => "Conversion automatique indisponible — merci de saisir le taux manuellement."], 422);
+            return response()->json(['success' => false, 'message' => 'Conversion automatique indisponible — merci de saisir le taux manuellement.'], 422);
         }
     }
 
@@ -230,7 +229,7 @@ class CertificateController extends Controller
         // Générer le numéro de certificat
         $certNumber = $template
             ? Certificate::generateNumber($template)
-            : 'CERT-' . now()->format('YmdHis');
+            : 'CERT-'.now()->format('YmdHis');
 
         // Construire le décompte de prime depuis les taux du contrat (R.O./
         // R.G.) + Divers/Surprime saisis sur ce certificat + le référentiel
@@ -244,16 +243,16 @@ class CertificateController extends Controller
 
         $certificate = Certificate::create([
             ...$validated,
-            'tenant_id'          => $contract->tenant_id,
+            'tenant_id' => $contract->tenant_id,
             'certificate_number' => $certNumber,
-            'policy_number'      => $contract->contract_number,
-            'template_id'        => $template?->id,
-            'currency_code'      => $contract->currency_code,
-            'prime_breakdown'    => $primeBreakdown,
-            'prime_total'        => $primeTotal,
-            'prime_nette'        => $primeNette,
-            'status'             => Certificate::STATUS_DRAFT,
-            'created_by'         => $request->user()->id,
+            'policy_number' => $contract->contract_number,
+            'template_id' => $template?->id,
+            'currency_code' => $contract->currency_code,
+            'prime_breakdown' => $primeBreakdown,
+            'prime_total' => $primeTotal,
+            'prime_nette' => $primeNette,
+            'status' => Certificate::STATUS_DRAFT,
+            'created_by' => $request->user()->id,
         ]);
 
         $this->log($certificate, $request, 'certificate.created');
@@ -272,18 +271,18 @@ class CertificateController extends Controller
         $contract = InsuranceContract::with('tenant')->findOrFail($validated['contract_id']);
         $this->authorizeTenant($contract->tenant_id);
 
-        $template  = CertificateTemplate::where('tenant_id', $contract->tenant_id)
+        $template = CertificateTemplate::where('tenant_id', $contract->tenant_id)
             ->where('is_active', true)->first();
         $certNumber = $template
             ? Certificate::generateNumber($template)
-            : 'CERT-' . now()->format('YmdHis');
+            : 'CERT-'.now()->format('YmdHis');
 
         // Valeur assurée manquante → pas de décompte de prime calculable
         // pour l'instant, laissé null (complété plus tard à l'édition).
         $hasInsuredValue = isset($validated['insured_value']);
-        $primeBreakdown  = null;
-        $primeTotal      = null;
-        $primeNette      = null;
+        $primeBreakdown = null;
+        $primeTotal = null;
+        $primeNette = null;
 
         if ($hasInsuredValue) {
             $primeBreakdown = $this->buildPrimeBreakdown(
@@ -296,16 +295,16 @@ class CertificateController extends Controller
 
         $certificate = Certificate::create([
             ...$validated,
-            'tenant_id'          => $contract->tenant_id,
+            'tenant_id' => $contract->tenant_id,
             'certificate_number' => $certNumber,
-            'policy_number'      => $contract->contract_number,
-            'template_id'        => $template?->id,
-            'currency_code'      => $contract->currency_code,
-            'prime_breakdown'    => $primeBreakdown,
-            'prime_total'        => $primeTotal,
-            'prime_nette'        => $primeNette,
-            'status'             => Certificate::STATUS_DRAFT,
-            'created_by'         => $request->user()->id,
+            'policy_number' => $contract->contract_number,
+            'template_id' => $template?->id,
+            'currency_code' => $contract->currency_code,
+            'prime_breakdown' => $primeBreakdown,
+            'prime_total' => $primeTotal,
+            'prime_nette' => $primeNette,
+            'status' => Certificate::STATUS_DRAFT,
+            'created_by' => $request->user()->id,
         ]);
 
         $this->log($certificate, $request, 'certificate.stored_draft');
@@ -333,10 +332,10 @@ class CertificateController extends Controller
 
         return Inertia::render('admin/certificates/show', [
             'certificate' => $certificate,
-            'can'         => [
-                'edit'     => auth()->user()->can('certificates.create'),
+            'can' => [
+                'edit' => auth()->user()->can('certificates.create'),
                 'validate' => auth()->user()->can('certificates.validate'),
-                'cancel'   => auth()->user()->can('certificates.cancel'),
+                'cancel' => auth()->user()->can('certificates.cancel'),
             ],
             // Modèles disposant d'un positionnement FPDF calibré — soit
             // codé en dur (config/certificate_layouts.php), soit une
@@ -377,7 +376,7 @@ class CertificateController extends Controller
             'BJ' => 'benin',
         ];
         $defaultTemplate = $templateByTenantCode[$certificate->tenant?->code] ?? 'guinee-conakry';
-        $templateId      = $request->query('template', $defaultTemplate);
+        $templateId = $request->query('template', $defaultTemplate);
 
         // Coordonnées mm surchargées depuis l'admin (cf.
         // CertificatePrintTemplateController) — absence de ligne = le
@@ -385,9 +384,9 @@ class CertificateController extends Controller
         $positionsOverride = CertificatePrintTemplate::where('template_id', $templateId)->value('positions');
 
         return Inertia::render('admin/certificates/print', [
-            'certificate'       => $certificate,
-            'templateId'        => $templateId,
-            'calibrate'         => $request->boolean('calibrate'),
+            'certificate' => $certificate,
+            'templateId' => $templateId,
+            'calibrate' => $request->boolean('calibrate'),
             'positionsOverride' => $positionsOverride,
         ]);
     }
@@ -415,9 +414,9 @@ class CertificateController extends Controller
             'BJ' => 'benin',
         ];
         $defaultTemplate = $templateByTenantCode[$certificate->tenant?->code] ?? 'guinee-conakry';
-        $templateId      = $request->query('template', $defaultTemplate);
-        $calibrate       = $request->boolean('calibrate');
-        $preview         = $request->boolean('preview');
+        $templateId = $request->query('template', $defaultTemplate);
+        $calibrate = $request->boolean('calibrate');
+        $preview = $request->boolean('preview');
 
         // Décalage propre à un poste/une imprimante (mm), réglé et conservé
         // côté navigateur (localStorage — cf. show.tsx) : compense
@@ -434,10 +433,10 @@ class CertificateController extends Controller
         // message clair, pas la page de debug Laravel brute.
         try {
             if ($preview) {
-                $pdf    = $service->preview($certificate, $templateId, $offsetX, $offsetY);
+                $pdf = $service->preview($certificate, $templateId, $offsetX, $offsetY);
                 $suffix = 'apercu';
             } else {
-                $pdf    = $service->generate($certificate, $templateId, $calibrate, $offsetX, $offsetY);
+                $pdf = $service->generate($certificate, $templateId, $calibrate, $offsetX, $offsetY);
                 $suffix = $calibrate ? 'calibrage' : $templateId;
             }
         } catch (InvalidArgumentException $e) {
@@ -451,7 +450,7 @@ class CertificateController extends Controller
         }
 
         return response($pdf, 200, [
-            'Content-Type'        => 'application/pdf',
+            'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="certificat-'.$certificate->certificate_number.'-'.$suffix.'.pdf"',
         ]);
     }
@@ -471,11 +470,11 @@ class CertificateController extends Controller
         $isSA = $user->hasRole('super_admin');
 
         $contracts = InsuranceContract::with([
-                'tenant:id,name,code',
-                'broker:id,name,code,commission_rate',
-                'subscriber:id,first_name,last_name',
-                'transportMode:id,code,name_fr',
-            ])
+            'tenant:id,name,code',
+            'broker:id,name,code,commission_rate',
+            'subscriber:id,first_name,last_name',
+            'transportMode:id,code,name_fr',
+        ])
             ->withCount(['certificates as active_certificates_count' => function ($q) {
                 $q->where('status', '!=', Certificate::STATUS_CANCELLED);
             }])
@@ -483,16 +482,16 @@ class CertificateController extends Controller
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
             ->orderBy('contract_number')
             ->get(['id', 'contract_number', 'insured_name', 'insured_address', 'insured_email', 'insured_phone',
-                   'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
-                   'transport_mode_id', 'conditioning_types',
-                   'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
-                   'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
+                    'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
+                    'transport_mode_id', 'conditioning_types',
+                    'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
+                    'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
 
         return Inertia::render('admin/certificates/edit', [
             'certificate' => $certificate,
-            'contracts'   => $contracts,
-            'countries'   => Country::orderBy('name_fr')->get(['code', 'name_fr']),
-            'currencies'  => Currency::active()->orderBy('code')->get(['code', 'name', 'symbol']),
+            'contracts' => $contracts,
+            'countries' => Country::orderBy('name_fr')->get(['code', 'name_fr']),
+            'currencies' => Currency::active()->orderBy('code')->get(['code', 'name', 'symbol']),
         ]);
     }
 
@@ -506,7 +505,7 @@ class CertificateController extends Controller
 
         // Recalculer la prime (+ taxe depuis le référentiel filiale ×
         // mode de transport × pays)
-        $contract       = InsuranceContract::find($validated['contract_id']);
+        $contract = InsuranceContract::find($validated['contract_id']);
         $primeBreakdown = $this->buildPrimeBreakdown(
             $contract, $validated['insured_value'], $certificate->template,
             $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null,
@@ -519,14 +518,14 @@ class CertificateController extends Controller
         $certificate->update([
             ...$validated,
             'prime_breakdown' => $primeBreakdown,
-            'prime_total'     => $primeTotal,
-            'prime_nette'     => $primeNette,
+            'prime_total' => $primeTotal,
+            'prime_nette' => $primeNette,
             // Corriger un certificat rejeté le repasse en Stocké, prêt à
             // être resoumis.
             ...($wasRejected ? [
-                'status'           => Certificate::STATUS_DRAFT,
+                'status' => Certificate::STATUS_DRAFT,
                 'rejection_reason' => null,
-                'rejected_at'      => null,
+                'rejected_at' => null,
             ] : []),
         ]);
 
@@ -557,7 +556,7 @@ class CertificateController extends Controller
         abort_if($certificate->status !== Certificate::STATUS_DRAFT, 422);
 
         $certificate->update([
-            'status'       => Certificate::STATUS_SUBMITTED,
+            'status' => Certificate::STATUS_SUBMITTED,
             'submitted_at' => now(),
             'submitted_by' => $request->user()->id,
         ]);
@@ -566,8 +565,8 @@ class CertificateController extends Controller
 
         // Escalade NN300 automatique si la valeur assurée dépasse le seuil
         // configuré (% du "plein" du contrat) — cf. ApprovalWorkflowConfig.
-        $contract   = InsuranceContract::find($certificate->contract_id);
-        $escalated  = $contract && $approvalWorkflow->triggerIfNeeded($certificate, $contract, $request->user());
+        $contract = InsuranceContract::find($certificate->contract_id);
+        $escalated = $contract && $approvalWorkflow->triggerIfNeeded($certificate, $contract, $request->user());
 
         // Plafond Traité dépassé : alerte informative (placement en
         // réassurance facultative à envisager) — non bloquant, distinct de
@@ -608,16 +607,16 @@ class CertificateController extends Controller
 
         DB::transaction(function () use ($certificate, $request) {
             $certificate->update([
-                'status'           => Certificate::STATUS_ISSUED,
-                'issued_at'        => now(),
-                'issued_by'        => $request->user()->id,
+                'status' => Certificate::STATUS_ISSUED,
+                'issued_at' => now(),
+                'issued_by' => $request->user()->id,
                 'validation_notes' => $request->notes,
             ]);
 
             // Incrémenter le compteur et le cumul du contrat
             InsuranceContract::where('id', $certificate->contract_id)->update([
                 'certificates_count' => DB::raw('certificates_count + 1'),
-                'used_limit'         => DB::raw("used_limit + {$certificate->insured_value}"),
+                'used_limit' => DB::raw("used_limit + {$certificate->insured_value}"),
             ]);
         });
 
@@ -635,8 +634,8 @@ class CertificateController extends Controller
         $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
         $certificate->update([
-            'status'           => Certificate::STATUS_REJECTED,
-            'rejected_at'      => now(),
+            'status' => Certificate::STATUS_REJECTED,
+            'rejected_at' => now(),
             'rejection_reason' => $request->reason,
         ]);
 
@@ -655,47 +654,47 @@ class CertificateController extends Controller
         abort_if($certificate->status !== Certificate::STATUS_ISSUED, 422,
             'Seul un certificat Approuvé peut être remplacé.');
 
-        $template  = $certificate->template_id ? CertificateTemplate::find($certificate->template_id) : null;
-        $newNumber = $template ? Certificate::generateNumber($template) : 'CERT-' . now()->format('YmdHis');
+        $template = $certificate->template_id ? CertificateTemplate::find($certificate->template_id) : null;
+        $newNumber = $template ? Certificate::generateNumber($template) : 'CERT-'.now()->format('YmdHis');
 
         $replacement = DB::transaction(function () use ($certificate, $newNumber, $request) {
             $new = Certificate::create([
-                'tenant_id'                 => $certificate->tenant_id,
-                'contract_id'               => $certificate->contract_id,
-                'template_id'               => $certificate->template_id,
-                'certificate_number'        => $newNumber,
-                'policy_number'             => $certificate->policy_number,
-                'insured_name'              => $certificate->insured_name,
-                'insured_ref'               => $certificate->insured_ref,
-                'voyage_date'               => $certificate->voyage_date,
-                'voyage_from'               => $certificate->voyage_from,
-                'voyage_to'                 => $certificate->voyage_to,
-                'voyage_via'                => $certificate->voyage_via,
-                'origin_country_code'       => $certificate->origin_country_code,
-                'destination_country_code'  => $certificate->destination_country_code,
-                'transport_type'            => $certificate->transport_type,
-                'vessel_name'               => $certificate->vessel_name,
-                'flight_number'             => $certificate->flight_number,
-                'voyage_mode'               => $certificate->voyage_mode,
-                'expedition_items'          => $certificate->expedition_items,
-                'currency_code'             => $certificate->currency_code,
-                'insured_value'             => $certificate->insured_value,
-                'insured_value_letters'     => $certificate->insured_value_letters,
-                'guarantee_mode'            => $certificate->guarantee_mode,
-                'rate_divers'               => $certificate->rate_divers,
-                'rate_surprime'             => $certificate->rate_surprime,
-                'prime_breakdown'           => $certificate->prime_breakdown,
-                'prime_total'               => $certificate->prime_total,
-                'prime_nette'               => $certificate->prime_nette,
-                'exchange_currency'         => $certificate->exchange_currency,
-                'exchange_rate'             => $certificate->exchange_rate,
-                'status'                    => Certificate::STATUS_DRAFT,
-                'created_by'                => $request->user()->id,
+                'tenant_id' => $certificate->tenant_id,
+                'contract_id' => $certificate->contract_id,
+                'template_id' => $certificate->template_id,
+                'certificate_number' => $newNumber,
+                'policy_number' => $certificate->policy_number,
+                'insured_name' => $certificate->insured_name,
+                'insured_ref' => $certificate->insured_ref,
+                'voyage_date' => $certificate->voyage_date,
+                'voyage_from' => $certificate->voyage_from,
+                'voyage_to' => $certificate->voyage_to,
+                'voyage_via' => $certificate->voyage_via,
+                'origin_country_code' => $certificate->origin_country_code,
+                'destination_country_code' => $certificate->destination_country_code,
+                'transport_type' => $certificate->transport_type,
+                'vessel_name' => $certificate->vessel_name,
+                'flight_number' => $certificate->flight_number,
+                'voyage_mode' => $certificate->voyage_mode,
+                'expedition_items' => $certificate->expedition_items,
+                'currency_code' => $certificate->currency_code,
+                'insured_value' => $certificate->insured_value,
+                'insured_value_letters' => $certificate->insured_value_letters,
+                'guarantee_mode' => $certificate->guarantee_mode,
+                'rate_divers' => $certificate->rate_divers,
+                'rate_surprime' => $certificate->rate_surprime,
+                'prime_breakdown' => $certificate->prime_breakdown,
+                'prime_total' => $certificate->prime_total,
+                'prime_nette' => $certificate->prime_nette,
+                'exchange_currency' => $certificate->exchange_currency,
+                'exchange_rate' => $certificate->exchange_rate,
+                'status' => Certificate::STATUS_DRAFT,
+                'created_by' => $request->user()->id,
             ]);
 
             $certificate->update([
-                'status'                     => Certificate::STATUS_REPLACED,
-                'replaced_at'                => now(),
+                'status' => Certificate::STATUS_REPLACED,
+                'replaced_at' => now(),
                 'replaced_by_certificate_id' => $new->id,
             ]);
 
@@ -704,7 +703,7 @@ class CertificateController extends Controller
             // un double comptage si le remplaçant est ensuite approuvé.
             InsuranceContract::where('id', $certificate->contract_id)->update([
                 'certificates_count' => DB::raw('GREATEST(0, certificates_count - 1)'),
-                'used_limit'         => DB::raw("GREATEST(0, used_limit - {$certificate->insured_value})"),
+                'used_limit' => DB::raw("GREATEST(0, used_limit - {$certificate->insured_value})"),
             ]);
 
             return $new;
@@ -731,14 +730,14 @@ class CertificateController extends Controller
             if ($certificate->status === Certificate::STATUS_ISSUED) {
                 InsuranceContract::where('id', $certificate->contract_id)->update([
                     'certificates_count' => DB::raw('GREATEST(0, certificates_count - 1)'),
-                    'used_limit'         => DB::raw("GREATEST(0, used_limit - {$certificate->insured_value})"),
+                    'used_limit' => DB::raw("GREATEST(0, used_limit - {$certificate->insured_value})"),
                 ]);
             }
 
             $certificate->update([
-                'status'               => Certificate::STATUS_CANCELLED,
-                'cancelled_at'         => now(),
-                'cancellation_reason'  => $request->reason,
+                'status' => Certificate::STATUS_CANCELLED,
+                'cancelled_at' => now(),
+                'cancellation_reason' => $request->reason,
             ]);
         });
 
@@ -791,7 +790,7 @@ class CertificateController extends Controller
             ['key' => 'prime_nette',  'label' => 'Prime Nette', 'label_en' => null],
             ['key' => 'accessories',  'label' => 'Access.',     'label_en' => null],
             ['key' => 'tax',          'label' => 'Taxe',        'label_en' => null],
-            ['key' => 'prime_total',  'label' => 'Prime Totale','label_en' => null],
+            ['key' => 'prime_total',  'label' => 'Prime Totale', 'label_en' => null],
         ];
 
         // Taxe résolue automatiquement depuis le référentiel filiale ×
@@ -801,15 +800,15 @@ class CertificateController extends Controller
             ? TransportMode::where('code', $transportType)->first()
             : null;
 
-        $taxRule    = TaxRule::findApplicable($contract->tenant_id, $transportMode?->id, $destinationCountryCode);
+        $taxRule = TaxRule::findApplicable($contract->tenant_id, $transportMode?->id, $destinationCountryCode);
         $taxRatePct = (float) ($taxRule->rate_pct ?? 0);
 
         $rateOf = fn (string $field): float => (float) ($contract->{$field} ?? 0);
         $lineAmount = fn (float $rate): float => $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
 
-        $ro       = $lineAmount($rateOf('rate_ro'));
-        $rg       = $lineAmount($rateOf('rate_rg'));
-        $divers   = $lineAmount($rateDivers);
+        $ro = $lineAmount($rateOf('rate_ro'));
+        $rg = $lineAmount($rateOf('rate_rg'));
+        $divers = $lineAmount($rateDivers);
         $surprime = $lineAmount($rateSurprime);
         $primeNette = round($ro + $rg + $divers + $surprime, 2);
 
@@ -827,7 +826,7 @@ class CertificateController extends Controller
 
         // Accessoires : montant fixe défini sur le contrat (pas un taux).
         $accessoires = (float) ($contract->accessories_amount ?? 0);
-        $taxe        = round(($primeNette + $accessoires) * $taxRatePct / 100, 2);
+        $taxe = round(($primeNette + $accessoires) * $taxRatePct / 100, 2);
         $primeTotale = round($primeNette + $accessoires + $taxe, 2);
 
         // Alias FR/EN : les lignes des templates filiale utilisent des clés
@@ -836,16 +835,16 @@ class CertificateController extends Controller
         // doivent résoudre vers le même montant, sans quoi la ligne
         // affiche 0.
         $amounts = [
-            'ro'          => ['rate' => $rateOf('rate_ro'), 'amount' => $ro],
-            'rg'          => ['rate' => $rateOf('rate_rg'), 'amount' => $rg],
-            'divers'      => ['rate' => $rateDivers,        'amount' => $divers],
-            'surprime'    => ['rate' => $rateSurprime,      'amount' => $surprime],
+            'ro' => ['rate' => $rateOf('rate_ro'), 'amount' => $ro],
+            'rg' => ['rate' => $rateOf('rate_rg'), 'amount' => $rg],
+            'divers' => ['rate' => $rateDivers,        'amount' => $divers],
+            'surprime' => ['rate' => $rateSurprime,      'amount' => $surprime],
             'prime_nette' => ['rate' => null,               'amount' => $primeNette],
             'accessories' => ['rate' => null,               'amount' => $accessoires],
             'accessoires' => ['rate' => null,               'amount' => $accessoires],
-            'tax'         => ['rate' => $taxRatePct,        'amount' => $taxe],
-            'taxe'        => ['rate' => $taxRatePct,        'amount' => $taxe],
-            'prime_total'  => ['rate' => null, 'amount' => $primeTotale],
+            'tax' => ['rate' => $taxRatePct,        'amount' => $taxe],
+            'taxe' => ['rate' => $taxRatePct,        'amount' => $taxe],
+            'prime_total' => ['rate' => null, 'amount' => $primeTotale],
             'prime_totale' => ['rate' => null, 'amount' => $primeTotale],
         ];
 
@@ -854,11 +853,11 @@ class CertificateController extends Controller
             $entry = $amounts[$line['key']] ?? ['rate' => 0, 'amount' => 0];
 
             $breakdown[] = [
-                'key'      => $line['key'],
-                'label'    => $line['label'],
+                'key' => $line['key'],
+                'label' => $line['label'],
                 'label_en' => $line['label_en'] ?? null,
-                'rate'     => $entry['rate'],
-                'amount'   => $entry['amount'],
+                'rate' => $entry['rate'],
+                'amount' => $entry['amount'],
             ];
         }
 
@@ -874,50 +873,50 @@ class CertificateController extends Controller
         $req = fn (string $strict) => $draft ? 'nullable' : $strict;
 
         return $request->validate([
-            'contract_id'           => ['required', 'uuid', 'exists:insurance_contracts,id'],
-            'insured_name'          => [$req('required'), 'string', 'max:200'],
-            'insured_ref'           => ['nullable', 'string', 'max:200'],
-            'voyage_date'           => [$req('required'), 'date'],
-            'voyage_from'           => [$req('required'), 'string', 'max:150'],
-            'voyage_to'             => [$req('required'), 'string', 'max:150'],
-            'voyage_via'            => ['nullable', 'string', 'max:150'],
-            'origin_country_code'      => ['nullable', 'string', 'size:2', 'exists:countries,code'],
+            'contract_id' => ['required', 'uuid', 'exists:insurance_contracts,id'],
+            'insured_name' => [$req('required'), 'string', 'max:200'],
+            'insured_ref' => ['nullable', 'string', 'max:200'],
+            'voyage_date' => [$req('required'), 'date'],
+            'voyage_from' => [$req('required'), 'string', 'max:150'],
+            'voyage_to' => [$req('required'), 'string', 'max:150'],
+            'voyage_via' => ['nullable', 'string', 'max:150'],
+            'origin_country_code' => ['nullable', 'string', 'size:2', 'exists:countries,code'],
             'destination_country_code' => ['nullable', 'string', 'size:2', 'exists:countries,code'],
-            'transport_type'        => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL,RIVER'],
-            'vessel_name'           => ['nullable', 'string', 'max:150'],
-            'flight_number'         => ['nullable', 'string', 'max:50'],
-            'voyage_mode'           => ['nullable', 'string', 'max:50'],
-            'expedition_items'      => [$req('required'), 'array', $draft ? 'min:0' : 'min:1'],
-            'expedition_items.*.marks'          => ['nullable', 'string'],
-            'expedition_items.*.package_count'  => ['nullable', 'integer', 'min:0'],
-            'expedition_items.*.weight'         => ['nullable', 'string'],
-            'expedition_items.*.nature'         => [$req('required'), 'string'],
-            'expedition_items.*.packaging'      => ['nullable', 'string'],
-            'expedition_items.*.insured_value'  => [$req('required'), 'numeric', 'min:0'],
-            'insured_value'         => [$req('required'), 'numeric', 'min:0'],
+            'transport_type' => ['nullable', 'in:SEA,AIR,ROAD,RAIL,MULTIMODAL,RIVER'],
+            'vessel_name' => ['nullable', 'string', 'max:150'],
+            'flight_number' => ['nullable', 'string', 'max:50'],
+            'voyage_mode' => ['nullable', 'string', 'max:50'],
+            'expedition_items' => [$req('required'), 'array', $draft ? 'min:0' : 'min:1'],
+            'expedition_items.*.marks' => ['nullable', 'string'],
+            'expedition_items.*.package_count' => ['nullable', 'integer', 'min:0'],
+            'expedition_items.*.weight' => ['nullable', 'string'],
+            'expedition_items.*.nature' => [$req('required'), 'string'],
+            'expedition_items.*.packaging' => ['nullable', 'string'],
+            'expedition_items.*.insured_value' => [$req('required'), 'numeric', 'min:0'],
+            'insured_value' => [$req('required'), 'numeric', 'min:0'],
             'insured_value_letters' => ['nullable', 'string'],
-            'guarantee_mode'        => ['nullable', 'string', 'max:100'],
+            'guarantee_mode' => ['nullable', 'string', 'max:100'],
             // Divers et Surprime se précisent au cas par cas sur chaque
             // certificat (plus au niveau du contrat).
-            'rate_divers'           => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'rate_surprime'         => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'exchange_currency'     => ['nullable', 'size:3'],
-            'exchange_rate'         => ['nullable', 'numeric', 'min:0'],
+            'rate_divers' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'rate_surprime' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'exchange_currency' => ['nullable', 'size:3'],
+            'exchange_rate' => ['nullable', 'numeric', 'min:0'],
         ]);
     }
 
     private function log(Certificate $cert, Request $request, string $action, array $extra = [], string $severity = 'INFO'): void
     {
         AuditLog::create([
-            'tenant_id'   => $cert->tenant_id,
-            'user_id'     => $request->user()->id,
-            'action'      => $action,
+            'tenant_id' => $cert->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => $action,
             'entity_type' => 'Certificate',
-            'entity_id'   => $cert->id,
-            'severity'    => $severity,
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'new_values'  => $extra ?: null,
+            'entity_id' => $cert->id,
+            'severity' => $severity,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => $extra ?: null,
         ]);
     }
 
@@ -931,7 +930,9 @@ class CertificateController extends Controller
             ->get()
             ->filter(fn ($u) => ! Notification::alreadySentToday($u, 'PlafondTraiteAlert', $contract->id));
 
-        if ($approvers->isEmpty()) return;
+        if ($approvers->isEmpty()) {
+            return;
+        }
 
         Notification::sendToMany(
             $approvers,
@@ -939,10 +940,10 @@ class CertificateController extends Controller
             'Plafond Traité dépassé',
             "Contrat {$contract->contract_number} — le cumul assuré dépasse le Plafond Traité, un placement en réassurance facultative est à envisager.",
             [
-                'icon'            => 'alert-triangle',
-                'color'           => 'warning',
-                'url'             => route('admin.contracts.show', $contract),
-                'entity_id'       => $contract->id,
+                'icon' => 'alert-triangle',
+                'color' => 'warning',
+                'url' => route('admin.contracts.show', $contract),
+                'entity_id' => $contract->id,
                 'contract_number' => $contract->contract_number,
             ]
         );
@@ -951,8 +952,12 @@ class CertificateController extends Controller
     private function authorizeTenant(string $tenantId): void
     {
         $user = auth()->user();
-        if ($user->hasRole('super_admin')) return;
-        if ((string) $user->tenant_id !== $tenantId) abort(403);
+        if ($user->hasRole('super_admin')) {
+            return;
+        }
+        if ((string) $user->tenant_id !== $tenantId) {
+            abort(403);
+        }
     }
 
     // ── Télécharger le PDF ───────────────────────────────────────
@@ -961,70 +966,72 @@ class CertificateController extends Controller
         $this->authorizeTenant($certificate->tenant_id);
         abort_if($certificate->status !== Certificate::STATUS_ISSUED, 422,
             'Le PDF n\'est disponible que pour les certificats émis.');
-    
+
         return $pdfService->download($certificate);
     }
-    
+
     // ── Afficher le PDF dans le navigateur ───────────────────────
     public function streamPdf(Certificate $certificate, CertificatePdfService $pdfService)
     {
         $this->authorizeTenant($certificate->tenant_id);
         abort_if($certificate->status !== Certificate::STATUS_ISSUED, 422,
             'Le PDF n\'est disponible que pour les certificats émis.');
-    
+
         return $pdfService->stream($certificate);
     }
-    
+
     // ── Regénérer le PDF ─────────────────────────────────────────
     public function generatePdf(Request $request, Certificate $certificate, CertificatePdfService $pdfService): RedirectResponse
     {
         $this->authorizeTenant($certificate->tenant_id);
         abort_if($certificate->status !== Certificate::STATUS_ISSUED, 422);
-    
+
         $path = $pdfService->generate($certificate);
-    
+
         $this->log($certificate, $request, 'certificate.pdf_generated', ['path' => $path]);
-    
+
         return back()->with('status', 'PDF regénéré avec succès.');
     }
 
     // ── Regénérer le QR token ─────────────────────────────────────
-    public function regenerateQr(Request $request,Certificate $certificate,CertificateQrService $qrService): RedirectResponse {
+    public function regenerateQr(Request $request, Certificate $certificate, CertificateQrService $qrService): RedirectResponse
+    {
         $this->authorizeTenant($certificate->tenant_id);
         abort_if($certificate->status !== Certificate::STATUS_ISSUED, 422,
             'Le QR code n\'est disponible que pour les certificats émis.');
         // Invalider l'ancien token et en générer un nouveau
         $certificate->update(['qr_token' => null]);
         $qrService->ensureToken($certificate);
-    
+
         // Regénérer le PDF avec le nouveau QR
         app(CertificatePdfService::class)->generate($certificate);
-    
+
         $this->log($certificate, $request, 'certificate.qr_regenerated', [], 'WARNING');
-    
+
         return back()->with('status', 'QR code regénéré. Le PDF a été mis à jour.');
     }
 
-    public function export(Request $request): \Illuminate\Http\Response {
+    public function export(Request $request): HttpResponse
+    {
         $this->authorizeTenant($request->user()->tenant_id ?? '');
         $user = $request->user();
         $isSA = $user->hasRole('super_admin');
-    
+
         $certificates = Certificate::with(['contract:id,contract_number', 'tenant:id,code', 'issuedBy:id,first_name,last_name'])
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
-            ->when($request->status,         fn ($q) => $q->where('status', $request->status))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->transport_type, fn ($q) => $q->where('transport_type', $request->transport_type))
-            ->when($request->date_from,      fn ($q) => $q->whereDate('voyage_date', '>=', $request->date_from))
-            ->when($request->date_to,        fn ($q) => $q->whereDate('voyage_date', '<=', $request->date_to))
-            ->when($request->value_min,      fn ($q) => $q->where('insured_value', '>=', $request->value_min))
-            ->when($request->value_max,      fn ($q) => $q->where('insured_value', '<=', $request->value_max))
+            ->when($request->date_from, fn ($q) => $q->whereDate('voyage_date', '>=', $request->date_from))
+            ->when($request->date_to, fn ($q) => $q->whereDate('voyage_date', '<=', $request->date_to))
+            ->when($request->value_min, fn ($q) => $q->where('insured_value', '>=', $request->value_min))
+            ->when($request->value_max, fn ($q) => $q->where('insured_value', '<=', $request->value_max))
             ->orderBy('created_at', 'desc')
             ->limit(10000)
             ->get();
-    
-        $csv  = "\xEF\xBB\xBF"; // BOM UTF-8 pour Excel
+
+        $csv = "\xEF\xBB\xBF"; // BOM UTF-8 pour Excel
         $csv .= "N° Certificat;Police;Assuré;De;À;Date Voyage;Transport;Valeur Assurée;Devise;Prime Totale;Statut;Date Émission;Émis par;Filiale\n";
-    
+
         foreach ($certificates as $c) {
             $csv .= implode(';', [
                 $c->certificate_number,
@@ -1039,87 +1046,87 @@ class CertificateController extends Controller
                 $c->prime_total ? number_format((float) $c->prime_total, 2, ',', ' ') : '',
                 $c->status,
                 $c->issued_at?->format('d/m/Y H:i') ?? '',
-                $c->issuedBy ? $c->issuedBy->first_name . ' ' . $c->issuedBy->last_name : '',
+                $c->issuedBy ? $c->issuedBy->first_name.' '.$c->issuedBy->last_name : '',
                 $c->tenant?->code ?? '',
-            ]) . "\n";
+            ])."\n";
         }
-    
-        $filename = 'certificats_' . now()->format('Ymd_His') . '.csv';
-    
+
+        $filename = 'certificats_'.now()->format('Ymd_His').'.csv';
+
         return \Illuminate\Support\Facades\Response::make($csv, 200, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
 
-
-    public function duplicate(Request $request, Certificate $certificate): RedirectResponse{
+    public function duplicate(Request $request, Certificate $certificate): RedirectResponse
+    {
         $this->authorizeTenant($certificate->tenant_id);
-    
+
         // Seul un certificat ISSUED peut être dupliqué
         abort_if(! $certificate->isIssued(), 422,
             'Seul un certificat émis peut faire l\'objet d\'un duplicata.');
-    
+
         $request->validate([
             'reason' => ['required', 'string', 'max:500'],
         ]);
-    
+
         // Incrémenter le compteur sur l'original
         $original = $certificate->isOriginal() ? $certificate : $certificate->parent;
         $original->increment('duplicate_count');
         $dupIndex = $original->duplicate_count;
-    
+
         // Créer le duplicata en copiant toutes les données
         $duplicate = Certificate::create([
             // Données copiées de l'original
-            'tenant_id'              => $original->tenant_id,
-            'contract_id'            => $original->contract_id,
-            'template_id'            => $original->template_id,
-            'policy_number'          => $original->policy_number,
-            'insured_name'           => $original->insured_name,
-            'insured_ref'            => $original->insured_ref,
-            'voyage_date'            => $original->voyage_date,
-            'voyage_from'            => $original->voyage_from,
-            'voyage_to'              => $original->voyage_to,
-            'voyage_via'             => $original->voyage_via,
-            'transport_type'         => $original->transport_type,
-            'vessel_name'            => $original->vessel_name,
-            'flight_number'          => $original->flight_number,
-            'voyage_mode'            => $original->voyage_mode,
-            'expedition_items'       => $original->expedition_items,
-            'currency_code'          => $original->currency_code,
-            'insured_value'          => $original->insured_value,
-            'insured_value_letters'  => $original->insured_value_letters,
-            'guarantee_mode'         => $original->guarantee_mode,
-            'prime_breakdown'        => $original->prime_breakdown,
-            'prime_total'            => $original->prime_total,
-            'exchange_currency'      => $original->exchange_currency,
-            'exchange_rate'          => $original->exchange_rate,
-    
+            'tenant_id' => $original->tenant_id,
+            'contract_id' => $original->contract_id,
+            'template_id' => $original->template_id,
+            'policy_number' => $original->policy_number,
+            'insured_name' => $original->insured_name,
+            'insured_ref' => $original->insured_ref,
+            'voyage_date' => $original->voyage_date,
+            'voyage_from' => $original->voyage_from,
+            'voyage_to' => $original->voyage_to,
+            'voyage_via' => $original->voyage_via,
+            'transport_type' => $original->transport_type,
+            'vessel_name' => $original->vessel_name,
+            'flight_number' => $original->flight_number,
+            'voyage_mode' => $original->voyage_mode,
+            'expedition_items' => $original->expedition_items,
+            'currency_code' => $original->currency_code,
+            'insured_value' => $original->insured_value,
+            'insured_value_letters' => $original->insured_value_letters,
+            'guarantee_mode' => $original->guarantee_mode,
+            'prime_breakdown' => $original->prime_breakdown,
+            'prime_total' => $original->prime_total,
+            'exchange_currency' => $original->exchange_currency,
+            'exchange_rate' => $original->exchange_rate,
+
             // Numéro avec suffixe -D
-            'certificate_number'     => $original->getDuplicateNumber($dupIndex),
-    
+            'certificate_number' => $original->getDuplicateNumber($dupIndex),
+
             // Statut : directement ISSUED
-            'status'                 => Certificate::STATUS_ISSUED,
-            'issued_at'              => $original->issued_at,
-            'issued_by'              => $original->issued_by,
-            'submitted_by'           => $original->submitted_by,
-            'validation_notes'       => $original->validation_notes,
-    
+            'status' => Certificate::STATUS_ISSUED,
+            'issued_at' => $original->issued_at,
+            'issued_by' => $original->issued_by,
+            'submitted_by' => $original->submitted_by,
+            'validation_notes' => $original->validation_notes,
+
             // Métadonnées duplicata
-            'parent_id'              => $original->id,
-            'document_type'          => Certificate::DOC_TYPE_DUPLICATA,
-            'reissued_at'            => now(),
-            'reissued_by'            => $request->user()->id,
-            'reissue_reason'         => $request->reason,
-            'created_by'             => $request->user()->id,
+            'parent_id' => $original->id,
+            'document_type' => Certificate::DOC_TYPE_DUPLICATA,
+            'reissued_at' => now(),
+            'reissued_by' => $request->user()->id,
+            'reissue_reason' => $request->reason,
+            'created_by' => $request->user()->id,
         ]);
-    
+
         // Générer le PDF avec filigrane DUPLICATA
         app(CertificatePdfService::class)->generate($duplicate);
-    
+
         // Notification
-        $creator = \App\Models\User::find($original->created_by);
+        $creator = User::find($original->created_by);
         if ($creator && $creator->id !== $request->user()->id) {
             Notification::send(
                 $creator,
@@ -1127,19 +1134,19 @@ class CertificateController extends Controller
                 'Duplicata émis',
                 "Duplicata {$duplicate->certificate_number} créé",
                 [
-                    'icon'  => 'copy',
+                    'icon' => 'copy',
                     'color' => 'info',
-                    'url'   => route('admin.certificates.show', $duplicate),
+                    'url' => route('admin.certificates.show', $duplicate),
                 ]
             );
         }
-    
+
         $this->log($duplicate, $request, 'certificate.duplicated', [
-            'original_id'     => $original->id,
+            'original_id' => $original->id,
             'original_number' => $original->certificate_number,
-            'reason'          => $request->reason,
+            'reason' => $request->reason,
         ]);
-    
+
         return redirect()->route('admin.certificates.show', $duplicate)
             ->with('status', "Duplicata {$duplicate->certificate_number} créé avec succès.");
     }

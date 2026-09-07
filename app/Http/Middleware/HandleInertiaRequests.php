@@ -22,27 +22,27 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
 
-            'name'        => config('app.name'),
+            'name' => config('app.name'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
 
             // Langue resolue par SetLocale + catalogue pour le selecteur.
             // Les traductions elles-memes vivent dans resources/js/locales/
             // et sont chargees par le bundle, pas transmises ici.
-            'locale'  => app()->getLocale(),
+            'locale' => app()->getLocale(),
             'locales' => config('app.locale_names'),
 
             // ── Auth + permissions + rôles ────────────────────
             'auth' => $user ? [
                 'user' => array_merge($user->toArray(), [
                     'permissions' => $user->getAllPermissions()->pluck('name')->values(),
-                    'roles'       => $user->getRoleNames()->values(),
-                    'tenant'      => $user->tenant ? [
+                    'roles' => $user->getRoleNames()->values(),
+                    'tenant' => $user->tenant ? [
                         ...$user->tenant->only(['id', 'name', 'code']),
                         'modules' => collect(Tenant::MODULES)->keys()
                             ->mapWithKeys(fn ($key) => [$key => $user->tenant->hasModule($key)]),
                     ] : null,
                     'avatar_path' => $user->avatar_path
-                        ? asset('storage/' . $user->avatar_path)
+                        ? asset('storage/'.$user->avatar_path)
                         : null,
                 ]),
             ] : null,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,8 +27,7 @@ class RoleController extends Controller
     {
         $roles = Role::with('permissions')
             ->withCount('users')
-            ->when($request->search, fn ($q) =>
-                $q->where('name', 'ilike', "%{$request->search}%")
+            ->when($request->search, fn ($q) => $q->where('name', 'ilike', "%{$request->search}%")
             )
             ->orderBy('name')
             ->paginate(20)
@@ -37,9 +37,9 @@ class RoleController extends Controller
             ->groupBy(fn ($p) => explode('.', $p->name)[0]);
 
         return Inertia::render('admin/roles/index', [
-            'roles'       => $roles,
+            'roles' => $roles,
             'permissions' => $permissions,
-            'filters'     => $request->only(['search']),
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -56,8 +56,8 @@ class RoleController extends Controller
             ->groupBy(fn ($p) => explode('.', $p->name)[0]);
 
         return Inertia::render('admin/roles/show', [
-            'role'           => $role,
-            'users'          => $users,
+            'role' => $role,
+            'users' => $users,
             'allPermissions' => $allPermissions,
         ]);
     }
@@ -66,12 +66,12 @@ class RoleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name'        => ['required', 'string', 'max:100', 'unique:roles,name'],
+            'name' => ['required', 'string', 'max:100', 'unique:roles,name'],
             'permissions' => ['array'],
         ]);
 
         $role = Role::create([
-            'name'       => $request->name,
+            'name' => $request->name,
             'guard_name' => 'web',
         ]);
 
@@ -86,7 +86,7 @@ class RoleController extends Controller
     public function update(Request $request, Role $role): RedirectResponse
     {
         $request->validate([
-            'name'        => ['required', 'string', 'max:100', "unique:roles,name,{$role->id}"],
+            'name' => ['required', 'string', 'max:100', "unique:roles,name,{$role->id}"],
             'permissions' => ['array'],
         ]);
 
@@ -118,7 +118,7 @@ class RoleController extends Controller
 
         $role->delete();
 
-        return back()->with('status', "Rôle supprimé.");
+        return back()->with('status', 'Rôle supprimé.');
     }
 
     // ── Assigner un rôle à un utilisateur ────────────────────
@@ -126,10 +126,10 @@ class RoleController extends Controller
     {
         $request->validate([
             'user_id' => ['required', 'exists:users,id'],
-            'role'    => ['required', 'exists:roles,name'],
+            'role' => ['required', 'exists:roles,name'],
         ]);
 
-        $user = \App\Models\User::findOrFail($request->user_id);
+        $user = User::findOrFail($request->user_id);
         $user->syncRoles([$request->role]);
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();

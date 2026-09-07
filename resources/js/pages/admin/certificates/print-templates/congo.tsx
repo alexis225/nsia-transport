@@ -14,6 +14,16 @@ interface Props {
     positionsOverride?: FieldPosition[] | null;
 }
 
-export default function TemplateCongo({ certificate, calibrate, positionsOverride }: Props) {
-    return <StubOverlay certificate={certificate} positions={positionsOverride ?? CONGO_POSITIONS} calibrate={calibrate}/>;
+export default function TemplateCongo({
+    certificate,
+    calibrate,
+    positionsOverride,
+}: Props) {
+    return (
+        <StubOverlay
+            certificate={certificate}
+            positions={positionsOverride ?? CONGO_POSITIONS}
+            calibrate={calibrate}
+        />
+    );
 }

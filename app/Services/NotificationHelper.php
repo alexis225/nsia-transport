@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Notification;
 use App\Models\User;
 
 /**
@@ -23,21 +24,21 @@ use App\Models\User;
 class NotificationHelper
 {
     public static function send(
-        User   $user,
+        User $user,
         string $type,
         string $title,
         string $body,
-        array  $data = []
+        array $data = []
     ): void {
-        \App\Models\Notification::send($user, $type, $title, $body, $data);
+        Notification::send($user, $type, $title, $body, $data);
     }
 
     public static function sendToMany(
         iterable $users,
-        string   $type,
-        string   $title,
-        string   $body,
-        array    $data = []
+        string $type,
+        string $title,
+        string $body,
+        array $data = []
     ): void {
         foreach ($users as $user) {
             static::send($user, $type, $title, $body, $data);

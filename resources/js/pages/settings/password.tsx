@@ -1,23 +1,23 @@
 import { Transition } from '@headlessui/react';
 import { Head, usePage } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
+import { Lock, Check, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import { Form } from '@inertiajs/react';
 import { edit } from '@/routes/profile';
 import type { BreadcrumbItem } from '@/types';
-import { Lock, Check, ShieldCheck, Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 export default function Password() {
-    const { t }    = useTranslation('settings');
+    const { t } = useTranslation('settings');
     const { t: ta } = useTranslation('auth');
     const { auth } = usePage().props as any;
-    const user     = auth?.user;
+    const user = auth?.user;
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('breadcrumb.profile'), href: edit() },
@@ -25,31 +25,60 @@ export default function Password() {
     ];
 
     const [showCurrent, setShowCurrent] = useState(false);
-    const [showNew,     setShowNew]     = useState(false);
+    const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
-    const [newPw,       setNewPw]       = useState('');
+    const [newPw, setNewPw] = useState('');
 
-    const initials = `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
-    const fullName  = user?.first_name ? `${user.first_name} ${user.last_name}` : (user?.name ?? '');
+    const initials =
+        `${user?.first_name?.[0] ?? user?.name?.[0] ?? 'U'}${user?.last_name?.[0] ?? ''}`.toUpperCase();
+    const fullName = user?.first_name
+        ? `${user.first_name} ${user.last_name}`
+        : (user?.name ?? '');
 
     // Indicateur force
     const strength = (() => {
-        if (!newPw) return 0;
+        if (!newPw) {
+            return 0;
+        }
+
         let s = 0;
-        if (newPw.length >= 8)           s++;
-        if (newPw.length >= 12)          s++;
-        if (/[A-Z]/.test(newPw))         s++;
-        if (/[0-9]/.test(newPw))         s++;
-        if (/[^A-Za-z0-9]/.test(newPw)) s++;
+
+        if (newPw.length >= 8) {
+            s++;
+        }
+
+        if (newPw.length >= 12) {
+            s++;
+        }
+
+        if (/[A-Z]/.test(newPw)) {
+            s++;
+        }
+
+        if (/[0-9]/.test(newPw)) {
+            s++;
+        }
+
+        if (/[^A-Za-z0-9]/.test(newPw)) {
+            s++;
+        }
+
         return s;
     })();
 
     const strengthLabel = strength ? ta(`password.strength.${strength}`) : '';
-    const strengthColor = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'][strength];
+    const strengthColor = [
+        '',
+        '#ef4444',
+        '#f97316',
+        '#eab308',
+        '#22c55e',
+        '#16a34a',
+    ][strength];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${t('password.title')} — NSIA Transport`}/>
+            <Head title={`${t('password.title')} — NSIA Transport`} />
 
             <style>{`
                 .pw-wrap {
@@ -164,28 +193,38 @@ export default function Password() {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="pw-wrap">
-
                     {/* ── Hero ── */}
                     <div className="pw-hero">
                         <div className="pw-avatar">{initials}</div>
                         <div className="pw-hero-info">
-                            <div className="pw-hero-name">{fullName || ta('user.fallbackName')}</div>
-                            <div className="pw-hero-sub">{t('password.heroSubtitle')}</div>
+                            <div className="pw-hero-name">
+                                {fullName || ta('user.fallbackName')}
+                            </div>
+                            <div className="pw-hero-sub">
+                                {t('password.heroSubtitle')}
+                            </div>
                         </div>
                         <div className="pw-hero-ico">
-                            <Lock size={22} color="rgba(255,255,255,0.7)"/>
+                            <Lock size={22} color="rgba(255,255,255,0.7)" />
                         </div>
                     </div>
 
                     {/* ── Formulaire mot de passe ── */}
                     <div className="pw-card">
                         <div className="pw-card-hdr">
-                            <div className="pw-card-ico" style={{ background:'#fff7ed' }}>
-                                <Lock size={17} color="#f97316"/>
+                            <div
+                                className="pw-card-ico"
+                                style={{ background: '#fff7ed' }}
+                            >
+                                <Lock size={17} color="#f97316" />
                             </div>
                             <div>
-                                <div className="pw-card-ttl">{t('password.cardTitle')}</div>
-                                <div className="pw-card-sub">{t('password.cardSubtitle')}</div>
+                                <div className="pw-card-ttl">
+                                    {t('password.cardTitle')}
+                                </div>
+                                <div className="pw-card-sub">
+                                    {t('password.cardSubtitle')}
+                                </div>
                             </div>
                         </div>
 
@@ -195,61 +234,129 @@ export default function Password() {
                                 options={{ preserveScroll: true }}
                                 className="space-y-0"
                             >
-                                {({ processing, recentlySuccessful, errors }) => (
-                                    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-
+                                {({
+                                    processing,
+                                    recentlySuccessful,
+                                    errors,
+                                }) => (
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: 16,
+                                        }}
+                                    >
                                         {recentlySuccessful && (
                                             <div className="status-ok">
-                                                <Check size={13}/> {t('password.updated')}
+                                                <Check size={13} />{' '}
+                                                {t('password.updated')}
                                             </div>
                                         )}
 
                                         {/* Mot de passe actuel */}
                                         <div className="pw-field">
-                                            <Label className="pw-label">{t('password.current')}</Label>
+                                            <Label className="pw-label">
+                                                {t('password.current')}
+                                            </Label>
                                             <div className="pw-input-wrap">
                                                 <Input
                                                     name="current_password"
-                                                    type={showCurrent ? 'text' : 'password'}
+                                                    type={
+                                                        showCurrent
+                                                            ? 'text'
+                                                            : 'password'
+                                                    }
                                                     className="h-11"
                                                     autoComplete="current-password"
                                                     placeholder="••••••••"
                                                 />
-                                                <button type="button" className="pw-eye" onClick={() => setShowCurrent(s => !s)}>
-                                                    {showCurrent ? <EyeOff size={15}/> : <Eye size={15}/>}
+                                                <button
+                                                    type="button"
+                                                    className="pw-eye"
+                                                    onClick={() =>
+                                                        setShowCurrent(
+                                                            (s) => !s,
+                                                        )
+                                                    }
+                                                >
+                                                    {showCurrent ? (
+                                                        <EyeOff size={15} />
+                                                    ) : (
+                                                        <Eye size={15} />
+                                                    )}
                                                 </button>
                                             </div>
-                                            <InputError message={errors.current_password}/>
+                                            <InputError
+                                                message={
+                                                    errors.current_password
+                                                }
+                                            />
                                         </div>
 
                                         {/* Nouveau mot de passe */}
                                         <div className="pw-field">
-                                            <Label className="pw-label">{t('password.new')}</Label>
+                                            <Label className="pw-label">
+                                                {t('password.new')}
+                                            </Label>
                                             <div className="pw-input-wrap">
                                                 <Input
                                                     name="password"
-                                                    type={showNew ? 'text' : 'password'}
+                                                    type={
+                                                        showNew
+                                                            ? 'text'
+                                                            : 'password'
+                                                    }
                                                     className="h-11"
                                                     autoComplete="new-password"
                                                     placeholder="••••••••"
-                                                    onChange={e => setNewPw(e.target.value)}
+                                                    onChange={(e) =>
+                                                        setNewPw(e.target.value)
+                                                    }
                                                 />
-                                                <button type="button" className="pw-eye" onClick={() => setShowNew(s => !s)}>
-                                                    {showNew ? <EyeOff size={15}/> : <Eye size={15}/>}
+                                                <button
+                                                    type="button"
+                                                    className="pw-eye"
+                                                    onClick={() =>
+                                                        setShowNew((s) => !s)
+                                                    }
+                                                >
+                                                    {showNew ? (
+                                                        <EyeOff size={15} />
+                                                    ) : (
+                                                        <Eye size={15} />
+                                                    )}
                                                 </button>
                                             </div>
-                                            <InputError message={errors.password}/>
+                                            <InputError
+                                                message={errors.password}
+                                            />
 
                                             {/* Indicateur de force */}
                                             {newPw && (
                                                 <>
                                                     <div className="strength-bars">
-                                                        {[1,2,3,4,5].map(i => (
-                                                            <div key={i} className="strength-bar"
-                                                                 style={{ background: i <= strength ? strengthColor : '#f1f5f9' }}/>
-                                                        ))}
+                                                        {[1, 2, 3, 4, 5].map(
+                                                            (i) => (
+                                                                <div
+                                                                    key={i}
+                                                                    className="strength-bar"
+                                                                    style={{
+                                                                        background:
+                                                                            i <=
+                                                                            strength
+                                                                                ? strengthColor
+                                                                                : '#f1f5f9',
+                                                                    }}
+                                                                />
+                                                            ),
+                                                        )}
                                                     </div>
-                                                    <span className="strength-txt" style={{ color: strengthColor }}>
+                                                    <span
+                                                        className="strength-txt"
+                                                        style={{
+                                                            color: strengthColor,
+                                                        }}
+                                                    >
                                                         {strengthLabel}
                                                     </span>
                                                 </>
@@ -259,14 +366,39 @@ export default function Password() {
                                         {/* Règles */}
                                         <div className="pw-rules">
                                             {[
-                                                { ok: newPw.length >= 8,          label: t('password.rules.length') },
-                                                { ok: /[A-Z]/.test(newPw),        label: t('password.rules.uppercase') },
-                                                { ok: /[0-9]/.test(newPw),        label: t('password.rules.digit') },
-                                                { ok: /[^A-Za-z0-9]/.test(newPw), label: t('password.rules.special') },
+                                                {
+                                                    ok: newPw.length >= 8,
+                                                    label: t(
+                                                        'password.rules.length',
+                                                    ),
+                                                },
+                                                {
+                                                    ok: /[A-Z]/.test(newPw),
+                                                    label: t(
+                                                        'password.rules.uppercase',
+                                                    ),
+                                                },
+                                                {
+                                                    ok: /[0-9]/.test(newPw),
+                                                    label: t(
+                                                        'password.rules.digit',
+                                                    ),
+                                                },
+                                                {
+                                                    ok: /[^A-Za-z0-9]/.test(
+                                                        newPw,
+                                                    ),
+                                                    label: t(
+                                                        'password.rules.special',
+                                                    ),
+                                                },
                                             ].map(({ ok, label }) => (
-                                                <div key={label} className={`pw-rule ${ok ? 'ok' : ''}`}>
-                                                    <span className="rule-dot"/>
-                                                    {ok && <Check size={10}/>}
+                                                <div
+                                                    key={label}
+                                                    className={`pw-rule ${ok ? 'ok' : ''}`}
+                                                >
+                                                    <span className="rule-dot" />
+                                                    {ok && <Check size={10} />}
                                                     {label}
                                                 </div>
                                             ))}
@@ -274,29 +406,53 @@ export default function Password() {
 
                                         {/* Confirmation */}
                                         <div className="pw-field">
-                                            <Label className="pw-label">{t('password.confirm')}</Label>
+                                            <Label className="pw-label">
+                                                {t('password.confirm')}
+                                            </Label>
                                             <div className="pw-input-wrap">
                                                 <Input
                                                     name="password_confirmation"
-                                                    type={showConfirm ? 'text' : 'password'}
+                                                    type={
+                                                        showConfirm
+                                                            ? 'text'
+                                                            : 'password'
+                                                    }
                                                     className="h-11"
                                                     autoComplete="new-password"
                                                     placeholder="••••••••"
                                                 />
-                                                <button type="button" className="pw-eye" onClick={() => setShowConfirm(s => !s)}>
-                                                    {showConfirm ? <EyeOff size={15}/> : <Eye size={15}/>}
+                                                <button
+                                                    type="button"
+                                                    className="pw-eye"
+                                                    onClick={() =>
+                                                        setShowConfirm(
+                                                            (s) => !s,
+                                                        )
+                                                    }
+                                                >
+                                                    {showConfirm ? (
+                                                        <EyeOff size={15} />
+                                                    ) : (
+                                                        <Eye size={15} />
+                                                    )}
                                                 </button>
                                             </div>
-                                            <InputError message={errors.password_confirmation}/>
+                                            <InputError
+                                                message={
+                                                    errors.password_confirmation
+                                                }
+                                            />
                                         </div>
 
                                         {/* Submit */}
                                         <div className="flex items-center gap-3 pt-1">
                                             <Button
                                                 disabled={processing}
-                                                className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5"
+                                                className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
                                             >
-                                                {processing ? t('password.submitting') : t('password.submit')}
+                                                {processing
+                                                    ? t('password.submitting')
+                                                    : t('password.submit')}
                                             </Button>
                                             <Transition
                                                 show={recentlySuccessful}
@@ -305,8 +461,9 @@ export default function Password() {
                                                 leave="transition ease-in-out duration-200"
                                                 leaveTo="opacity-0"
                                             >
-                                                <p className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
-                                                    <Check size={13}/> {t('profile.saved')}
+                                                <p className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+                                                    <Check size={13} />{' '}
+                                                    {t('profile.saved')}
                                                 </p>
                                             </Transition>
                                         </div>
@@ -319,7 +476,7 @@ export default function Password() {
                     {/* ── Conseils sécurité ── */}
                     <div className="tips-card">
                         <div className="tips-ttl">
-                            <ShieldCheck size={15}/> {t('password.tips.title')}
+                            <ShieldCheck size={15} /> {t('password.tips.title')}
                         </div>
                         <div className="tips-list">
                             {[
@@ -329,13 +486,12 @@ export default function Password() {
                                 t('password.tips.rotate'),
                             ].map((tip, i) => (
                                 <div key={i} className="tip">
-                                    <span className="tip-dot"/>
+                                    <span className="tip-dot" />
                                     {tip}
                                 </div>
                             ))}
                         </div>
                     </div>
-
                 </div>
             </div>
         </AppLayout>

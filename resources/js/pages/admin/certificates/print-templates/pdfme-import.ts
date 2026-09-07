@@ -28,9 +28,14 @@ export function isPdfmeExport(value: unknown): value is PdfmeExport {
     if (typeof value !== 'object' || value === null) {
         return false;
     }
+
     const v = value as Record<string, unknown>;
 
-    return Array.isArray(v.schemas) && typeof v.basePdf === 'string' && v.basePdf.startsWith('data:application/pdf');
+    return (
+        Array.isArray(v.schemas) &&
+        typeof v.basePdf === 'string' &&
+        v.basePdf.startsWith('data:application/pdf')
+    );
 }
 
 export interface PdfmeConversionResult {
@@ -53,7 +58,10 @@ export function convertPdfmeExport(pdfme: PdfmeExport): PdfmeConversionResult {
             continue;
         }
 
-        const align = item.alignment === 'center' || item.alignment === 'right' ? item.alignment : 'left';
+        const align =
+            item.alignment === 'center' || item.alignment === 'right'
+                ? item.alignment
+                : 'left';
 
         positions.push({
             key,
@@ -62,7 +70,9 @@ export function convertPdfmeExport(pdfme: PdfmeExport): PdfmeConversionResult {
             width: item.width,
             fontSize: item.fontSize,
             align,
-            bold: item.fontName?.toLowerCase().includes('bold') ? true : undefined,
+            bold: item.fontName?.toLowerCase().includes('bold')
+                ? true
+                : undefined,
         });
     }
 
@@ -80,15 +90,24 @@ export function convertPdfmeExport(pdfme: PdfmeExport): PdfmeConversionResult {
 // (type "text" simple, cf. souches calibrées à la main). On essaie les
 // deux : "variables" est déjà la clé nue, les autres doivent matcher {cle}.
 function extractKey(item: PdfmeSchemaItem): string | null {
-    if (Array.isArray(item.variables) && item.variables.length > 0 && typeof item.variables[0] === 'string') {
+    if (
+        Array.isArray(item.variables) &&
+        item.variables.length > 0 &&
+        typeof item.variables[0] === 'string'
+    ) {
         return item.variables[0];
     }
+
     for (const raw of [item.name, item.text, item.content]) {
         if (typeof raw === 'string') {
             const m = raw.match(/^\{(\w+)\}$/);
-            if (m) return m[1];
+
+            if (m) {
+                return m[1];
+            }
         }
     }
+
     return null;
 }
 

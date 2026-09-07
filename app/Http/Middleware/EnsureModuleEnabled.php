@@ -33,7 +33,7 @@ class EnsureModuleEnabled
             if ($request->wantsJson() || $request->header('X-Inertia')) {
                 return response()->json([
                     'message' => "Ce module n'est pas activé pour votre filiale.",
-                    'code'    => 'MODULE_DISABLED',
+                    'code' => 'MODULE_DISABLED',
                 ], 403);
             }
 

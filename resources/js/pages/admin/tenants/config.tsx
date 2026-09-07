@@ -1,6 +1,13 @@
 import { Head, useForm } from '@inertiajs/react';
+import {
+    Settings,
+    Check,
+    Shield,
+    Bell,
+    Database,
+    ToggleLeft,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Settings, Check, Shield, Bell, Database, ToggleLeft } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,34 +16,93 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 interface Tenant {
-    id: string; name: string; code: string; currency_code: string;
+    id: string;
+    name: string;
+    code: string;
+    currency_code: string;
     modules: Record<string, boolean> | null;
     subscription_limit_config: {
-        nn300_limit:          number;
-        alert_threshold:      number;
+        nn300_limit: number;
+        alert_threshold: number;
         block_at_100_percent: boolean;
     };
     settings: {
         notifications_enabled: boolean;
-        email_notifications:   boolean;
-        sms_notifications:     boolean;
-        max_users:             number;
-        max_contracts:         number;
-        max_certificates:      number;
-        retention_days:        number;
+        email_notifications: boolean;
+        sms_notifications: boolean;
+        max_users: number;
+        max_contracts: number;
+        max_certificates: number;
+        retention_days: number;
     };
 }
-interface Props { tenant: Tenant; moduleRegistry: Record<string, string>; }
+interface Props {
+    tenant: Tenant;
+    moduleRegistry: Record<string, string>;
+}
 
-function Toggle({ value, onChange, label, desc }: { value: boolean; onChange: () => void; label: string; desc?: string }) {
+function Toggle({
+    value,
+    onChange,
+    label,
+    desc,
+}: {
+    value: boolean;
+    onChange: () => void;
+    label: string;
+    desc?: string;
+}) {
     return (
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, cursor:'pointer' }} onClick={onChange}>
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                background: '#f8fafc',
+                border: '1.5px solid #e2e8f0',
+                borderRadius: 9,
+                cursor: 'pointer',
+            }}
+            onClick={onChange}
+        >
             <div>
-                <div style={{ fontSize:13, fontWeight:500, color:'#1e293b' }}>{label}</div>
-                {desc && <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>{desc}</div>}
+                <div
+                    style={{ fontSize: 13, fontWeight: 500, color: '#1e293b' }}
+                >
+                    {label}
+                </div>
+                {desc && (
+                    <div
+                        style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}
+                    >
+                        {desc}
+                    </div>
+                )}
             </div>
-            <div style={{ width:40, height:22, borderRadius:11, background: value ? '#1e3a8a' : '#e2e8f0', position:'relative', flexShrink:0, transition:'background .2s' }}>
-                <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', position:'absolute', top:3, left: value ? 21 : 3, transition:'left .2s' }}/>
+            <div
+                style={{
+                    width: 40,
+                    height: 22,
+                    borderRadius: 11,
+                    background: value ? '#1e3a8a' : '#e2e8f0',
+                    position: 'relative',
+                    flexShrink: 0,
+                    transition: 'background .2s',
+                }}
+            >
+                <div
+                    style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        background: '#fff',
+                        position: 'absolute',
+                        top: 3,
+                        left: value ? 21 : 3,
+                        transition: 'left .2s',
+                    }}
+                />
             </div>
         </div>
     );
@@ -46,27 +112,39 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
     const { t } = useTranslation('tenants');
     const { t: tc } = useTranslation('common');
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('config.breadcrumb.tenants'),     href: '/admin/tenants' },
-        { title: tenant.name,    href: route('admin.tenants.show', { tenant: tenant.id }) },
-        { title: t('config.breadcrumb.config'), href: route('admin.tenants.config', { tenant: tenant.id }) },
+        { title: t('config.breadcrumb.tenants'), href: '/admin/tenants' },
+        {
+            title: tenant.name,
+            href: route('admin.tenants.show', { tenant: tenant.id }),
+        },
+        {
+            title: t('config.breadcrumb.config'),
+            href: route('admin.tenants.config', { tenant: tenant.id }),
+        },
     ];
 
-    const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
-        subscription_limit_config: {
-            nn300_limit:          tenant.subscription_limit_config?.nn300_limit          ?? 0,
-            alert_threshold:      tenant.subscription_limit_config?.alert_threshold      ?? 80,
-            block_at_100_percent: tenant.subscription_limit_config?.block_at_100_percent ?? true,
-        },
-        settings: {
-            notifications_enabled: tenant.settings?.notifications_enabled ?? true,
-            email_notifications:   tenant.settings?.email_notifications   ?? true,
-            sms_notifications:     tenant.settings?.sms_notifications     ?? false,
-            max_users:             tenant.settings?.max_users             ?? 0,
-            max_contracts:         tenant.settings?.max_contracts         ?? 0,
-            max_certificates:      tenant.settings?.max_certificates      ?? 0,
-            retention_days:        tenant.settings?.retention_days        ?? 730,
-        },
-    });
+    const { data, setData, put, processing, errors, recentlySuccessful } =
+        useForm({
+            subscription_limit_config: {
+                nn300_limit: tenant.subscription_limit_config?.nn300_limit ?? 0,
+                alert_threshold:
+                    tenant.subscription_limit_config?.alert_threshold ?? 80,
+                block_at_100_percent:
+                    tenant.subscription_limit_config?.block_at_100_percent ??
+                    true,
+            },
+            settings: {
+                notifications_enabled:
+                    tenant.settings?.notifications_enabled ?? true,
+                email_notifications:
+                    tenant.settings?.email_notifications ?? true,
+                sms_notifications: tenant.settings?.sms_notifications ?? false,
+                max_users: tenant.settings?.max_users ?? 0,
+                max_contracts: tenant.settings?.max_contracts ?? 0,
+                max_certificates: tenant.settings?.max_certificates ?? 0,
+                retention_days: tenant.settings?.retention_days ?? 730,
+            },
+        });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -84,12 +162,14 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
 
     const submitModules = (e: React.FormEvent) => {
         e.preventDefault();
-        modulesForm.patch(route('admin.tenants.modules', { tenant: tenant.id }));
+        modulesForm.patch(
+            route('admin.tenants.modules', { tenant: tenant.id }),
+        );
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('config.title', { name: tenant.name })}/>
+            <Head title={t('config.title', { name: tenant.name })} />
             <style>{`
                 .tc-wrap{width:100%;max-width:860px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .tc-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:24px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
@@ -115,13 +195,18 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="tc-wrap">
-
                     {/* Hero */}
                     <div className="tc-hero">
-                        <div className="tc-hero-ico"><Settings size={22} color="rgba(255,255,255,0.8)"/></div>
+                        <div className="tc-hero-ico">
+                            <Settings size={22} color="rgba(255,255,255,0.8)" />
+                        </div>
                         <div className="tc-hero-info">
-                            <div className="tc-hero-name">{t('config.hero.title', { name: tenant.name })}</div>
-                            <div className="tc-hero-sub">{t('config.hero.subtitle')}</div>
+                            <div className="tc-hero-name">
+                                {t('config.hero.title', { name: tenant.name })}
+                            </div>
+                            <div className="tc-hero-sub">
+                                {t('config.hero.subtitle')}
+                            </div>
                         </div>
                     </div>
 
@@ -129,94 +214,203 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                     <form onSubmit={submitModules}>
                         <div className="tc-card">
                             <div className="tc-card-hdr">
-                                <div className="tc-card-ico" style={{ background:'#fdf4ff' }}><ToggleLeft size={17} color="#a21caf"/></div>
+                                <div
+                                    className="tc-card-ico"
+                                    style={{ background: '#fdf4ff' }}
+                                >
+                                    <ToggleLeft size={17} color="#a21caf" />
+                                </div>
                                 <div>
-                                    <div className="tc-card-ttl">{t('config.modules.title')}</div>
-                                    <div className="tc-card-sub">{t('config.modules.subtitle')}</div>
+                                    <div className="tc-card-ttl">
+                                        {t('config.modules.title')}
+                                    </div>
+                                    <div className="tc-card-sub">
+                                        {t('config.modules.subtitle')}
+                                    </div>
                                 </div>
                             </div>
                             <div className="tc-card-body">
-                                {modulesForm.recentlySuccessful && <div className="status-ok"><Check size={13}/>{t('config.modules.saved')}</div>}
+                                {modulesForm.recentlySuccessful && (
+                                    <div className="status-ok">
+                                        <Check size={13} />
+                                        {t('config.modules.saved')}
+                                    </div>
+                                )}
 
-                                {moduleKeys.map(key => (
+                                {moduleKeys.map((key) => (
                                     <Toggle
                                         key={key}
                                         value={modulesForm.data.modules[key]}
-                                        onChange={() => modulesForm.setData('modules', {
-                                            ...modulesForm.data.modules,
-                                            [key]: !modulesForm.data.modules[key],
-                                        })}
+                                        onChange={() =>
+                                            modulesForm.setData('modules', {
+                                                ...modulesForm.data.modules,
+                                                [key]: !modulesForm.data
+                                                    .modules[key],
+                                            })
+                                        }
                                         label={moduleRegistry[key]}
                                     />
                                 ))}
 
-                                <div style={{ display:'flex', gap:8, paddingTop:4 }}>
-                                    <Button type="submit" disabled={modulesForm.processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                        {modulesForm.processing ? t('config.modules.saving') : <><Check size={14}/> {t('config.modules.save')}</>}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        gap: 8,
+                                        paddingTop: 4,
+                                    }}
+                                >
+                                    <Button
+                                        type="submit"
+                                        disabled={modulesForm.processing}
+                                        className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                                    >
+                                        {modulesForm.processing ? (
+                                            t('config.modules.saving')
+                                        ) : (
+                                            <>
+                                                <Check size={14} />{' '}
+                                                {t('config.modules.save')}
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             </div>
                         </div>
                     </form>
 
-                    <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
-
+                    <form
+                        onSubmit={submit}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
+                    >
                         {/* ── Plafond NN300 ── */}
                         <div className="tc-card">
                             <div className="tc-card-hdr">
-                                <div className="tc-card-ico" style={{ background:'#fff7ed' }}><Shield size={17} color="#f97316"/></div>
+                                <div
+                                    className="tc-card-ico"
+                                    style={{ background: '#fff7ed' }}
+                                >
+                                    <Shield size={17} color="#f97316" />
+                                </div>
                                 <div>
-                                    <div className="tc-card-ttl">{t('config.nn300.title')}</div>
-                                    <div className="tc-card-sub">{t('config.nn300.subtitle')}</div>
+                                    <div className="tc-card-ttl">
+                                        {t('config.nn300.title')}
+                                    </div>
+                                    <div className="tc-card-sub">
+                                        {t('config.nn300.subtitle')}
+                                    </div>
                                 </div>
                             </div>
                             <div className="tc-card-body">
-                                {recentlySuccessful && <div className="status-ok"><Check size={13}/>{t('config.nn300.saved')}</div>}
+                                {recentlySuccessful && (
+                                    <div className="status-ok">
+                                        <Check size={13} />
+                                        {t('config.nn300.saved')}
+                                    </div>
+                                )}
 
                                 <div className="form-grid">
                                     {/* Plafond NN300 */}
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">{t('config.nn300.limitLabel')}</Label>
+                                        <Label className="tc-label">
+                                            {t('config.nn300.limitLabel')}
+                                        </Label>
                                         <div className="input-suffix">
                                             <Input
                                                 className="h-11"
-                                                type="number" min={0}
-                                                value={data.subscription_limit_config.nn300_limit}
-                                                onChange={e => setData('subscription_limit_config', {
-                                                    ...data.subscription_limit_config,
-                                                    nn300_limit: Number(e.target.value),
-                                                })}
+                                                type="number"
+                                                min={0}
+                                                value={
+                                                    data
+                                                        .subscription_limit_config
+                                                        .nn300_limit
+                                                }
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'subscription_limit_config',
+                                                        {
+                                                            ...data.subscription_limit_config,
+                                                            nn300_limit: Number(
+                                                                e.target.value,
+                                                            ),
+                                                        },
+                                                    )
+                                                }
                                             />
-                                            <span className="suffix-label">{tenant.currency_code}</span>
+                                            <span className="suffix-label">
+                                                {tenant.currency_code}
+                                            </span>
                                         </div>
-                                        <InputError message={errors['subscription_limit_config.nn300_limit']}/>
+                                        <InputError
+                                            message={
+                                                errors[
+                                                    'subscription_limit_config.nn300_limit'
+                                                ]
+                                            }
+                                        />
                                     </div>
 
                                     {/* Seuil d'alerte */}
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">{t('config.nn300.thresholdLabel')}</Label>
+                                        <Label className="tc-label">
+                                            {t('config.nn300.thresholdLabel')}
+                                        </Label>
                                         <div className="input-suffix">
                                             <Input
                                                 className="h-11"
-                                                type="number" min={1} max={99}
-                                                value={data.subscription_limit_config.alert_threshold}
-                                                onChange={e => setData('subscription_limit_config', {
-                                                    ...data.subscription_limit_config,
-                                                    alert_threshold: Number(e.target.value),
-                                                })}
+                                                type="number"
+                                                min={1}
+                                                max={99}
+                                                value={
+                                                    data
+                                                        .subscription_limit_config
+                                                        .alert_threshold
+                                                }
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'subscription_limit_config',
+                                                        {
+                                                            ...data.subscription_limit_config,
+                                                            alert_threshold:
+                                                                Number(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                        },
+                                                    )
+                                                }
                                             />
-                                            <span className="suffix-label">%</span>
+                                            <span className="suffix-label">
+                                                %
+                                            </span>
                                         </div>
-                                        <span style={{ fontSize:11, color:'#94a3b8' }}>{t('config.nn300.thresholdHint')}</span>
+                                        <span
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#94a3b8',
+                                            }}
+                                        >
+                                            {t('config.nn300.thresholdHint')}
+                                        </span>
                                     </div>
                                 </div>
 
                                 <Toggle
-                                    value={data.subscription_limit_config.block_at_100_percent}
-                                    onChange={() => setData('subscription_limit_config', {
-                                        ...data.subscription_limit_config,
-                                        block_at_100_percent: !data.subscription_limit_config.block_at_100_percent,
-                                    })}
+                                    value={
+                                        data.subscription_limit_config
+                                            .block_at_100_percent
+                                    }
+                                    onChange={() =>
+                                        setData('subscription_limit_config', {
+                                            ...data.subscription_limit_config,
+                                            block_at_100_percent:
+                                                !data.subscription_limit_config
+                                                    .block_at_100_percent,
+                                        })
+                                    }
                                     label={t('config.nn300.blockLabel')}
                                     desc={t('config.nn300.blockDesc')}
                                 />
@@ -226,28 +420,60 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                         {/* ── Notifications ── */}
                         <div className="tc-card">
                             <div className="tc-card-hdr">
-                                <div className="tc-card-ico" style={{ background:'#eff6ff' }}><Bell size={17} color="#3b82f6"/></div>
+                                <div
+                                    className="tc-card-ico"
+                                    style={{ background: '#eff6ff' }}
+                                >
+                                    <Bell size={17} color="#3b82f6" />
+                                </div>
                                 <div>
-                                    <div className="tc-card-ttl">{t('config.notifications.title')}</div>
-                                    <div className="tc-card-sub">{t('config.notifications.subtitle')}</div>
+                                    <div className="tc-card-ttl">
+                                        {t('config.notifications.title')}
+                                    </div>
+                                    <div className="tc-card-sub">
+                                        {t('config.notifications.subtitle')}
+                                    </div>
                                 </div>
                             </div>
                             <div className="tc-card-body">
                                 <Toggle
                                     value={data.settings.notifications_enabled}
-                                    onChange={() => setData('settings', { ...data.settings, notifications_enabled: !data.settings.notifications_enabled })}
-                                    label={t('config.notifications.enabledLabel')}
+                                    onChange={() =>
+                                        setData('settings', {
+                                            ...data.settings,
+                                            notifications_enabled:
+                                                !data.settings
+                                                    .notifications_enabled,
+                                        })
+                                    }
+                                    label={t(
+                                        'config.notifications.enabledLabel',
+                                    )}
                                     desc={t('config.notifications.enabledDesc')}
                                 />
                                 <Toggle
                                     value={data.settings.email_notifications}
-                                    onChange={() => setData('settings', { ...data.settings, email_notifications: !data.settings.email_notifications })}
+                                    onChange={() =>
+                                        setData('settings', {
+                                            ...data.settings,
+                                            email_notifications:
+                                                !data.settings
+                                                    .email_notifications,
+                                        })
+                                    }
                                     label={t('config.notifications.emailLabel')}
                                     desc={t('config.notifications.emailDesc')}
                                 />
                                 <Toggle
                                     value={data.settings.sms_notifications}
-                                    onChange={() => setData('settings', { ...data.settings, sms_notifications: !data.settings.sms_notifications })}
+                                    onChange={() =>
+                                        setData('settings', {
+                                            ...data.settings,
+                                            sms_notifications:
+                                                !data.settings
+                                                    .sms_notifications,
+                                        })
+                                    }
                                     label={t('config.notifications.smsLabel')}
                                     desc={t('config.notifications.smsDesc')}
                                 />
@@ -257,60 +483,154 @@ export default function TenantConfig({ tenant, moduleRegistry }: Props) {
                         {/* ── Limites ── */}
                         <div className="tc-card">
                             <div className="tc-card-hdr">
-                                <div className="tc-card-ico" style={{ background:'#f0fdf4' }}><Database size={17} color="#16a34a"/></div>
+                                <div
+                                    className="tc-card-ico"
+                                    style={{ background: '#f0fdf4' }}
+                                >
+                                    <Database size={17} color="#16a34a" />
+                                </div>
                                 <div>
-                                    <div className="tc-card-ttl">{t('config.limits.title')}</div>
-                                    <div className="tc-card-sub">{t('config.limits.subtitle')}</div>
+                                    <div className="tc-card-ttl">
+                                        {t('config.limits.title')}
+                                    </div>
+                                    <div className="tc-card-sub">
+                                        {t('config.limits.subtitle')}
+                                    </div>
                                 </div>
                             </div>
                             <div className="tc-card-body">
                                 <div className="form-grid">
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">{t('config.limits.maxUsers')}</Label>
-                                        <Input className="h-11" type="number" min={0}
-                                               value={data.settings.max_users}
-                                               onChange={e => setData('settings', { ...data.settings, max_users: Number(e.target.value) })}
-                                               placeholder={t('config.limits.unlimitedPlaceholder')}/>
+                                        <Label className="tc-label">
+                                            {t('config.limits.maxUsers')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            type="number"
+                                            min={0}
+                                            value={data.settings.max_users}
+                                            onChange={(e) =>
+                                                setData('settings', {
+                                                    ...data.settings,
+                                                    max_users: Number(
+                                                        e.target.value,
+                                                    ),
+                                                })
+                                            }
+                                            placeholder={t(
+                                                'config.limits.unlimitedPlaceholder',
+                                            )}
+                                        />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">{t('config.limits.maxContracts')}</Label>
-                                        <Input className="h-11" type="number" min={0}
-                                               value={data.settings.max_contracts}
-                                               onChange={e => setData('settings', { ...data.settings, max_contracts: Number(e.target.value) })}
-                                               placeholder={t('config.limits.unlimitedPlaceholder')}/>
+                                        <Label className="tc-label">
+                                            {t('config.limits.maxContracts')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            type="number"
+                                            min={0}
+                                            value={data.settings.max_contracts}
+                                            onChange={(e) =>
+                                                setData('settings', {
+                                                    ...data.settings,
+                                                    max_contracts: Number(
+                                                        e.target.value,
+                                                    ),
+                                                })
+                                            }
+                                            placeholder={t(
+                                                'config.limits.unlimitedPlaceholder',
+                                            )}
+                                        />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">{t('config.limits.maxCertificates')}</Label>
-                                        <Input className="h-11" type="number" min={0}
-                                               value={data.settings.max_certificates}
-                                               onChange={e => setData('settings', { ...data.settings, max_certificates: Number(e.target.value) })}
-                                               placeholder={t('config.limits.unlimitedPlaceholder')}/>
+                                        <Label className="tc-label">
+                                            {t('config.limits.maxCertificates')}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            type="number"
+                                            min={0}
+                                            value={
+                                                data.settings.max_certificates
+                                            }
+                                            onChange={(e) =>
+                                                setData('settings', {
+                                                    ...data.settings,
+                                                    max_certificates: Number(
+                                                        e.target.value,
+                                                    ),
+                                                })
+                                            }
+                                            placeholder={t(
+                                                'config.limits.unlimitedPlaceholder',
+                                            )}
+                                        />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="tc-label">{t('config.limits.retentionDays')}</Label>
+                                        <Label className="tc-label">
+                                            {t('config.limits.retentionDays')}
+                                        </Label>
                                         <div className="input-suffix">
-                                            <Input className="h-11" type="number" min={30}
-                                                   value={data.settings.retention_days}
-                                                   onChange={e => setData('settings', { ...data.settings, retention_days: Number(e.target.value) })}/>
-                                            <span className="suffix-label">{t('config.limits.daysSuffix')}</span>
+                                            <Input
+                                                className="h-11"
+                                                type="number"
+                                                min={30}
+                                                value={
+                                                    data.settings.retention_days
+                                                }
+                                                onChange={(e) =>
+                                                    setData('settings', {
+                                                        ...data.settings,
+                                                        retention_days: Number(
+                                                            e.target.value,
+                                                        ),
+                                                    })
+                                                }
+                                            />
+                                            <span className="suffix-label">
+                                                {t('config.limits.daysSuffix')}
+                                            </span>
                                         </div>
-                                        <span style={{ fontSize:11, color:'#94a3b8' }}>{t('config.limits.retentionHint')}</span>
+                                        <span
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#94a3b8',
+                                            }}
+                                        >
+                                            {t('config.limits.retentionHint')}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Actions */}
-                        <div style={{ display:'flex', gap:8 }}>
-                            <Button type="submit" disabled={processing} className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-5">
-                                {processing ? t('config.actions.saving') : <><Check size={14}/> {t('config.actions.save')}</>}
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                            >
+                                {processing ? (
+                                    t('config.actions.saving')
+                                ) : (
+                                    <>
+                                        <Check size={14} />{' '}
+                                        {t('config.actions.save')}
+                                    </>
+                                )}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => window.history.back()}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => window.history.back()}
+                            >
                                 {tc('actions.cancel')}
                             </Button>
                         </div>
                     </form>
-
                 </div>
             </div>
         </AppLayout>

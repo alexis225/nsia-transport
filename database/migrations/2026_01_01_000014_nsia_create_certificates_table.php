@@ -26,19 +26,19 @@ return new class extends Migration
 
             // ── Liens principaux ──────────────────────────────
             $table->foreignUuid('tenant_id')
-                  ->constrained('tenants');
+                ->constrained('tenants');
 
             $table->foreignUuid('contract_id')
-                  ->constrained('insurance_contracts')
-                  ->cascadeOnDelete();
+                ->constrained('insurance_contracts')
+                ->cascadeOnDelete();
 
             $table->foreignUuid('template_id')
-                  ->nullable()
-                  ->constrained('certificate_templates')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('certificate_templates')
+                ->nullOnDelete();
 
             // ── Duplicata — US-032 ────────────────────────────
-           $table->uuid('parent_id')->nullable();
+            $table->uuid('parent_id')->nullable();
             // Type : original | duplicata
             $table->string('document_type', 20)->default('original')->after('parent_id');
             // original | duplicata
@@ -48,11 +48,11 @@ return new class extends Migration
             $table->timestamp('reissued_at')->nullable()->after('duplicate_count');
             // Qui a demandé le duplicata
             $table->foreignUuid('reissued_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete()
-                  ->after('reissued_at');
- 
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete()
+                ->after('reissued_at');
+
             // Motif de réédition
             $table->text('reissue_reason')->nullable()->after('reissued_by');
             // ── Numérotation ──────────────────────────────────
@@ -118,9 +118,9 @@ return new class extends Migration
 
             // ── Validation ────────────────────────────────────
             $table->foreignUuid('issued_by')->nullable()
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->foreignUuid('submitted_by')->nullable()
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->text('validation_notes')->nullable();
 
             // ── PDF ───────────────────────────────────────────
@@ -133,7 +133,7 @@ return new class extends Migration
             $table->timestamp('last_verified_at')->nullable();
             // ── Méta ──────────────────────────────────────────
             $table->foreignUuid('created_by')->nullable()
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 
@@ -162,17 +162,17 @@ return new class extends Migration
             ON certificates(tenant_id, submitted_at DESC)
             WHERE status = 'SUBMITTED'");
 
-        DB::statement("CREATE INDEX idx_cert_number
-            ON certificates(certificate_number)");
-            
-        DB::statement("CREATE INDEX idx_cert_qr_token
+        DB::statement('CREATE INDEX idx_cert_number
+            ON certificates(certificate_number)');
+
+        DB::statement('CREATE INDEX idx_cert_qr_token
             ON certificates(qr_token)
-            WHERE qr_token IS NOT NULL");
+            WHERE qr_token IS NOT NULL');
 
         DB::statement("CREATE INDEX idx_cert_duplicata
             ON certificates(parent_id)
             WHERE document_type = 'duplicata'");
-        
+
         // ── FK auto-référentielle (après création de la table) ─
         Schema::table('certificates', function (Blueprint $table) {
             $table->foreign('parent_id')->references('id')->on('certificates')->nullOnDelete();

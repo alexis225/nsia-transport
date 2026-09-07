@@ -1,11 +1,19 @@
 export interface ExpeditionItem {
-    marks: string; package_numbers: string; package_count: number;
-    weight: string; nature: string; packaging: string; insured_value: number;
+    marks: string;
+    package_numbers: string;
+    package_count: number;
+    weight: string;
+    nature: string;
+    packaging: string;
+    insured_value: number;
 }
 
 export interface PrimeLine {
-    key: string; label: string; label_en: string | null;
-    rate: number; amount: number;
+    key: string;
+    label: string;
+    label_en: string | null;
+    rate: number;
+    amount: number;
 }
 
 export interface TenantSettings {
@@ -23,8 +31,11 @@ export interface TenantSettings {
 }
 
 export interface CertificateTenant {
-    id: string; name: string; code: string;
-    country_code: string; currency_code: string;
+    id: string;
+    name: string;
+    code: string;
+    country_code: string;
+    currency_code: string;
     logo_path: string | null;
     settings: TenantSettings | null;
 }
@@ -70,21 +81,42 @@ export interface CertificateForPrint {
 
 /* ── Helpers partagés ── */
 export function fmt(n: string | number | null, currency = ''): string {
-    if (n === null || n === undefined || n === '') return '';
+    if (n === null || n === undefined || n === '') {
+        return '';
+    }
+
     const val = Number(n);
-    if (isNaN(val)) return String(n);
-    return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val)
-        + (currency ? ' ' + currency : '');
+
+    if (isNaN(val)) {
+        return String(n);
+    }
+
+    return (
+        new Intl.NumberFormat('fr-FR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(val) + (currency ? ' ' + currency : '')
+    );
 }
 
 export function fmtRate(n: number | null): string {
     // Un taux à 0% (ex. surprime non appliquée) est une valeur réelle à
     // afficher, pas une valeur absente — seul null/undefined l'est.
-    if (n === null || n === undefined) return '';
+    if (n === null || n === undefined) {
+        return '';
+    }
+
     return n.toFixed(4).replace(/\.?0+$/, '') + ' %';
 }
 
 export function fmtDate(d: string | null): string {
-    if (!d) return '';
-    return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    if (!d) {
+        return '';
+    }
+
+    return new Date(d).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
 }

@@ -1,39 +1,40 @@
 <?php
 
 use App\Http\Controllers\Admin\ApprovalWorkflowController;
+use App\Http\Controllers\Admin\AsyncExportController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrokerController;
 use App\Http\Controllers\Admin\CertificateController;
 use App\Http\Controllers\Admin\CertificatePrintTemplateController;
+use App\Http\Controllers\Admin\CertificateReportController;
 use App\Http\Controllers\Admin\CertificateRequestController;
+use App\Http\Controllers\Admin\CertificateSearchController;
 use App\Http\Controllers\Admin\CertificateTemplateController;
+use App\Http\Controllers\Admin\CertificateVerifyController;
+use App\Http\Controllers\Admin\CoinsurersController;
+use App\Http\Controllers\Admin\CommissionController;
 use App\Http\Controllers\Admin\ContractAmendmentController;
 use App\Http\Controllers\Admin\ContractLimitController;
-use App\Http\Controllers\Admin\DelegationController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\CertificateReportController;
-use App\Http\Controllers\Admin\AsyncExportController;
-use App\Http\Controllers\Admin\CertificateSearchController;
 use App\Http\Controllers\Admin\ContractReportController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DelegationController;
 use App\Http\Controllers\Admin\DtagDashboardController;
+use App\Http\Controllers\Admin\ExpertController;
+use App\Http\Controllers\Admin\GuceCertificateController;
+use App\Http\Controllers\Admin\InsuranceContractController;
 use App\Http\Controllers\Admin\IntermediaryReportController;
 use App\Http\Controllers\Admin\IpBlacklistController;
 use App\Http\Controllers\Admin\KpiDashboardController;
-use App\Http\Controllers\Admin\InsuranceContractController;
+use App\Http\Controllers\Admin\NotificationCenterController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\ReferenceController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\TaxRuleController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\MfaSetupController;
 use App\Http\Controllers\Auth\SocialAuthController;
-use App\Http\Controllers\Admin\CertificateVerifyController;
-use App\Http\Controllers\Admin\CoinsurersController;
-use App\Http\Controllers\Admin\CommissionController;
-use App\Http\Controllers\Admin\ExpertController;
-use App\Http\Controllers\Admin\NotificationCenterController;
-use App\Http\Controllers\Admin\GuceCertificateController;
-use App\Http\Controllers\Admin\TaxRuleController;
 use App\Http\Controllers\Partner\CertificateRequestController as PartnerCertificateRequestController;
 use App\Http\Controllers\Partner\PartnerDashboardController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -44,6 +45,7 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('admin.dashboard');
     }
+
     return redirect()->route('login');
 })->name('home');
 
@@ -55,25 +57,24 @@ Route::get('/dashboard', function () {
     if (! auth()->check()) {
         return redirect()->route('login');
     }
+
     return redirect()->route('admin.dashboard');
 })->name('dashboard');
 
-
-
 // ── Zone authentifiée ────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group(function () {
-    Route::prefix('admin/commissions')->name('admin.commissions.')->middleware('module:commissions')->group(function(){
-        Route::get('/rules',                 [CommissionController::class, 'rules'])      ->name('rules');
-        Route::post('/rules',                [CommissionController::class, 'storeRule'])  ->name('rules.store');
-        Route::patch('/rules/{rule}/toggle', [CommissionController::class, 'toggleRule']) ->name('rules.toggle');
-        Route::get('/bordereau',             [CommissionController::class, 'bordereau'])  ->name('bordereau');
-        Route::get('/export/{format}',       [CommissionController::class, 'export'])     ->name('export');
+    Route::prefix('admin/commissions')->name('admin.commissions.')->middleware('module:commissions')->group(function () {
+        Route::get('/rules', [CommissionController::class, 'rules'])->name('rules');
+        Route::post('/rules', [CommissionController::class, 'storeRule'])->name('rules.store');
+        Route::patch('/rules/{rule}/toggle', [CommissionController::class, 'toggleRule'])->name('rules.toggle');
+        Route::get('/bordereau', [CommissionController::class, 'bordereau'])->name('bordereau');
+        Route::get('/export/{format}', [CommissionController::class, 'export'])->name('export');
 
     });
     Route::prefix('admin/taxes')->name('admin.taxes.')->middleware('module:taxes')->group(function () {
-        Route::get('/rules',                 [TaxRuleController::class, 'rules'])      ->middleware('permission:referential.view')->name('rules');
-        Route::post('/rules',                [TaxRuleController::class, 'storeRule'])  ->name('rules.store');
-        Route::patch('/rules/{rule}/toggle', [TaxRuleController::class, 'toggleRule']) ->name('rules.toggle');
+        Route::get('/rules', [TaxRuleController::class, 'rules'])->middleware('permission:referential.view')->name('rules');
+        Route::post('/rules', [TaxRuleController::class, 'storeRule'])->name('rules.store');
+        Route::patch('/rules/{rule}/toggle', [TaxRuleController::class, 'toggleRule'])->name('rules.toggle');
     });
     Route::prefix('admin/notifications/feed')->name('admin.notifications.feed.')->middleware('module:notifications')->group(function () {
         // Liste + compteur non lus (polled toutes les 30s)
@@ -87,79 +88,79 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
     });
 
     Route::prefix('admin/notifications')->name('admin.notifications.')->middleware('module:notifications')->group(function () {
-       
-            Route::get('/',[NotificationCenterController::class, 'index'])->name('index');
-                // GET /admin/notifications
-            Route::patch('/mark-all-read',[NotificationCenterController::class, 'markAllRead'])->name('markAllRead');
-                // PATCH /admin/notifications/mark-all-read
-            Route::delete('/clear-read',[NotificationCenterController::class, 'clearRead'])->name('clearRead');
-            // DELETE /admin/notifications/clear-read
-            Route::post('/preferences',[NotificationCenterController::class, 'savePreferences'])->name('preferences');
+
+        Route::get('/', [NotificationCenterController::class, 'index'])->name('index');
+        // GET /admin/notifications
+        Route::patch('/mark-all-read', [NotificationCenterController::class, 'markAllRead'])->name('markAllRead');
+        // PATCH /admin/notifications/mark-all-read
+        Route::delete('/clear-read', [NotificationCenterController::class, 'clearRead'])->name('clearRead');
+        // DELETE /admin/notifications/clear-read
+        Route::post('/preferences', [NotificationCenterController::class, 'savePreferences'])->name('preferences');
 
     });
     Route::prefix('admin/contracts/{contract}/amendments')->name('admin.contracts.amendments.')->middleware('module:contracts')->group(function () {
-        Route::get('/',[ContractAmendmentController::class, 'index'])->middleware('permission:contracts.view')->name('index');
-        Route::get('/create',[ContractAmendmentController::class, 'create'])->middleware('permission:contracts.edit')->name('create');
-        Route::post('/',[ContractAmendmentController::class, 'store'])->middleware('permission:contracts.edit')->name('store');
-        Route::get('/{amendment}',[ContractAmendmentController::class, 'show'])->middleware('permission:contracts.view')->name('show');
-        Route::patch('/{amendment}/submit',[ContractAmendmentController::class, 'submit'])->middleware('permission:contracts.edit')->name('submit');
-        Route::patch('/{amendment}/approve',[ContractAmendmentController::class, 'approve'])->middleware('permission:contracts.validate')->name('approve');
-        Route::patch('/{amendment}/reject',[ContractAmendmentController::class, 'reject'])->middleware('permission:contracts.validate')->name('reject');
+        Route::get('/', [ContractAmendmentController::class, 'index'])->middleware('permission:contracts.view')->name('index');
+        Route::get('/create', [ContractAmendmentController::class, 'create'])->middleware('permission:contracts.edit')->name('create');
+        Route::post('/', [ContractAmendmentController::class, 'store'])->middleware('permission:contracts.edit')->name('store');
+        Route::get('/{amendment}', [ContractAmendmentController::class, 'show'])->middleware('permission:contracts.view')->name('show');
+        Route::patch('/{amendment}/submit', [ContractAmendmentController::class, 'submit'])->middleware('permission:contracts.edit')->name('submit');
+        Route::patch('/{amendment}/approve', [ContractAmendmentController::class, 'approve'])->middleware('permission:contracts.validate')->name('approve');
+        Route::patch('/{amendment}/reject', [ContractAmendmentController::class, 'reject'])->middleware('permission:contracts.validate')->name('reject');
     });
-  
-    //Approval Workflow
+
+    // Approval Workflow
     Route::prefix('admin/approvals')->name('admin.approvals.')->middleware('module:approvals')->group(function () {
-        Route::get('/',[ApprovalWorkflowController::class, 'index'])->name('index');
+        Route::get('/', [ApprovalWorkflowController::class, 'index'])->name('index');
         // Gestion des seuils & validations hiérarchiques par filiale
-        Route::get('/configs',[ApprovalWorkflowController::class, 'configs'])->name('configs');
-        Route::post('/configs',[ApprovalWorkflowController::class, 'storeConfig'])->name('configs.store');
-        Route::patch('/configs/{config}',[ApprovalWorkflowController::class, 'updateConfig'])->name('configs.update');
-        Route::patch('/configs/{config}/toggle',[ApprovalWorkflowController::class, 'toggleConfig'])->name('configs.toggle');
-        Route::delete('/configs/{config}',[ApprovalWorkflowController::class, 'destroyConfig'])->name('configs.destroy');
-        Route::get('/{workflow}',[ApprovalWorkflowController::class, 'show'])->name('show');
-        Route::patch('/{workflow}/approve',[ApprovalWorkflowController::class, 'approve'])->name('approve');
-        Route::patch('/{workflow}/reject',[ApprovalWorkflowController::class, 'reject'])->name('reject');
+        Route::get('/configs', [ApprovalWorkflowController::class, 'configs'])->name('configs');
+        Route::post('/configs', [ApprovalWorkflowController::class, 'storeConfig'])->name('configs.store');
+        Route::patch('/configs/{config}', [ApprovalWorkflowController::class, 'updateConfig'])->name('configs.update');
+        Route::patch('/configs/{config}/toggle', [ApprovalWorkflowController::class, 'toggleConfig'])->name('configs.toggle');
+        Route::delete('/configs/{config}', [ApprovalWorkflowController::class, 'destroyConfig'])->name('configs.destroy');
+        Route::get('/{workflow}', [ApprovalWorkflowController::class, 'show'])->name('show');
+        Route::patch('/{workflow}/approve', [ApprovalWorkflowController::class, 'approve'])->name('approve');
+        Route::patch('/{workflow}/reject', [ApprovalWorkflowController::class, 'reject'])->name('reject');
     });
 
     Route::prefix('admin/delegations')->name('admin.delegations.')->middleware('module:delegations')->group(function () {
-        Route::get('/',                [DelegationController::class, 'index'])->name('index');
-        Route::post('/',               [DelegationController::class, 'store'])->name('store');
-        Route::patch('/{grant}/revoke',[DelegationController::class, 'revoke'])->name('revoke');
+        Route::get('/', [DelegationController::class, 'index'])->name('index');
+        Route::post('/', [DelegationController::class, 'store'])->name('store');
+        Route::patch('/{grant}/revoke', [DelegationController::class, 'revoke'])->name('revoke');
     });
     // Page tableau de bord plafonds multi-contrats
-    Route::get('/admin/contracts/limits',[ContractLimitController::class, 'index'])->middleware(['permission:contracts.view', 'module:contracts'])->name('admin.contracts.limits');
+    Route::get('/admin/contracts/limits', [ContractLimitController::class, 'index'])->middleware(['permission:contracts.view', 'module:contracts'])->name('admin.contracts.limits');
     // API polling — état plafond d'un contrat
-    Route::get('/admin/contracts/{contract}/limit-status',[ContractLimitController::class, 'status'])->middleware(['permission:contracts.view', 'module:contracts'])->name('admin.contracts.limit-status');
+    Route::get('/admin/contracts/{contract}/limit-status', [ContractLimitController::class, 'status'])->middleware(['permission:contracts.view', 'module:contracts'])->name('admin.contracts.limit-status');
     // Dashboard
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/dashboard/pending',[DashboardController::class, 'pending'])->middleware('permission:certificates.validate')->name('admin.dashboard.pending');
+    Route::get('/dashboard/pending', [DashboardController::class, 'pending'])->middleware('permission:certificates.validate')->name('admin.dashboard.pending');
     // US-043 — Dashboard KPIs filiale
-    Route::get('/admin/dashboard/kpi',[KpiDashboardController::class, 'index'])->middleware(['permission:certificates.view', 'module:kpi'])->name('admin.dashboard.kpi');
+    Route::get('/admin/dashboard/kpi', [KpiDashboardController::class, 'index'])->middleware(['permission:certificates.view', 'module:kpi'])->name('admin.dashboard.kpi');
     // US-044 — État des certificats par période
-    Route::get('/admin/reports/certificates',[CertificateReportController::class, 'index'])->middleware(['permission:certificates.view', 'module:reports'])->name('admin.reports.certificates');
+    Route::get('/admin/reports/certificates', [CertificateReportController::class, 'index'])->middleware(['permission:certificates.view', 'module:reports'])->name('admin.reports.certificates');
     // US-045 — État des contrats
-    Route::get('/admin/reports/contracts',[ContractReportController::class, 'index'])->middleware(['permission:contracts.view', 'module:reports'])->name('admin.reports.contracts');
+    Route::get('/admin/reports/contracts', [ContractReportController::class, 'index'])->middleware(['permission:contracts.view', 'module:reports'])->name('admin.reports.contracts');
     // US-046 — État des intermédiaires
-    Route::get('/admin/reports/intermediaries',[IntermediaryReportController::class, 'index'])->middleware(['permission:brokers.view', 'module:reports'])->name('admin.reports.intermediaries');
+    Route::get('/admin/reports/intermediaries', [IntermediaryReportController::class, 'index'])->middleware(['permission:brokers.view', 'module:reports'])->name('admin.reports.intermediaries');
     // US-047 — Export asynchrone
     Route::middleware('module:exports')->group(function () {
-        Route::get('/admin/exports',                        [AsyncExportController::class, 'index'])           ->middleware('permission:certificates.view')->name('admin.exports.index');
-        Route::post('/admin/exports/certificates',          [AsyncExportController::class, 'dispatchCertificates'])->middleware('permission:certificates.view')->name('admin.exports.dispatch');
-        Route::get('/admin/exports/{execution}/download',   [AsyncExportController::class, 'download'])        ->middleware('permission:certificates.view')->name('admin.exports.download');
-        Route::get('/admin/exports/{execution}/status',     [AsyncExportController::class, 'status'])          ->middleware('permission:certificates.view')->name('admin.exports.status');
-        Route::delete('/admin/exports/{execution}',         [AsyncExportController::class, 'destroy'])         ->middleware('permission:certificates.view')->name('admin.exports.destroy');
+        Route::get('/admin/exports', [AsyncExportController::class, 'index'])->middleware('permission:certificates.view')->name('admin.exports.index');
+        Route::post('/admin/exports/certificates', [AsyncExportController::class, 'dispatchCertificates'])->middleware('permission:certificates.view')->name('admin.exports.dispatch');
+        Route::get('/admin/exports/{execution}/download', [AsyncExportController::class, 'download'])->middleware('permission:certificates.view')->name('admin.exports.download');
+        Route::get('/admin/exports/{execution}/status', [AsyncExportController::class, 'status'])->middleware('permission:certificates.view')->name('admin.exports.status');
+        Route::delete('/admin/exports/{execution}', [AsyncExportController::class, 'destroy'])->middleware('permission:certificates.view')->name('admin.exports.destroy');
     });
     // US-048 — Dashboard DTAG multi-filiales
     Route::get('/admin/dashboard/dtag', [DtagDashboardController::class, 'index'])->middleware('role:super_admin')->name('admin.dashboard.dtag');
     // US-050 — IP Blacklist
     Route::prefix('admin/settings')->name('admin.settings.')->middleware('role:super_admin')->group(function () {
-        Route::get('/',    [\App\Http\Controllers\Admin\SettingsController::class, 'index']) ->name('index');
-        Route::put('/',    [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('update');
+        Route::get('/', [SettingsController::class, 'index'])->name('index');
+        Route::put('/', [SettingsController::class, 'update'])->name('update');
     });
     Route::prefix('admin/security/ip-blacklist')->name('admin.security.ip-blacklist.')->middleware('role:super_admin')->group(function () {
-        Route::get('/',          [IpBlacklistController::class, 'index'])  ->name('index');
-        Route::post('/',         [IpBlacklistController::class, 'store'])  ->name('store');
-        Route::delete('/{id}',   [IpBlacklistController::class, 'destroy'])->name('destroy');
+        Route::get('/', [IpBlacklistController::class, 'index'])->name('index');
+        Route::post('/', [IpBlacklistController::class, 'store'])->name('store');
+        Route::delete('/{id}', [IpBlacklistController::class, 'destroy'])->name('destroy');
         Route::patch('/unlock/{userId}', [IpBlacklistController::class, 'unlockUser'])->name('unlock');
     });
     // US-055 — Recherche avancée certificats
@@ -167,13 +168,13 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
 
     // Certificats GUCE (import depuis plateformes étatiques)
     Route::prefix('admin/guce-certificates')->name('admin.guce-certificates.')->middleware(['auth', 'module:guce_certificates'])->group(function () {
-        Route::get('/',                              [GuceCertificateController::class, 'index'])   ->name('index');
-        Route::get('/create',                        [GuceCertificateController::class, 'create'])  ->name('create');
-        Route::post('/extract',                      [GuceCertificateController::class, 'extract']) ->name('extract');
-        Route::post('/',                             [GuceCertificateController::class, 'store'])   ->name('store');
-        Route::get('/{guceCertificate}',             [GuceCertificateController::class, 'show'])    ->name('show');
-        Route::get('/{guceCertificate}/download',    [GuceCertificateController::class, 'download'])->name('download');
-        Route::delete('/{guceCertificate}',          [GuceCertificateController::class, 'destroy']) ->name('destroy');
+        Route::get('/', [GuceCertificateController::class, 'index'])->name('index');
+        Route::get('/create', [GuceCertificateController::class, 'create'])->name('create');
+        Route::post('/extract', [GuceCertificateController::class, 'extract'])->name('extract');
+        Route::post('/', [GuceCertificateController::class, 'store'])->name('store');
+        Route::get('/{guceCertificate}', [GuceCertificateController::class, 'show'])->name('show');
+        Route::get('/{guceCertificate}/download', [GuceCertificateController::class, 'download'])->name('download');
+        Route::delete('/{guceCertificate}', [GuceCertificateController::class, 'destroy'])->name('destroy');
     });
     // ── Avatar — US-009 ──────────────────────────────────────
     Route::post('/settings/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
@@ -190,158 +191,158 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
     });
     // ── INSURANCE CONTRACTS ─────────────────────────────────────────────
     Route::prefix('admin')->middleware('module:contracts')->group(function () {
-        Route::get('/contracts',[InsuranceContractController::class, 'index'])->middleware('permission:contracts.view')->name('admin.contracts.index');
+        Route::get('/contracts', [InsuranceContractController::class, 'index'])->middleware('permission:contracts.view')->name('admin.contracts.index');
 
-        Route::get('/contracts/create',[InsuranceContractController::class, 'create'])->middleware('permission:contracts.create')->name('admin.contracts.create');
+        Route::get('/contracts/create', [InsuranceContractController::class, 'create'])->middleware('permission:contracts.create')->name('admin.contracts.create');
 
-        Route::post('/contracts',[InsuranceContractController::class, 'store'])->middleware('permission:contracts.create')->name('admin.contracts.store');
+        Route::post('/contracts', [InsuranceContractController::class, 'store'])->middleware('permission:contracts.create')->name('admin.contracts.store');
 
-        Route::get('/contracts/{contract}',[InsuranceContractController::class, 'show'])->middleware('permission:contracts.view')->name('admin.contracts.show');
+        Route::get('/contracts/{contract}', [InsuranceContractController::class, 'show'])->middleware('permission:contracts.view')->name('admin.contracts.show');
 
-        Route::get('/contracts/{contract}/edit',[InsuranceContractController::class, 'edit'])->middleware('permission:contracts.edit')->name('admin.contracts.edit');
+        Route::get('/contracts/{contract}/edit', [InsuranceContractController::class, 'edit'])->middleware('permission:contracts.edit')->name('admin.contracts.edit');
 
-        Route::put('/contracts/{contract}',[InsuranceContractController::class, 'update'])->middleware('permission:contracts.edit')->name('admin.contracts.update');
+        Route::put('/contracts/{contract}', [InsuranceContractController::class, 'update'])->middleware('permission:contracts.edit')->name('admin.contracts.update');
 
-        Route::delete('/contracts/{contract}',[InsuranceContractController::class, 'destroy'])->middleware('permission:contracts.delete')->name('admin.contracts.destroy');
+        Route::delete('/contracts/{contract}', [InsuranceContractController::class, 'destroy'])->middleware('permission:contracts.delete')->name('admin.contracts.destroy');
 
         // ── Workflow ──────────────────────────────────────────
-        Route::patch('/contracts/{contract}/submit',[InsuranceContractController::class, 'submit'])->middleware('permission:contracts.create')->name('admin.contracts.submit');
+        Route::patch('/contracts/{contract}/submit', [InsuranceContractController::class, 'submit'])->middleware('permission:contracts.create')->name('admin.contracts.submit');
 
-        Route::patch('/contracts/{contract}/approve',[InsuranceContractController::class, 'approve'])->middleware('permission:contracts.validate')->name('admin.contracts.approve');
+        Route::patch('/contracts/{contract}/approve', [InsuranceContractController::class, 'approve'])->middleware('permission:contracts.validate')->name('admin.contracts.approve');
 
-        Route::patch('/contracts/{contract}/reject',[InsuranceContractController::class, 'reject'])->middleware('permission:contracts.validate')->name('admin.contracts.reject');
+        Route::patch('/contracts/{contract}/reject', [InsuranceContractController::class, 'reject'])->middleware('permission:contracts.validate')->name('admin.contracts.reject');
 
-        Route::patch('/contracts/{contract}/suspend',[InsuranceContractController::class, 'suspend'])->middleware('permission:contracts.edit')->name('admin.contracts.suspend');
+        Route::patch('/contracts/{contract}/suspend', [InsuranceContractController::class, 'suspend'])->middleware('permission:contracts.edit')->name('admin.contracts.suspend');
 
-        Route::patch('/contracts/{contract}/reactivate',[InsuranceContractController::class, 'reactivate'])->middleware('permission:contracts.validate')->name('admin.contracts.reactivate');
+        Route::patch('/contracts/{contract}/reactivate', [InsuranceContractController::class, 'reactivate'])->middleware('permission:contracts.validate')->name('admin.contracts.reactivate');
 
-        Route::patch('/contracts/{contract}/cancel',[InsuranceContractController::class, 'cancel'])->middleware('permission:contracts.edit')->name('admin.contracts.cancel');
+        Route::patch('/contracts/{contract}/cancel', [InsuranceContractController::class, 'cancel'])->middleware('permission:contracts.edit')->name('admin.contracts.cancel');
     });
     // ── Module Admin ─────────────────────────────────────────
-        Route::prefix('admin')->group(function () {
-           
-            Route::middleware('module:certificates')->group(function () {
-                Route::get('/certificates/export',[CertificateController::class, 'export'])->middleware('permission:certificates.view')->name('admin.certificates.export');
-                // Regénérer le QR token (invalide l'ancien)
-                Route::post('/certificates/{certificate}/qr/regenerate',[CertificateController::class, 'regenerateQr'])->middleware('permission:certificates.validate')->name('admin.certificates.qr.regenerate');
-                // Télécharger le PDF
-                Route::get('/certificates/{certificate}/pdf/download',[CertificateController::class, 'downloadPdf'])->middleware('permission:certificates.view')->name('admin.certificates.pdf.download');
-                // Afficher le PDF dans le navigateur
-                Route::get('/certificates/{certificate}/pdf/stream',[CertificateController::class, 'streamPdf'])->middleware('permission:certificates.view')->name('admin.certificates.pdf.stream');
-                // Regénérer le PDF (force regeneration)
-                Route::post('/certificates/{certificate}/pdf/generate',[CertificateController::class, 'generatePdf'])->middleware('permission:certificates.validate')->name('admin.certificates.pdf.generate');
-                Route::get('/certificates',[CertificateController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificates.index');
-                // ── US-016 : Soumission ───────────────────────────────
-                Route::get('/certificates/create',[CertificateController::class, 'create'])->middleware('permission:certificates.create')->name('admin.certificates.create');
-                Route::get('/certificates/exchange-rate',[CertificateController::class, 'exchangeRate'])->middleware('permission:certificates.create')->name('admin.certificates.exchange-rate');
-                Route::get('/certificates/print-models',[CertificateController::class, 'printModels'])->middleware('permission:certificates.view')->name('admin.certificates.print-models');
+    Route::prefix('admin')->group(function () {
 
-                Route::post('/certificates/{certificate}/duplicate',[CertificateController::class, 'duplicate'])->middleware('permission:certificates.create')->name('admin.certificates.duplicate');
+        Route::middleware('module:certificates')->group(function () {
+            Route::get('/certificates/export', [CertificateController::class, 'export'])->middleware('permission:certificates.view')->name('admin.certificates.export');
+            // Regénérer le QR token (invalide l'ancien)
+            Route::post('/certificates/{certificate}/qr/regenerate', [CertificateController::class, 'regenerateQr'])->middleware('permission:certificates.validate')->name('admin.certificates.qr.regenerate');
+            // Télécharger le PDF
+            Route::get('/certificates/{certificate}/pdf/download', [CertificateController::class, 'downloadPdf'])->middleware('permission:certificates.view')->name('admin.certificates.pdf.download');
+            // Afficher le PDF dans le navigateur
+            Route::get('/certificates/{certificate}/pdf/stream', [CertificateController::class, 'streamPdf'])->middleware('permission:certificates.view')->name('admin.certificates.pdf.stream');
+            // Regénérer le PDF (force regeneration)
+            Route::post('/certificates/{certificate}/pdf/generate', [CertificateController::class, 'generatePdf'])->middleware('permission:certificates.validate')->name('admin.certificates.pdf.generate');
+            Route::get('/certificates', [CertificateController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificates.index');
+            // ── US-016 : Soumission ───────────────────────────────
+            Route::get('/certificates/create', [CertificateController::class, 'create'])->middleware('permission:certificates.create')->name('admin.certificates.create');
+            Route::get('/certificates/exchange-rate', [CertificateController::class, 'exchangeRate'])->middleware('permission:certificates.create')->name('admin.certificates.exchange-rate');
+            Route::get('/certificates/print-models', [CertificateController::class, 'printModels'])->middleware('permission:certificates.view')->name('admin.certificates.print-models');
 
-                Route::get('/certificates/{certificate}',[CertificateController::class, 'show'])->middleware('permission:certificates.view')->name('admin.certificates.show');
-                Route::get('/certificates/{certificate}/print',[CertificateController::class, 'print'])->middleware('permission:certificates.view')->name('admin.certificates.print');
-                // Impression sur souche physique pré-imprimée (FPDF) — cf. CertificatePrePrintedService
-                Route::get('/certificates/{certificate}/print-on-form',[CertificateController::class, 'printOnForm'])->middleware('permission:certificates.view')->name('admin.certificates.print-on-form');
+            Route::post('/certificates/{certificate}/duplicate', [CertificateController::class, 'duplicate'])->middleware('permission:certificates.create')->name('admin.certificates.duplicate');
 
-                Route::delete('/certificates/{certificate}',[CertificateController::class, 'destroy'])->middleware('permission:certificates.create')->name('admin.certificates.destroy');
-                Route::post('/certificates',[CertificateController::class, 'store'])->middleware('permission:certificates.create')->name('admin.certificates.store');
-                // Stocker le Certificat — brouillon à validation allégée
-                Route::post('/certificates/store-draft',[CertificateController::class, 'storeDraft'])->middleware('permission:certificates.create')->name('admin.certificates.store-draft');
+            Route::get('/certificates/{certificate}', [CertificateController::class, 'show'])->middleware('permission:certificates.view')->name('admin.certificates.show');
+            Route::get('/certificates/{certificate}/print', [CertificateController::class, 'print'])->middleware('permission:certificates.view')->name('admin.certificates.print');
+            // Impression sur souche physique pré-imprimée (FPDF) — cf. CertificatePrePrintedService
+            Route::get('/certificates/{certificate}/print-on-form', [CertificateController::class, 'printOnForm'])->middleware('permission:certificates.view')->name('admin.certificates.print-on-form');
 
-                Route::get('/certificates/{certificate}/edit',[CertificateController::class, 'edit'])->middleware('permission:certificates.create')->name('admin.certificates.edit');
+            Route::delete('/certificates/{certificate}', [CertificateController::class, 'destroy'])->middleware('permission:certificates.create')->name('admin.certificates.destroy');
+            Route::post('/certificates', [CertificateController::class, 'store'])->middleware('permission:certificates.create')->name('admin.certificates.store');
+            // Stocker le Certificat — brouillon à validation allégée
+            Route::post('/certificates/store-draft', [CertificateController::class, 'storeDraft'])->middleware('permission:certificates.create')->name('admin.certificates.store-draft');
 
-                Route::put('/certificates/{certificate}',[CertificateController::class, 'update'])->middleware('permission:certificates.create')->name('admin.certificates.update');
+            Route::get('/certificates/{certificate}/edit', [CertificateController::class, 'edit'])->middleware('permission:certificates.create')->name('admin.certificates.edit');
 
-                Route::patch('/certificates/{certificate}/submit',[CertificateController::class, 'submit'])->middleware('permission:certificates.create')->name('admin.certificates.submit');
+            Route::put('/certificates/{certificate}', [CertificateController::class, 'update'])->middleware('permission:certificates.create')->name('admin.certificates.update');
 
-                // ── US-018 : Validation ───────────────────────────────
-                Route::patch('/certificates/{certificate}/issue',[CertificateController::class, 'issue'])->middleware('permission:certificates.validate')->name('admin.certificates.issue');
+            Route::patch('/certificates/{certificate}/submit', [CertificateController::class, 'submit'])->middleware('permission:certificates.create')->name('admin.certificates.submit');
 
-                Route::patch('/certificates/{certificate}/reject',[CertificateController::class, 'reject'])->middleware('permission:certificates.validate')->name('admin.certificates.reject');
+            // ── US-018 : Validation ───────────────────────────────
+            Route::patch('/certificates/{certificate}/issue', [CertificateController::class, 'issue'])->middleware('permission:certificates.validate')->name('admin.certificates.issue');
 
-                Route::patch('/certificates/{certificate}/cancel',[CertificateController::class, 'cancel'])->middleware('permission:certificates.cancel')->name('admin.certificates.cancel');
+            Route::patch('/certificates/{certificate}/reject', [CertificateController::class, 'reject'])->middleware('permission:certificates.validate')->name('admin.certificates.reject');
 
-                // Remplacer un certificat Approuvé — génère un nouveau certificat
-                // (Stocké) et marque celui-ci Remplacé.
-                Route::post('/certificates/{certificate}/replace',[CertificateController::class, 'replace'])->middleware('permission:certificates.create')->name('admin.certificates.replace');
-            });
+            Route::patch('/certificates/{certificate}/cancel', [CertificateController::class, 'cancel'])->middleware('permission:certificates.cancel')->name('admin.certificates.cancel');
 
-            // ── Demandes de certificat (espace partenaire) ────────
-            Route::middleware('module:brokers')->group(function () {
-                Route::get('/certificate-requests',[CertificateRequestController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificate-requests.index');
-                Route::get('/certificate-requests/{certificateRequest}',[CertificateRequestController::class, 'show'])->middleware('permission:certificates.view')->name('admin.certificate-requests.show');
-                Route::patch('/certificate-requests/{certificateRequest}/assign',[CertificateRequestController::class, 'assign'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.assign');
-                Route::patch('/certificate-requests/{certificateRequest}/approve',[CertificateRequestController::class, 'approve'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.approve');
-                Route::patch('/certificate-requests/{certificateRequest}/reject',[CertificateRequestController::class, 'reject'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.reject');
-                Route::patch('/certificate-requests/{certificateRequest}/request-info',[CertificateRequestController::class, 'requestInfo'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.request-info');
-                Route::patch('/certificate-requests/{certificateRequest}/close',[CertificateRequestController::class, 'close'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.close');
-                Route::patch('/certificate-requests/{certificateRequest}/link-certificate',[CertificateRequestController::class, 'linkCertificate'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.link-certificate');
-                Route::get('/certificate-requests/{certificateRequest}/documents/{document}/download',[CertificateRequestController::class, 'downloadDocument'])->middleware('permission:certificates.view')->name('admin.certificate-requests.documents.download');
-            });
+            // Remplacer un certificat Approuvé — génère un nouveau certificat
+            // (Stocké) et marque celui-ci Remplacé.
+            Route::post('/certificates/{certificate}/replace', [CertificateController::class, 'replace'])->middleware('permission:certificates.create')->name('admin.certificates.replace');
+        });
+
+        // ── Demandes de certificat (espace partenaire) ────────
+        Route::middleware('module:brokers')->group(function () {
+            Route::get('/certificate-requests', [CertificateRequestController::class, 'index'])->middleware('permission:certificates.view')->name('admin.certificate-requests.index');
+            Route::get('/certificate-requests/{certificateRequest}', [CertificateRequestController::class, 'show'])->middleware('permission:certificates.view')->name('admin.certificate-requests.show');
+            Route::patch('/certificate-requests/{certificateRequest}/assign', [CertificateRequestController::class, 'assign'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.assign');
+            Route::patch('/certificate-requests/{certificateRequest}/approve', [CertificateRequestController::class, 'approve'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.approve');
+            Route::patch('/certificate-requests/{certificateRequest}/reject', [CertificateRequestController::class, 'reject'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.reject');
+            Route::patch('/certificate-requests/{certificateRequest}/request-info', [CertificateRequestController::class, 'requestInfo'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.request-info');
+            Route::patch('/certificate-requests/{certificateRequest}/close', [CertificateRequestController::class, 'close'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.close');
+            Route::patch('/certificate-requests/{certificateRequest}/link-certificate', [CertificateRequestController::class, 'linkCertificate'])->middleware('permission:certificates.validate')->name('admin.certificate-requests.link-certificate');
+            Route::get('/certificate-requests/{certificateRequest}/documents/{document}/download', [CertificateRequestController::class, 'downloadDocument'])->middleware('permission:certificates.view')->name('admin.certificate-requests.documents.download');
+        });
         // ── Utilisateurs — US-007/008/004 ────────────────────
-            Route::get('/users', [UserController::class, 'index'])->middleware('permission:users.view')->name('admin.users.index');
+        Route::get('/users', [UserController::class, 'index'])->middleware('permission:users.view')->name('admin.users.index');
 
-            Route::get('/users/create', [UserController::class, 'create'])->middleware('permission:users.create')->name('admin.users.create');
+        Route::get('/users/create', [UserController::class, 'create'])->middleware('permission:users.create')->name('admin.users.create');
 
-            Route::post('/users', [UserController::class, 'store'])->middleware('permission:users.create')->name('admin.users.store');
+        Route::post('/users', [UserController::class, 'store'])->middleware('permission:users.create')->name('admin.users.store');
 
-            Route::get('/users/{user}', [UserController::class, 'show'])->middleware('permission:users.view')->name('admin.users.show');
+        Route::get('/users/{user}', [UserController::class, 'show'])->middleware('permission:users.view')->name('admin.users.show');
 
-            Route::get('/users/{user}/edit', [UserController::class, 'edit'])->middleware('permission:users.edit')->name('admin.users.edit');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->middleware('permission:users.edit')->name('admin.users.edit');
 
-            Route::put('/users/{user}', [UserController::class, 'update'])->middleware('permission:users.edit')->name('admin.users.update');
+        Route::put('/users/{user}', [UserController::class, 'update'])->middleware('permission:users.edit')->name('admin.users.update');
 
-            Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete')->name('admin.users.destroy');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete')->name('admin.users.destroy');
 
-            Route::patch('/users/{user}/block', [UserController::class, 'block'])->middleware('permission:users.block')->name('admin.users.block');
+        Route::patch('/users/{user}/block', [UserController::class, 'block'])->middleware('permission:users.block')->name('admin.users.block');
 
-            Route::patch('/users/{user}/unblock', [UserController::class, 'unblock'])->middleware('permission:users.unblock')->name('admin.users.unblock');
-            Route::middleware('module:brokers')->group(function () {
-                Route::get('/brokers', [BrokerController::class, 'index'])->middleware('permission:brokers.view')->name('admin.brokers.index');
+        Route::patch('/users/{user}/unblock', [UserController::class, 'unblock'])->middleware('permission:users.unblock')->name('admin.users.unblock');
+        Route::middleware('module:brokers')->group(function () {
+            Route::get('/brokers', [BrokerController::class, 'index'])->middleware('permission:brokers.view')->name('admin.brokers.index');
 
-                Route::get('/brokers/create', [BrokerController::class, 'create'])->middleware('permission:brokers.create')->name('admin.brokers.create');
+            Route::get('/brokers/create', [BrokerController::class, 'create'])->middleware('permission:brokers.create')->name('admin.brokers.create');
 
-                Route::post('/brokers', [BrokerController::class, 'store'])->middleware('permission:brokers.create')->name('admin.brokers.store');
+            Route::post('/brokers', [BrokerController::class, 'store'])->middleware('permission:brokers.create')->name('admin.brokers.store');
 
-                Route::get('/brokers/{broker}', [BrokerController::class, 'show'])->middleware('permission:brokers.view')->name('admin.brokers.show');
+            Route::get('/brokers/{broker}', [BrokerController::class, 'show'])->middleware('permission:brokers.view')->name('admin.brokers.show');
 
-                Route::get('/brokers/{broker}/edit', [BrokerController::class, 'edit'])->middleware('permission:brokers.edit')->name('admin.brokers.edit');
+            Route::get('/brokers/{broker}/edit', [BrokerController::class, 'edit'])->middleware('permission:brokers.edit')->name('admin.brokers.edit');
 
-                Route::put('/brokers/{broker}', [BrokerController::class, 'update'])->middleware('permission:brokers.edit')->name('admin.brokers.update');
+            Route::put('/brokers/{broker}', [BrokerController::class, 'update'])->middleware('permission:brokers.edit')->name('admin.brokers.update');
 
-                Route::delete('/brokers/{broker}', [BrokerController::class, 'destroy'])->middleware('permission:brokers.delete')->name('admin.brokers.destroy');
+            Route::delete('/brokers/{broker}', [BrokerController::class, 'destroy'])->middleware('permission:brokers.delete')->name('admin.brokers.destroy');
 
-                Route::patch('/brokers/{broker}/toggle', [BrokerController::class, 'toggle'])->middleware('permission:brokers.edit')->name('admin.brokers.toggle');
-            });
+            Route::patch('/brokers/{broker}/toggle', [BrokerController::class, 'toggle'])->middleware('permission:brokers.edit')->name('admin.brokers.toggle');
+        });
 
-            // ── Coassureurs — US-041 ──────────────────────────
-            Route::middleware('module:coinsurers')->group(function () {
-                Route::get('/coinsurers', [CoinsurersController::class, 'index'])->middleware('permission:coinsurers.view')->name('admin.coinsurers.index');
-                Route::get('/coinsurers/create', [CoinsurersController::class, 'create'])->middleware('permission:coinsurers.create')->name('admin.coinsurers.create');
-                Route::post('/coinsurers', [CoinsurersController::class, 'store'])->middleware('permission:coinsurers.create')->name('admin.coinsurers.store');
-                Route::get('/coinsurers/{coinsurer}', [CoinsurersController::class, 'show'])->middleware('permission:coinsurers.view')->name('admin.coinsurers.show');
-                Route::get('/coinsurers/{coinsurer}/edit', [CoinsurersController::class, 'edit'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.edit');
-                Route::put('/coinsurers/{coinsurer}', [CoinsurersController::class, 'update'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.update');
-                Route::delete('/coinsurers/{coinsurer}', [CoinsurersController::class, 'destroy'])->middleware('permission:coinsurers.delete')->name('admin.coinsurers.destroy');
-                Route::patch('/coinsurers/{coinsurer}/toggle', [CoinsurersController::class, 'toggle'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.toggle');
-            });
+        // ── Coassureurs — US-041 ──────────────────────────
+        Route::middleware('module:coinsurers')->group(function () {
+            Route::get('/coinsurers', [CoinsurersController::class, 'index'])->middleware('permission:coinsurers.view')->name('admin.coinsurers.index');
+            Route::get('/coinsurers/create', [CoinsurersController::class, 'create'])->middleware('permission:coinsurers.create')->name('admin.coinsurers.create');
+            Route::post('/coinsurers', [CoinsurersController::class, 'store'])->middleware('permission:coinsurers.create')->name('admin.coinsurers.store');
+            Route::get('/coinsurers/{coinsurer}', [CoinsurersController::class, 'show'])->middleware('permission:coinsurers.view')->name('admin.coinsurers.show');
+            Route::get('/coinsurers/{coinsurer}/edit', [CoinsurersController::class, 'edit'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.edit');
+            Route::put('/coinsurers/{coinsurer}', [CoinsurersController::class, 'update'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.update');
+            Route::delete('/coinsurers/{coinsurer}', [CoinsurersController::class, 'destroy'])->middleware('permission:coinsurers.delete')->name('admin.coinsurers.destroy');
+            Route::patch('/coinsurers/{coinsurer}/toggle', [CoinsurersController::class, 'toggle'])->middleware('permission:coinsurers.edit')->name('admin.coinsurers.toggle');
+        });
 
-            // ── Experts — US-042 ──────────────────────────────
-            Route::middleware('module:experts')->group(function () {
-                Route::get('/experts', [ExpertController::class, 'index'])->middleware('permission:experts.view')->name('admin.experts.index');
-                Route::get('/experts/create', [ExpertController::class, 'create'])->middleware('permission:experts.create')->name('admin.experts.create');
-                Route::post('/experts', [ExpertController::class, 'store'])->middleware('permission:experts.create')->name('admin.experts.store');
-                Route::get('/experts/{expert}', [ExpertController::class, 'show'])->middleware('permission:experts.view')->name('admin.experts.show');
-                Route::get('/experts/{expert}/edit', [ExpertController::class, 'edit'])->middleware('permission:experts.edit')->name('admin.experts.edit');
-                Route::put('/experts/{expert}', [ExpertController::class, 'update'])->middleware('permission:experts.edit')->name('admin.experts.update');
-                Route::delete('/experts/{expert}', [ExpertController::class, 'destroy'])->middleware('permission:experts.delete')->name('admin.experts.destroy');
-                Route::patch('/experts/{expert}/toggle', [ExpertController::class, 'toggle'])->middleware('permission:experts.edit')->name('admin.experts.toggle');
-            });
+        // ── Experts — US-042 ──────────────────────────────
+        Route::middleware('module:experts')->group(function () {
+            Route::get('/experts', [ExpertController::class, 'index'])->middleware('permission:experts.view')->name('admin.experts.index');
+            Route::get('/experts/create', [ExpertController::class, 'create'])->middleware('permission:experts.create')->name('admin.experts.create');
+            Route::post('/experts', [ExpertController::class, 'store'])->middleware('permission:experts.create')->name('admin.experts.store');
+            Route::get('/experts/{expert}', [ExpertController::class, 'show'])->middleware('permission:experts.view')->name('admin.experts.show');
+            Route::get('/experts/{expert}/edit', [ExpertController::class, 'edit'])->middleware('permission:experts.edit')->name('admin.experts.edit');
+            Route::put('/experts/{expert}', [ExpertController::class, 'update'])->middleware('permission:experts.edit')->name('admin.experts.update');
+            Route::delete('/experts/{expert}', [ExpertController::class, 'destroy'])->middleware('permission:experts.delete')->name('admin.experts.destroy');
+            Route::patch('/experts/{expert}/toggle', [ExpertController::class, 'toggle'])->middleware('permission:experts.edit')->name('admin.experts.toggle');
+        });
 
         // ── Rôles & Permissions — US-003 ─────────────────────
         Route::middleware('role:super_admin')->group(function () {
 
-            Route::post('/tenants/{tenant}/logo',   [TenantController::class, 'updateLogo'])->name('admin.tenants.logo.update');
+            Route::post('/tenants/{tenant}/logo', [TenantController::class, 'updateLogo'])->name('admin.tenants.logo.update');
             Route::delete('/tenants/{tenant}/logo', [TenantController::class, 'removeLogo'])->name('admin.tenants.logo.remove');
             Route::get('/roles', [RoleController::class, 'index'])->name('admin.roles.index');
 
@@ -370,35 +371,35 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
             Route::patch('/tenants/{tenant}/toggle', [TenantController::class, 'toggleActive'])->name('admin.tenants.toggle');
             Route::get('/tenants/{tenant}/config', [TenantController::class, 'config'])->name('admin.tenants.config');
             Route::patch('/tenants/{tenant}/modules', [TenantController::class, 'updateModules'])->name('admin.tenants.modules');
-            //-─ Référentiels — US-010 ─────────────────────────────
+            // -─ Référentiels — US-010 ─────────────────────────────
             Route::get('/reference', [ReferenceController::class, 'index'])->name('admin.reference.index');
-            Route::post('/reference/{tab}',[ReferenceController::class, 'store'])->name('admin.reference.store');
-            Route::put('/reference/{tab}/{id}',[ReferenceController::class, 'update'])->name('admin.reference.update');
-            Route::patch('/reference/{tab}/{id}/toggle',     [ReferenceController::class, 'toggle'])->name('admin.reference.toggle');
-            //Certifcate templates
+            Route::post('/reference/{tab}', [ReferenceController::class, 'store'])->name('admin.reference.store');
+            Route::put('/reference/{tab}/{id}', [ReferenceController::class, 'update'])->name('admin.reference.update');
+            Route::patch('/reference/{tab}/{id}/toggle', [ReferenceController::class, 'toggle'])->name('admin.reference.toggle');
+            // Certifcate templates
             Route::middleware('module:certificate_templates')->group(function () {
-                Route::get('/certificate-templates',[CertificateTemplateController::class, 'index'])->name('admin.certificate-templates.index');
+                Route::get('/certificate-templates', [CertificateTemplateController::class, 'index'])->name('admin.certificate-templates.index');
 
-                Route::get('/certificate-templates/create',[CertificateTemplateController::class, 'create'])->name('admin.certificate-templates.create');
+                Route::get('/certificate-templates/create', [CertificateTemplateController::class, 'create'])->name('admin.certificate-templates.create');
 
-                Route::post('/certificate-templates',[CertificateTemplateController::class, 'store'])->name('admin.certificate-templates.store');
+                Route::post('/certificate-templates', [CertificateTemplateController::class, 'store'])->name('admin.certificate-templates.store');
 
-                Route::get('/certificate-templates/{certificateTemplate}',[CertificateTemplateController::class, 'show'])->name('admin.certificate-templates.show');
+                Route::get('/certificate-templates/{certificateTemplate}', [CertificateTemplateController::class, 'show'])->name('admin.certificate-templates.show');
 
-                Route::get('/certificate-templates/{certificateTemplate}/edit',[CertificateTemplateController::class, 'edit'])->name('admin.certificate-templates.edit');
+                Route::get('/certificate-templates/{certificateTemplate}/edit', [CertificateTemplateController::class, 'edit'])->name('admin.certificate-templates.edit');
 
-                Route::put('/certificate-templates/{certificateTemplate}',[CertificateTemplateController::class, 'update'])->name('admin.certificate-templates.update');
+                Route::put('/certificate-templates/{certificateTemplate}', [CertificateTemplateController::class, 'update'])->name('admin.certificate-templates.update');
 
-                Route::delete('/certificate-templates/{certificateTemplate}',[CertificateTemplateController::class, 'destroy'])->name('admin.certificate-templates.destroy');
+                Route::delete('/certificate-templates/{certificateTemplate}', [CertificateTemplateController::class, 'destroy'])->name('admin.certificate-templates.destroy');
 
-                Route::post('/certificate-templates/{certificateTemplate}/logo',[CertificateTemplateController::class, 'updateLogo'])->name('admin.certificate-templates.logo');
-                Route::delete('/certificate-templates/{certificateTemplate}/logo',[CertificateTemplateController::class, 'removeLogo'])->name('admin.certificate-templates.logo.remove');
+                Route::post('/certificate-templates/{certificateTemplate}/logo', [CertificateTemplateController::class, 'updateLogo'])->name('admin.certificate-templates.logo');
+                Route::delete('/certificate-templates/{certificateTemplate}/logo', [CertificateTemplateController::class, 'removeLogo'])->name('admin.certificate-templates.logo.remove');
 
-                //Certificate print positions (carnets — coordonnées mm en JSON)
-                Route::get('/certificate-print-templates',[CertificatePrintTemplateController::class, 'index'])->name('admin.certificate-print-templates.index');
-                Route::get('/certificate-print-templates/{templateId}',[CertificatePrintTemplateController::class, 'edit'])->name('admin.certificate-print-templates.edit');
-                Route::post('/certificate-print-templates/{templateId}',[CertificatePrintTemplateController::class, 'update'])->name('admin.certificate-print-templates.update');
-                Route::delete('/certificate-print-templates/{templateId}',[CertificatePrintTemplateController::class, 'destroy'])->name('admin.certificate-print-templates.destroy');
+                // Certificate print positions (carnets — coordonnées mm en JSON)
+                Route::get('/certificate-print-templates', [CertificatePrintTemplateController::class, 'index'])->name('admin.certificate-print-templates.index');
+                Route::get('/certificate-print-templates/{templateId}', [CertificatePrintTemplateController::class, 'edit'])->name('admin.certificate-print-templates.edit');
+                Route::post('/certificate-print-templates/{templateId}', [CertificatePrintTemplateController::class, 'update'])->name('admin.certificate-print-templates.update');
+                Route::delete('/certificate-print-templates/{templateId}', [CertificatePrintTemplateController::class, 'destroy'])->name('admin.certificate-print-templates.destroy');
             });
         });
     });
@@ -420,9 +421,9 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'role:courtier_local|
         Route::get('/certificates', [PartnerCertificateRequestController::class, 'certificates'])->name('certificates.index');
 
         Route::prefix('certificate-requests')->name('certificate-requests.')->group(function () {
-            Route::get('/',       [PartnerCertificateRequestController::class, 'index'])->name('index');
+            Route::get('/', [PartnerCertificateRequestController::class, 'index'])->name('index');
             Route::get('/create', [PartnerCertificateRequestController::class, 'create'])->name('create');
-            Route::post('/',      [PartnerCertificateRequestController::class, 'store'])->name('store');
+            Route::post('/', [PartnerCertificateRequestController::class, 'store'])->name('store');
             Route::get('/{certificateRequest}', [PartnerCertificateRequestController::class, 'show'])->name('show');
             Route::post('/{certificateRequest}/update', [PartnerCertificateRequestController::class, 'update'])->name('update');
             Route::post('/{certificateRequest}/submit', [PartnerCertificateRequestController::class, 'submit'])->name('submit');

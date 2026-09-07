@@ -31,10 +31,10 @@ return new class extends Migration
         });
 
         // Rattache chaque courtier existant à sa filiale principale actuelle.
-        DB::statement("
+        DB::statement('
             INSERT INTO broker_tenant (id, broker_id, tenant_id, created_at, updated_at)
             SELECT gen_random_uuid(), id, tenant_id, now(), now() FROM brokers
-        ");
+        ');
     }
 
     public function down(): void

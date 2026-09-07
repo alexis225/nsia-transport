@@ -21,25 +21,25 @@ return new class extends Migration
     {
         Schema::create('commission_rules', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
- 
+
             $table->foreignUuid('tenant_id')
-                  ->constrained('tenants')
-                  ->cascadeOnDelete();
- 
+                ->constrained('tenants')
+                ->cascadeOnDelete();
+
             $table->foreignUuid('broker_id')
-                  ->constrained('brokers')
-                  ->cascadeOnDelete();
- 
+                ->constrained('brokers')
+                ->cascadeOnDelete();
+
             // Taux spécifique par contrat (optionnel — prime sur taux courtier)
             $table->foreignUuid('contract_id')
-                  ->nullable()
-                  ->constrained('insurance_contracts')
-                  ->nullOnDelete();
- 
+                ->nullable()
+                ->constrained('insurance_contracts')
+                ->nullOnDelete();
+
             // Taux de commission en %
             $table->decimal('rate_pct', 5, 2);
             // ex: 10.00 = 10%
- 
+
             // Base de calcul configurable
             $table->string('base_type', 30)->default('prime_total');
             // prime_total     → prime_total du certificat (défaut)
@@ -50,33 +50,33 @@ return new class extends Migration
             // Date d'effet
             $table->date('effective_date');
             $table->date('end_date')->nullable(); // null = toujours actif
- 
+
             $table->boolean('is_active')->default(true);
             $table->text('notes')->nullable();
- 
+
             $table->foreignUuid('created_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
- 
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
             $table->timestamps();
- 
+
             $table->index(['broker_id', 'is_active', 'effective_date']);
             $table->index(['contract_id', 'is_active']);
             $table->index(['tenant_id', 'broker_id']);
         });
- 
-        DB::statement("ALTER TABLE commission_rules ADD CONSTRAINT cr_rate_check
-            CHECK (rate_pct >= 0 AND rate_pct <= 100)");
- 
+
+        DB::statement('ALTER TABLE commission_rules ADD CONSTRAINT cr_rate_check
+            CHECK (rate_pct >= 0 AND rate_pct <= 100)');
+
         DB::statement("ALTER TABLE commission_rules ADD CONSTRAINT cr_base_type_check
             CHECK (base_type IN ('prime_total','insured_value','custom_amount'))");
- 
+
         // Index partiel pour règles actives
-        DB::statement("CREATE INDEX idx_commission_rules_active
+        DB::statement('CREATE INDEX idx_commission_rules_active
             ON commission_rules(broker_id, effective_date DESC)
-            WHERE is_active = TRUE AND end_date IS NULL");
- 
+            WHERE is_active = TRUE AND end_date IS NULL');
+
     }
 
     public function down(): void

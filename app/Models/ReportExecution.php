@@ -31,19 +31,22 @@ class ReportExecution extends Model
     protected function casts(): array
     {
         return [
-            'parameters'   => 'array',
-            'started_at'   => 'datetime',
+            'parameters' => 'array',
+            'started_at' => 'datetime',
             'completed_at' => 'datetime',
-            'expires_at'   => 'datetime',
-            'created_at'   => 'datetime',
+            'expires_at' => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 
     // ── Constantes ───────────────────────────────────────────
-    const STATUS_QUEUED     = 'QUEUED';
+    const STATUS_QUEUED = 'QUEUED';
+
     const STATUS_PROCESSING = 'PROCESSING';
-    const STATUS_COMPLETED  = 'COMPLETED';
-    const STATUS_FAILED     = 'FAILED';
+
+    const STATUS_COMPLETED = 'COMPLETED';
+
+    const STATUS_FAILED = 'FAILED';
 
     // ── Helpers ──────────────────────────────────────────────
     public function isCompleted(): bool
@@ -58,7 +61,10 @@ class ReportExecution extends Model
 
     public function getDurationAttribute(): ?int
     {
-        if (!$this->started_at || !$this->completed_at) return null;
+        if (! $this->started_at || ! $this->completed_at) {
+            return null;
+        }
+
         return $this->started_at->diffInSeconds($this->completed_at);
     }
 

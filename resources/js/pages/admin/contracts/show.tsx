@@ -1,41 +1,106 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
-    ArrowLeft, Edit2, FileText, Calendar, Shield,
-    Building2, Briefcase, DollarSign, TrendingUp,
-    CheckCircle, XCircle, PauseCircle, StopCircle,
-    PlayCircle, Send, X, AlertCircle, Tag, Users,
+    ArrowLeft,
+    Edit2,
+    FileText,
+    Calendar,
+    Shield,
+    Briefcase,
+    DollarSign,
+    TrendingUp,
+    CheckCircle,
+    XCircle,
+    PauseCircle,
+    StopCircle,
+    PlayCircle,
+    Send,
+    X,
+    AlertCircle,
+    Tag,
+    Users,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ContractLimitWidget from '@/components/contract-limit-widget';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 interface Contract {
-    id: string; contract_number: string; type: string; status: string;
-    insured_name: string; insured_address: string | null;
-    insured_email: string | null; insured_phone: string | null;
-    subscriber_name: string | null; subscriber_address: string | null;
-    subscriber_email: string | null; subscriber_phone: string | null;
-    coverage_type: string | null; clauses: string[]; exclusions: string[];
-    incoterm_code: string | null; conditioning_types: string[] | null;
-    currency_code: string; subscription_limit: string | null; treaty_limit: string | null;
-    used_limit: string; premium_rate: string | null; deductible: string;
-    plein: string | null; escalade_enabled: boolean; escalade_threshold_pct: string | null;
-    rate_ro: string | null; rate_rg: string | null;
-    accessories_amount: string | null; rate_tax: string | null;
-    coinsurers: { id: string; name: string; email: string | null; phone: string | null; pivot: { share_rate: string } }[];
-    experts: { id: string; name: string; email: string | null; phone: string | null }[];
-    effective_date: string; expiry_date: string; notice_period_days: number;
-    requires_approval: boolean; validation_notes: string | null;
-    certificates_count: number; certificates_limit: number | null;
-    notes: string | null; created_at: string;
-    approved_at: string | null; suspended_at: string | null;
+    id: string;
+    contract_number: string;
+    type: string;
+    status: string;
+    insured_name: string;
+    insured_address: string | null;
+    insured_email: string | null;
+    insured_phone: string | null;
+    subscriber_name: string | null;
+    subscriber_address: string | null;
+    subscriber_email: string | null;
+    subscriber_phone: string | null;
+    coverage_type: string | null;
+    clauses: string[];
+    exclusions: string[];
+    incoterm_code: string | null;
+    conditioning_types: string[] | null;
+    currency_code: string;
+    subscription_limit: string | null;
+    treaty_limit: string | null;
+    used_limit: string;
+    premium_rate: string | null;
+    deductible: string;
+    plein: string | null;
+    escalade_enabled: boolean;
+    escalade_threshold_pct: string | null;
+    rate_ro: string | null;
+    rate_rg: string | null;
+    accessories_amount: string | null;
+    rate_tax: string | null;
+    coinsurers: {
+        id: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        pivot: { share_rate: string };
+    }[];
+    experts: {
+        id: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+    }[];
+    effective_date: string;
+    expiry_date: string;
+    notice_period_days: number;
+    requires_approval: boolean;
+    validation_notes: string | null;
+    certificates_count: number;
+    certificates_limit: number | null;
+    notes: string | null;
+    created_at: string;
+    approved_at: string | null;
+    suspended_at: string | null;
     suspension_reason: string | null;
-    tenant: { id: string; name: string; code: string; currency_code: string } | null;
-    broker: { id: string; name: string; code: string; email: string | null; phone: string | null } | null;
-    subscriber: { id: string; first_name: string; last_name: string; email: string | null } | null;
+    tenant: {
+        id: string;
+        name: string;
+        code: string;
+        currency_code: string;
+    } | null;
+    broker: {
+        id: string;
+        name: string;
+        code: string;
+        email: string | null;
+        phone: string | null;
+    } | null;
+    subscriber: {
+        id: string;
+        first_name: string;
+        last_name: string;
+        email: string | null;
+    } | null;
     transport_mode: { code: string; name_fr: string } | null;
     created_by: { id: string; first_name: string; last_name: string } | null;
     approved_by: { id: string; first_name: string; last_name: string } | null;
@@ -45,43 +110,167 @@ interface Props {
     can: { edit: boolean; validate: boolean; terminate: boolean };
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string }> = {
-    DRAFT:            { bg:'#f8fafc', color:'#64748b', dot:'#94a3b8' },
-    PENDING_APPROVAL: { bg:'#fffbeb', color:'#92400e', dot:'#f59e0b' },
-    ACTIVE:           { bg:'#f0fdf4', color:'#15803d', dot:'#22c55e' },
-    SUSPENDED:        { bg:'#fff7ed', color:'#c2410c', dot:'#f97316' },
-    EXPIRED:          { bg:'#f8fafc', color:'#475569', dot:'#64748b' },
-    CANCELLED:        { bg:'#fef2f2', color:'#dc2626', dot:'#ef4444' },
+const STATUS_STYLES: Record<
+    string,
+    { bg: string; color: string; dot: string }
+> = {
+    DRAFT: { bg: '#f8fafc', color: '#64748b', dot: '#94a3b8' },
+    PENDING_APPROVAL: { bg: '#fffbeb', color: '#92400e', dot: '#f59e0b' },
+    ACTIVE: { bg: '#f0fdf4', color: '#15803d', dot: '#22c55e' },
+    SUSPENDED: { bg: '#fff7ed', color: '#c2410c', dot: '#f97316' },
+    EXPIRED: { bg: '#f8fafc', color: '#475569', dot: '#64748b' },
+    CANCELLED: { bg: '#fef2f2', color: '#dc2626', dot: '#ef4444' },
 };
 
-function ActionModal({ title, icon: Icon, color, actionLabel, onConfirm, onClose, requireReason = true }: any) {
+function ActionModal({
+    title,
+    icon: Icon,
+    color,
+    actionLabel,
+    onConfirm,
+    onClose,
+    requireReason = true,
+}: any) {
     const { t } = useTranslation('contracts');
     const [reason, setReason] = useState('');
+
     return (
-        <div style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(15,23,42,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
-            <div style={{ background:'#fff', borderRadius:14, width:'100%', maxWidth:440, border:'1.5px solid #e2e8f0', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
-                <div style={{ padding:'16px 20px', borderBottom:'1px solid #f1f5f9', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div style={{ width:34, height:34, borderRadius:8, background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                            <Icon size={16} color={color}/>
+        <div
+            style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 50,
+                background: 'rgba(15,23,42,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+            }}
+        >
+            <div
+                style={{
+                    background: '#fff',
+                    borderRadius: 14,
+                    width: '100%',
+                    maxWidth: 440,
+                    border: '1.5px solid #e2e8f0',
+                    boxShadow: '0 24px 64px rgba(0,0,0,.15)',
+                }}
+            >
+                <div
+                    style={{
+                        padding: '16px 20px',
+                        borderBottom: '1px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 8,
+                                background: `${color}18`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <Icon size={16} color={color} />
                         </div>
-                        <p style={{ fontSize:14, fontWeight:600, color:'#1e293b' }}>{title}</p>
+                        <p
+                            style={{
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: '#1e293b',
+                            }}
+                        >
+                            {title}
+                        </p>
                     </div>
-                    <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}><X size={17}/></button>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#94a3b8',
+                        }}
+                    >
+                        <X size={17} />
+                    </button>
                 </div>
-                <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:12 }}>
+                <div
+                    style={{
+                        padding: '16px 20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 12,
+                    }}
+                >
                     {requireReason && (
                         <div>
-                            <label style={{ fontSize:10.5, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.08em', display:'block', marginBottom:6 }}>{t('show.modals.reasonLabel')}</label>
-                            <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3}
-                                      style={{ width:'100%', padding:'10px 13px', fontSize:13, fontFamily:'inherit', color:'#1e293b', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:9, outline:'none', resize:'vertical', boxSizing:'border-box' }}
-                                      placeholder={t('show.modals.reasonPlaceholder')}/>
+                            <label
+                                style={{
+                                    fontSize: 10.5,
+                                    fontWeight: 600,
+                                    color: '#64748b',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '.08em',
+                                    display: 'block',
+                                    marginBottom: 6,
+                                }}
+                            >
+                                {t('show.modals.reasonLabel')}
+                            </label>
+                            <textarea
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                rows={3}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 13px',
+                                    fontSize: 13,
+                                    fontFamily: 'inherit',
+                                    color: '#1e293b',
+                                    background: '#f8fafc',
+                                    border: '1.5px solid #e2e8f0',
+                                    borderRadius: 9,
+                                    outline: 'none',
+                                    resize: 'vertical',
+                                    boxSizing: 'border-box',
+                                }}
+                                placeholder={t('show.modals.reasonPlaceholder')}
+                            />
                         </div>
                     )}
-                    <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-                        <Button variant="outline" onClick={onClose}>{t('show.modals.cancel')}</Button>
-                        <Button onClick={() => onConfirm(reason)} disabled={requireReason && !reason.trim()}
-                                style={{ background: color, color:'#fff', border:'none' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: 8,
+                            justifyContent: 'flex-end',
+                        }}
+                    >
+                        <Button variant="outline" onClick={onClose}>
+                            {t('show.modals.cancel')}
+                        </Button>
+                        <Button
+                            onClick={() => onConfirm(reason)}
+                            disabled={requireReason && !reason.trim()}
+                            style={{
+                                background: color,
+                                color: '#fff',
+                                border: 'none',
+                            }}
+                        >
                             {actionLabel}
                         </Button>
                     </div>
@@ -100,12 +289,31 @@ export default function ContractShow({ contract, can }: Props) {
         { title: contract.contract_number },
     ];
 
-    const ss  = STATUS_STYLES[contract.status] ?? STATUS_STYLES.DRAFT;
-    const fmt    = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
-    const fmtDt  = (d: string) => new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const ss = STATUS_STYLES[contract.status] ?? STATUS_STYLES.DRAFT;
+    const fmt = (d: string) =>
+        new Date(d).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+        });
+    const fmtDt = (d: string) =>
+        new Date(d).toLocaleString('fr-FR', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
 
     const pct = contract.subscription_limit
-        ? Math.min(100, Math.round((parseFloat(contract.used_limit) / parseFloat(contract.subscription_limit)) * 100))
+        ? Math.min(
+              100,
+              Math.round(
+                  (parseFloat(contract.used_limit) /
+                      parseFloat(contract.subscription_limit)) *
+                      100,
+              ),
+          )
         : 0;
     const barColor = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f97316' : '#22c55e';
 
@@ -116,7 +324,9 @@ export default function ContractShow({ contract, can }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('show.title', { number: contract.contract_number })}/>
+            <Head
+                title={t('show.title', { number: contract.contract_number })}
+            />
             <style>{`
                 .cs-wrap{width:100%;max-width:900px;margin:0 auto;padding:4px 16px;display:flex;flex-direction:column;gap:16px;}
                 .cs-hero{background:linear-gradient(135deg,#1e2fa0 0%,#1a1f7a 55%,#14176a 100%);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
@@ -154,45 +364,134 @@ export default function ContractShow({ contract, can }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="cs-wrap">
-
                     {/* Hero */}
                     <div className="cs-hero">
-                        <div style={{ flex:1, position:'relative', zIndex:1 }}>
-                            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-                                <Link href="/admin/contracts" style={{ color:'rgba(255,255,255,0.6)', textDecoration:'none' }}><ArrowLeft size={16}/></Link>
-                                <FileText size={16} color="rgba(255,255,255,0.6)"/>
+                        <div
+                            style={{ flex: 1, position: 'relative', zIndex: 1 }}
+                        >
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                    marginBottom: 6,
+                                }}
+                            >
+                                <Link
+                                    href="/admin/contracts"
+                                    style={{
+                                        color: 'rgba(255,255,255,0.6)',
+                                        textDecoration: 'none',
+                                    }}
+                                >
+                                    <ArrowLeft size={16} />
+                                </Link>
+                                <FileText
+                                    size={16}
+                                    color="rgba(255,255,255,0.6)"
+                                />
                             </div>
-                            <div className="cs-hero-num">{contract.contract_number}</div>
+                            <div className="cs-hero-num">
+                                {contract.contract_number}
+                            </div>
                             <div className="cs-hero-sub">
-                                {t(`typeLabels.${contract.type}`, { defaultValue: contract.type })} · {contract.tenant?.name}
+                                {t(`typeLabels.${contract.type}`, {
+                                    defaultValue: contract.type,
+                                })}{' '}
+                                · {contract.tenant?.name}
                             </div>
                             <div className="cs-hero-badges">
-                                <span className="cs-badge" style={{ background:'rgba(255,255,255,0.1)', color:'#fff', border:'1px solid rgba(255,255,255,0.2)' }}>
-                                    <span style={{ width:6, height:6, borderRadius:'50%', background: ss.dot }}/>{t(`statusLabels.${contract.status}`)}
+                                <span
+                                    className="cs-badge"
+                                    style={{
+                                        background: 'rgba(255,255,255,0.1)',
+                                        color: '#fff',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            width: 6,
+                                            height: 6,
+                                            borderRadius: '50%',
+                                            background: ss.dot,
+                                        }}
+                                    />
+                                    {t(`statusLabels.${contract.status}`)}
                                 </span>
-                                <span className="cs-badge" style={{ background:'rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.7)', border:'1px solid rgba(255,255,255,0.15)' }}>
-                                    <FileText size={10}/> {contract.certificates_count} {t('show.certLabel')}{contract.certificates_limit ? ` / ${contract.certificates_limit}` : ''}
+                                <span
+                                    className="cs-badge"
+                                    style={{
+                                        background: 'rgba(255,255,255,0.08)',
+                                        color: 'rgba(255,255,255,0.7)',
+                                        border: '1px solid rgba(255,255,255,0.15)',
+                                    }}
+                                >
+                                    <FileText size={10} />{' '}
+                                    {contract.certificates_count}{' '}
+                                    {t('show.certLabel')}
+                                    {contract.certificates_limit
+                                        ? ` / ${contract.certificates_limit}`
+                                        : ''}
                                 </span>
                                 {contract.coverage_type && (
-                                    <span className="cs-badge" style={{ background:'rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.7)', border:'1px solid rgba(255,255,255,0.15)' }}>
-                                        <Shield size={10}/> {t(`coverageLabels.${contract.coverage_type}`, { defaultValue: contract.coverage_type })}
+                                    <span
+                                        className="cs-badge"
+                                        style={{
+                                            background:
+                                                'rgba(255,255,255,0.08)',
+                                            color: 'rgba(255,255,255,0.7)',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                        }}
+                                    >
+                                        <Shield size={10} />{' '}
+                                        {t(
+                                            `coverageLabels.${contract.coverage_type}`,
+                                            {
+                                                defaultValue:
+                                                    contract.coverage_type,
+                                            },
+                                        )}
                                     </span>
                                 )}
                             </div>
                         </div>
-                        <div style={{ position:'relative', zIndex:1, display:'flex', gap:8 }}>
+                        <div
+                            style={{
+                                position: 'relative',
+                                zIndex: 1,
+                                display: 'flex',
+                                gap: 8,
+                            }}
+                        >
                             {/* Bouton Avenants — visible si contrat actif */}
                             {contract.status === 'ACTIVE' && (
-                                <Link href={route('admin.contracts.amendments.index', { contract: contract.id })}>
-                                    <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                        <FileText size={13}/> {t('show.amendments')}
+                                <Link
+                                    href={route(
+                                        'admin.contracts.amendments.index',
+                                        { contract: contract.id },
+                                    )}
+                                >
+                                    <Button
+                                        className="h-9 border-white/20 bg-white/10 px-4 text-sm text-white hover:bg-white/20"
+                                        variant="outline"
+                                    >
+                                        <FileText size={13} />{' '}
+                                        {t('show.amendments')}
                                     </Button>
                                 </Link>
                             )}
                             {can.edit && contract.status === 'DRAFT' && (
-                                <Link href={route('admin.contracts.edit', { contract: contract.id })}>
-                                    <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-4 text-sm" variant="outline">
-                                        <Edit2 size={13}/> {t('show.edit')}
+                                <Link
+                                    href={route('admin.contracts.edit', {
+                                        contract: contract.id,
+                                    })}
+                                >
+                                    <Button
+                                        className="h-9 border-white/20 bg-white/10 px-4 text-sm text-white hover:bg-white/20"
+                                        variant="outline"
+                                    >
+                                        <Edit2 size={13} /> {t('show.edit')}
                                     </Button>
                                 </Link>
                             )}
@@ -201,51 +500,116 @@ export default function ContractShow({ contract, can }: Props) {
 
                     {/* Workflow */}
                     <div className="workflow-bar">
-                        <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, fontWeight:500, color:'#1e293b' }}>
-                            <span style={{ width:8, height:8, borderRadius:'50%', background: ss.dot }}/>
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: '#1e293b',
+                            }}
+                        >
+                            <span
+                                style={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: '50%',
+                                    background: ss.dot,
+                                }}
+                            />
                             {t(`statusLabels.${contract.status}`)}
                         </div>
                         <div className="workflow-actions">
                             {contract.status === 'DRAFT' && (
-                                <button className="btn-wf btn-submit" onClick={() => action('admin.contracts.submit')}>
-                                    <Send size={12}/> {t('show.submit')}
+                                <button
+                                    className="btn-wf btn-submit"
+                                    onClick={() =>
+                                        action('admin.contracts.submit')
+                                    }
+                                >
+                                    <Send size={12} /> {t('show.submit')}
                                 </button>
                             )}
-                            {contract.status === 'PENDING_APPROVAL' && can.validate && (
-                                <>
-                                    <button className="btn-wf btn-approve" onClick={() => setModal('approve')}>
-                                        <CheckCircle size={12}/> {t('show.approveActivate')}
-                                    </button>
-                                    <button className="btn-wf btn-reject" onClick={() => setModal('reject')}>
-                                        <XCircle size={12}/> {t('show.reject')}
-                                    </button>
-                                </>
-                            )}
+                            {contract.status === 'PENDING_APPROVAL' &&
+                                can.validate && (
+                                    <>
+                                        <button
+                                            className="btn-wf btn-approve"
+                                            onClick={() => setModal('approve')}
+                                        >
+                                            <CheckCircle size={12} />{' '}
+                                            {t('show.approveActivate')}
+                                        </button>
+                                        <button
+                                            className="btn-wf btn-reject"
+                                            onClick={() => setModal('reject')}
+                                        >
+                                            <XCircle size={12} />{' '}
+                                            {t('show.reject')}
+                                        </button>
+                                    </>
+                                )}
                             {contract.status === 'ACTIVE' && can.edit && (
-                                <button className="btn-wf btn-suspend" onClick={() => setModal('suspend')}>
-                                    <PauseCircle size={12}/> {t('show.suspend')}
+                                <button
+                                    className="btn-wf btn-suspend"
+                                    onClick={() => setModal('suspend')}
+                                >
+                                    <PauseCircle size={12} />{' '}
+                                    {t('show.suspend')}
                                 </button>
                             )}
-                            {contract.status === 'SUSPENDED' && can.validate && (
-                                <button className="btn-wf btn-reactivate" onClick={() => action('admin.contracts.reactivate')}>
-                                    <PlayCircle size={12}/> {t('show.reactivate')}
-                                </button>
-                            )}
-                            {['ACTIVE','SUSPENDED'].includes(contract.status) && can.terminate && (
-                                <button className="btn-wf btn-cancel" onClick={() => setModal('cancel')}>
-                                    <StopCircle size={12}/> {t('show.cancelContract')}
-                                </button>
-                            )}
+                            {contract.status === 'SUSPENDED' &&
+                                can.validate && (
+                                    <button
+                                        className="btn-wf btn-reactivate"
+                                        onClick={() =>
+                                            action('admin.contracts.reactivate')
+                                        }
+                                    >
+                                        <PlayCircle size={12} />{' '}
+                                        {t('show.reactivate')}
+                                    </button>
+                                )}
+                            {['ACTIVE', 'SUSPENDED'].includes(
+                                contract.status,
+                            ) &&
+                                can.terminate && (
+                                    <button
+                                        className="btn-wf btn-cancel"
+                                        onClick={() => setModal('cancel')}
+                                    >
+                                        <StopCircle size={12} />{' '}
+                                        {t('show.cancelContract')}
+                                    </button>
+                                )}
                         </div>
                     </div>
 
                     {/* Notes validation */}
                     {contract.validation_notes && (
-                        <div className={contract.validation_notes.startsWith('REJETÉ') ? 'notes-ko' : 'notes-ok'}>
-                            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
-                                <AlertCircle size={13}/>
-                                <span style={{ fontWeight:600, fontSize:11 }}>
-                                    {contract.validation_notes.startsWith('REJETÉ') ? t('show.rejectionReason') : t('show.approvalNotes')}
+                        <div
+                            className={
+                                contract.validation_notes.startsWith('REJETÉ')
+                                    ? 'notes-ko'
+                                    : 'notes-ok'
+                            }
+                        >
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    marginBottom: 4,
+                                }}
+                            >
+                                <AlertCircle size={13} />
+                                <span style={{ fontWeight: 600, fontSize: 11 }}>
+                                    {contract.validation_notes.startsWith(
+                                        'REJETÉ',
+                                    )
+                                        ? t('show.rejectionReason')
+                                        : t('show.approvalNotes')}
                                 </span>
                             </div>
                             {contract.validation_notes}
@@ -256,22 +620,71 @@ export default function ContractShow({ contract, can }: Props) {
                     {contract.subscription_limit && (
                         <div className="cs-card">
                             <div className="cs-card-hdr">
-                                <div className="cs-card-ico" style={{ background:'#fffbeb' }}><TrendingUp size={15} color="#f59e0b"/></div>
-                                <span className="cs-card-ttl">{t('show.usage.title')}</span>
+                                <div
+                                    className="cs-card-ico"
+                                    style={{ background: '#fffbeb' }}
+                                >
+                                    <TrendingUp size={15} color="#f59e0b" />
+                                </div>
+                                <span className="cs-card-ttl">
+                                    {t('show.usage.title')}
+                                </span>
                             </div>
                             <div className="cs-card-body">
-                                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-                                    <span style={{ fontSize:13, color:'#64748b' }}>
-                                        {parseFloat(contract.used_limit).toLocaleString('fr-FR')} / {parseFloat(contract.subscription_limit).toLocaleString('fr-FR')} {contract.currency_code}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            fontSize: 13,
+                                            color: '#64748b',
+                                        }}
+                                    >
+                                        {parseFloat(
+                                            contract.used_limit,
+                                        ).toLocaleString('fr-FR')}{' '}
+                                        /{' '}
+                                        {parseFloat(
+                                            contract.subscription_limit,
+                                        ).toLocaleString('fr-FR')}{' '}
+                                        {contract.currency_code}
                                     </span>
-                                    <span style={{ fontSize:14, fontWeight:700, color: barColor }}>{pct}%</span>
+                                    <span
+                                        style={{
+                                            fontSize: 14,
+                                            fontWeight: 700,
+                                            color: barColor,
+                                        }}
+                                    >
+                                        {pct}%
+                                    </span>
                                 </div>
                                 <div className="usage-bar-wrap">
-                                    <div className="usage-bar-fill" style={{ width:`${pct}%`, background: barColor }}/>
+                                    <div
+                                        className="usage-bar-fill"
+                                        style={{
+                                            width: `${pct}%`,
+                                            background: barColor,
+                                        }}
+                                    />
                                 </div>
                                 {pct >= 90 && (
-                                    <p style={{ fontSize:11, color:'#dc2626', marginTop:6, display:'flex', alignItems:'center', gap:4 }}>
-                                        <AlertCircle size={11}/> {t('show.usage.almostReached')}
+                                    <p
+                                        style={{
+                                            fontSize: 11,
+                                            color: '#dc2626',
+                                            marginTop: 6,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 4,
+                                        }}
+                                    >
+                                        <AlertCircle size={11} />{' '}
+                                        {t('show.usage.almostReached')}
                                     </p>
                                 )}
                             </div>
@@ -281,31 +694,98 @@ export default function ContractShow({ contract, can }: Props) {
                     {/* Assuré + Courtier */}
                     <div className="cs-card">
                         <div className="cs-card-hdr">
-                            <div className="cs-card-ico" style={{ background:'#eff6ff' }}><Briefcase size={15} color="#3b82f6"/></div>
-                            <span className="cs-card-ttl">{t('show.insuredBroker.title')}</span>
+                            <div
+                                className="cs-card-ico"
+                                style={{ background: '#eff6ff' }}
+                            >
+                                <Briefcase size={15} color="#3b82f6" />
+                            </div>
+                            <span className="cs-card-ttl">
+                                {t('show.insuredBroker.title')}
+                            </span>
                         </div>
                         <div className="cs-card-body">
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.insuredBroker.insured')}</span>
-                                    <span className="info-value" style={{ fontWeight:500 }}>{contract.insured_name}</span>
-                                    {contract.insured_email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.insured_email}</span>}
-                                    {contract.insured_phone && <span style={{ fontSize:11, color:'#64748b' }}>{contract.insured_phone}</span>}
+                                    <span className="info-label">
+                                        {t('show.insuredBroker.insured')}
+                                    </span>
+                                    <span
+                                        className="info-value"
+                                        style={{ fontWeight: 500 }}
+                                    >
+                                        {contract.insured_name}
+                                    </span>
+                                    {contract.insured_email && (
+                                        <span
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#64748b',
+                                            }}
+                                        >
+                                            {contract.insured_email}
+                                        </span>
+                                    )}
+                                    {contract.insured_phone && (
+                                        <span
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#64748b',
+                                            }}
+                                        >
+                                            {contract.insured_phone}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.insuredBroker.broker')}</span>
-                                    <span className="info-value">{contract.broker?.name ?? '—'}</span>
-                                    {contract.broker?.email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.broker.email}</span>}
+                                    <span className="info-label">
+                                        {t('show.insuredBroker.broker')}
+                                    </span>
+                                    <span className="info-value">
+                                        {contract.broker?.name ?? '—'}
+                                    </span>
+                                    {contract.broker?.email && (
+                                        <span
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#64748b',
+                                            }}
+                                        >
+                                            {contract.broker.email}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.insuredBroker.subscriber')}</span>
-                                    <span className="info-value">{contract.subscriber ? `${contract.subscriber.first_name} ${contract.subscriber.last_name}` : '—'}</span>
-                                    {contract.subscriber?.email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.subscriber.email}</span>}
+                                    <span className="info-label">
+                                        {t('show.insuredBroker.subscriber')}
+                                    </span>
+                                    <span className="info-value">
+                                        {contract.subscriber
+                                            ? `${contract.subscriber.first_name} ${contract.subscriber.last_name}`
+                                            : '—'}
+                                    </span>
+                                    {contract.subscriber?.email && (
+                                        <span
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#64748b',
+                                            }}
+                                        >
+                                            {contract.subscriber.email}
+                                        </span>
+                                    )}
                                 </div>
                                 {contract.insured_address && (
-                                    <div className="info-item" style={{ gridColumn:'1/-1' }}>
-                                        <span className="info-label">{t('show.insuredBroker.address')}</span>
-                                        <span className="info-value">{contract.insured_address}</span>
+                                    <div
+                                        className="info-item"
+                                        style={{ gridColumn: '1/-1' }}
+                                    >
+                                        <span className="info-label">
+                                            {t('show.insuredBroker.address')}
+                                        </span>
+                                        <span className="info-value">
+                                            {contract.insured_address}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -313,24 +793,68 @@ export default function ContractShow({ contract, can }: Props) {
                     </div>
 
                     {/* Souscripteur (contractant) */}
-                    {(contract.subscriber_name || contract.subscriber_email || contract.subscriber_phone || contract.subscriber_address) && (
+                    {(contract.subscriber_name ||
+                        contract.subscriber_email ||
+                        contract.subscriber_phone ||
+                        contract.subscriber_address) && (
                         <div className="cs-card">
                             <div className="cs-card-hdr">
-                                <div className="cs-card-ico" style={{ background:'#eef2ff' }}><Briefcase size={15} color="#4f46e5"/></div>
-                                <span className="cs-card-ttl">{t('show.subscriberSection.title')}</span>
+                                <div
+                                    className="cs-card-ico"
+                                    style={{ background: '#eef2ff' }}
+                                >
+                                    <Briefcase size={15} color="#4f46e5" />
+                                </div>
+                                <span className="cs-card-ttl">
+                                    {t('show.subscriberSection.title')}
+                                </span>
                             </div>
                             <div className="cs-card-body">
                                 <div className="info-grid">
                                     <div className="info-item">
-                                        <span className="info-label">{t('show.subscriberSection.name')}</span>
-                                        <span className="info-value" style={{ fontWeight:500 }}>{contract.subscriber_name ?? '—'}</span>
-                                        {contract.subscriber_email && <span style={{ fontSize:11, color:'#64748b' }}>{contract.subscriber_email}</span>}
-                                        {contract.subscriber_phone && <span style={{ fontSize:11, color:'#64748b' }}>{contract.subscriber_phone}</span>}
+                                        <span className="info-label">
+                                            {t('show.subscriberSection.name')}
+                                        </span>
+                                        <span
+                                            className="info-value"
+                                            style={{ fontWeight: 500 }}
+                                        >
+                                            {contract.subscriber_name ?? '—'}
+                                        </span>
+                                        {contract.subscriber_email && (
+                                            <span
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#64748b',
+                                                }}
+                                            >
+                                                {contract.subscriber_email}
+                                            </span>
+                                        )}
+                                        {contract.subscriber_phone && (
+                                            <span
+                                                style={{
+                                                    fontSize: 11,
+                                                    color: '#64748b',
+                                                }}
+                                            >
+                                                {contract.subscriber_phone}
+                                            </span>
+                                        )}
                                     </div>
                                     {contract.subscriber_address && (
-                                        <div className="info-item" style={{ gridColumn:'1/-1' }}>
-                                            <span className="info-label">{t('show.subscriberSection.address')}</span>
-                                            <span className="info-value">{contract.subscriber_address}</span>
+                                        <div
+                                            className="info-item"
+                                            style={{ gridColumn: '1/-1' }}
+                                        >
+                                            <span className="info-label">
+                                                {t(
+                                                    'show.subscriberSection.address',
+                                                )}
+                                            </span>
+                                            <span className="info-value">
+                                                {contract.subscriber_address}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -342,16 +866,41 @@ export default function ContractShow({ contract, can }: Props) {
                     {contract.coinsurers?.length > 0 && (
                         <div className="cs-card">
                             <div className="cs-card-hdr">
-                                <div className="cs-card-ico" style={{ background:'#fdf4ff' }}><Users size={15} color="#a855f7"/></div>
-                                <span className="cs-card-ttl">{t('show.coinsurers.title')}</span>
+                                <div
+                                    className="cs-card-ico"
+                                    style={{ background: '#fdf4ff' }}
+                                >
+                                    <Users size={15} color="#a855f7" />
+                                </div>
+                                <span className="cs-card-ttl">
+                                    {t('show.coinsurers.title')}
+                                </span>
                             </div>
                             <div className="cs-card-body">
                                 <div className="info-grid">
-                                    {contract.coinsurers.map(ci => (
+                                    {contract.coinsurers.map((ci) => (
                                         <div key={ci.id} className="info-item">
-                                            <span className="info-label">{ci.name}</span>
-                                            <span className="info-value" style={{ fontFamily:'monospace' }}>{ci.pivot.share_rate} %</span>
-                                            {ci.email && <span style={{ fontSize:11, color:'#64748b' }}>{ci.email}</span>}
+                                            <span className="info-label">
+                                                {ci.name}
+                                            </span>
+                                            <span
+                                                className="info-value"
+                                                style={{
+                                                    fontFamily: 'monospace',
+                                                }}
+                                            >
+                                                {ci.pivot.share_rate} %
+                                            </span>
+                                            {ci.email && (
+                                                <span
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: '#64748b',
+                                                    }}
+                                                >
+                                                    {ci.email}
+                                                </span>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -363,16 +912,43 @@ export default function ContractShow({ contract, can }: Props) {
                     {contract.experts?.length > 0 && (
                         <div className="cs-card">
                             <div className="cs-card-hdr">
-                                <div className="cs-card-ico" style={{ background:'#fffbeb' }}><Users size={15} color="#d97706"/></div>
-                                <span className="cs-card-ttl">{t('show.experts.title')}</span>
+                                <div
+                                    className="cs-card-ico"
+                                    style={{ background: '#fffbeb' }}
+                                >
+                                    <Users size={15} color="#d97706" />
+                                </div>
+                                <span className="cs-card-ttl">
+                                    {t('show.experts.title')}
+                                </span>
                             </div>
                             <div className="cs-card-body">
                                 <div className="info-grid">
-                                    {contract.experts.map(ex => (
+                                    {contract.experts.map((ex) => (
                                         <div key={ex.id} className="info-item">
-                                            <span className="info-label">{ex.name}</span>
-                                            {ex.email && <span style={{ fontSize:11, color:'#64748b' }}>{ex.email}</span>}
-                                            {ex.phone && <span style={{ fontSize:11, color:'#64748b' }}>{ex.phone}</span>}
+                                            <span className="info-label">
+                                                {ex.name}
+                                            </span>
+                                            {ex.email && (
+                                                <span
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: '#64748b',
+                                                    }}
+                                                >
+                                                    {ex.email}
+                                                </span>
+                                            )}
+                                            {ex.phone && (
+                                                <span
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: '#64748b',
+                                                    }}
+                                                >
+                                                    {ex.phone}
+                                                </span>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -384,49 +960,145 @@ export default function ContractShow({ contract, can }: Props) {
                     <div className="info-grid">
                         <div className="cs-card">
                             <div className="cs-card-hdr">
-                                <div className="cs-card-ico" style={{ background:'#f0fdf4' }}><Calendar size={15} color="#16a34a"/></div>
-                                <span className="cs-card-ttl">{t('show.period.title')}</span>
+                                <div
+                                    className="cs-card-ico"
+                                    style={{ background: '#f0fdf4' }}
+                                >
+                                    <Calendar size={15} color="#16a34a" />
+                                </div>
+                                <span className="cs-card-ttl">
+                                    {t('show.period.title')}
+                                </span>
                             </div>
                             <div className="cs-card-body">
-                                <div className="info-item" style={{ marginBottom:10 }}>
-                                    <span className="info-label">{t('show.period.effectiveDate')}</span>
-                                    <span className="info-value">{fmt(contract.effective_date)}</span>
+                                <div
+                                    className="info-item"
+                                    style={{ marginBottom: 10 }}
+                                >
+                                    <span className="info-label">
+                                        {t('show.period.effectiveDate')}
+                                    </span>
+                                    <span className="info-value">
+                                        {fmt(contract.effective_date)}
+                                    </span>
                                 </div>
-                                <div className="info-item" style={{ marginBottom:10 }}>
-                                    <span className="info-label">{t('show.period.expiryDate')}</span>
-                                    <span className="info-value">{fmt(contract.expiry_date)}</span>
+                                <div
+                                    className="info-item"
+                                    style={{ marginBottom: 10 }}
+                                >
+                                    <span className="info-label">
+                                        {t('show.period.expiryDate')}
+                                    </span>
+                                    <span className="info-value">
+                                        {fmt(contract.expiry_date)}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.period.noticePeriod')}</span>
-                                    <span className="info-value">{contract.notice_period_days} {t('show.period.days')}</span>
+                                    <span className="info-label">
+                                        {t('show.period.noticePeriod')}
+                                    </span>
+                                    <span className="info-value">
+                                        {contract.notice_period_days}{' '}
+                                        {t('show.period.days')}
+                                    </span>
                                 </div>
                             </div>
                         </div>
                         <div className="cs-card">
                             <div className="cs-card-hdr">
-                                <div className="cs-card-ico" style={{ background:'#fdf4ff' }}><Shield size={15} color="#7c3aed"/></div>
-                                <span className="cs-card-ttl">{t('show.transportCoverage.title')}</span>
+                                <div
+                                    className="cs-card-ico"
+                                    style={{ background: '#fdf4ff' }}
+                                >
+                                    <Shield size={15} color="#7c3aed" />
+                                </div>
+                                <span className="cs-card-ttl">
+                                    {t('show.transportCoverage.title')}
+                                </span>
                             </div>
                             <div className="cs-card-body">
-                                <div className="info-item" style={{ marginBottom:10 }}>
-                                    <span className="info-label">{t('show.transportCoverage.coverage')}</span>
-                                    <span className="info-value">{contract.coverage_type ? t(`coverageLabels.${contract.coverage_type}`, { defaultValue: contract.coverage_type }) : '—'}</span>
+                                <div
+                                    className="info-item"
+                                    style={{ marginBottom: 10 }}
+                                >
+                                    <span className="info-label">
+                                        {t('show.transportCoverage.coverage')}
+                                    </span>
+                                    <span className="info-value">
+                                        {contract.coverage_type
+                                            ? t(
+                                                  `coverageLabels.${contract.coverage_type}`,
+                                                  {
+                                                      defaultValue:
+                                                          contract.coverage_type,
+                                                  },
+                                              )
+                                            : '—'}
+                                    </span>
                                 </div>
-                                <div className="info-item" style={{ marginBottom:10 }}>
-                                    <span className="info-label">{t('show.transportCoverage.incoterm')}</span>
-                                    <span className="info-value">{contract.incoterm_code ?? '—'}</span>
+                                <div
+                                    className="info-item"
+                                    style={{ marginBottom: 10 }}
+                                >
+                                    <span className="info-label">
+                                        {t('show.transportCoverage.incoterm')}
+                                    </span>
+                                    <span className="info-value">
+                                        {contract.incoterm_code ?? '—'}
+                                    </span>
                                 </div>
-                                <div className="info-item" style={{ marginBottom: (contract.conditioning_types?.length ?? 0) > 0 ? 10 : 0 }}>
-                                    <span className="info-label">{t('show.transportCoverage.transportMode')}</span>
-                                    <span className="info-value">{contract.transport_mode?.name_fr ?? '—'}</span>
+                                <div
+                                    className="info-item"
+                                    style={{
+                                        marginBottom:
+                                            (contract.conditioning_types
+                                                ?.length ?? 0) > 0
+                                                ? 10
+                                                : 0,
+                                    }}
+                                >
+                                    <span className="info-label">
+                                        {t(
+                                            'show.transportCoverage.transportMode',
+                                        )}
+                                    </span>
+                                    <span className="info-value">
+                                        {contract.transport_mode?.name_fr ??
+                                            '—'}
+                                    </span>
                                 </div>
-                                {(contract.conditioning_types?.length ?? 0) > 0 && (
+                                {(contract.conditioning_types?.length ?? 0) >
+                                    0 && (
                                     <div className="info-item">
-                                        <span className="info-label">{t('show.transportCoverage.conditioningType')}</span>
-                                        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>
-                                            {contract.conditioning_types!.map((ct, i) => (
-                                                <span key={i} className="tag-chip">{t(`conditioningLabels.${ct}`, { defaultValue: ct })}</span>
-                                            ))}
+                                        <span className="info-label">
+                                            {t(
+                                                'show.transportCoverage.conditioningType',
+                                            )}
+                                        </span>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: 6,
+                                                marginTop: 4,
+                                            }}
+                                        >
+                                            {contract.conditioning_types!.map(
+                                                (ct, i) => (
+                                                    <span
+                                                        key={i}
+                                                        className="tag-chip"
+                                                    >
+                                                        {t(
+                                                            `conditioningLabels.${ct}`,
+                                                            {
+                                                                defaultValue:
+                                                                    ct,
+                                                            },
+                                                        )}
+                                                    </span>
+                                                ),
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -435,27 +1107,58 @@ export default function ContractShow({ contract, can }: Props) {
                     </div>
 
                     {/* Clauses & Exclusions */}
-                    {((contract.clauses?.length ?? 0) > 0 || (contract.exclusions?.length ?? 0) > 0) && (
+                    {((contract.clauses?.length ?? 0) > 0 ||
+                        (contract.exclusions?.length ?? 0) > 0) && (
                         <div className="info-grid">
                             {(contract.clauses?.length ?? 0) > 0 && (
                                 <div className="cs-card">
                                     <div className="cs-card-hdr">
-                                        <div className="cs-card-ico" style={{ background:'#f0fdf4' }}><Tag size={15} color="#16a34a"/></div>
-                                        <span className="cs-card-ttl">{t('show.clauses.title')}</span>
+                                        <div
+                                            className="cs-card-ico"
+                                            style={{ background: '#f0fdf4' }}
+                                        >
+                                            <Tag size={15} color="#16a34a" />
+                                        </div>
+                                        <span className="cs-card-ttl">
+                                            {t('show.clauses.title')}
+                                        </span>
                                     </div>
                                     <div className="cs-card-body">
-                                        {contract.clauses.map((c, i) => <span key={i} className="tag-chip">{c}</span>)}
+                                        {contract.clauses.map((c, i) => (
+                                            <span key={i} className="tag-chip">
+                                                {c}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                             )}
                             {(contract.exclusions?.length ?? 0) > 0 && (
                                 <div className="cs-card">
                                     <div className="cs-card-hdr">
-                                        <div className="cs-card-ico" style={{ background:'#fef2f2' }}><Tag size={15} color="#dc2626"/></div>
-                                        <span className="cs-card-ttl">{t('show.exclusions.title')}</span>
+                                        <div
+                                            className="cs-card-ico"
+                                            style={{ background: '#fef2f2' }}
+                                        >
+                                            <Tag size={15} color="#dc2626" />
+                                        </div>
+                                        <span className="cs-card-ttl">
+                                            {t('show.exclusions.title')}
+                                        </span>
                                     </div>
                                     <div className="cs-card-body">
-                                        {contract.exclusions.map((e, i) => <span key={i} className="tag-chip" style={{ background:'#fef2f2', borderColor:'#fecaca', color:'#dc2626' }}>{e}</span>)}
+                                        {contract.exclusions.map((e, i) => (
+                                            <span
+                                                key={i}
+                                                className="tag-chip"
+                                                style={{
+                                                    background: '#fef2f2',
+                                                    borderColor: '#fecaca',
+                                                    color: '#dc2626',
+                                                }}
+                                            >
+                                                {e}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                             )}
@@ -465,77 +1168,205 @@ export default function ContractShow({ contract, can }: Props) {
                     {/* Conditions financières */}
                     <div className="cs-card">
                         <div className="cs-card-hdr">
-                            <div className="cs-card-ico" style={{ background:'#fffbeb' }}><DollarSign size={15} color="#f59e0b"/></div>
-                            <span className="cs-card-ttl">{t('show.financial.title')}</span>
+                            <div
+                                className="cs-card-ico"
+                                style={{ background: '#fffbeb' }}
+                            >
+                                <DollarSign size={15} color="#f59e0b" />
+                            </div>
+                            <span className="cs-card-ttl">
+                                {t('show.financial.title')}
+                            </span>
                         </div>
                         <div className="cs-card-body">
-                            <div className="info-grid" style={{ marginBottom:14 }}>
+                            <div
+                                className="info-grid"
+                                style={{ marginBottom: 14 }}
+                            >
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.financial.currency')}</span>
-                                    <span className="info-value" style={{ fontFamily:'monospace', fontWeight:600 }}>{contract.currency_code}</span>
+                                    <span className="info-label">
+                                        {t('show.financial.currency')}
+                                    </span>
+                                    <span
+                                        className="info-value"
+                                        style={{
+                                            fontFamily: 'monospace',
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {contract.currency_code}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.financial.nn300Limit')}</span>
+                                    <span className="info-label">
+                                        {t('show.financial.nn300Limit')}
+                                    </span>
                                     <span className="info-value">
                                         {contract.subscription_limit
-                                            ? parseFloat(contract.subscription_limit).toLocaleString('fr-FR') + ' ' + contract.currency_code
+                                            ? parseFloat(
+                                                  contract.subscription_limit,
+                                              ).toLocaleString('fr-FR') +
+                                              ' ' +
+                                              contract.currency_code
                                             : t('show.financial.unlimited')}
                                     </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.financial.treatyLimit')}</span>
+                                    <span className="info-label">
+                                        {t('show.financial.treatyLimit')}
+                                    </span>
                                     <span className="info-value">
                                         {contract.treaty_limit
-                                            ? parseFloat(contract.treaty_limit).toLocaleString('fr-FR') + ' ' + contract.currency_code
+                                            ? parseFloat(
+                                                  contract.treaty_limit,
+                                              ).toLocaleString('fr-FR') +
+                                              ' ' +
+                                              contract.currency_code
                                             : t('show.financial.notDefined')}
                                     </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.financial.globalPremiumRate')}</span>
-                                    <span className="info-value">{contract.premium_rate ? `${contract.premium_rate} %` : '—'}</span>
+                                    <span className="info-label">
+                                        {t('show.financial.globalPremiumRate')}
+                                    </span>
+                                    <span className="info-value">
+                                        {contract.premium_rate
+                                            ? `${contract.premium_rate} %`
+                                            : '—'}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.financial.deductible')}</span>
-                                    <span className="info-value">{parseFloat(contract.deductible ?? '0').toLocaleString('fr-FR')} {contract.currency_code}</span>
+                                    <span className="info-label">
+                                        {t('show.financial.deductible')}
+                                    </span>
+                                    <span className="info-value">
+                                        {parseFloat(
+                                            contract.deductible ?? '0',
+                                        ).toLocaleString('fr-FR')}{' '}
+                                        {contract.currency_code}
+                                    </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.financial.contractPlein')}</span>
+                                    <span className="info-label">
+                                        {t('show.financial.contractPlein')}
+                                    </span>
                                     <span className="info-value">
                                         {contract.plein
-                                            ? parseFloat(contract.plein).toLocaleString('fr-FR') + ' ' + contract.currency_code
+                                            ? parseFloat(
+                                                  contract.plein,
+                                              ).toLocaleString('fr-FR') +
+                                              ' ' +
+                                              contract.currency_code
                                             : t('show.financial.notDefined')}
                                     </span>
                                 </div>
                                 <div className="info-item">
-                                    <span className="info-label">{t('show.financial.escalade')}</span>
+                                    <span className="info-label">
+                                        {t('show.financial.escalade')}
+                                    </span>
                                     <span className="info-value">
                                         {contract.escalade_enabled
-                                            ? t('show.financial.escaladeEnabled', { threshold: contract.escalade_threshold_pct ?? '15' })
-                                            : t('show.financial.escaladeDisabled')}
+                                            ? t(
+                                                  'show.financial.escaladeEnabled',
+                                                  {
+                                                      threshold:
+                                                          contract.escalade_threshold_pct ??
+                                                          '15',
+                                                  },
+                                              )
+                                            : t(
+                                                  'show.financial.escaladeDisabled',
+                                              )}
                                     </span>
                                 </div>
                             </div>
-                            <div style={{ borderTop:'1px solid #f1f5f9', paddingTop:12 }}>
-                                <div style={{ fontSize:10.5, fontWeight:600, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:8 }}>{t('show.financial.detailedRates')}</div>
+                            <div
+                                style={{
+                                    borderTop: '1px solid #f1f5f9',
+                                    paddingTop: 12,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 10.5,
+                                        fontWeight: 600,
+                                        color: '#94a3b8',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '.08em',
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    {t('show.financial.detailedRates')}
+                                </div>
                                 {[
-                                    { label: t('show.financial.rateRO'), value: contract.rate_ro },
-                                    { label: t('show.financial.rateRG'), value: contract.rate_rg },
-                                    { label: t('show.financial.tax'), value: contract.rate_tax },
-                                ].map(({ label, value }) => value ? (
-                                    <div key={label} className="rate-row">
-                                        <span style={{ fontSize:12, color:'#64748b' }}>{label}</span>
-                                        <span style={{ fontSize:13, fontWeight:600, color:'#1e293b', fontFamily:'monospace' }}>{value} %</span>
-                                    </div>
-                                ) : null)}
+                                    {
+                                        label: t('show.financial.rateRO'),
+                                        value: contract.rate_ro,
+                                    },
+                                    {
+                                        label: t('show.financial.rateRG'),
+                                        value: contract.rate_rg,
+                                    },
+                                    {
+                                        label: t('show.financial.tax'),
+                                        value: contract.rate_tax,
+                                    },
+                                ].map(({ label, value }) =>
+                                    value ? (
+                                        <div key={label} className="rate-row">
+                                            <span
+                                                style={{
+                                                    fontSize: 12,
+                                                    color: '#64748b',
+                                                }}
+                                            >
+                                                {label}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: 13,
+                                                    fontWeight: 600,
+                                                    color: '#1e293b',
+                                                    fontFamily: 'monospace',
+                                                }}
+                                            >
+                                                {value} %
+                                            </span>
+                                        </div>
+                                    ) : null,
+                                )}
                                 {contract.accessories_amount && (
                                     <div className="rate-row">
-                                        <span style={{ fontSize:12, color:'#64748b' }}>{t('show.financial.accessories')}</span>
-                                        <span style={{ fontSize:13, fontWeight:600, color:'#1e293b', fontFamily:'monospace' }}>
-                                            {parseFloat(contract.accessories_amount).toLocaleString('fr-FR')} {contract.currency_code}
+                                        <span
+                                            style={{
+                                                fontSize: 12,
+                                                color: '#64748b',
+                                            }}
+                                        >
+                                            {t('show.financial.accessories')}
+                                        </span>
+                                        <span
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                color: '#1e293b',
+                                                fontFamily: 'monospace',
+                                            }}
+                                        >
+                                            {parseFloat(
+                                                contract.accessories_amount,
+                                            ).toLocaleString('fr-FR')}{' '}
+                                            {contract.currency_code}
                                         </span>
                                     </div>
                                 )}
-                                <p style={{ fontSize:11, color:'#94a3b8', marginTop:6 }}>
+                                <p
+                                    style={{
+                                        fontSize: 11,
+                                        color: '#94a3b8',
+                                        marginTop: 6,
+                                    }}
+                                >
                                     {t('show.financial.note')}
                                 </p>
                             </div>
@@ -547,17 +1378,28 @@ export default function ContractShow({ contract, can }: Props) {
                         <ContractLimitWidget
                             contractId={contract.id}
                             initialStatus={{
-                                subscription_limit:  parseFloat(contract.subscription_limit),
-                                used_limit:          parseFloat(contract.used_limit),
-                                remaining_limit:     Math.max(0, parseFloat(contract.subscription_limit) - parseFloat(contract.used_limit)),
-                                usage_percent:       pct,
-                                certificates_count:  contract.certificates_count,
-                                certificates_limit:  contract.certificates_limit,
-                                alert_level:         pct >= 95 ? 'critical' : pct >= 80 ? 'warning' : 'ok',
-                                can_issue:           contract.status === 'ACTIVE',
-                                currency_code:       contract.currency_code,
-                                recent_certs:        [],
-                                updated_at:          new Date().toISOString(),
+                                subscription_limit: parseFloat(
+                                    contract.subscription_limit,
+                                ),
+                                used_limit: parseFloat(contract.used_limit),
+                                remaining_limit: Math.max(
+                                    0,
+                                    parseFloat(contract.subscription_limit) -
+                                        parseFloat(contract.used_limit),
+                                ),
+                                usage_percent: pct,
+                                certificates_count: contract.certificates_count,
+                                certificates_limit: contract.certificates_limit,
+                                alert_level:
+                                    pct >= 95
+                                        ? 'critical'
+                                        : pct >= 80
+                                          ? 'warning'
+                                          : 'ok',
+                                can_issue: contract.status === 'ACTIVE',
+                                currency_code: contract.currency_code,
+                                recent_certs: [],
+                                updated_at: new Date().toISOString(),
                             }}
                         />
                     )}
@@ -566,30 +1408,115 @@ export default function ContractShow({ contract, can }: Props) {
                     {contract.notes && (
                         <div className="cs-card">
                             <div className="cs-card-hdr">
-                                <div className="cs-card-ico" style={{ background:'#f8fafc' }}><FileText size={15} color="#64748b"/></div>
-                                <span className="cs-card-ttl">{t('show.notes.title')}</span>
+                                <div
+                                    className="cs-card-ico"
+                                    style={{ background: '#f8fafc' }}
+                                >
+                                    <FileText size={15} color="#64748b" />
+                                </div>
+                                <span className="cs-card-ttl">
+                                    {t('show.notes.title')}
+                                </span>
                             </div>
                             <div className="cs-card-body">
-                                <p style={{ fontSize:13, color:'#475569', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{contract.notes}</p>
+                                <p
+                                    style={{
+                                        fontSize: 13,
+                                        color: '#475569',
+                                        lineHeight: 1.6,
+                                        whiteSpace: 'pre-wrap',
+                                    }}
+                                >
+                                    {contract.notes}
+                                </p>
                             </div>
                         </div>
                     )}
 
                     {/* Méta */}
-                    <div style={{ fontSize:11, color:'#94a3b8', display:'flex', gap:16, flexWrap:'wrap', padding:'4px 0' }}>
-                        {contract.created_by && <span>Créé par {contract.created_by.first_name} {contract.created_by.last_name}</span>}
-                        {contract.approved_by && <span>· Approuvé par {contract.approved_by.first_name} {contract.approved_by.last_name}{contract.approved_at && ` le ${fmtDt(contract.approved_at)}`}</span>}
-                        {contract.suspended_at && <span>· Suspendu le {fmtDt(contract.suspended_at)}</span>}
+                    <div
+                        style={{
+                            fontSize: 11,
+                            color: '#94a3b8',
+                            display: 'flex',
+                            gap: 16,
+                            flexWrap: 'wrap',
+                            padding: '4px 0',
+                        }}
+                    >
+                        {contract.created_by && (
+                            <span>
+                                Créé par {contract.created_by.first_name}{' '}
+                                {contract.created_by.last_name}
+                            </span>
+                        )}
+                        {contract.approved_by && (
+                            <span>
+                                · Approuvé par {contract.approved_by.first_name}{' '}
+                                {contract.approved_by.last_name}
+                                {contract.approved_at &&
+                                    ` le ${fmtDt(contract.approved_at)}`}
+                            </span>
+                        )}
+                        {contract.suspended_at && (
+                            <span>
+                                · Suspendu le {fmtDt(contract.suspended_at)}
+                            </span>
+                        )}
                     </div>
-
                 </div>
             </div>
 
             {/* Modals */}
-            {modal === 'approve' && <ActionModal title={t('show.modals.approveTitle')} icon={CheckCircle} color="#15803d" actionLabel={t('show.modals.approveAction')} requireReason={false} onConfirm={(notes: string) => action('admin.contracts.approve', { notes })} onClose={() => setModal(null)}/>}
-            {modal === 'reject'  && <ActionModal title={t('show.modals.rejectTitle')}   icon={XCircle}      color="#dc2626" actionLabel={t('show.modals.rejectAction')}            onConfirm={(reason: string) => action('admin.contracts.reject',  { reason })} onClose={() => setModal(null)}/>}
-            {modal === 'suspend' && <ActionModal title={t('show.modals.suspendTitle')} icon={PauseCircle}  color="#c2410c" actionLabel={t('show.modals.suspendAction')}          onConfirm={(reason: string) => action('admin.contracts.suspend', { reason })} onClose={() => setModal(null)}/>}
-            {modal === 'cancel'  && <ActionModal title={t('show.modals.cancelTitle')}   icon={StopCircle}   color="#dc2626" actionLabel={t('show.modals.cancelAction')} onConfirm={(reason: string) => action('admin.contracts.cancel', { reason })} onClose={() => setModal(null)}/>}
+            {modal === 'approve' && (
+                <ActionModal
+                    title={t('show.modals.approveTitle')}
+                    icon={CheckCircle}
+                    color="#15803d"
+                    actionLabel={t('show.modals.approveAction')}
+                    requireReason={false}
+                    onConfirm={(notes: string) =>
+                        action('admin.contracts.approve', { notes })
+                    }
+                    onClose={() => setModal(null)}
+                />
+            )}
+            {modal === 'reject' && (
+                <ActionModal
+                    title={t('show.modals.rejectTitle')}
+                    icon={XCircle}
+                    color="#dc2626"
+                    actionLabel={t('show.modals.rejectAction')}
+                    onConfirm={(reason: string) =>
+                        action('admin.contracts.reject', { reason })
+                    }
+                    onClose={() => setModal(null)}
+                />
+            )}
+            {modal === 'suspend' && (
+                <ActionModal
+                    title={t('show.modals.suspendTitle')}
+                    icon={PauseCircle}
+                    color="#c2410c"
+                    actionLabel={t('show.modals.suspendAction')}
+                    onConfirm={(reason: string) =>
+                        action('admin.contracts.suspend', { reason })
+                    }
+                    onClose={() => setModal(null)}
+                />
+            )}
+            {modal === 'cancel' && (
+                <ActionModal
+                    title={t('show.modals.cancelTitle')}
+                    icon={StopCircle}
+                    color="#dc2626"
+                    actionLabel={t('show.modals.cancelAction')}
+                    onConfirm={(reason: string) =>
+                        action('admin.contracts.cancel', { reason })
+                    }
+                    onClose={() => setModal(null)}
+                />
+            )}
         </AppLayout>
     );
 }

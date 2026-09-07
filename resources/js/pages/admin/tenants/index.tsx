@@ -1,22 +1,39 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import type { BreadcrumbItem } from '@/types';
 import {
-    Search, Plus, Eye, Edit2, Settings,
-    ToggleLeft, ToggleRight, X,
-    ChevronLeft, ChevronRight, Users, Building2,
+    Search,
+    Plus,
+    Eye,
+    Edit2,
+    Settings,
+    ToggleLeft,
+    ToggleRight,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Users,
+    Building2,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 interface Tenant {
-    id: string; name: string; code: string; country_code: string;
+    id: string;
+    name: string;
+    code: string;
+    country_code: string;
     currency_code: string;
-    is_active: boolean; users_count: number; created_at: string;
+    is_active: boolean;
+    users_count: number;
+    created_at: string;
 }
 interface Paginated<T> {
-    data: T[]; current_page: number; last_page: number; total: number;
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
 interface Props {
@@ -25,18 +42,28 @@ interface Props {
 }
 
 const FLAG: Record<string, string> = {
-    CI:'🇨🇮', SN:'🇸🇳', ML:'🇲🇱', BF:'🇧🇫', GN:'🇬🇳',
-    TG:'🇹🇬', BJ:'🇧🇯', CM:'🇨🇲', CG:'🇨🇬', GA:'🇬🇦',
-    MG:'🇲🇬', GW:'🇬🇼', NG:'🇳🇬',
+    CI: '🇨🇮',
+    SN: '🇸🇳',
+    ML: '🇲🇱',
+    BF: '🇧🇫',
+    GN: '🇬🇳',
+    TG: '🇹🇬',
+    BJ: '🇧🇯',
+    CM: '🇨🇲',
+    CG: '🇨🇬',
+    GA: '🇬🇦',
+    MG: '🇲🇬',
+    GW: '🇬🇼',
+    NG: '🇳🇬',
 };
 
 const TENANT_COLORS = [
-    { bg:'#EEF2FF', color:'#4338CA' },
-    { bg:'#ECFDF5', color:'#065F46' },
-    { bg:'#EFF6FF', color:'#1D4ED8' },
-    { bg:'#FFF7ED', color:'#C2410C' },
-    { bg:'#FDF4FF', color:'#7E22CE' },
-    { bg:'#F0FDF4', color:'#15803D' },
+    { bg: '#EEF2FF', color: '#4338CA' },
+    { bg: '#ECFDF5', color: '#065F46' },
+    { bg: '#EFF6FF', color: '#1D4ED8' },
+    { bg: '#FFF7ED', color: '#C2410C' },
+    { bg: '#FDF4FF', color: '#7E22CE' },
+    { bg: '#F0FDF4', color: '#15803D' },
 ];
 
 export default function TenantsIndex({ tenants, filters }: Props) {
@@ -47,20 +74,33 @@ export default function TenantsIndex({ tenants, filters }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
 
     const applyFilter = (params: Record<string, string>) =>
-        router.get('/admin/tenants', { ...filters, ...params }, { preserveState:true, replace:true });
+        router.get(
+            '/admin/tenants',
+            { ...filters, ...params },
+            { preserveState: true, replace: true },
+        );
 
     const handleToggle = (tenant: Tenant) => {
-        const actionVerb = tenant.is_active ? t('index.deactivateVerb') : t('index.activateVerb');
+        const actionVerb = tenant.is_active
+            ? t('index.deactivateVerb')
+            : t('index.activateVerb');
         const action = actionVerb.charAt(0).toUpperCase() + actionVerb.slice(1);
-        if (confirm(t('index.confirmToggle', { action, name: tenant.name })))
+
+        if (confirm(t('index.confirmToggle', { action, name: tenant.name }))) {
             router.patch(route('admin.tenants.toggle', { tenant: tenant.id }));
+        }
     };
 
-    const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+    const fmt = (d: string) =>
+        new Date(d).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('index.title')}/>
+            <Head title={t('index.title')} />
             <style>{`
                 .tn-page{padding:4px;display:flex;flex-direction:column;gap:16px;}
                 .tn-hdr{display:flex;align-items:center;justify-content:space-between;}
@@ -111,34 +151,76 @@ export default function TenantsIndex({ tenants, filters }: Props) {
 
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="tn-page">
-
                     {/* Header */}
                     <div className="tn-hdr">
                         <div>
                             <h1 className="tn-title">{t('index.heading')}</h1>
-                            <p className="tn-sub">{t('index.count', { count: tenants.total })}</p>
+                            <p className="tn-sub">
+                                {t('index.count', { count: tenants.total })}
+                            </p>
                         </div>
                         <Link href={route('admin.tenants.create')}>
-                            <Button className="bg-[#1e3a8a] hover:bg-[#1e40af] text-white h-10 px-4">
-                                <Plus size={15}/> {t('index.newTenant')}
+                            <Button className="h-10 bg-[#1e3a8a] px-4 text-white hover:bg-[#1e40af]">
+                                <Plus size={15} /> {t('index.newTenant')}
                             </Button>
                         </Link>
                     </div>
 
                     {/* Toolbar */}
                     <div className="tn-toolbar">
-                        <form className="tn-search" onSubmit={e => { e.preventDefault(); applyFilter({ search, page:'1' }); }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('index.search.placeholder')}/>
-                            <button type="submit"><Search size={14}/></button>
+                        <form
+                            className="tn-search"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                applyFilter({ search, page: '1' });
+                            }}
+                        >
+                            <input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={t('index.search.placeholder')}
+                            />
+                            <button type="submit">
+                                <Search size={14} />
+                            </button>
                         </form>
-                        <select className="tn-select" value={filters.status ?? ''} onChange={e => applyFilter({ status: e.target.value, page:'1' })}>
-                            <option value="">{t('index.filters.allStatuses')}</option>
-                            <option value="active">{t('index.filters.active')}</option>
-                            <option value="inactive">{t('index.filters.inactive')}</option>
+                        <select
+                            className="tn-select"
+                            value={filters.status ?? ''}
+                            onChange={(e) =>
+                                applyFilter({
+                                    status: e.target.value,
+                                    page: '1',
+                                })
+                            }
+                        >
+                            <option value="">
+                                {t('index.filters.allStatuses')}
+                            </option>
+                            <option value="active">
+                                {t('index.filters.active')}
+                            </option>
+                            <option value="inactive">
+                                {t('index.filters.inactive')}
+                            </option>
                         </select>
                         {(filters.search || filters.status) && (
-                            <button onClick={() => router.get('/admin/tenants')} style={{ padding:'9px 12px', background:'none', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', color:'#94a3b8', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
-                                <X size={12}/> {t('index.filters.clear')}
+                            <button
+                                onClick={() => router.get('/admin/tenants')}
+                                style={{
+                                    padding: '9px 12px',
+                                    background: 'none',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 8,
+                                    cursor: 'pointer',
+                                    color: '#94a3b8',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    fontSize: 12,
+                                }}
+                            >
+                                <X size={12} /> {t('index.filters.clear')}
                             </button>
                         )}
                     </div>
@@ -157,76 +239,230 @@ export default function TenantsIndex({ tenants, filters }: Props) {
                                             <th>{t('index.table.currency')}</th>
                                             <th>{t('index.table.users')}</th>
                                             <th>{t('index.table.status')}</th>
-                                            <th>{t('index.table.createdAt')}</th>
+                                            <th>
+                                                {t('index.table.createdAt')}
+                                            </th>
                                             <th>{t('index.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {tenants.data.map((tenant, i) => {
-                                            const c = TENANT_COLORS[i % TENANT_COLORS.length];
+                                            const c =
+                                                TENANT_COLORS[
+                                                    i % TENANT_COLORS.length
+                                                ];
+
                                             return (
                                                 <tr key={tenant.id}>
                                                     {/* Filiale */}
                                                     <td>
-                                                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                                            <div className="tn-avatar" style={{ background: c.bg, border:`1.5px solid ${c.color}22` }}>
-                                                                {FLAG[tenant.code] ?? '🏢'}
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 10,
+                                                            }}
+                                                        >
+                                                            <div
+                                                                className="tn-avatar"
+                                                                style={{
+                                                                    background:
+                                                                        c.bg,
+                                                                    border: `1.5px solid ${c.color}22`,
+                                                                }}
+                                                            >
+                                                                {FLAG[
+                                                                    tenant.code
+                                                                ] ?? '🏢'}
                                                             </div>
                                                             <div>
-                                                                <div className="tn-name">{tenant.name}</div>
-                                                                <div className="tn-code">{tenant.code}</div>
+                                                                <div className="tn-name">
+                                                                    {
+                                                                        tenant.name
+                                                                    }
+                                                                </div>
+                                                                <div className="tn-code">
+                                                                    {
+                                                                        tenant.code
+                                                                    }
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
 
                                                     {/* Pays */}
                                                     <td>
-                                                        <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'#64748b' }}>
-                                                            <Building2 size={12}/>{tenant.country_code}
+                                                        <span
+                                                            style={{
+                                                                display:
+                                                                    'inline-flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 5,
+                                                                fontSize: 12,
+                                                                color: '#64748b',
+                                                            }}
+                                                        >
+                                                            <Building2
+                                                                size={12}
+                                                            />
+                                                            {
+                                                                tenant.country_code
+                                                            }
                                                         </span>
                                                     </td>
 
                                                     {/* Devise */}
-                                                    <td><span className="curr-badge">{tenant.currency_code}</span></td>
+                                                    <td>
+                                                        <span className="curr-badge">
+                                                            {
+                                                                tenant.currency_code
+                                                            }
+                                                        </span>
+                                                    </td>
 
                                                     {/* Utilisateurs */}
                                                     <td>
-                                                        <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'#64748b' }}>
-                                                            <Users size={12}/>{tenant.users_count}
+                                                        <span
+                                                            style={{
+                                                                display:
+                                                                    'inline-flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 5,
+                                                                fontSize: 12,
+                                                                color: '#64748b',
+                                                            }}
+                                                        >
+                                                            <Users size={12} />
+                                                            {tenant.users_count}
                                                         </span>
                                                     </td>
 
                                                     {/* Statut */}
                                                     <td>
-                                                        {tenant.is_active
-                                                            ? <span className="badge-active"><span className="s-dot" style={{ background:'#22c55e' }}/>{t('index.status.active')}</span>
-                                                            : <span className="badge-inactive"><span className="s-dot" style={{ background:'#94a3b8' }}/>{t('index.status.inactive')}</span>
-                                                        }
+                                                        {tenant.is_active ? (
+                                                            <span className="badge-active">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#22c55e',
+                                                                    }}
+                                                                />
+                                                                {t(
+                                                                    'index.status.active',
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="badge-inactive">
+                                                                <span
+                                                                    className="s-dot"
+                                                                    style={{
+                                                                        background:
+                                                                            '#94a3b8',
+                                                                    }}
+                                                                />
+                                                                {t(
+                                                                    'index.status.inactive',
+                                                                )}
+                                                            </span>
+                                                        )}
                                                     </td>
 
                                                     {/* Date */}
-                                                    <td style={{ fontSize:12, color:'#94a3b8' }}>{fmt(tenant.created_at)}</td>
+                                                    <td
+                                                        style={{
+                                                            fontSize: 12,
+                                                            color: '#94a3b8',
+                                                        }}
+                                                    >
+                                                        {fmt(tenant.created_at)}
+                                                    </td>
 
                                                     {/* Actions */}
                                                     <td>
                                                         <div className="actions">
-                                                            <Link href={route('admin.tenants.show', { tenant: tenant.id })} className="btn-act btn-view">
-                                                                <Eye size={12}/> {t('index.actions.view')}
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.tenants.show',
+                                                                    {
+                                                                        tenant: tenant.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-act btn-view"
+                                                            >
+                                                                <Eye
+                                                                    size={12}
+                                                                />{' '}
+                                                                {t(
+                                                                    'index.actions.view',
+                                                                )}
                                                             </Link>
-                                                            <Link href={route('admin.tenants.edit', { tenant: tenant.id })} className="btn-act btn-edit">
-                                                                <Edit2 size={12}/> {t('index.actions.edit')}
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.tenants.edit',
+                                                                    {
+                                                                        tenant: tenant.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-act btn-edit"
+                                                            >
+                                                                <Edit2
+                                                                    size={12}
+                                                                />{' '}
+                                                                {t(
+                                                                    'index.actions.edit',
+                                                                )}
                                                             </Link>
-                                                            <Link href={route('admin.tenants.config', { tenant: tenant.id })} className="btn-act btn-config">
-                                                                <Settings size={12}/> {t('index.actions.config')}
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.tenants.config',
+                                                                    {
+                                                                        tenant: tenant.id,
+                                                                    },
+                                                                )}
+                                                                className="btn-act btn-config"
+                                                            >
+                                                                <Settings
+                                                                    size={12}
+                                                                />{' '}
+                                                                {t(
+                                                                    'index.actions.config',
+                                                                )}
                                                             </Link>
                                                             <button
                                                                 className={`btn-act ${tenant.is_active ? 'btn-on' : 'btn-off'}`}
-                                                                onClick={() => handleToggle(tenant)}
-                                                            >
-                                                                {tenant.is_active
-                                                                    ? <><ToggleLeft size={12}/> {t('index.actions.deactivate')}</>
-                                                                    : <><ToggleRight size={12}/> {t('index.actions.activate')}</>
+                                                                onClick={() =>
+                                                                    handleToggle(
+                                                                        tenant,
+                                                                    )
                                                                 }
+                                                            >
+                                                                {tenant.is_active ? (
+                                                                    <>
+                                                                        <ToggleLeft
+                                                                            size={
+                                                                                12
+                                                                            }
+                                                                        />{' '}
+                                                                        {t(
+                                                                            'index.actions.deactivate',
+                                                                        )}
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <ToggleRight
+                                                                            size={
+                                                                                12
+                                                                            }
+                                                                        />{' '}
+                                                                        {t(
+                                                                            'index.actions.activate',
+                                                                        )}
+                                                                    </>
+                                                                )}
                                                             </button>
                                                         </div>
                                                     </td>
@@ -238,25 +474,72 @@ export default function TenantsIndex({ tenants, filters }: Props) {
 
                                 {tenants.last_page > 1 && (
                                     <div className="tn-pagination">
-                                        <span className="tn-pg-info">{t('index.pagination.info', { current: tenants.current_page, last: tenants.last_page, total: tenants.total })}</span>
+                                        <span className="tn-pg-info">
+                                            {t('index.pagination.info', {
+                                                current: tenants.current_page,
+                                                last: tenants.last_page,
+                                                total: tenants.total,
+                                            })}
+                                        </span>
                                         <div className="tn-pg-links">
-                                            <button className="pg-btn" disabled={tenants.current_page === 1}
-                                                onClick={() => applyFilter({ page: String(tenants.current_page - 1) })}>
-                                                <ChevronLeft size={13}/>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    tenants.current_page === 1
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            tenants.current_page -
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronLeft size={13} />
                                             </button>
                                             {tenants.links.map((link, i) => {
-                                                if (i === 0 || i === tenants.links.length - 1) return null;
+                                                if (
+                                                    i === 0 ||
+                                                    i ===
+                                                        tenants.links.length - 1
+                                                ) {
+                                                    return null;
+                                                }
+
                                                 return (
-                                                    <button key={`page-${i}`}
+                                                    <button
+                                                        key={`page-${i}`}
                                                         className={`pg-btn ${link.active ? 'act' : ''}`}
-                                                        onClick={() => link.url && applyFilter({ page: link.label })}
+                                                        onClick={() =>
+                                                            link.url &&
+                                                            applyFilter({
+                                                                page: link.label,
+                                                            })
+                                                        }
                                                         disabled={!link.url}
-                                                        dangerouslySetInnerHTML={{ __html: link.label }}/>
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: link.label,
+                                                        }}
+                                                    />
                                                 );
                                             })}
-                                            <button className="pg-btn" disabled={tenants.current_page === tenants.last_page}
-                                                onClick={() => applyFilter({ page: String(tenants.current_page + 1) })}>
-                                                <ChevronRight size={13}/>
+                                            <button
+                                                className="pg-btn"
+                                                disabled={
+                                                    tenants.current_page ===
+                                                    tenants.last_page
+                                                }
+                                                onClick={() =>
+                                                    applyFilter({
+                                                        page: String(
+                                                            tenants.current_page +
+                                                                1,
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <ChevronRight size={13} />
                                             </button>
                                         </div>
                                     </div>
@@ -264,7 +547,6 @@ export default function TenantsIndex({ tenants, filters }: Props) {
                             </>
                         )}
                     </div>
-
                 </div>
             </div>
         </AppLayout>

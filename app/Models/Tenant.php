@@ -6,47 +6,49 @@ use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tenant extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $keyType   = 'string';
+    protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
-        'id', 'name', 'code', 'country_code','currency_code','is_active',
+        'id', 'name', 'code', 'country_code', 'currency_code', 'is_active',
         'settings', 'subscription_limit_config', 'modules',
         'logo_path',
     ];
 
     protected $casts = [
-        'is_active'                 => 'boolean',
-        'settings'                  => 'array',
+        'is_active' => 'boolean',
+        'settings' => 'array',
         'subscription_limit_config' => 'array',
-        'modules'                   => 'array',
+        'modules' => 'array',
     ];
 
     // ── Modules métier activables/désactivables par filiale ────
     // Une clé absente du JSON `modules` est considérée activée
     // (permet d'ajouter de nouveaux modules sans migration de données).
     const MODULES = [
-        'brokers'           => 'Courtiers & partenaires',
-        'coinsurers'        => 'Coassureurs',
-        'experts'           => 'Experts',
-        'contracts'         => 'Contrats',
-        'certificates'      => 'Certificats',
+        'brokers' => 'Courtiers & partenaires',
+        'coinsurers' => 'Coassureurs',
+        'experts' => 'Experts',
+        'contracts' => 'Contrats',
+        'certificates' => 'Certificats',
         'guce_certificates' => 'Certificats GUCE',
-        'commissions'       => 'Commissions',
-        'taxes'             => 'Gestion des taxes',
-        'reports'           => 'Rapports',
-        'approvals'         => 'Escalades NN300',
-        'delegations'       => 'Délégations',
+        'commissions' => 'Commissions',
+        'taxes' => 'Gestion des taxes',
+        'reports' => 'Rapports',
+        'approvals' => 'Escalades NN300',
+        'delegations' => 'Délégations',
         'certificate_templates' => 'Modèles de certificats',
-        'audit_logs'        => 'Audit Logs',
-        'notifications'     => 'Notifications',
-        'exports'           => 'Mes exports',
-        'kpi'               => 'KPI Filiale',
+        'audit_logs' => 'Audit Logs',
+        'notifications' => 'Notifications',
+        'exports' => 'Mes exports',
+        'kpi' => 'KPI Filiale',
     ];
 
     public function hasModule(string $key): bool
@@ -59,8 +61,7 @@ class Tenant extends Model
         return TenantFactory::new();
     }
 
-
-    public function users(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function users(): HasMany
     {
         return $this->hasMany(User::class);
     }
