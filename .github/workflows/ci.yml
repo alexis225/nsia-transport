@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  php-tests:
+    name: Tests PHP (Pest)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 1234
+          POSTGRES_DB: testing_bd_transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_pgsql, pgsql, bcmath, gd, zip, intl
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies PHP
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Copy .env.testing
+        run: cp .env.testing .env
+
+      - name: Generate app key
+        run: php artisan key:generate
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run Pest tests
+        run: php artisan test
+
+  lint-php:
+    name: Lint PHP (Pint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies PHP
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Check code style
+        run: vendor/bin/pint --test
+
+  frontend:
+    name: Lint, types & build front-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies Node
+        run: yarn install --frozen-lockfile
+
+      - name: ESLint
+        run: yarn lint:check
+
+      - name: Prettier
+        run: yarn format:check
+
+      - name: TypeScript
+        run: yarn types:check
+
+      - name: Build assets
+        run: yarn build
+
+  deploy:
+    name: Deploy en production
+    needs: [php-tests, lint-php, frontend]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            php artisan down || true
+            git fetch origin master
+            git reset --hard origin/master
+            composer install --no-dev --optimize-autoloader --no-interaction
+            yarn install --frozen-lockfile
+            yarn build
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            php artisan queue:restart
+            php artisan up
