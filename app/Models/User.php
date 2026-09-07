@@ -14,6 +14,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     use HasFactory;
+
     // ← PK UUID
     use HasRoles;
     use HasUuids;

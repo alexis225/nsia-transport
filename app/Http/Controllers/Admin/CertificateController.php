@@ -146,10 +146,10 @@ class CertificateController extends Controller
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
             ->orderBy('contract_number')
             ->get(['id', 'contract_number', 'insured_name', 'insured_address', 'insured_email', 'insured_phone',
-                    'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
-                    'transport_mode_id', 'conditioning_types',
-                    'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
-                    'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
+                'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
+                'transport_mode_id', 'conditioning_types',
+                'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
+                'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
 
         // Pré-sélection contrat depuis query string — mêmes relations/colonnes
         // que la liste ci-dessus pour que le front reçoive une forme identique.
@@ -482,10 +482,10 @@ class CertificateController extends Controller
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
             ->orderBy('contract_number')
             ->get(['id', 'contract_number', 'insured_name', 'insured_address', 'insured_email', 'insured_phone',
-                    'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
-                    'transport_mode_id', 'conditioning_types',
-                    'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
-                    'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
+                'tenant_id', 'broker_id', 'subscriber_id', 'currency_code', 'type', 'coverage_type',
+                'transport_mode_id', 'conditioning_types',
+                'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
+                'subscription_limit', 'used_limit', 'plein', 'certificates_limit', 'certificates_count']);
 
         return Inertia::render('admin/certificates/edit', [
             'certificate' => $certificate,
