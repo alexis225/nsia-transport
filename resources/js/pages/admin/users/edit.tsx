@@ -275,7 +275,9 @@ export default function UserEdit({ user, roles, tenants, brokers }: Props) {
                                                 </option>
                                             ))}
                                         </select>
-                                        <InputError message={errors.broker_id} />
+                                        <InputError
+                                            message={errors.broker_id}
+                                        />
                                     </div>
                                 )}
 

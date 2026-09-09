@@ -20,7 +20,12 @@ interface Broker {
     is_active: boolean;
     tenant_id: string;
     additional_tenant_ids: string[];
-    user: { id: string; first_name: string; last_name: string; email: string } | null;
+    user: {
+        id: string;
+        first_name: string;
+        last_name: string;
+        email: string;
+    } | null;
 }
 interface Tenant {
     id: string;
