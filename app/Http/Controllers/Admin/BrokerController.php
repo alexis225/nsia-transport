@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Broker;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -21,6 +22,29 @@ use Inertia\Response;
  */
 class BrokerController extends Controller
 {
+    // Rôles pouvant être rattachés à une fiche courtier (voir aussi UserController).
+    private const PARTNER_ROLES = ['courtier_local', 'partenaire_etranger'];
+
+    // Comptes utilisateurs éligibles au rattachement pour une filiale donnée :
+    // rôle courtier, sans fiche courtier déjà liée (sauf celle en cours d'édition).
+    private function eligibleUsers(?string $tenantId, ?string $currentBrokerId = null)
+    {
+        if (! $tenantId) {
+            return collect();
+        }
+
+        return User::where('tenant_id', $tenantId)
+            ->whereHas('roles', fn ($q) => $q->whereIn('name', self::PARTNER_ROLES))
+            ->where(function ($q) use ($currentBrokerId) {
+                $q->whereDoesntHave('broker');
+                if ($currentBrokerId) {
+                    $q->orWhereHas('broker', fn ($q) => $q->where('id', $currentBrokerId));
+                }
+            })
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name', 'email']);
+    }
+
     // ── Liste ────────────────────────────────────────────────
     public function index(Request $request): Response
     {
@@ -69,6 +93,7 @@ class BrokerController extends Controller
             'allTenants' => $isSA
                 ? Tenant::active()->orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
+            'users' => $this->eligibleUsers($request->user()->tenant_id),
         ]);
     }
 
@@ -91,14 +116,17 @@ class BrokerController extends Controller
             'tenant_id' => ['nullable', 'uuid', 'exists:tenants,id'],
             'additional_tenant_ids' => ['nullable', 'array'],
             'additional_tenant_ids.*' => ['uuid', 'exists:tenants,id'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
         ], [
             'code.regex' => 'Le code doit être en majuscules, chiffres, tirets ou underscores.',
             'code.unique' => 'Ce code est déjà utilisé.',
         ]);
 
+        $tenantId = $validated['tenant_id'] ?? $request->user()->tenant_id;
+
         $broker = Broker::create([
-            ...collect($validated)->except('additional_tenant_ids')->toArray(),
-            'tenant_id' => $validated['tenant_id'] ?? $request->user()->tenant_id,
+            ...collect($validated)->except(['additional_tenant_ids', 'user_id'])->toArray(),
+            'tenant_id' => $tenantId,
             'created_by' => $request->user()->id,
             'is_active' => $validated['is_active'] ?? true,
         ]);
@@ -107,6 +135,15 @@ class BrokerController extends Controller
             $broker->syncTenants($validated['additional_tenant_ids'] ?? []);
         } else {
             $broker->syncTenants([]);
+        }
+
+        // Rattachement du compte utilisateur — uniquement un compte de la
+        // même filiale, sans fiche courtier déjà liée (voir eligibleUsers()).
+        if (! empty($validated['user_id'])) {
+            $user = User::where('tenant_id', $tenantId)->find($validated['user_id']);
+            if ($user) {
+                $broker->update(['user_id' => $user->id]);
+            }
         }
 
         AuditLog::create([
@@ -139,7 +176,7 @@ class BrokerController extends Controller
     public function edit(Request $request, Broker $broker): Response
     {
         $this->authorizeTenant($broker);
-        $broker->load('tenant');
+        $broker->load(['tenant', 'user:id,first_name,last_name,email']);
         $isSA = $request->user()->hasRole('super_admin');
 
         return Inertia::render('admin/brokers/edit', [
@@ -153,6 +190,7 @@ class BrokerController extends Controller
             'allTenants' => $isSA
                 ? Tenant::active()->orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
+            'users' => $this->eligibleUsers($broker->tenant_id, $broker->id),
         ]);
     }
 
@@ -176,13 +214,27 @@ class BrokerController extends Controller
             'is_active' => ['boolean'],
             'additional_tenant_ids' => ['nullable', 'array'],
             'additional_tenant_ids.*' => ['uuid', 'exists:tenants,id'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
         ]);
 
         $oldValues = $broker->only(['name', 'code', 'is_active']);
-        $broker->update(collect($validated)->except('additional_tenant_ids')->toArray());
+        $broker->update(collect($validated)->except(['additional_tenant_ids', 'user_id'])->toArray());
 
         if ($request->user()->hasRole('super_admin')) {
             $broker->syncTenants($validated['additional_tenant_ids'] ?? []);
+        }
+
+        // Rattachement / détachement du compte utilisateur — seul un compte
+        // de la même filiale, sans autre fiche courtier liée, est autorisé
+        // (voir la liste filtrée fournie par eligibleUsers()).
+        if ($request->has('user_id')) {
+            $currentUserId = $broker->getOriginal('user_id');
+            if ((string) $currentUserId !== (string) $request->user_id) {
+                $newUser = $request->filled('user_id')
+                    ? User::where('tenant_id', $broker->tenant_id)->find($request->user_id)
+                    : null;
+                $broker->update(['user_id' => $newUser?->id]);
+            }
         }
 
         AuditLog::create([

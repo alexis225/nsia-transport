@@ -56,12 +56,26 @@
             "phone": "Téléphone",
             "role": "Rôle",
             "roleNone": "Sans rôle",
+            "broker": "Courtier à rattacher",
+            "brokerNone": "Aucun courtier",
             "tenant": "Filiale",
             "tenantNone": "Sans filiale"
         },
         "actions": {
             "saving": "Enregistrement…",
             "save": "Enregistrer"
+        },
+        "resetPassword": {
+            "title": "Mot de passe",
+            "subtitle": "Définir un nouveau mot de passe pour cet utilisateur",
+            "newPassword": "Nouveau mot de passe *",
+            "newPasswordPlaceholder": "8 caractères minimum",
+            "confirmPassword": "Confirmer le mot de passe *",
+            "confirmPasswordPlaceholder": "Retapez le mot de passe",
+            "saving": "Réinitialisation…",
+            "save": "Réinitialiser le mot de passe",
+            "saved": "Mot de passe réinitialisé. L'utilisateur a été déconnecté de toutes ses sessions.",
+            "warning": "L'utilisateur sera déconnecté de toutes ses sessions actives."
         }
     },
     "index": {

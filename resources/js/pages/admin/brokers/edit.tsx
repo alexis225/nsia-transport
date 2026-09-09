@@ -20,19 +20,32 @@ interface Broker {
     is_active: boolean;
     tenant_id: string;
     additional_tenant_ids: string[];
+    user: { id: string; first_name: string; last_name: string; email: string } | null;
 }
 interface Tenant {
     id: string;
     name: string;
     code: string;
 }
+interface EligibleUser {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+}
 interface Props {
     broker: Broker;
     tenants: Tenant[];
     allTenants: Tenant[];
+    users: EligibleUser[];
 }
 
-export default function BrokerEdit({ broker, tenants, allTenants }: Props) {
+export default function BrokerEdit({
+    broker,
+    tenants,
+    allTenants,
+    users,
+}: Props) {
     const { t } = useTranslation('brokers');
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('index.breadcrumb'), href: '/admin/brokers' },
@@ -61,6 +74,7 @@ export default function BrokerEdit({ broker, tenants, allTenants }: Props) {
         is_active: broker.is_active,
         tenant_id: broker.tenant_id,
         additional_tenant_ids: broker.additional_tenant_ids ?? [],
+        user_id: broker.user?.id ?? '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -79,6 +93,7 @@ export default function BrokerEdit({ broker, tenants, allTenants }: Props) {
                 onSubmit={submit}
                 tenants={tenants}
                 allTenants={allTenants}
+                users={users}
                 submitLabel={t('edit.submitLabel')}
                 heroTitle={t('edit.heroTitle', { name: broker.name })}
                 heroSub={t('edit.heroSub', {

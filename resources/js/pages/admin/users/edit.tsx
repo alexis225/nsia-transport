@@ -16,14 +16,18 @@ interface User {
     phone: string | null;
     roles: { name: string }[];
     tenant: { id: string; name: string } | null;
+    broker: { id: string; name: string; code: string } | null;
 }
 interface Props {
     user: User;
     roles: string[];
     tenants: { id: string; name: string; code: string }[];
+    brokers: { id: string; name: string; code: string; type: string }[];
 }
 
-export default function UserEdit({ user, roles, tenants }: Props) {
+const PARTNER_ROLES = ['courtier_local', 'partenaire_etranger'];
+
+export default function UserEdit({ user, roles, tenants, brokers }: Props) {
     const { t } = useTranslation('users');
     const { t: tc } = useTranslation('common');
 
@@ -40,11 +44,35 @@ export default function UserEdit({ user, roles, tenants }: Props) {
             phone: user.phone ?? '',
             role: user.roles?.[0]?.name ?? '',
             tenant_id: user.tenant?.id ?? '',
+            broker_id: user.broker?.id ?? '',
         });
+
+    const isPartnerRole = PARTNER_ROLES.includes(data.role);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route('admin.users.update', { user: user.id }));
+    };
+
+    const {
+        data: pwdData,
+        setData: setPwdData,
+        patch: patchPwd,
+        processing: pwdProcessing,
+        errors: pwdErrors,
+        recentlySuccessful: pwdRecentlySuccessful,
+        reset: resetPwd,
+    } = useForm({
+        password: '',
+        password_confirmation: '',
+    });
+
+    const submitPassword = (e: React.FormEvent) => {
+        e.preventDefault();
+        patchPwd(route('admin.users.reset-password', { user: user.id }), {
+            preserveScroll: true,
+            onSuccess: () => resetPwd(),
+        });
     };
 
     return (
@@ -222,6 +250,35 @@ export default function UserEdit({ user, roles, tenants }: Props) {
                                     <InputError message={errors.role} />
                                 </div>
 
+                                {/* Courtier à rattacher (rôles partenaires) */}
+                                {isPartnerRole && (
+                                    <div className="grid gap-2">
+                                        <Label className="ue-label">
+                                            {t('edit.fields.broker')}
+                                        </Label>
+                                        <select
+                                            className="ue-select"
+                                            value={data.broker_id}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'broker_id',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            <option value="">
+                                                {t('edit.fields.brokerNone')}
+                                            </option>
+                                            {brokers.map((b) => (
+                                                <option key={b.id} value={b.id}>
+                                                    {b.name} ({b.code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <InputError message={errors.broker_id} />
+                                    </div>
+                                )}
+
                                 {/* Filiale — réservé au super_admin */}
                                 {tenants.length > 0 && (
                                     <div className="grid gap-2">
@@ -286,6 +343,127 @@ export default function UserEdit({ user, roles, tenants }: Props) {
                                         onClick={() => window.history.back()}
                                     >
                                         {tc('actions.cancel')}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {/* Réinitialisation du mot de passe */}
+                    <div className="ue-card">
+                        <div className="ue-card-hdr">
+                            <div className="ue-card-ttl">
+                                {t('edit.resetPassword.title')}
+                            </div>
+                            <div className="ue-card-sub">
+                                {t('edit.resetPassword.subtitle')}
+                            </div>
+                        </div>
+                        <div className="ue-card-body">
+                            <form
+                                onSubmit={submitPassword}
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 16,
+                                }}
+                            >
+                                {pwdRecentlySuccessful && (
+                                    <div className="status-ok">
+                                        <Check size={13} />
+                                        {t('edit.resetPassword.saved')}
+                                    </div>
+                                )}
+
+                                <div className="form-grid">
+                                    <div className="grid gap-2">
+                                        <Label className="ue-label">
+                                            {t(
+                                                'edit.resetPassword.newPassword',
+                                            )}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            type="password"
+                                            autoComplete="new-password"
+                                            value={pwdData.password}
+                                            onChange={(e) =>
+                                                setPwdData(
+                                                    'password',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'edit.resetPassword.newPasswordPlaceholder',
+                                            )}
+                                        />
+                                        <InputError
+                                            message={pwdErrors.password}
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label className="ue-label">
+                                            {t(
+                                                'edit.resetPassword.confirmPassword',
+                                            )}
+                                        </Label>
+                                        <Input
+                                            className="h-11"
+                                            type="password"
+                                            autoComplete="new-password"
+                                            value={
+                                                pwdData.password_confirmation
+                                            }
+                                            onChange={(e) =>
+                                                setPwdData(
+                                                    'password_confirmation',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={t(
+                                                'edit.resetPassword.confirmPasswordPlaceholder',
+                                            )}
+                                        />
+                                        <InputError
+                                            message={
+                                                pwdErrors.password_confirmation
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
+                                <p
+                                    style={{
+                                        fontSize: 12,
+                                        color: '#94a3b8',
+                                        margin: 0,
+                                    }}
+                                >
+                                    {t('edit.resetPassword.warning')}
+                                </p>
+
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        gap: 8,
+                                        paddingTop: 4,
+                                        borderTop: '1px solid #f8fafc',
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    <Button
+                                        type="submit"
+                                        disabled={pwdProcessing}
+                                        className="h-10 bg-[#1e3a8a] px-5 text-white hover:bg-[#1e40af]"
+                                    >
+                                        {pwdProcessing ? (
+                                            t('edit.resetPassword.saving')
+                                        ) : (
+                                            <>
+                                                <Check size={14} />{' '}
+                                                {t('edit.resetPassword.save')}
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             </form>

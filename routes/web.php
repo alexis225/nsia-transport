@@ -292,6 +292,8 @@ Route::middleware(['auth', 'verified', 'tenant.isolation', 'staff.only'])->group
 
         Route::put('/users/{user}', [UserController::class, 'update'])->middleware('permission:users.edit')->name('admin.users.update');
 
+        Route::patch('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->middleware('permission:users.edit')->name('admin.users.reset-password');
+
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete')->name('admin.users.destroy');
 
         Route::patch('/users/{user}/block', [UserController::class, 'block'])->middleware('permission:users.block')->name('admin.users.block');

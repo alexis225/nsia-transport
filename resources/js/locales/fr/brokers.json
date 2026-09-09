@@ -125,6 +125,13 @@
             "cityPlaceholder": "Abidjan",
             "country": "Pays"
         },
+        "account": {
+            "title": "Compte utilisateur",
+            "subtitle": "Rattacher un compte existant pour l'espace partenaire",
+            "user": "Compte utilisateur",
+            "userNone": "Aucun compte rattaché",
+            "hint": "Seuls les comptes avec un rôle courtier, non déjà rattachés à un autre courtier de cette filiale, sont proposés."
+        },
         "status": {
             "title": "Statut",
             "active": "Courtier actif",

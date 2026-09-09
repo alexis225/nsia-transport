@@ -147,7 +147,7 @@ class UserController extends Controller
     public function edit(Request $request, User $user): Response
     {
         $this->authorizeTenantAccess($user);
-        $user->load(['roles', 'tenant']);
+        $user->load(['roles', 'tenant', 'broker']);
 
         return Inertia::render('admin/users/edit', [
             'user' => $user,
@@ -155,6 +155,12 @@ class UserController extends Controller
             'tenants' => $request->user()->hasRole('super_admin')
                 ? Tenant::orderBy('name')->get(['id', 'name', 'code'])
                 : collect(),
+            // Courtiers sans compte rattaché + le courtier déjà lié à cet
+            // utilisateur (pour qu'il reste sélectionné dans le formulaire).
+            'brokers' => Broker::where('tenant_id', $user->tenant_id)
+                ->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', $user->id))
+                ->orderBy('name')
+                ->get(['id', 'name', 'code', 'type']),
         ]);
     }
 
@@ -188,6 +194,22 @@ class UserController extends Controller
 
         $user->save();
 
+        // Rattachement / détachement du courtier — seul un courtier de la
+        // même filiale et non déjà lié à un autre compte peut être choisi
+        // (voir la liste filtrée fournie par edit()).
+        if ($request->has('broker_id')) {
+            if ($user->broker && (string) $user->broker->id !== (string) $request->broker_id) {
+                $user->broker->update(['user_id' => null]);
+            }
+
+            if ($request->filled('broker_id')) {
+                $broker = Broker::find($request->broker_id);
+                if ($broker && (string) $broker->tenant_id === (string) $user->tenant_id) {
+                    $broker->update(['user_id' => $user->id]);
+                }
+            }
+        }
+
         if ($request->role) {
             $user->syncRoles([$request->role]);
             app()[PermissionRegistrar::class]->forgetCachedPermissions();
@@ -207,6 +229,36 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('status', "Utilisateur {$user->first_name} {$user->last_name} mis à jour.");
+    }
+
+    // ── Réinitialiser le mot de passe ───────────────────────
+    public function resetPassword(Request $request, User $user): RedirectResponse
+    {
+        $this->authorizeTenantAccess($user);
+
+        $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user->update([
+            'password' => Hash::make($request->password),
+            'password_changed_at' => now(),
+        ]);
+
+        DB::table('sessions')
+            ->where('user_id', $user->id)->delete();
+
+        AuditLog::create([
+            'tenant_id' => $user->tenant_id,
+            'user_id' => $request->user()->id,
+            'action' => 'user_password_reset',
+            'entity_type' => 'user',
+            'entity_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return back()->with('status', "Mot de passe de {$user->first_name} {$user->last_name} réinitialisé.");
     }
 
     // ── Supprimer ────────────────────────────────────────────

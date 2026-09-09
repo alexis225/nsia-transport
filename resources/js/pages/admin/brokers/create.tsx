@@ -13,10 +13,17 @@ interface Tenant {
     name: string;
     code: string;
 }
+interface EligibleUser {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+}
 interface Props {
     tenants: Tenant[];
     allTenants: Tenant[];
     defaultTenantId: string | null;
+    users: EligibleUser[];
 }
 
 const COUNTRIES = [
@@ -44,6 +51,7 @@ export default function BrokerCreate({
     tenants,
     allTenants,
     defaultTenantId,
+    users,
 }: Props) {
     const { t } = useTranslation('brokers');
     const breadcrumbs: BreadcrumbItem[] = [
@@ -66,6 +74,7 @@ export default function BrokerCreate({
         is_active: true,
         tenant_id: defaultTenantId ?? '',
         additional_tenant_ids: [] as string[],
+        user_id: '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -84,6 +93,7 @@ export default function BrokerCreate({
                 onSubmit={submit}
                 tenants={tenants}
                 allTenants={allTenants}
+                users={users}
                 submitLabel={t('create.submitLabel')}
                 heroTitle={t('create.heroTitle')}
                 heroSub={t('create.heroSub')}
@@ -101,6 +111,7 @@ export function BrokerForm({
     onSubmit,
     tenants,
     allTenants,
+    users,
     submitLabel,
     heroTitle,
     heroSub,
@@ -569,6 +580,51 @@ export function BrokerForm({
                                         <InputError
                                             message={errors.country_code}
                                         />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── Compte utilisateur ── */}
+                        <div className="bf-card">
+                            <div className="bf-card-hdr">
+                                <div className="bf-card-ttl">
+                                    {t('form.account.title')}
+                                </div>
+                                <div className="bf-card-sub">
+                                    {t('form.account.subtitle')}
+                                </div>
+                            </div>
+                            <div className="bf-card-body">
+                                <div className="grid gap-2">
+                                    <Label className="bf-label">
+                                        {t('form.account.user')}
+                                    </Label>
+                                    <select
+                                        className="bf-select"
+                                        value={data.user_id}
+                                        onChange={(e) =>
+                                            setData('user_id', e.target.value)
+                                        }
+                                    >
+                                        <option value="">
+                                            {t('form.account.userNone')}
+                                        </option>
+                                        {(users ?? []).map((u: any) => (
+                                            <option key={u.id} value={u.id}>
+                                                {u.first_name} {u.last_name} (
+                                                {u.email})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <InputError message={errors.user_id} />
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            color: '#94a3b8',
+                                        }}
+                                    >
+                                        {t('form.account.hint')}
                                     </div>
                                 </div>
                             </div>

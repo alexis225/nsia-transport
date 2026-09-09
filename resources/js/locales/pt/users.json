@@ -56,12 +56,26 @@
             "phone": "Telefone",
             "role": "Função",
             "roleNone": "Sem função",
+            "broker": "Corretor a associar",
+            "brokerNone": "Nenhum corretor",
             "tenant": "Filial",
             "tenantNone": "Sem filial"
         },
         "actions": {
             "saving": "A guardar…",
             "save": "Guardar"
+        },
+        "resetPassword": {
+            "title": "Palavra-passe",
+            "subtitle": "Defina uma nova palavra-passe para este utilizador",
+            "newPassword": "Nova palavra-passe *",
+            "newPasswordPlaceholder": "Mínimo 8 caracteres",
+            "confirmPassword": "Confirmar palavra-passe *",
+            "confirmPasswordPlaceholder": "Reintroduza a palavra-passe",
+            "saving": "A repor…",
+            "save": "Repor palavra-passe",
+            "saved": "Palavra-passe reposta. O utilizador foi desligado de todas as sessões.",
+            "warning": "O utilizador será desligado de todas as sessões ativas."
         }
     },
     "index": {

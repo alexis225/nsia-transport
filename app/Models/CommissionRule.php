@@ -85,7 +85,7 @@ class CommissionRule extends Model
         return $this->belongsTo(InsuranceContract::class, 'contract_id');
     }
 
-    public function createdByUser(): BelongsTo
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }

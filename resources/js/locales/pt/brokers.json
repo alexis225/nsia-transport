@@ -125,6 +125,13 @@
             "cityPlaceholder": "Abidjan",
             "country": "País"
         },
+        "account": {
+            "title": "Conta de utilizador",
+            "subtitle": "Associar uma conta existente para o portal de parceiros",
+            "user": "Conta de utilizador",
+            "userNone": "Nenhuma conta associada",
+            "hint": "Apenas contas com uma função de corretor, ainda não associadas a outro corretor desta filial, são apresentadas."
+        },
         "status": {
             "title": "Estado",
             "active": "Corretor ativo",

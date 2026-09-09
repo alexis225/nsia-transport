@@ -125,6 +125,13 @@
             "cityPlaceholder": "Abidjan",
             "country": "Country"
         },
+        "account": {
+            "title": "User account",
+            "subtitle": "Link an existing account for the partner portal",
+            "user": "User account",
+            "userNone": "No account linked",
+            "hint": "Only accounts with a broker role, not already linked to another broker in this subsidiary, are shown."
+        },
         "status": {
             "title": "Status",
             "active": "Active broker",

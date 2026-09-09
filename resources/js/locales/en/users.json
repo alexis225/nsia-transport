@@ -56,12 +56,26 @@
             "phone": "Phone",
             "role": "Role",
             "roleNone": "No role",
+            "broker": "Broker to link",
+            "brokerNone": "No broker",
             "tenant": "Subsidiary",
             "tenantNone": "No subsidiary"
         },
         "actions": {
             "saving": "Saving…",
             "save": "Save"
+        },
+        "resetPassword": {
+            "title": "Password",
+            "subtitle": "Set a new password for this user",
+            "newPassword": "New password *",
+            "newPasswordPlaceholder": "8 characters minimum",
+            "confirmPassword": "Confirm password *",
+            "confirmPasswordPlaceholder": "Retype the password",
+            "saving": "Resetting…",
+            "save": "Reset password",
+            "saved": "Password reset. The user was signed out of all sessions.",
+            "warning": "The user will be signed out of all active sessions."
         }
     },
     "index": {
