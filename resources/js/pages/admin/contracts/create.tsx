@@ -1346,6 +1346,7 @@ export function ContractForm({
                                                                                   value,
                                                                           ),
                                                                 );
+
                                                                 if (
                                                                     !e.target
                                                                         .checked
@@ -1437,6 +1438,7 @@ export function ContractForm({
                                                             r.conditioning_type ===
                                                             type,
                                                     );
+
                                                     if (idx === -1) {
                                                         next.push({
                                                             ...row,
@@ -1448,6 +1450,7 @@ export function ContractForm({
                                                             [field]: value,
                                                         };
                                                     }
+
                                                     setData(
                                                         'premium_rates',
                                                         next,
