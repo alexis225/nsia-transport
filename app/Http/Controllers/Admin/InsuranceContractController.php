@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Broker;
 use App\Models\Coinsurer;
 use App\Models\CommissionRule;
+use App\Models\ContractPremiumRate;
 use App\Models\Expert;
 use App\Models\Incoterm;
 use App\Models\InsuranceContract;
@@ -42,7 +43,11 @@ class InsuranceContractController extends Controller
             ->when(! $isSA, fn ($q) => $q->where('tenant_id', $user->tenant_id))
             ->when($request->search, fn ($q) => $q->where(fn ($q) => $q->where('contract_number', 'ilike', "%{$request->search}%")
                 ->orWhere('insured_name', 'ilike', "%{$request->search}%")
+                ->orWhere('subscriber_name', 'ilike', "%{$request->search}%")
                 ->orWhereHas('broker', fn ($q) => $q->where('name', 'ilike', "%{$request->search}%"))
+                ->orWhereHas('certificates', fn ($q) => $q->where('certificate_number', 'ilike', "%{$request->search}%")
+                    ->orWhere('policy_number', 'ilike', "%{$request->search}%")
+                )
             )
             )
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
@@ -107,6 +112,8 @@ class InsuranceContractController extends Controller
         unset($validated['coinsurers']);
         $expertIds = $validated['expert_ids'] ?? [];
         unset($validated['expert_ids']);
+        $premiumRates = $validated['premium_rates'] ?? [];
+        unset($validated['premium_rates']);
 
         $tenant = Tenant::find($validated['tenant_id']);
         $validated['contract_number'] = InsuranceContract::generateContractNumber(
@@ -126,6 +133,7 @@ class InsuranceContractController extends Controller
         $this->syncCommissionRate($contract, $commissionRate, $request->user());
         $this->syncCoinsurers($contract, $coinsurers);
         $contract->experts()->sync($expertIds);
+        $this->syncPremiumRates($contract, $premiumRates);
 
         AuditLog::create([
             'tenant_id' => $contract->tenant_id,
@@ -194,6 +202,7 @@ class InsuranceContractController extends Controller
             'approvedBy:id,first_name,last_name',
             'coinsurers:id,name,email,phone',
             'experts:id,name,email,phone',
+            'premiumRates',
         ]);
 
         return Inertia::render('admin/contracts/show', [
@@ -212,7 +221,7 @@ class InsuranceContractController extends Controller
         $this->authorizeTenant($contract);
         abort_if($contract->status === InsuranceContract::STATUS_ACTIVE, 403, 'Un contrat actif ne peut pas être modifié directement.');
 
-        $contract->load(['broker', 'transportMode', 'tenant', 'coinsurers', 'experts']);
+        $contract->load(['broker', 'transportMode', 'tenant', 'coinsurers', 'experts', 'premiumRates']);
         $user = auth()->user();
         $isSA = $user->hasRole('super_admin');
 
@@ -248,6 +257,8 @@ class InsuranceContractController extends Controller
         unset($validated['coinsurers']);
         $expertIds = $validated['expert_ids'] ?? [];
         unset($validated['expert_ids']);
+        $premiumRates = $validated['premium_rates'] ?? [];
+        unset($validated['premium_rates']);
         $validated['updated_by'] = $request->user()->id;
 
         // Devise imposée par la filiale — tous les montants du contrat et
@@ -261,6 +272,7 @@ class InsuranceContractController extends Controller
         $this->syncCommissionRate($contract, $commissionRate, $request->user());
         $this->syncCoinsurers($contract, $coinsurers);
         $contract->experts()->sync($expertIds);
+        $this->syncPremiumRates($contract, $premiumRates);
 
         $status = 'Contrat mis à jour.';
         if ($exceedsNn300) {
@@ -324,6 +336,24 @@ class InsuranceContractController extends Controller
             ->toArray();
 
         $contract->coinsurers()->sync($sync);
+    }
+
+    // ── Taux R.O./R.G. par type de conditionnement ───────────
+    private function syncPremiumRates(InsuranceContract $contract, array $premiumRates): void
+    {
+        $types = collect($premiumRates)->pluck('conditioning_type')->filter()->all();
+        $contract->premiumRates()->whereNotIn('conditioning_type', $types)->delete();
+
+        foreach ($premiumRates as $row) {
+            if (empty($row['conditioning_type'])) {
+                continue;
+            }
+
+            ContractPremiumRate::updateOrCreate(
+                ['contract_id' => $contract->id, 'conditioning_type' => $row['conditioning_type']],
+                ['rate_ro' => $row['rate_ro'] ?? 0, 'rate_rg' => $row['rate_rg'] ?? 0]
+            );
+        }
     }
 
     // ── Supprimer ────────────────────────────────────────────
@@ -519,6 +549,12 @@ class InsuranceContractController extends Controller
             'transport_mode_id' => ['nullable', 'exists:transport_modes,id'],
             'conditioning_types' => ['nullable', 'array'],
             'conditioning_types.*' => ['string', 'in:CONTAINER,GROUPAGE,CONVENTIONNEL,BOUT_EN_BOUT,VRAC'],
+            // Taux R.O./R.G. spécifiques par type de conditionnement —
+            // uniquement parmi les types cochés ci-dessus (voir plus bas).
+            'premium_rates' => ['nullable', 'array'],
+            'premium_rates.*.conditioning_type' => ['required', 'string', 'in:CONTAINER,GROUPAGE,CONVENTIONNEL,BOUT_EN_BOUT,VRAC', 'distinct'],
+            'premium_rates.*.rate_ro' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'premium_rates.*.rate_rg' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'covered_countries' => ['nullable', 'array'],
             'effective_date' => ['required', 'date'],
             'expiry_date' => ['required', 'date', 'after:effective_date'],
@@ -560,6 +596,32 @@ class InsuranceContractController extends Controller
                     'Le montant des Accessoires est inférieur au minimum réglementaire de cette filiale (%s).',
                     number_format((float) $minimums->min_accessories_amount, 0, ',', ' ')
                 ));
+            }
+
+            foreach ($request->input('premium_rates', []) as $i => $row) {
+                $rowRate = (float) ($row['rate_ro'] ?? 0) + (float) ($row['rate_rg'] ?? 0);
+                if ($rowRate < (float) $minimums->min_rate_pct) {
+                    $validator->errors()->add("premium_rates.$i.rate_ro", sprintf(
+                        'Le taux du type « %s » (R.O. + R.G. = %s%%) est inférieur au minimum réglementaire de %s%%.',
+                        $row['conditioning_type'] ?? '',
+                        rtrim(rtrim(number_format($rowRate, 4, '.', ''), '0'), '.'),
+                        rtrim(rtrim(number_format((float) $minimums->min_rate_pct, 4, '.', ''), '0'), '.')
+                    ));
+                }
+            }
+        });
+
+        // Un taux par type de conditionnement ne peut être défini que pour
+        // un type effectivement coché sur le contrat.
+        $validator->after(function ($validator) use ($request) {
+            $allowedTypes = $request->input('conditioning_types', []) ?? [];
+            foreach ($request->input('premium_rates', []) as $i => $row) {
+                if (! empty($row['conditioning_type']) && ! in_array($row['conditioning_type'], $allowedTypes, true)) {
+                    $validator->errors()->add(
+                        "premium_rates.$i.conditioning_type",
+                        'Ce type de conditionnement n\'est pas sélectionné sur le contrat.'
+                    );
+                }
             }
         });
 

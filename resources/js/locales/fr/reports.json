@@ -24,7 +24,7 @@
             "all": "Tous modes transport",
             "SEA": "Maritime",
             "AIR": "Aérien",
-            "ROAD": "Routier",
+            "ROAD": "Terrestre",
             "RAIL": "Ferroviaire",
             "MULTIMODAL": "Multimodal",
             "AUTRE": "Autre"

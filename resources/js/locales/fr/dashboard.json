@@ -130,7 +130,7 @@
             "labels": {
                 "SEA": "Maritime",
                 "AIR": "Aérien",
-                "ROAD": "Routier",
+                "ROAD": "Terrestre",
                 "RAIL": "Ferroviaire",
                 "AUTRE": "Autre"
             }

@@ -106,6 +106,11 @@ export default function ContractCreate({
         incoterm_code: '',
         transport_mode_id: '',
         conditioning_types: [] as string[],
+        premium_rates: [] as {
+            conditioning_type: string;
+            rate_ro: string;
+            rate_rg: string;
+        }[],
         covered_countries: [] as string[],
         effective_date: new Date().toISOString().slice(0, 10),
         expiry_date: '',
@@ -1341,6 +1346,24 @@ export function ContractForm({
                                                                                   value,
                                                                           ),
                                                                 );
+                                                                if (
+                                                                    !e.target
+                                                                        .checked
+                                                                ) {
+                                                                    setData(
+                                                                        'premium_rates',
+                                                                        (
+                                                                            data.premium_rates ??
+                                                                            []
+                                                                        ).filter(
+                                                                            (r: {
+                                                                                conditioning_type: string;
+                                                                            }) =>
+                                                                                r.conditioning_type !==
+                                                                                value,
+                                                                        ),
+                                                                    );
+                                                                }
                                                             }}
                                                         />
                                                         {label}
@@ -1360,6 +1383,191 @@ export function ContractForm({
                                         </p>
                                     </div>
                                 </div>
+                                {(data.conditioning_types ?? []).length > 0 && (
+                                    <div className="grid gap-2">
+                                        <Label className="cf-label">
+                                            {t(
+                                                'form.coverage.premiumRatesByType',
+                                            )}
+                                        </Label>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 6,
+                                            }}
+                                        >
+                                            {(
+                                                data.conditioning_types ?? []
+                                            ).map((type: string) => {
+                                                const rows: {
+                                                    conditioning_type: string;
+                                                    rate_ro: string;
+                                                    rate_rg: string;
+                                                }[] = data.premium_rates ?? [];
+                                                const row = rows.find(
+                                                    (r) =>
+                                                        r.conditioning_type ===
+                                                        type,
+                                                ) ?? {
+                                                    conditioning_type: type,
+                                                    rate_ro: '',
+                                                    rate_rg: '',
+                                                };
+                                                const rowErrors =
+                                                    errors as Record<
+                                                        string,
+                                                        string
+                                                    >;
+                                                const rowIndex = rows.findIndex(
+                                                    (r) =>
+                                                        r.conditioning_type ===
+                                                        type,
+                                                );
+
+                                                const updateRow = (
+                                                    field:
+                                                        | 'rate_ro'
+                                                        | 'rate_rg',
+                                                    value: string,
+                                                ) => {
+                                                    const next = [...rows];
+                                                    const idx = next.findIndex(
+                                                        (r) =>
+                                                            r.conditioning_type ===
+                                                            type,
+                                                    );
+                                                    if (idx === -1) {
+                                                        next.push({
+                                                            ...row,
+                                                            [field]: value,
+                                                        });
+                                                    } else {
+                                                        next[idx] = {
+                                                            ...next[idx],
+                                                            [field]: value,
+                                                        };
+                                                    }
+                                                    setData(
+                                                        'premium_rates',
+                                                        next,
+                                                    );
+                                                };
+
+                                                const typeLabel =
+                                                    {
+                                                        CONTAINER: t(
+                                                            'form.coverage.conditioningContainer',
+                                                        ),
+                                                        CONVENTIONNEL: t(
+                                                            'form.coverage.conditioningConventional',
+                                                        ),
+                                                        VRAC: t(
+                                                            'form.coverage.conditioningBulk',
+                                                        ),
+                                                        GROUPAGE: t(
+                                                            'form.coverage.conditioningGroupage',
+                                                        ),
+                                                        BOUT_EN_BOUT: t(
+                                                            'form.coverage.conditioningEndToEnd',
+                                                        ),
+                                                    }[type] ?? type;
+
+                                                return (
+                                                    <div
+                                                        key={type}
+                                                        style={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns:
+                                                                '1fr 110px 110px',
+                                                            gap: 8,
+                                                            alignItems: 'start',
+                                                            padding: '8px 10px',
+                                                            background:
+                                                                '#f8fafc',
+                                                            border: '1.5px solid #e2e8f0',
+                                                            borderRadius: 8,
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                fontSize: 12,
+                                                                fontWeight: 500,
+                                                                color: '#334155',
+                                                                alignSelf:
+                                                                    'center',
+                                                            }}
+                                                        >
+                                                            {typeLabel}
+                                                        </div>
+                                                        <div>
+                                                            <Input
+                                                                className="h-9"
+                                                                type="number"
+                                                                step="0.0001"
+                                                                min={0}
+                                                                placeholder={t(
+                                                                    'form.financial.rateRO',
+                                                                )}
+                                                                value={
+                                                                    row.rate_ro
+                                                                }
+                                                                onChange={(e) =>
+                                                                    updateRow(
+                                                                        'rate_ro',
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                            />
+                                                            <InputError
+                                                                message={
+                                                                    rowIndex >=
+                                                                    0
+                                                                        ? rowErrors[
+                                                                              `premium_rates.${rowIndex}.rate_ro`
+                                                                          ]
+                                                                        : undefined
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <Input
+                                                                className="h-9"
+                                                                type="number"
+                                                                step="0.0001"
+                                                                min={0}
+                                                                placeholder={t(
+                                                                    'form.financial.rateRG',
+                                                                )}
+                                                                value={
+                                                                    row.rate_rg
+                                                                }
+                                                                onChange={(e) =>
+                                                                    updateRow(
+                                                                        'rate_rg',
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <p
+                                            style={{
+                                                fontSize: 11,
+                                                color: '#94a3b8',
+                                            }}
+                                        >
+                                            {t(
+                                                'form.coverage.premiumRatesByTypeHint',
+                                            )}
+                                        </p>
+                                    </div>
+                                )}
                                 <div className="grid gap-2">
                                     <Label className="cf-label">
                                         {t('form.coverage.clauses')}

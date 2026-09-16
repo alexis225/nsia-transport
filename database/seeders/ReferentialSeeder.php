@@ -348,7 +348,7 @@ class ReferentialSeeder extends Seeder
         $modes = [
             ['code' => 'SEA',        'name_fr' => 'Maritime',    'name_en' => 'Sea',        'icon' => 'ship'],
             ['code' => 'AIR',        'name_fr' => 'Aérien',      'name_en' => 'Air',        'icon' => 'plane'],
-            ['code' => 'ROAD',       'name_fr' => 'Routier',     'name_en' => 'Road',       'icon' => 'truck'],
+            ['code' => 'ROAD',       'name_fr' => 'Terrestre',   'name_en' => 'Road',       'icon' => 'truck'],
             ['code' => 'RAIL',       'name_fr' => 'Ferroviaire', 'name_en' => 'Rail',       'icon' => 'train'],
             ['code' => 'MULTIMODAL', 'name_fr' => 'Multimodal',  'name_en' => 'Multimodal', 'icon' => 'layers'],
             ['code' => 'POSTAL',     'name_fr' => 'Postal',      'name_en' => 'Postal',     'icon' => 'package'],

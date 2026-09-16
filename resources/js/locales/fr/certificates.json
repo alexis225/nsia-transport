@@ -4,7 +4,7 @@
         "transport": {
             "SEA": "Maritime",
             "AIR": "Aérien",
-            "ROAD": "Routier",
+            "ROAD": "Terrestre",
             "RAIL": "Ferroviaire",
             "MULTIMODAL": "Multimodal",
             "RIVER": "Fluvial / Lagunaire"

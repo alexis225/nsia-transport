@@ -177,6 +177,31 @@ class InsuranceContract extends Model
         return $this->hasMany(Certificate::class, 'contract_id');
     }
 
+    // Taux R.O./R.G. spécifiques par type de conditionnement — surchargent
+    // rate_ro/rate_rg quand un type précis est renseigné (voir premiumRateFor()).
+    public function premiumRates(): HasMany
+    {
+        return $this->hasMany(ContractPremiumRate::class, 'contract_id');
+    }
+
+    // Taux R.O./R.G. applicables pour un type de conditionnement donné :
+    // le taux spécifique du contrat s'il existe (contract_premium_rates),
+    // sinon le taux global du contrat (rate_ro/rate_rg).
+    public function premiumRateFor(?string $conditioningType): array
+    {
+        if ($conditioningType) {
+            $override = $this->relationLoaded('premiumRates')
+                ? $this->premiumRates->firstWhere('conditioning_type', $conditioningType)
+                : $this->premiumRates()->where('conditioning_type', $conditioningType)->first();
+
+            if ($override) {
+                return ['rate_ro' => (float) $override->rate_ro, 'rate_rg' => (float) $override->rate_rg];
+            }
+        }
+
+        return ['rate_ro' => (float) $this->rate_ro, 'rate_rg' => (float) $this->rate_rg];
+    }
+
     // ── Scopes ───────────────────────────────────────────────
     public function scopeActive($query)
     {

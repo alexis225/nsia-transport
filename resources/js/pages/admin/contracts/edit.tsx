@@ -33,6 +33,11 @@ interface Contract {
     incoterm_code: string | null;
     transport_mode_id: number | null;
     conditioning_types: string[] | null;
+    premium_rates: {
+        conditioning_type: string;
+        rate_ro: string;
+        rate_rg: string;
+    }[];
     covered_countries: string[];
     effective_date: string;
     expiry_date: string;
@@ -111,6 +116,11 @@ export default function ContractEdit({
             ? String(contract.transport_mode_id)
             : '',
         conditioning_types: contract.conditioning_types ?? [],
+        premium_rates: (contract.premium_rates ?? []).map((r) => ({
+            conditioning_type: r.conditioning_type,
+            rate_ro: r.rate_ro ?? '',
+            rate_rg: r.rate_rg ?? '',
+        })),
         covered_countries: contract.covered_countries ?? [],
         effective_date: contract.effective_date,
         expiry_date: contract.expiry_date,

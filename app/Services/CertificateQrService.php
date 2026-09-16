@@ -34,8 +34,10 @@ class CertificateQrService
                 md5($certificate->id.$certificate->certificate_number.now()->timestamp),
                 0, 16
             );
-            $certificate->update(['qr_token' => $token]);
-            $certificate->refresh();
+            // forceFill() : qr_token n'est pas mass-assignable (champ
+            // interne, jamais saisi par l'utilisateur) — update() le
+            // laisserait silencieusement de côté.
+            $certificate->forceFill(['qr_token' => $token])->save();
         }
 
         return $certificate->qr_token;
@@ -100,7 +102,7 @@ class CertificateQrService
     public function recordVerification(Certificate $certificate): void
     {
         $certificate->increment('verification_count');
-        $certificate->update(['last_verified_at' => now()]);
+        $certificate->forceFill(['last_verified_at' => now()])->save();
     }
 
     /**
@@ -110,8 +112,7 @@ class CertificateQrService
      */
     public function regenerateToken(Certificate $certificate): string
     {
-        $certificate->update(['qr_token' => null]);
-        $certificate->refresh();
+        $certificate->forceFill(['qr_token' => null])->save();
 
         return $this->ensureToken($certificate);
     }

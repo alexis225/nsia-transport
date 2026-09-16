@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ApprovalRequest;
 use App\Models\AuditLog;
 use App\Models\Broker;
 use App\Models\Certificate;
 use App\Models\CertificatePrintTemplate;
 use App\Models\CertificateTemplate;
+use App\Models\ContractPremiumRate;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Models\InsuranceContract;
@@ -28,7 +28,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
@@ -237,7 +237,8 @@ class CertificateController extends Controller
         $primeBreakdown = $this->buildPrimeBreakdown(
             $contract, $validated['insured_value'], $template,
             $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null,
-            (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0)
+            (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0),
+            $validated['voyage_mode'] ?? null
         );
         [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
 
@@ -288,7 +289,8 @@ class CertificateController extends Controller
             $primeBreakdown = $this->buildPrimeBreakdown(
                 $contract, (float) $validated['insured_value'], $template,
                 $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null,
-                (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0)
+                (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0),
+                $validated['voyage_mode'] ?? null
             );
             [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
         }
@@ -509,7 +511,8 @@ class CertificateController extends Controller
         $primeBreakdown = $this->buildPrimeBreakdown(
             $contract, $validated['insured_value'], $certificate->template,
             $validated['transport_type'] ?? null, $validated['destination_country_code'] ?? null,
-            (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0)
+            (float) ($validated['rate_divers'] ?? 0), (float) ($validated['rate_surprime'] ?? 0),
+            $validated['voyage_mode'] ?? null
         );
         [$primeTotal, $primeNette] = $this->extractPrimeTotals($primeBreakdown);
 
@@ -589,19 +592,6 @@ class CertificateController extends Controller
         $this->authorizeTenant($certificate->tenant_id);
         abort_if(! $request->user()->can('certificates.validate'), 403);
         abort_if($certificate->status !== Certificate::STATUS_SUBMITTED, 422);
-
-        // Une escalade NN300 en cours doit être validée via /admin/approvals,
-        // pas contournée par une émission directe. ValidationException (pas
-        // abort_if) pour qu'Inertia affiche l'erreur normalement au lieu de
-        // basculer sur sa page de secours (réponse non-Inertia).
-        if (ApprovalRequest::where('entity_type', 'CERTIFICATE')
-            ->where('entity_id', $certificate->id)
-            ->where('status', ApprovalRequest::STATUS_PENDING)
-            ->exists()) {
-            throw ValidationException::withMessages([
-                'certificate' => 'Ce certificat est en cours de validation NN300 — voir Escalades NN300.',
-            ]);
-        }
 
         $request->validate(['notes' => ['nullable', 'string', 'max:500']]);
 
@@ -778,7 +768,8 @@ class CertificateController extends Controller
         ?string $transportType = null,
         ?string $destinationCountryCode = null,
         float $rateDivers = 0,
-        float $rateSurprime = 0
+        float $rateSurprime = 0,
+        ?string $conditioningType = null
     ): array {
         // Utiliser les lignes du template si disponibles — Prime Nette
         // positionnée juste avant Accessoires (cf. modèles filiale).
@@ -803,7 +794,15 @@ class CertificateController extends Controller
         $taxRule = TaxRule::findApplicable($contract->tenant_id, $transportMode?->id, $destinationCountryCode);
         $taxRatePct = (float) ($taxRule->rate_pct ?? 0);
 
-        $rateOf = fn (string $field): float => (float) ($contract->{$field} ?? 0);
+        // R.O./R.G. : taux spécifique du contrat pour ce type de
+        // conditionnement s'il existe, sinon le taux global du contrat
+        // (voir InsuranceContract::premiumRateFor()).
+        $contractRates = $contract->premiumRateFor($conditioningType);
+        $rateOf = fn (string $field): float => match ($field) {
+            'rate_ro' => $contractRates['rate_ro'],
+            'rate_rg' => $contractRates['rate_rg'],
+            default => (float) ($contract->{$field} ?? 0),
+        };
         $lineAmount = fn (float $rate): float => $rate > 0 ? round($insuredValue * $rate / 100, 2) : 0;
 
         $ro = $lineAmount($rateOf('rate_ro'));
@@ -872,7 +871,7 @@ class CertificateController extends Controller
     {
         $req = fn (string $strict) => $draft ? 'nullable' : $strict;
 
-        return $request->validate([
+        $validator = Validator::make($request->all(), [
             'contract_id' => ['required', 'uuid', 'exists:insurance_contracts,id'],
             'insured_name' => [$req('required'), 'string', 'max:200'],
             'insured_ref' => ['nullable', 'string', 'max:200'],
@@ -903,6 +902,30 @@ class CertificateController extends Controller
             'exchange_currency' => ['nullable', 'size:3'],
             'exchange_rate' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        // Le type de conditionnement (voyage_mode, cf. sélecteur "Mode" du
+        // formulaire), quand il correspond à un code connu, doit faire
+        // partie de ceux cochés sur le contrat — détermine le taux R.O./R.G.
+        // appliqué s'il en existe un spécifique (cf.
+        // InsuranceContract::premiumRateFor()).
+        $validator->after(function ($validator) use ($request) {
+            $conditioningType = $request->input('voyage_mode');
+            $contractId = $request->input('contract_id');
+            if (! $conditioningType || ! in_array($conditioningType, ContractPremiumRate::TYPES, true) || ! $contractId) {
+                return;
+            }
+
+            $contract = InsuranceContract::find($contractId);
+            $allowedTypes = $contract?->conditioning_types ?? [];
+            if ($allowedTypes && ! in_array($conditioningType, $allowedTypes, true)) {
+                $validator->errors()->add(
+                    'voyage_mode',
+                    'Ce type de conditionnement n\'est pas autorisé par le contrat.'
+                );
+            }
+        });
+
+        return $validator->validate();
     }
 
     private function log(Certificate $cert, Request $request, string $action, array $extra = [], string $severity = 'INFO'): void
@@ -1000,7 +1023,7 @@ class CertificateController extends Controller
         abort_if($certificate->status !== Certificate::STATUS_ISSUED, 422,
             'Le QR code n\'est disponible que pour les certificats émis.');
         // Invalider l'ancien token et en générer un nouveau
-        $certificate->update(['qr_token' => null]);
+        $certificate->forceFill(['qr_token' => null])->save();
         $qrService->ensureToken($certificate);
 
         // Regénérer le PDF avec le nouveau QR

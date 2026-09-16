@@ -14,6 +14,7 @@ use Illuminate\Database\Seeder;
  *  2. ReferentialSeeder         → pays, devises, incoterms, modes transport
  *  3. RolesAndPermissionsSeeder → rôles Spatie + toutes les permissions
  *  4. UserSeeder                → super admin + 1 user par rôle par filiale
+ *  7. TaxRuleSeeder             → barème officiel de taxes par filiale
  *
  * Lancer tout : php artisan db:seed
  * Lancer un seul : php artisan db:seed --class=UserSeeder
@@ -36,6 +37,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,        // 4. utilisateurs
             CertificateTemplateSeeder::class,       // 5. templates de certificat
             ApprovalWorkflowSeeder::class,    // 6. workflow d'approbation NN300
+            TaxRuleSeeder::class,             // 7. barème officiel de taxes
             // 1 workflow NN300 par filiale :
             //   Seuil  : 15% de la valeur du contrat (paramétrable)
             //   Étape 1 : admin_filiale (48h ouvrables)
