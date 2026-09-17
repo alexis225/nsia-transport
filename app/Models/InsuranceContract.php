@@ -34,7 +34,7 @@ class InsuranceContract extends Model
         'plein', 'escalade_enabled', 'escalade_threshold_pct',
         'premium_rate', 'deductible',
         'rate_ro', 'rate_rg', 'accessories_amount', 'rate_tax',
-        'coverage_type', 'clauses', 'exclusions',
+        'coverage_type', 'clauses', 'exclusions', 'special_conditions',
         'incoterm_code', 'transport_mode_id', 'conditioning_types',
         'covered_countries',
         'effective_date', 'expiry_date', 'notice_period_days',

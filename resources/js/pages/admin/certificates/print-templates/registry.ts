@@ -85,6 +85,17 @@ export const PRINT_TEMPLATES: PrintTemplate[] = [
         orientation: 'portrait',
         tenantCode: 'BJ',
     },
+    {
+        id: 'guce',
+        name: 'Modèle GUCE',
+        country: "Côte d'Ivoire",
+        countryFlag: '🇨🇮',
+        description:
+            "Certificat d'assurance GUCE — document complet NSIA Côte d'Ivoire (CIMA)",
+        paperSize: 'A4',
+        orientation: 'portrait',
+        tenantCode: 'CI',
+    },
     // ── Ajouter les nouveaux modèles ici au fur et à mesure ──
 ];
 

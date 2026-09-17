@@ -4,6 +4,7 @@ import TemplateBenin from './print-templates/benin';
 import TemplateCameroun from './print-templates/cameroun';
 import TemplateCongo from './print-templates/congo';
 import TemplateGabon from './print-templates/gabon';
+import TemplateGuce from './print-templates/guce';
 import TemplateGuineeConakry from './print-templates/guinee-conakry';
 import type { FieldPosition } from './print-templates/overlay-types';
 import { PRINT_TEMPLATES } from './print-templates/registry';
@@ -37,6 +38,7 @@ const TEMPLATE_COMPONENTS: Record<
     cameroun: TemplateCameroun,
     congo: TemplateCongo,
     benin: TemplateBenin,
+    guce: TemplateGuce,
     // ── Enregistrer ici les nouveaux templates ──
 };
 

@@ -89,5 +89,8 @@ export function buildFieldValues(
         issued_by: cert.issued_by
             ? `${cert.issued_by.first_name} ${cert.issued_by.last_name}`
             : '',
+        special_conditions: contract?.special_conditions ?? '',
+        broker_name: contract?.broker?.name ?? '',
+        expert_name: contract?.experts?.[0]?.name ?? '',
     };
 }

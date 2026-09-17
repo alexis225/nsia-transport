@@ -74,6 +74,9 @@ export interface CertificateForPrint {
         insured_name: string;
         insured_address: string | null;
         coverage_type: string | null;
+        special_conditions: string | null;
+        broker: { name: string } | null;
+        experts: { name: string }[];
     } | null;
     template: { name: string; is_bilingual: boolean } | null;
     issued_by: { first_name: string; last_name: string } | null;

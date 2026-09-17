@@ -359,7 +359,9 @@ class CertificateController extends Controller
 
         $certificate->load([
             'tenant',
-            'contract:id,contract_number,insured_name,insured_address,coverage_type,rate_ro,rate_rg,accessories_amount,rate_tax',
+            'contract:id,contract_number,insured_name,insured_address,coverage_type,rate_ro,rate_rg,accessories_amount,rate_tax,special_conditions,broker_id',
+            'contract.broker:id,name',
+            'contract.experts:id,name',
             'template:id,name,is_bilingual',
             'issuedBy:id,first_name,last_name',
         ]);
@@ -376,6 +378,7 @@ class CertificateController extends Controller
             'CM' => 'cameroun',
             'CG' => 'congo',
             'BJ' => 'benin',
+            'CI' => 'guce',
         ];
         $defaultTemplate = $templateByTenantCode[$certificate->tenant?->code] ?? 'guinee-conakry';
         $templateId = $request->query('template', $defaultTemplate);
