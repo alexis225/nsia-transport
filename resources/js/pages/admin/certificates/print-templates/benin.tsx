@@ -61,8 +61,20 @@ export const BENIN_POSITIONS: FieldPosition[] = [
     { key: 'marks', top: 113.41, left: 117.21, width: 75.94, fontSize: 11 },
 
     // ── NAVIRE / VOYAGE ──
-    { key: 'vessel_name', top: 134.17, left: 17.06, width: 81.76, fontSize: 11 },
-    { key: 'voyage_from', top: 134.85, left: 104.11, width: 38.1, fontSize: 11 },
+    {
+        key: 'vessel_name',
+        top: 134.17,
+        left: 17.06,
+        width: 81.76,
+        fontSize: 11,
+    },
+    {
+        key: 'voyage_from',
+        top: 134.85,
+        left: 104.11,
+        width: 38.1,
+        fontSize: 11,
+    },
     { key: 'voyage_to', top: 134.14, left: 149.22, width: 45.24, fontSize: 11 },
 
     // ── VALEUR D'ASSURANCE ──
@@ -91,8 +103,20 @@ export const BENIN_POSITIONS: FieldPosition[] = [
     },
 
     // ── COURTIER / EXPERT ──
-    { key: 'expert_name', top: 164.45, left: 17.67, width: 83.08, fontSize: 13 },
-    { key: 'broker_name', top: 164.3, left: 103.45, width: 90.22, fontSize: 13 },
+    {
+        key: 'expert_name',
+        top: 164.45,
+        left: 17.67,
+        width: 83.08,
+        fontSize: 13,
+    },
+    {
+        key: 'broker_name',
+        top: 164.3,
+        left: 103.45,
+        width: 90.22,
+        fontSize: 13,
+    },
 
     // ── RESUME DES PRINCIPALES CONDITIONS D'ASSURANCE ──
     {
@@ -122,7 +146,13 @@ export const BENIN_POSITIONS: FieldPosition[] = [
         width: 26.99,
         fontSize: 10,
     },
-    { key: 'prime_total', top: 229.87, left: 131.18, width: 61.91, fontSize: 13 },
+    {
+        key: 'prime_total',
+        top: 229.87,
+        left: 131.18,
+        width: 61.91,
+        fontSize: 13,
+    },
     {
         key: 'amount_prime_nette',
         top: 206.42,
@@ -137,7 +167,13 @@ export const BENIN_POSITIONS: FieldPosition[] = [
         width: 62.97,
         fontSize: 10,
     },
-    { key: 'amount_taxe', top: 223.43, left: 131.31, width: 63.5, fontSize: 10 },
+    {
+        key: 'amount_taxe',
+        top: 223.43,
+        left: 131.31,
+        width: 63.5,
+        fontSize: 10,
+    },
 ];
 
 interface Props {
