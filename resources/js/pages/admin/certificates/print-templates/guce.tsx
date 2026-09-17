@@ -115,15 +115,16 @@ export default function TemplateGuce({ certificate: cert }: Props) {
                         <small>ASSURANCES</small>
                     </div>
                     <div className="legal">
-                        Société Anonyme au capital de F.CFA {settings.capital ?? ''}{' '}
-                        entièrement libéré. Entreprise régie par le code des
-                        Assurances CIMA.
+                        Société Anonyme au capital de F.CFA{' '}
+                        {settings.capital ?? ''} entièrement libéré. Entreprise
+                        régie par le code des Assurances CIMA.
                         <br />
                         R.C. {settings.rccm ?? ''} — Siège Social :{' '}
                         {settings.siege_social ?? ''}
                         <br />
                         Tél : {settings.phone ?? ''} — Site Web :{' '}
-                        {settings.website ?? ''} — email : {settings.email ?? ''}
+                        {settings.website ?? ''} — email :{' '}
+                        {settings.email ?? ''}
                     </div>
                 </div>
                 <div className="ref-box">
@@ -286,9 +287,7 @@ export default function TemplateGuce({ certificate: cert }: Props) {
                         <div className="guce-value">{f.insured_value}</div>
                     </div>
                     <div className="guce-cell" style={{ flex: 1.6 }}>
-                        <div className="guce-label">
-                            (En lettres / letters)
-                        </div>
+                        <div className="guce-label">(En lettres / letters)</div>
                         <div className="guce-value">
                             {f.insured_value_letters}
                         </div>
@@ -315,11 +314,16 @@ export default function TemplateGuce({ certificate: cert }: Props) {
 
             {/* Résumé conditions + décompte de prime */}
             <div className="guce-bottom">
-                <div className="guce-left-col" style={{ border: '1pt solid #111' }}>
+                <div
+                    className="guce-left-col"
+                    style={{ border: '1pt solid #111' }}
+                >
                     <div style={{ padding: '2mm 3mm' }}>
                         <div className="guce-label">
                             Résumé des principales conditions d'assurance
-                            <small>Statement of main insurance conditions</small>
+                            <small>
+                                Statement of main insurance conditions
+                            </small>
                         </div>
                         <div className="guce-value">{f.special_conditions}</div>
                     </div>
@@ -351,12 +355,16 @@ export default function TemplateGuce({ certificate: cert }: Props) {
                                 <td className="amt">{f.amount_surprime}</td>
                             </tr>
                             <tr>
-                                <td className="lbl">Prime Nette / Net premium</td>
+                                <td className="lbl">
+                                    Prime Nette / Net premium
+                                </td>
                                 <td className="rate" />
                                 <td className="amt">{f.amount_prime_nette}</td>
                             </tr>
                             <tr>
-                                <td className="lbl">Accessoires / Accessories</td>
+                                <td className="lbl">
+                                    Accessoires / Accessories
+                                </td>
                                 <td className="rate" />
                                 <td className="amt">{f.amount_accessoires}</td>
                             </tr>
@@ -380,8 +388,8 @@ export default function TemplateGuce({ certificate: cert }: Props) {
             {/* Pied de page : signature + mentions légales */}
             <div className="guce-footer">
                 <div className="legal">
-                    Toutes indemnités pour perte ou avaries seront payées,
-                    dans les conditions prévues à l'article 27 des conditions
+                    Toutes indemnités pour perte ou avaries seront payées, dans
+                    les conditions prévues à l'article 27 des conditions
                     générales entre les mains du porteur de l'original du
                     certificat d'assurance et des pièces justificatives de la
                     réclamation.
@@ -393,7 +401,9 @@ export default function TemplateGuce({ certificate: cert }: Props) {
                     documents.
                 </div>
                 <div className="sign">
-                    <div>Fait à {settings.city ?? ''} le : {f.issue_date}</div>
+                    <div>
+                        Fait à {settings.city ?? ''} le : {f.issue_date}
+                    </div>
                     <div style={{ marginTop: '4mm' }}>{f.issued_by}</div>
                 </div>
             </div>
